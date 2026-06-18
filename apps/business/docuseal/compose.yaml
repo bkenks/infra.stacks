@@ -8,4 +8,5 @@ include:
       # Must exist before `up`: the infisical-agent stack runs first, pulls this
       # stack's secrets from Infisical (folder `/docuseal`), and renders them
       # here. See setup.md.
-      # - /dev/shm/apps_docuseal.env
+      - /dev/shm/docuseal.env
+      - /dev/shm/postgres.env
