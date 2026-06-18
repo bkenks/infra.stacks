@@ -778,7 +778,6 @@ executions = [
 
 [[procedure]]
 name = "Restart: infisical-agent"
-config.webhook_secret = "bing40bong!@"
 
 [[procedure.config.stage]]
 name = "Deploy config"
@@ -805,7 +804,7 @@ name = "discord"
 [alerter.config]
 enabled = true
 endpoint.type = "Discord"
-endpoint.params.url = "https://discord.com/api/webhooks/1516461642970435736/3uRv5LdQzc5RSkXVfdfxDVVmbxx2odOSdTuBpkSqOq9lzgrNORN9IsWbVSwYpjTpiNVN"
+endpoint.params.url = "[[DISCORD_ALERTER_WEBHOOK]]"
 
 ##
 
