@@ -124,8 +124,8 @@ run_directory = "./node/cloudflared"
 name = "cloudflared_maboi"
 [stack.config]
 server = "maboi"
-linked_repo = "node"
-run_directory = "./cloudflared"
+linked_repo = "infra.stacks"
+run_directory = "./node/cloudflared"
 
 ##
 
@@ -142,8 +142,8 @@ run_directory = "./cloudflared"
 name = "cloudflared_paiki"
 [stack.config]
 server = "paiki"
-linked_repo = "node"
-run_directory = "./cloudflared"
+linked_repo = "infra.stacks"
+run_directory = "./node/cloudflared"
 
 ##
 
@@ -179,8 +179,8 @@ links = [
   "https://databasus.maboi.homektb.com"
 ]
 poll_for_updates = true
-linked_repo = "node"
-run_directory = "./databasus"
+linked_repo = "infra.stacks"
+run_directory = "./node/databasus"
 file_paths = [
   "compose.yaml",
   "compose.production.yaml"
@@ -202,8 +202,8 @@ links = [
   "https://databasus.paiki.homektb.com"
 ]
 poll_for_updates = true
-linked_repo = "node"
-run_directory = "./databasus"
+linked_repo = "infra.stacks"
+run_directory = "./node/databasus"
 file_paths = [
   "compose.yaml",
   "compose.production.yaml"
@@ -223,8 +223,6 @@ name = "docuseal-prod"
 server = "littlebuddy"
 linked_repo = "infra.stacks"
 run_directory = "./apps/business/docuseal"
-
-##
 
 ##
 
@@ -252,8 +250,8 @@ name = "immich-production"
 [stack.config]
 server = "paiki"
 links = ["https://immich.homektb.com"]
-linked_repo = "apps"
-run_directory = "immich"
+linked_repo = "infra.stacks"
+run_directory = "./apps/personal/immich"
 file_paths = ["compose.yaml"]
 env_file_path = "komodo_vars.env"
 additional_env_files = [
@@ -301,8 +299,8 @@ name = "infisical-agent_maboi"
 tags = ["secret-agent"]
 [stack.config]
 server = "maboi"
-linked_repo = "node"
-run_directory = "./infisical-agent"
+linked_repo = "infra.stacks"
+run_directory = "./node/infisical-agent"
 environment = """
   # VARIABLE = value
 COMPOSE_PROFILES=               standard
@@ -318,8 +316,8 @@ name = "infisical-agent_paiki"
 tags = ["secret-agent"]
 [stack.config]
 server = "paiki"
-linked_repo = "node"
-run_directory = "./infisical-agent"
+linked_repo = "infra.stacks"
+run_directory = "./node/infisical-agent"
 environment = """
 COMPOSE_PROFILES=         standard
 AGENT_HOST=               paiki
@@ -407,8 +405,6 @@ run_directory = "./compose"
 
 ##
 
-##
-
 [[stack]]
 name = "stream"
 [stack.config]
@@ -442,8 +438,8 @@ AGENT_HOST=   littlebuddy
 name = "traefik_maboi"
 [stack.config]
 server = "maboi"
-linked_repo = "node"
-run_directory = "./traefik"
+linked_repo = "infra.stacks"
+run_directory = "./node/traefik"
 extra_args = ["--force-recreate"]
 environment = """
 AGENT_HOST=   maboi
@@ -467,8 +463,8 @@ AGENT_HOST=
 name = "traefik_paiki"
 [stack.config]
 server = "paiki"
-linked_repo = "node"
-run_directory = "./traefik"
+linked_repo = "infra.stacks"
+run_directory = "./node/traefik"
 extra_args = ["--force-recreate"]
 environment = """
 AGENT_HOST=   paiki
