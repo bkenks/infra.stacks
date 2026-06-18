@@ -7,6 +7,10 @@ services:
     volumes:
       - db:/var/lib/postgresql
     restart: always
+    networks:
+      default:
+        aliases:
+          - postgres-shared
     healthcheck:
       test: pg_isready -U ${POSTGRES_USER} -h localhost -d postgres
       interval: 5s
