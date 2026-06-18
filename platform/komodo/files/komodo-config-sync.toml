@@ -43,42 +43,6 @@ enabled = true
 ##
 
 [[stack]]
-name = "bazarr-production"
-template = true
-tags = ["stream"]
-[stack.config]
-repo = "namespace/repo"
-run_directory = "./bazarr"
-file_paths = [
-  "compose.yaml",
-  "compose.production.yaml"
-]
-env_file_path = "komo.env"
-additional_env_files = [
-  { path = "komo.env", track = true }
-]
-environment = """
-  # VARIABLE = value
-DOCKER_VOLUMES = [[DOCKER_VOLUMES]]
-"""
-
-##
-
-[[stack]]
-name = "carbone-production"
-template = true
-[stack.config]
-server = "biggy"
-linked_repo = "apps"
-run_directory = "carbone"
-environment = """
-  # VARIABLE = value
-DOCKER_VOLUMES=[[SRV_DOCKER_VOL]]
-"""
-
-##
-
-[[stack]]
 name = "client_couch-potatoes_prod"
 tags = ["client", "stackform"]
 [stack.config]
