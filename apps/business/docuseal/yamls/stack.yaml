@@ -15,6 +15,7 @@ services:
         aliases:
           - ${APP__NAME:?err}
     labels:
+      traefik.enable: 'true'
       traefik.http.routers.docuseal.rule: 'Host(`docuseal.homektb.com`)'
       traefik.http.routers.docuseal.entrypoints: websecure
       traefik.http.routers.docuseal.tls: 'true'
