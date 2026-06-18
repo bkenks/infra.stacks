@@ -148,55 +148,6 @@ run_directory = "./cloudflared"
 ##
 
 [[stack]]
-name = "convertx-production"
-template = true
-[stack.config]
-server = "biggy"
-links = ["convert.homektb.com"]
-linked_repo = "apps"
-run_directory = "convertx"
-file_paths = ["compose.yaml"]
-env_file_path = "komodo-vars.env"
-additional_env_files = [
-  { path = "config/production.env", track = true }
-]
-compose_cmd_wrapper = """
-bs3 envject \
-CONVERTX_JWT_SECRET \
--- [[COMPOSE_COMMAND]]"""
-compose_cmd_wrapper_include = ["config", "build", "pull", "up", "run"]
-environment = """
-  # VARIABLE = value
-DOCKER_VOLUMES=[[SRV_DOCKER_VOL]]
-ROOT_DOMAIN=[[ROOT_DOMAIN]]
-"""
-
-##
-
-[[stack]]
-name = "databasus"
-template = true
-[stack.config]
-links = [
-  "http://ip:4005",
-  "http://hostname:4005",
-  "https://databasus.homektb.com"
-]
-poll_for_updates = true
-linked_repo = "node"
-webhook_enabled = false
-run_directory = "./databasus"
-file_paths = [
-  "compose.yaml",
-  "compose.production.yaml"
-]
-additional_env_files = [
-  { path = "config/production.env", track = true }
-]
-
-##
-
-[[stack]]
 name = "databasus_littlebuddy"
 [stack.config]
 server = "littlebuddy"
@@ -275,40 +226,6 @@ run_directory = "./apps/business/docuseal"
 
 ##
 
-[[stack]]
-name = "docuseal-production"
-template = true
-[stack.config]
-server = "biggy"
-linked_repo = "apps"
-run_directory = "docuseal"
-file_paths = ["compose.yaml"]
-env_file_path = "komodo_vars.env"
-additional_env_files = [
-  { path = "config/production.env", track = true }
-]
-compose_cmd_wrapper = """
-bs3 envject \
-POSTGRES_USER \
-POSTGRES_PASS \
-DOCUSEAL_SECRET_KEY_BASE \
--- [[COMPOSE_COMMAND]]"""
-compose_cmd_wrapper_include = ["config", "build", "pull", "up", "run"]
-environment = """
-  # VARIABLE = value
-DOCKER_VOLUMES=[[SRV_DOCKER_VOL]]
-ROOT_DOMAIN=[[ROOT_DOMAIN]]
-"""
-
-##
-
-[[stack]]
-name = "forgejo"
-template = true
-[stack.config]
-linked_repo = "infra"
-run_directory = "./forgejo"
-
 ##
 
 [[stack]]
@@ -327,28 +244,6 @@ server = "littlebuddy"
 linked_repo = "infra.stacks"
 run_directory = "./apps/business/frappe"
 ignore_services = ["configurator"]
-
-##
-
-[[stack]]
-name = "gitea"
-template = true
-[stack.config]
-poll_for_updates = true
-linked_repo = "infra"
-run_directory = "./gitea"
-
-##
-
-[[stack]]
-name = "gitea_production"
-template = true
-tags = ["infra"]
-[stack.config]
-server = "littlebuddy"
-poll_for_updates = true
-linked_repo = "infra.stacks"
-run_directory = "./platform/gitea"
 
 ##
 
@@ -460,103 +355,6 @@ run_directory = "./platform/komodo-mcp"
 ##
 
 [[stack]]
-name = "mazanoke-production"
-template = true
-[stack.config]
-server = "biggy"
-linked_repo = "apps"
-run_directory = "./mazanoke"
-file_paths = [
-  "compose.yaml",
-  "compose.production.yaml"
-]
-environment = """
-  # VARIABLE = value
-"""
-
-##
-
-[[stack]]
-name = "n8n-production"
-template = true
-[stack.config]
-server = "biggy"
-linked_repo = "apps"
-run_directory = "n8n"
-file_paths = [
-  "compose.yaml",
-  "compose.production.yaml"
-]
-additional_env_files = [
-  { path = "envs/production.env", track = true }
-]
-compose_cmd_wrapper = """
-# sops exec-env .encrypted.env '[[COMPOSE_COMMAND]]'
-bs3 envject \
-POSTGRES_USER \
-POSTGRES_PASS \
--- [[COMPOSE_COMMAND]]"""
-compose_cmd_wrapper_include = ["config", "build", "pull", "up", "run"]
-environment = """
-  # VARIABLE = value
-DOCKER_VOLUMES=[[SRV_DOCKER_VOL]]
-"""
-
-##
-
-[[stack]]
-name = "openproject-production"
-template = true
-[stack.config]
-server = "biggy"
-linked_repo = "apps"
-run_directory = "./openproject"
-file_paths = [
-  "compose.yaml",
-  "compose.production.yaml"
-]
-env_file_path = "komo.env"
-additional_env_files = [
-  { path = "komo.env", track = true },
-  { path = "config/production.env", track = true }
-]
-compose_cmd_wrapper = """
-bs3 envject POSTGRES_USER POSTGRES_PASS PG_ADMIN_PASS \
-OPEN_PRJ_SECRET_KEY COLLAB_SERVER_SECRET \
--- [[COMPOSE_COMMAND]]"""
-compose_cmd_wrapper_include = ["config", "build", "pull", "up", "run"]
-ignore_services = ["seeder"]
-environment = """
-  # VARIABLE = value
-ROOT_DOMAIN=[[ROOT_DOMAIN]]
-"""
-
-##
-
-[[stack]]
-name = "paperless"
-template = true
-[stack.config]
-server = "biggy"
-linked_repo = "apps"
-run_directory = "paperless"
-env_file_path = "komodo_vars.env"
-additional_env_files = [
-  { path = "config/production.env", track = true }
-]
-pre_deploy.command = """
-  # Add multiple commands on new lines. Supports comments.
-"""
-compose_cmd_wrapper = "bs3 envject PAPERLESS_PG_PASS PAPERLESS_SECRET_KEY -- [[COMPOSE_COMMAND]]"
-compose_cmd_wrapper_include = ["config", "build", "pull", "up", "run"]
-environment = """
-  # VARIABLE = value
-DOCKER_VOLUMES=[[SRV_DOCKER_VOL]]
-"""
-
-##
-
-[[stack]]
 name = "paperless-production"
 [stack.config]
 server = "littlebuddy"
@@ -580,25 +378,6 @@ server = "littlebuddy"
 linked_repo = "infra.stacks"
 webhook_enabled = false
 run_directory = "./databases/postgres"
-
-##
-
-[[stack]]
-name = "samba-biggy"
-template = true
-[stack.config]
-server = "biggy"
-linked_repo = "node"
-run_directory = "samba"
-env_file_path = "komodo_vars.env"
-compose_cmd_wrapper = """
-# sops exec-env .encrypted.env '[[COMPOSE_COMMAND]]'
-bs3 envject SMB_USER SMB_PASS -- [[COMPOSE_COMMAND]]"""
-compose_cmd_wrapper_include = ["config", "build", "pull", "up", "run"]
-environment = """
-  # VARIABLE = value
-DOCKER_VOLUMES=[[SRV_DOCKER_VOL]]
-"""
 
 ##
 
@@ -628,29 +407,6 @@ run_directory = "./compose"
 
 ##
 
-[[stack]]
-name = "stirling-production"
-template = true
-[stack.config]
-server = "biggy"
-linked_repo = "apps"
-run_directory = "stirling-pdf"
-file_paths = ["compose.yaml"]
-env_file_path = "komodo_vars.env"
-additional_env_files = [
-  { path = "config/production.env", track = true }
-]
-compose_cmd_wrapper = """
-# bs3 envject \
-# SECRET \
-# -- [[COMPOSE_COMMAND]]"""
-compose_cmd_wrapper_include = ["config", "build", "pull", "up", "run"]
-environment = """
-  # VARIABLE = value
-DOCKER_VOLUMES=[[SRV_DOCKER_VOL]]
-ROOT_DOMAIN=[[ROOT_DOMAIN]]
-"""
-
 ##
 
 [[stack]]
@@ -664,91 +420,6 @@ env_file_path = "komodo_vars.env"
 ignore_services = ["configarr"]
 environment = """
 DOCKER_VOLUMES = [[DOCKER_VOLUMES]]
-"""
-
-##
-
-[[stack]]
-name = "supabase-production"
-template = true
-[stack.config]
-server = "biggy"
-linked_repo = "apps"
-run_directory = "supabase"
-file_paths = ["compose.yaml"]
-env_file_path = "komodo_vars.env"
-additional_env_files = [
-  { path = "komodo_vars.env", track = true },
-  { path = "envs/production.env", track = true }
-]
-compose_cmd_wrapper = """
-# sops exec-env .encrypted.env '[[COMPOSE_COMMAND]]'
-bs3 envject \
-POSTGRES_PASS \
-JWT_SECRET \
-ANON_KEY \
-SERVICE_ROLE_KEY \
-DASHBOARD_USERNAME \
-DASHBOARD_PASSWORD \
-SECRET_KEY_BASE \
-VAULT_ENC_KEY \
-PG_META_CRYPTO_KEY \
-LOGFLARE_PUBLIC_ACCESS_TOKEN \
-LOGFLARE_PRIVATE_ACCESS_TOKEN \
-S3_PROTOCOL_ACCESS_KEY_ID \
-S3_PROTOCOL_ACCESS_KEY_SECRET \
-SMTP_USER \
-SMTP_PASS \
--- [[COMPOSE_COMMAND]]"""
-compose_cmd_wrapper_include = ["config", "build", "pull", "up", "run"]
-environment = """
-  # VARIABLE = value
-ROOT_DOMAIN = [[ROOT_DOMAIN]]
-DOCKER_VOLUMES = [[SRV_DOCKER_VOL]]
-"""
-
-##
-
-[[stack]]
-name = "template-production"
-template = true
-[stack.config]
-repo = "namespace/repo"
-run_directory = "appname"
-file_paths = [
-  "compose.yaml",
-  "compose.production.yaml"
-]
-env_file_path = "komodo_vars.env"
-additional_env_files = [
-  { path = "config/production.env", track = true }
-]
-compose_cmd_wrapper = """
-# bs3 envject \
-# SECRET \
-# -- [[COMPOSE_COMMAND]]"""
-compose_cmd_wrapper_include = ["config", "build", "pull", "up", "run"]
-environment = """
-  # VARIABLE = value
-DOCKER_VOLUMES=[[SRV_DOCKER_VOL]]
-ROOT_DOMAIN=[[ROOT_DOMAIN]]
-"""
-
-##
-
-[[stack]]
-name = "terraria-production"
-template = true
-[stack.config]
-server = "biggy"
-linked_repo = "games"
-run_directory = "terraria"
-file_paths = ["compose.yaml"]
-additional_env_files = [
-  { path = "config/production.env", track = true }
-]
-environment = """
-  # VARIABLE = value
 """
 
 ##
@@ -802,25 +473,6 @@ extra_args = ["--force-recreate"]
 environment = """
 AGENT_HOST=   paiki
 """
-
-##
-
-[[stack]]
-name = "twenty-production"
-template = true
-[stack.config]
-server = "biggy"
-linked_repo = "apps"
-run_directory = "./twenty"
-file_paths = [
-  "compose.yaml",
-  "compose.production.yaml"
-]
-compose_cmd_wrapper = """
-# sops exec-env .encrypted.env '[[COMPOSE_COMMAND]]'
-bs3 envject TWENTY_SECRET TWENTY_GOOGLE_CLIENT_ID TWENTY_GOOGLE_CLIENT_SECRET \
-POSTGRES_USER POSTGRES_PASS -- [[COMPOSE_COMMAND]]"""
-compose_cmd_wrapper_include = ["config", "build", "pull", "up", "run"]
 
 ##
 
