@@ -1,0 +1,22 @@
+include:
+  - path:
+      - ./compose/stack.yml
+      - ./compose/secrets.yml
+    env_file:
+      - ./interpolation-envs/general.env
+      - ./interpolation-envs/production.env
+      # Secrets rendered (RAM) by the infisical-agent on this same host.
+      # Must exist before `up`: the infisical-agent stack runs first and pulls
+      # KOMODO_API_KEY / KOMODO_API_SECRET / KOMODO_MCP_BASICAUTH_USERS from
+      # Infisical (/komodo-mcp) and renders them here.
+      - /dev/shm/infra_komodo-mcp.env
+
+services:
+  komodo-mcp: {}
+
+networks:
+  # Shared reverse-proxy network OWNED/created by stack.node/traefik. We only
+  # join it here (komodo-mcp), so the traefik stack must be deployed first.
+  proxy:
+    external: true
+    name: proxy

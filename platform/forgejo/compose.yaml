@@ -1,0 +1,9 @@
+# Master Compose - handles only explicit .env (interpolation only) definition
+
+include:
+  - path:
+      - ./compose/stack.yaml
+      - ./compose/environment.yaml
+    env_file:
+      - ./interpolation-envs/constants.env
+      - /dev/shm/forgejo.env # Secrets rendered (RAM) by the infisical-agent on this same host.

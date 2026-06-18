@@ -1,0 +1,25 @@
+# =============================================================================
+# Infisical Agent — renders each host's stack secrets to /dev/shm (RAM).
+# =============================================================================
+# Two profiles (pick one per deployment):
+#
+#   init      One-shot bootstrap for a COLD control-plane, BEFORE Traefik/the
+#             public URL exist. Joins the `proxy` network and reaches the
+#             Infisical app directly (http://infisical-app:8080) to render the
+#             tier-0 secrets (Komodo + Traefik + Cloudflare), then EXITS
+#             (exit-after-auth). Run by Ansible; creds written to /dev/shm by
+#             Ansible. CONTROL-PLANE ONLY — subservers use `standard`.
+#
+#   standard  Long-running, Komodo-managed, deployed to every host. Renders all
+#             of that host's app-stack secrets and keeps them fresh. Creds come
+#             from Komodo per-server variables (INFISICAL_CLIENT_ID/SECRET, env).
+#
+# Per-host config is selected by AGENT_HOST -> files/configs/<host>.yaml (or
+# <host>.init.yaml for the init profile). Each host should have its OWN machine
+# identity, scoped in Infisical to only that host's secret folders.
+include:
+  - path:
+      - ./compose/init.yml
+      - ./compose/standard.yml
+    env_file:
+      - ./interpolation-envs/general.env

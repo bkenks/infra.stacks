@@ -1,0 +1,26 @@
+include:
+  - path:
+      - ./compose/stack.yml
+      - ./compose/secrets.yml
+    env_file:
+      - ./interpolation-envs/general.env
+      - ./interpolation-envs/production.env
+      # Secrets rendered to host RAM by the infisical-agent (stack.infra/infisical).
+      # Supplies FRAPPE_DB_ROOT_PASSWORD into the interpolation scope used by
+      # compose/secrets.yml. Must exist before `up`: the infisical stack (agent)
+      # runs first and the /frappe secret must be set in Infisical.
+      - /dev/shm/biz-ops_frappe.env
+
+# Declared so `docker compose` knows the full service set when this wrapper is
+# the Compose entrypoint. Bodies live in compose/stack.yml + compose/secrets.yml.
+services:
+  backend: {}
+  configurator: {}
+  db: {}
+  frontend: {}
+  queue-long: {}
+  queue-short: {}
+  redis-cache: {}
+  redis-queue: {}
+  scheduler: {}
+  websocket: {}

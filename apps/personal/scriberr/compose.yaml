@@ -1,0 +1,13 @@
+include:
+  - path:
+      - ./compose/stack.yml
+    env_file:
+      - ./interpolation-envs/general.env
+      - ./interpolation-envs/production.env
+      # No secrets: JWT_SECRET auto-generates and persists in /app/data, and the
+      # OpenAI key (LLM chat) is optional. If either is later managed via
+      # Infisical, add a compose/secrets.yml + the /dev/shm/apps_scriberr.env
+      # env_file line here (see template.stack / paperless).
+
+services:
+  scriberr: {}

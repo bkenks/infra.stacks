@@ -1,0 +1,36 @@
+services:
+  scriberr:
+    image: ghcr.io/rishikanthc/scriberr:${SCRIBERR__VERS_TAG:?err}
+    volumes:
+      # app data: SQLite DB, uploads, transcripts
+      - data:/app/data
+      # python env + WhisperX models — a SEPARATE volume as of v1.x (must not
+      # share with /app/data, or models re-download on every restart).
+      - whisperx-env:/app/whisperx-env
+    env_file:
+      - "../container-envs/${SCRIBERR__NAME:?err}.env"
+    networks:
+      - default
+      - proxy
+    restart: on-failure:${SCRIBERR__MAX_RESTART_ATTEMPS:?err}
+    # Exposed to Traefik on the shared `proxy` network — no published host port.
+    # Scriberr listens on its default container port 8080.
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.scriberr.rule: 'Host(`scriberr.homektb.com`)'
+      traefik.http.routers.scriberr.entrypoints: websecure
+      traefik.http.routers.scriberr.tls: 'true'
+      traefik.http.services.scriberr.loadbalancer.server.port: '8080'
+    expose:
+      - '8080'
+
+networks:
+  # Shared reverse-proxy network, created by Ansible and joined by Traefik.
+  # We only attach to it — Traefik must be deployed on this host first.
+  proxy:
+    external: true
+    name: proxy
+
+volumes:
+  data: {}
+  whisperx-env: {}

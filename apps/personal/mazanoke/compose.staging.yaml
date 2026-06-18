@@ -1,0 +1,10 @@
+---
+name: mazanoke-staging
+
+services:
+  mazanoke:
+    container_name: ${COMPOSE_PROJECT_NAME}_mazanoke
+    restart: unless-stopped
+    # Staging gets its own Traefik host so it never clashes with production.
+    labels:
+      traefik.http.routers.mazanoke.rule: 'Host(`mazanoke-staging.homektb.com`)'

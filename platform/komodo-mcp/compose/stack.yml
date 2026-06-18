@@ -1,0 +1,43 @@
+services:
+  komodo-mcp:
+    image: ghcr.io/mp-tool/komodo-mcp-server:${KOMODO_MCP__VERS_TAG:?err}
+    env_file:
+      # Literal, non-secret config (MCP_TRANSPORT, KOMODO_URL, TZ). Basename
+      # selected by KOMODO_MCP__NAME so the file is named after the software.
+      - "../container-envs/${KOMODO_MCP__NAME:?err}.env"
+    # The image serves a health endpoint (200 ready / 503 Komodo disconnected /
+    # 429 overloaded). Enable once the in-container path/tooling is confirmed:
+    # healthcheck:
+    #   test: [ "CMD", "wget", "-qO-", "http://127.0.0.1:8000/health" ]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+    #   start_period: 10s
+    # `default` is unused (no peers) but kept for parity; `proxy` exposes the MCP
+    # endpoint to this host's Traefik (stack.node/traefik).
+    networks:
+      - default
+      - proxy
+    restart: on-failure:${KOMODO_MCP__MAX_RESTART_ATTEMPS:?err}
+    labels:
+      komodo.skip:
+        # Prevent Komodo from stopping with StopAllContainers
+        # --- Exposed at komodo-mcp.homektb.com via Traefik (wildcard *.homektb.com
+
+      # cert), tailnet/LAN-only. Protected by basic-auth: the MCP HTTP endpoint
+      # has no built-in auth and can drive the full Komodo fleet. ---
+      traefik.enable: 'true'
+      traefik.http.routers.komodo-mcp.rule: 'Host(`komodo-mcp.homektb.com`) || Host(`komodo-mcp.lilbud.homektb.com`)'
+      traefik.http.routers.komodo-mcp.entrypoints: websecure
+      traefik.http.routers.komodo-mcp.tls: 'true'
+      traefik.http.routers.komodo-mcp.middlewares: komodo-mcp-auth
+      # htpasswd users string rendered to /dev/shm/apps_komodo-mcp.env by the
+      # agent; arrives as a value, so the bcrypt `$` need no `$$` escaping here.
+      traefik.http.middlewares.komodo-mcp-auth.basicauth.users: ${KOMODO_MCP_BASICAUTH_USERS:?err}
+      traefik.http.services.komodo-mcp.loadbalancer.server.port: '8000'
+    expose:
+      - '8000'
+    # No `init: true`: the komodo-mcp-server image already runs tini as its
+    # entrypoint (PID 1). Adding Docker's init nests a second tini as a
+    # non-PID-1 child, which logs "Tini is not running as PID 1" and disables
+    # zombie reaping. Letting the image's own tini be PID 1 fixes both.

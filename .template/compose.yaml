@@ -1,0 +1,17 @@
+include:
+  - path:
+      - ./yamls/stack.yaml
+      - ./yamls/secrets.yaml
+    env_file:
+      - ./interpolation-envs/main.env
+      # Secrets rendered (RAM) by the infisical-agent on this same host.
+      # Must exist before `up`: the infisical-agent stack runs first, pulls this
+      # stack's secrets from Infisical (folder `/replaceme.STACKNAME`), and
+      # renders them here. See setup.md. Drop this line if the stack has no
+      # secrets.
+      # - /dev/shm/replaceme.SECRETFILE.env
+
+# Service stubs — real definitions live in compose/stack.yml (+ secrets.yml).
+# One stub per service so `docker compose` sees them at the include root.
+services:
+  app: {}

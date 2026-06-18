@@ -1,0 +1,6 @@
+include:
+  - path:
+      - ./yamls/stack.yaml
+      - ./yamls/environment.yaml
+    env_file:
+      - /dev/shm/postgres.env

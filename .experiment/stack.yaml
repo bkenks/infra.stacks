@@ -1,0 +1,6 @@
+services:
+  app:
+    image: docker.io/busybox:1.38.0
+    command: ["sleep", "infinity"]
+    env_file:
+      - ./container.env

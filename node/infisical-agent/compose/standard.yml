@@ -1,0 +1,34 @@
+# STANDARD profile — long-running, Komodo-managed, deployed to every host.
+# Creds come from Komodo per-server variables (env); entrypoint.sh writes them to
+# /dev/shm and the agent removes the secret on read (remove_client_secret_on_read).
+# Reaches Infisical at its public URL (resolved via normal DNS on the host).
+services:
+  agent:
+    image: docker.io/infisical/cli:${INFISICAL_AGENT__VERS_TAG:?err}
+    container_name: infisical-agent
+    profiles: [ "standard" ]
+    entrypoint: [ "/bin/sh", "/agent/entrypoint.sh" ]
+    environment:
+      AGENT_HOST: ${AGENT_HOST:?err}                 # selects files/configs/<host>.yaml
+      # Soft defaults so the `init` profile can render without these (compose
+      # interpolates every service regardless of active profile). entrypoint.sh
+      # enforces their presence at runtime for the standard agent.
+      INFISICAL_CLIENT_ID: ${INFISICAL_CLIENT_ID:-}
+      INFISICAL_CLIENT_SECRET: ${INFISICAL_CLIENT_SECRET:-}
+    volumes:
+      - ../files/entrypoint.sh:/agent/entrypoint.sh:ro
+      - ../files/configs:/agent-configs:ro
+      - /dev/shm:/dev/shm
+    restart: unless-stopped
+    # The agent stays "running" even when a template permanently fails to render
+    # (wrong secret path -> repeated ERR + retry), so liveness never flips it.
+    # entrypoint.sh mirrors the agent's output to /tmp/agent.log; treat any
+    # zerolog ` ERR ` line as unhealthy. The marker is sticky until the next
+    # start (the log is truncated on restart), so a bad config stays unhealthy
+    # until it's fixed and redeployed — which is the point.
+    healthcheck:
+      test: [ "CMD-SHELL", "! grep -q ' ERR ' /tmp/agent.log" ]
+      interval: 30s
+      timeout: 5s
+      retries: 2
+      start_period: 30s

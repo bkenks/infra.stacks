@@ -1,0 +1,223 @@
+---
+services:
+
+  # --------------------------------------------------------------------------
+  # backend — Gunicorn WSGI. Serves the Frappe/ERPNext application to nginx.
+  # Tune GUNICORN_WORKERS to (2 * cores) + 1 in container-envs/backend.env.
+  # --------------------------------------------------------------------------
+  backend:
+    image: ${FRAPPE__IMAGE:?err}:${FRAPPE__IMAGE_TAG:?err}
+    depends_on:
+      configurator:
+        condition: service_completed_successfully
+    volumes:
+      - sites:/home/frappe/frappe-bench/sites
+    env_file:
+      - ../container-envs/backend.env
+    networks:
+      - default
+    restart: on-failure:${FRAPPE__MAX_RESTART_ATTEMPS:?err}
+    platform: linux/amd64
+    pull_policy: always
+
+  # --------------------------------------------------------------------------
+  # configurator — one-shot. Writes common_site_config.json (db + redis wiring)
+  # to the shared `sites` volume, which every Frappe service reads. MUST finish
+  # before backend/workers/scheduler/websocket start. If the stack won't come
+  # up, debug this container first.
+  # --------------------------------------------------------------------------
+  configurator:
+    image: ${FRAPPE__IMAGE:?err}:${FRAPPE__IMAGE_TAG:?err}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis-cache:
+        condition: service_started
+      redis-queue:
+        condition: service_started
+    volumes:
+      - sites:/home/frappe/frappe-bench/sites
+    env_file:
+      - ../container-envs/configurator.env
+    networks:
+      - default
+    command:
+      - >
+        ls -1 apps > sites/apps.txt; bench set-config -g db_host $$DB_HOST; bench set-config -gp db_port $$DB_PORT; bench set-config -g redis_cache "redis://$$REDIS_CACHE"; bench set-config -g redis_queue "redis://$$REDIS_QUEUE"; bench set-config -g redis_socketio "redis://$$REDIS_QUEUE"; bench set-config -gp socketio_port $$SOCKETIO_PORT;
+    entrypoint: [ "bash", "-c" ]
+    restart: on-failure:${FRAPPE__MAX_RESTART_ATTEMPS:?err}
+    platform: linux/amd64
+    pull_policy: always
+
+  # --------------------------------------------------------------------------
+  # db — MariaDB. One database per site (bench new-site creates each). The
+  # charset flags are required for Frappe's Unicode/emoji support.
+  # MYSQL_ROOT_PASSWORD is set in compose/secrets.yml.
+  # --------------------------------------------------------------------------
+  db:
+    image: docker.io/library/mariadb:${MARIADB__VERS_TAG:?err}
+    volumes:
+      - db-data:/var/lib/mysql
+    env_file:
+      - ../container-envs/db.env
+    networks:
+      - default
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --skip-character-set-client-handshake
+    restart: on-failure:${MARIADB__MAX_RESTART_ATTEMPS:?err}
+    healthcheck:
+      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    expose:
+      - '3306'
+
+  # --------------------------------------------------------------------------
+  # frontend — nginx. The ONLY service exposed to Traefik. FRAPPE_SITE_NAME_HEADER
+  # ($$host) routes each request to the matching site directory by Host header,
+  # which is what makes DNS-based multitenancy work. nginx splits /socket.io to
+  # the websocket service internally — do NOT add a Traefik router for socketio.
+  # --------------------------------------------------------------------------
+  frontend:
+    image: ${FRAPPE__IMAGE:?err}:${FRAPPE__IMAGE_TAG:?err}
+    depends_on:
+      - backend
+      - websocket
+    volumes:
+      - sites:/home/frappe/frappe-bench/sites
+    env_file:
+      - ../container-envs/frontend.env
+    networks:
+      - default
+      - proxy
+    command: [ "nginx-entrypoint.sh" ]
+    restart: on-failure:${FRAPPE__MAX_RESTART_ATTEMPS:?err}
+    labels:
+      traefik.enable: 'true'
+      # One router serving every site this bench hosts. SITES_RULE lists them:
+      #   Host(`erp.homektb.com`) || Host(`client-a.com`) || Host(`client-b.com`)
+      traefik.http.routers.frappe.rule: ${FRAPPE__SITES_RULE:?err}
+      traefik.http.routers.frappe.entrypoints: websecure
+      traefik.http.routers.frappe.tls: 'true'
+      traefik.http.services.frappe.loadbalancer.server.port: '8080'
+    expose:
+      - '8080'
+    platform: linux/amd64
+    pull_policy: always
+
+  # --------------------------------------------------------------------------
+  # queue-long — long + default + short queues (reports, bulk imports, heavy).
+  # --------------------------------------------------------------------------
+  queue-long:
+    image: ${FRAPPE__IMAGE:?err}:${FRAPPE__IMAGE_TAG:?err}
+    depends_on:
+      configurator:
+        condition: service_completed_successfully
+    volumes:
+      - sites:/home/frappe/frappe-bench/sites
+    networks:
+      - default
+    command: [ "bench", "worker", "--queue", "long,default,short" ]
+    restart: on-failure:${FRAPPE__MAX_RESTART_ATTEMPS:?err}
+    platform: linux/amd64
+    pull_policy: always
+
+  # --------------------------------------------------------------------------
+  # queue-short — short + default queues (emails, notifications, light jobs).
+  # --------------------------------------------------------------------------
+  queue-short:
+    image: ${FRAPPE__IMAGE:?err}:${FRAPPE__IMAGE_TAG:?err}
+    depends_on:
+      configurator:
+        condition: service_completed_successfully
+    volumes:
+      - sites:/home/frappe/frappe-bench/sites
+    networks:
+      - default
+    command: [ "bench", "worker", "--queue", "short,default" ]
+    restart: on-failure:${FRAPPE__MAX_RESTART_ATTEMPS:?err}
+    platform: linux/amd64
+    pull_policy: always
+
+  # --------------------------------------------------------------------------
+  # redis-cache — volatile cache. No persistence by design.
+  # --------------------------------------------------------------------------
+  redis-cache:
+    image: docker.io/library/redis:${REDIS__VERS_TAG:?err}
+    networks:
+      - default
+    restart: on-failure:${REDIS__MAX_RESTART_ATTEMPS:?err}
+    expose:
+      - '6379'
+
+  # --------------------------------------------------------------------------
+  # redis-queue — job queue + socketio pub/sub. Persisted so in-flight jobs
+  # survive restarts.
+  # --------------------------------------------------------------------------
+  redis-queue:
+    image: docker.io/library/redis:${REDIS__VERS_TAG:?err}
+    volumes:
+      - redis-queue-data:/data
+    networks:
+      - default
+    restart: on-failure:${REDIS__MAX_RESTART_ATTEMPS:?err}
+    expose:
+      - '6379'
+
+  # --------------------------------------------------------------------------
+  # scheduler — triggers timed jobs (digests, ledger aging, scheduled reports).
+  # --------------------------------------------------------------------------
+  scheduler:
+    image: ${FRAPPE__IMAGE:?err}:${FRAPPE__IMAGE_TAG:?err}
+    depends_on:
+      configurator:
+        condition: service_completed_successfully
+    volumes:
+      - sites:/home/frappe/frappe-bench/sites
+    networks:
+      - default
+    command: [ "bench", "schedule" ]
+    restart: on-failure:${FRAPPE__MAX_RESTART_ATTEMPS:?err}
+    platform: linux/amd64
+    pull_policy: always
+
+  # --------------------------------------------------------------------------
+  # websocket — Socket.IO (real-time desk notifications). Internal only; reached
+  # by frontend nginx at websocket:9000. Never exposed to Traefik directly.
+  # --------------------------------------------------------------------------
+  websocket:
+    image: ${FRAPPE__IMAGE:?err}:${FRAPPE__IMAGE_TAG:?err}
+    depends_on:
+      configurator:
+        condition: service_completed_successfully
+    volumes:
+      - sites:/home/frappe/frappe-bench/sites
+    networks:
+      - default
+    command: [ "node", "/home/frappe/frappe-bench/apps/frappe/socketio.js" ]
+    restart: on-failure:${FRAPPE__MAX_RESTART_ATTEMPS:?err}
+    platform: linux/amd64
+    pull_policy: always
+
+networks:
+  # Internal bench network — Frappe services talk to db/redis here. Never exposed.
+  default:
+    name: frappe-internal
+  # Shared reverse-proxy network, created by Ansible and joined by Traefik.
+  # We only join it — so the network must already exist on this host (Traefik up).
+  proxy:
+    external: true
+    name: proxy
+
+volumes:
+  # sites — CRITICAL, shared by every Frappe service. Holds common_site_config.json,
+  # all per-site dirs, uploads, and backups. Back this up.
+  sites: {}
+  # db-data — CRITICAL. MariaDB data directory.
+  db-data: {}
+  # redis-queue-data — persists queued/in-flight jobs across restarts.
+  redis-queue-data: {}

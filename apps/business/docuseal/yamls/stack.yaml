@@ -1,0 +1,29 @@
+name: ${APP__NAME:?err}
+
+services:
+  app:
+    image: docuseal/docuseal:${APP__VERSION:?err}
+    volumes:
+      - app-data:/data/docuseal
+    env_file:
+      - "../container-envs/${APP__NAME:?err}.env"
+    restart: on-failure:${APP__MAX_RESTART_ATTEMPS:?err}
+    expose:
+      - '3000'
+    networks:
+      postgres:
+        aliases:
+          - ${APP__NAME:?err}
+    labels:
+      traefik.http.routers.docuseal.rule: 'Host(`docuseal.homektb.com`)'
+      traefik.http.routers.docuseal.entrypoints: websecure
+      traefik.http.routers.docuseal.tls: 'true'
+      traefik.http.services.docuseal.loadbalancer.server.port: '3000'
+
+volumes:
+  app-data: {}
+
+networks:
+  postgres:
+    name: postgres-production_shared
+    external: true

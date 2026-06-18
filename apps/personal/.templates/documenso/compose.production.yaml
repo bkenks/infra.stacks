@@ -1,0 +1,20 @@
+---
+name: documenso-production
+
+services:
+  documenso:
+    volumes:
+      - type: bind
+        source: ${DOCKER_VOLUMES}/apps/documenso/certificate.p12
+        target: /opt/documenso/cert.p12
+        read_only: true
+    env_file:
+      - ./envs/production.env
+    ports:
+      - '3000:3000'
+    networks:
+      - postgres
+
+networks:
+  postgres:
+    name: postgres-production_postgres

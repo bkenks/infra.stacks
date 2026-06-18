@@ -1,0 +1,20 @@
+name: stirling-pdf-${DOCK_ENV}
+
+services:
+  stirling-pdf:
+    image: stirlingtools/stirling-pdf:2.10.1
+    container_name: ${COMPOSE_PROJECT_NAME}-stirling-pdf
+    volumes:
+      - ${DOCKER_VOLUMES}/apps/stirling-pdf/configs:/configs
+      - ${DOCKER_VOLUMES}/apps/stirling-pdf/tessdata:/usr/share/tessdata
+      - ${DOCKER_VOLUMES}/apps/stirling-pdf/logs:/logs
+      - ${DOCKER_VOLUMES}/apps/stirling-pdf/pipeline:/pipeline
+    env_file:
+      - envs/production.env
+    ports:
+      - '20290:8080'
+    restart: unless-stopped
+
+networks:
+  default:
+    name: ${COMPOSE_PROJECT_NAME}-net

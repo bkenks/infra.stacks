@@ -1,0 +1,11 @@
+include:
+  - path:
+      - ./yamls/stack.yaml
+      - ./yamls/secrets.yaml
+    env_file:
+      - ./interpolation-envs/main.env
+      # Secrets rendered (RAM) by the infisical-agent on this same host.
+      # Must exist before `up`: the infisical-agent stack runs first, pulls this
+      # stack's secrets from Infisical (folder `/docuseal`), and renders them
+      # here. See setup.md.
+      # - /dev/shm/apps_docuseal.env

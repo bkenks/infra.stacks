@@ -1,0 +1,14 @@
+include:
+  - path:
+      - ./compose/stack.yml
+      - ./compose/secrets.yml
+    env_file:
+      - ./interpolation-envs/general.env
+      - ./interpolation-envs/production.env
+      # Secrets rendered (RAM) by the infisical-agent on this same host.
+      # Must exist before `up`: the infisical stack (agent) runs first.
+      - /dev/shm/gitea.env
+
+services:
+  app: {}
+  db: {}

@@ -1,0 +1,67 @@
+# Traefik static configuration.
+# NOTE: mounted as-is — Docker Compose does NOT interpolate ${VARS} here.
+
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
+
+# Dashboard served via a router (see the per-host file in files/configs/), not a
+# published port.
+api:
+  dashboard: true
+
+# Enables `traefik healthcheck --ping` used by the compose healthcheck.
+ping: {}
+
+entryPoints:
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+  websecure:
+    address: ":443"
+  # Forgejo git-over-SSH. Bound to host :22 so the port-less clone URL
+  # (ssh://git@fj.lilbud.homektb.com/...) reaches Forgejo. Admin sshd was moved
+  # off 22 to 3204 (see infra.ansible) to free this port — redeploy this stack
+  # only AFTER that cutover, or the :22 bind conflicts with sshd.
+  forgejo-ssh:
+    address: ":22"
+
+providers:
+  docker:
+    # Only containers explicitly labelled traefik.enable=true are exposed.
+    exposedByDefault: false
+    network: proxy
+  # Per-host dynamic config. compose mounts files/configs/${AGENT_HOST}.yml here
+  # as host.yml (see ../compose/stack.yml). That file carries the dashboard
+  # router and THIS host's ACME cert domains — every host requests *.homektb.com;
+  # maboi additionally requests stackform.app + couchpotatoes.store.
+  file:
+    directory: /etc/traefik/dynamic
+    watch: true
+
+# TLS certificates: Cloudflare DNS-01 ACME (Let's Encrypt). The scoped
+# CF_DNS_API_TOKEN (Zone:DNS:Edit + Zone:Read on every zone the host's per-host
+# file requests) is read by the lego cloudflare provider from the container
+# environment — deliberately NOT set here, so no secret lands in git.
+# Which (wildcard) certs get requested is per-host: see files/configs/<host>.yml.
+# Once issued, Traefik serves each wildcard via SNI matching, so app routers need
+# only `tls: true`.
+certificatesResolvers:
+  cloudflare:
+    acme:
+      email: briankenkel.t@gmail.com
+      storage: /letsencrypt/acme.json
+      # Test against LE staging first to avoid prod rate limits, then comment out
+      # and delete acme.json once the config is proven:
+      # caServer: https://acme-staging-v02.api.letsencrypt.org/directory
+      dnsChallenge:
+        provider: cloudflare
+        # homektb.com resolves to a private (Tailscale) A record internally, so
+        # use public resolvers for the _acme-challenge TXT propagation check.
+        resolvers:
+          - "1.1.1.1:53"
+          - "1.0.0.1:53"

@@ -1,0 +1,72 @@
+# Immich — self-hosted photo & video management.
+# https://immich.app  ·  https://docs.immich.app/install/docker-compose
+#
+# Host: paiki (192.168.1.2 / plexyandiknowit) — the media host.
+#
+# Storage layout for this deployment:
+#   - immich-server /data  -> /mnt/immich-library  (NFS export from snazsy / DS224+, see /etc/fstab on paiki)
+#   - database data        -> ${DOCKER_VOLUMES}/apps/immich/postgres      (local NVMe — Postgres must NOT live on NFS)
+#   - ML model cache       -> ${DOCKER_VOLUMES}/apps/immich/model-cache    (local NVMe)
+#
+# Immich requires its own Postgres (vchord/pgvecto extensions) — it cannot use
+# the shared postgres-production network.
+
+name: immich-${DOCK_ENV}
+
+services:
+  database:
+    image: ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:bcf63357191b76a916ae5eb93464d65c07511da41e3bf7a8416db519b40b1c23
+    container_name: ${COMPOSE_PROJECT_NAME}-database
+    volumes:
+      - ${DOCKER_VOLUMES}/apps/immich/postgres:/var/lib/postgresql/data
+    env_file:
+      - envs/postgres-creds.env
+    restart: unless-stopped
+    shm_size: 128mb
+
+  immich-machine-learning:
+    image: ghcr.io/immich-app/immich-machine-learning:v2.7.5
+    container_name: ${COMPOSE_PROJECT_NAME}-machine-learning
+    volumes:
+      - ${DOCKER_VOLUMES}/apps/immich/model-cache:/cache
+    env_file:
+      - envs/production.env
+    restart: unless-stopped
+
+  immich-server:
+    image: ghcr.io/immich-app/immich-server:v2.7.5
+    container_name: ${COMPOSE_PROJECT_NAME}-server
+    depends_on:
+      - database
+      - redis
+    volumes:
+      - /mnt/immich-library:/data
+    env_file:
+      - envs/production.env
+      - envs/postgres-creds.env
+    networks:
+      - default
+      - proxy
+    restart: unless-stopped
+    # Exposed to Traefik on the shared `proxy` network — no published host port.
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.immich.rule: 'Host(`immich.paiki.homektb.com`)'
+      traefik.http.routers.immich.entrypoints: websecure
+      traefik.http.routers.immich.tls: 'true'
+      traefik.http.services.immich.loadbalancer.server.port: '2283'
+    expose:
+      - '2283'
+
+  redis:
+    image: docker.io/valkey/valkey:9@sha256:8436e10bc65c94886a91d4415b6a6dfa9cb5a306fb3b996e5bb67cd2b4854193
+    container_name: ${COMPOSE_PROJECT_NAME}-redis
+    restart: unless-stopped
+
+networks:
+  default:
+    name: ${COMPOSE_PROJECT_NAME}-net
+  # Shared reverse-proxy network, created by Ansible and joined by Traefik.
+  proxy:
+    external: true
+    name: proxy

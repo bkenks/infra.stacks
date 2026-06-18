@@ -1,0 +1,45 @@
+services:
+  server:
+    image: docker.io/woodpeckerci/woodpecker-server:${WOODPECKER_SERVER__VERS_TAG:?err}
+    volumes:
+      - woodpecker-server-data:/var/lib/woodpecker
+    env_file:
+      - "../container-envs/${WOODPECKER_SERVER__NAME:?err}.env"
+    restart: on-failure:${WOODPECKER_SERVER__MAX_RESTART_ATTEMPS:?err}
+    expose:
+      # HTTP UI/API (proxied by Traefik) and gRPC (agents connect here).
+      - '8000'
+      - '9000'
+    networks:
+      - default
+      - proxy
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.woodpecker.rule: 'Host(`peck.lilbud.homektb.com`)'
+      traefik.http.routers.woodpecker.entrypoints: websecure
+      traefik.http.routers.woodpecker.tls: 'true'
+      traefik.http.services.woodpecker.loadbalancer.server.port: '8000'
+
+  agent:
+    image: docker.io/woodpeckerci/woodpecker-agent:${WOODPECKER_AGENT__VERS_TAG:?err}
+    command: agent
+    depends_on:
+      - server
+    volumes:
+      - woodpecker-agent-config:/etc/woodpecker
+      # Agent runs pipeline steps as sibling containers via the host daemon.
+      - /var/run/docker.sock:/var/run/docker.sock
+    env_file:
+      - "../container-envs/${WOODPECKER_AGENT__NAME:?err}.env"
+    restart: on-failure:${WOODPECKER_AGENT__MAX_RESTART_ATTEMPS:?err}
+    networks:
+      - default
+
+networks:
+  proxy:
+    name: proxy
+    external: true
+
+volumes:
+  woodpecker-server-data: {}
+  woodpecker-agent-config: {}

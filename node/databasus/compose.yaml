@@ -1,0 +1,51 @@
+---
+name: databasus-${DOCK_ENVIRON}
+
+services:
+  databasus:
+    # Pinned by DIGEST (not :latest) — databasus only publishes :latest, no
+    # semver tags, so we pin the exact image. This digest is the 3.42.0 build,
+    # whose start.sh remaps postgres to uid 999 while the image ships a
+    # 101-owned/ACL'd pgdata, breaking fresh DB init on a clean volume (see
+    # README). Pin so the image can't shift under us; revisit when upstream fixes.
+    image: databasus/databasus@sha256:f748c20cecb3cf3162d80ebfddd4f192b5e4ee640d600c9daf726310ac49e51c
+    container_name: ${COMPOSE_PROJECT_NAME}-databasus
+    volumes:
+      - databasus_data:/databasus-data
+    networks:
+      - default
+      - db-backup-shared
+      # Per-host Traefik's shared reverse-proxy network (owned by
+      # stack.node/traefik). No host port is published — Traefik fronts the UI.
+      - proxy
+    restart: unless-stopped
+    labels:
+      traefik.enable: 'true'
+      # Per-host hostname (dotted scheme): each host runs its own databasus, so
+      # the router host is databasus.<host>.homektb.com, served by that host's
+      # *.<host>.homektb.com wildcard cert (see stack.node/traefik host configs).
+      # DATABASUS__HOST is set PER-SERVER in Komodo (lilbud / maboi / paiki),
+      # exactly like traefik/infisical-agent's AGENT_HOST and zerobyte's
+      # ZEROBYTE__HOST.
+      traefik.http.routers.databasus.rule: 'Host(`databasus.${DATABASUS__HOST:?err}.homektb.com`)'
+      traefik.http.routers.databasus.entrypoints: websecure
+      traefik.http.routers.databasus.tls: 'true'
+      # Web UI port (internal — Traefik routes to it; not published on the host).
+      traefik.http.services.databasus.loadbalancer.server.port: '4005'
+
+networks:
+  db-backup-shared:
+  # Created and owned by stack.node/traefik; joined here as external so Traefik
+  # can discover this container. Deploy Traefik first so the network exists.
+  proxy:
+    name: proxy
+    external: true
+
+volumes:
+  # Project-scoped managed volume for databasus's own config + DB. Self-creates
+  # per host (each host runs its own databasus, like zerobyte), so no host needs
+  # a pre-existing external volume before deploy. On littlebuddy this resolves to
+  # the SAME name as the previous external volume (project databasus-production +
+  # key databasus_data → databasus-production_databasus_data), so the existing
+  # data is adopted in place on its next redeploy — not recreated.
+  databasus_data: {}

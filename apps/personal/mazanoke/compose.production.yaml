@@ -1,0 +1,7 @@
+---
+name: mazanoke-production
+
+services:
+  mazanoke:
+    container_name: ${COMPOSE_PROJECT_NAME}_mazanoke
+    restart: unless-stopped

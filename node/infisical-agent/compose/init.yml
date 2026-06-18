@@ -1,0 +1,35 @@
+# INIT profile — one-shot CONTROL-PLANE cold bootstrap (run by Ansible).
+# This is the very first agent on a fresh control-plane, BEFORE Traefik and the
+# public hostname exist. It joins the `proxy` network and reaches the Infisical
+# app directly at http://infisical-app:8080 (see files/configs/<host>.init.yaml)
+# to render the tier-0 bootstrap secrets (Komodo / Cloudflare / Traefik), then
+# EXITS (exit-after-auth). Subservers do NOT use this — they run the standard
+# agent on the public URL, since the control-plane (URL + Traefik) already exists
+# by the time you onboard them.
+#
+# Ansible writes the machine-identity creds to /dev/shm/agent.client-id|secret
+# BEFORE this runs, so no cred env vars are required here.
+services:
+  agent-init:
+    image: docker.io/infisical/cli:${INFISICAL_AGENT__VERS_TAG:?err}
+    container_name: infisical-agent-init
+    profiles: [ "init" ]
+    entrypoint: [ "/bin/sh", "/agent/entrypoint.sh" ]
+    environment:
+      AGENT_HOST: ${AGENT_HOST:?err}        # selects files/configs/<host>.init.yaml
+      AGENT_CONFIG_SUFFIX: ".init"
+    volumes:
+      - ../files/entrypoint.sh:/agent/entrypoint.sh:ro
+      - ../files/configs:/agent-configs:ro
+      - /dev/shm:/dev/shm                    # read creds + write rendered <stack>.env files
+    # Join the proxy network so the agent can reach `infisical-app` directly
+    # before Traefik/the public URL exist. (Ansible ensures the proxy network
+    # exists during the infisical play, so it's present at cold-bootstrap time.)
+    networks:
+      - proxy
+    restart: "no"                            # one-shot: exits after rendering
+
+networks:
+  proxy:
+    external: true
+    name: proxy

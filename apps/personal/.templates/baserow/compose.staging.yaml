@@ -1,0 +1,13 @@
+---
+name: baserow-staging
+
+services:
+  baserow:
+    container_name: ${COMPOSE_PROJECT_NAME}_baserow
+    volumes:
+      - ${DOCKER_VOLUMES}/apps/baserow/data:/baserow/data
+    env_file:
+      - ./envs/staging.env
+    ports:
+      - '8080:80'
+      - '8443:443'

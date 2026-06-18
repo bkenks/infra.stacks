@@ -1,0 +1,32 @@
+# compose.production.yaml
+name: twenty-staging
+
+services:
+  server:
+    environment:
+      NODE_PORT: 3000
+    env_file:
+      - ./envs/staging.env
+    ports:
+      - '3031:3000'
+    networks:
+      - postgres
+
+  worker:
+    environment:
+      DISABLE_DB_MIGRATIONS: "true" # it already runs on the server
+      DISABLE_CRON_JOBS_REGISTRATION: "true" # it already runs on the server
+    env_file:
+      - ./envs/staging.env
+    networks:
+      - postgres
+
+    command: [ "yarn", "worker:prod" ]
+    restart: always
+
+networks:
+  postgres:
+    name: postgres-staging_postgres
+
+volumes:
+  server-storage:

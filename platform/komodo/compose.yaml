@@ -1,0 +1,23 @@
+name: komodo
+
+include:
+  - path:
+      - ./compose/core.yaml # Komodo Core - the UI
+      - ./compose/mongo.yaml # Komodo Database - configuration storage
+    env_file:
+      - ./interpolation-envs/general.env
+
+services:
+  komodo-core:
+    depends_on:
+      - mongo-db
+
+volumes:
+  keys:
+
+networks:
+  # Shared reverse-proxy network OWNED/created by stack.node/traefik. We only
+  # join it here (komodo-core), so the traefik stack must be deployed first.
+  proxy:
+    external: true
+    name: proxy

@@ -1,0 +1,10 @@
+---
+name: actual-budget-staging
+
+services:
+  actual-budget:
+    container_name: ${COMPOSE_PROJECT_NAME}_actual-budget
+    volumes:
+      - ${DOCKER_VOLUMES}/apps/actual-budget/data:/data
+    ports:
+      - '5007:5006'

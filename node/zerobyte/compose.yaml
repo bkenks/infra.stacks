@@ -1,0 +1,17 @@
+include:
+  - path:
+      - ./compose/stack.yml
+      - ./compose/secrets.yml
+    env_file:
+      - ./interpolation-envs/general.env
+      - ./interpolation-envs/production.env
+      # APP_SECRET rendered (host RAM) by THIS host's infisical-agent from the
+      # Infisical /zerobyte folder. Must exist before deploy: the infisical-agent
+      # stack runs first and renders it here. Brought into the container via
+      # compose/secrets.yml's `environment:` (include env_file = interpolation
+      # scope only). See setup.md.
+      - /dev/shm/node_zerobyte.env
+
+# Service stub — real definition lives in compose/stack.yml (+ secrets.yml).
+services:
+  zerobyte: {}

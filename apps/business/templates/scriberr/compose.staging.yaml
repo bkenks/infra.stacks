@@ -1,0 +1,10 @@
+---
+name: scriberr-staging
+
+services:
+  scriberr:
+    container_name: ${COMPOSE_PROJECT_NAME}_scriberr
+    env_file:
+      - ./envs/staging.env
+    ports:
+      - '8084:8080'

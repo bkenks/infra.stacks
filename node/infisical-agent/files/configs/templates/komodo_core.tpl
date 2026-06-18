@@ -1,0 +1,9 @@
+{{- $p := "86324d9b-3dd7-49d4-b252-69228c5ee0c7" -}}
+{{- $e := "prod" -}}
+{{- $path := "/komodo" -}}
+KOMODO_DATABASE_USERNAME={{ with getSecretByName $p $e $path "KOMODO_DB_USERNAME" }}{{ .Value }}{{ end }}
+KOMODO_DATABASE_PASSWORD={{ with getSecretByName $p $e $path "KOMODO_DB_PASSWORD" }}{{ .Value }}{{ end }}
+KOMODO_WEBHOOK_SECRET={{ with getSecretByName $p $e $path "WEBHOOK_SECRET" }}{{ .Value }}{{ end }}
+KOMODO_JWT_SECRET={{ with getSecretByName $p $e $path "JWT_SECRET" }}{{ .Value }}{{ end }}
+MONGO_INITDB_ROOT_USERNAME={{ with getSecretByName $p $e $path "KOMODO_DB_USERNAME" }}{{ .Value }}{{ end }}
+MONGO_INITDB_ROOT_PASSWORD={{ with getSecretByName $p $e $path "KOMODO_DB_PASSWORD" }}{{ .Value }}{{ end }}

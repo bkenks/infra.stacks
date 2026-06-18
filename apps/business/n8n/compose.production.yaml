@@ -1,0 +1,20 @@
+---
+name: n8n-production
+
+services:
+  n8n:
+    container_name: ${COMPOSE_PROJECT_NAME}_n8n
+    volumes:
+      - ${DOCKER_VOLUMES}/apps/n8n/data/.n8n:/home/node/.n8n
+      - ${DOCKER_VOLUMES}/apps/n8n/data/local-files:/files
+    env_file:
+      - ./envs/production.env
+    ports:
+      - '5678:5678'
+    networks:
+      - postgres
+
+networks:
+  postgres:
+    name: postgres-production_postgres
+    external: true

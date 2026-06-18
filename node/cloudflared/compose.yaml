@@ -1,0 +1,10 @@
+include:
+  - path:
+      - ./compose/stack.yml
+      - ./compose/secrets.yml
+    env_file:
+      - ./interpolation-envs/production.env
+      - /dev/shm/node_cloudflared.env # Must create this before deploying, if using container manager, create inside container
+
+services:
+  app: {}
