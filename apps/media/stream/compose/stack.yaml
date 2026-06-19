@@ -1,0 +1,272 @@
+services:
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:${BAZARR__VERS_TAG:?err}
+    volumes:
+      - type: bind
+        source: ${DOCKER_VOLUMES:?err}/stream/bazarr/config
+        target: /config
+      - type: bind
+        source: ${DOCKER_VOLUMES:?err}/stream/shared
+        target: /data
+    env_file:
+      - "../container-envs/${BAZARR__NAME:?err}.env"
+    networks:
+      - default
+      - proxy
+    restart: on-failure:${BAZARR__MAX_RESTART_ATTEMPS:?err}
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -fsS http://localhost:6767/ || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.bazarr.rule: 'Host(`bazarr.paiki.homektb.com`)'
+      traefik.http.routers.bazarr.entrypoints: websecure
+      traefik.http.routers.bazarr.tls: 'true'
+      traefik.http.services.bazarr.loadbalancer.server.port: '6767'
+    expose:
+      - '6767'
+
+  # ── Configarr (config-as-code for Sonarr/Radarr quality) ───────────────────
+  # One-shot job: syncs ../configarr/config.yml (TRaSH quality profiles + custom
+  # formats) into Sonarr & Radarr on each deploy, then exits 0. No web UI / no
+  # Traefik — only needs the default network to reach sonarr:8989 / radarr:7878.
+  # Re-run by redeploying the stack (or restarting just this service) in Komodo.
+  # config.yml is mounted read-only from the repo (the config-as-code); the
+  # TRaSH-guide clone is cached in the writable repos bind mount.
+  configarr:
+    image: ghcr.io/raydak-labs/configarr:${CONFIGARR__VERS_TAG:?err}
+    depends_on:
+      radarr:
+        condition: service_healthy
+      sonarr:
+        condition: service_healthy
+    volumes:
+      - type: bind
+        source: ../configarr
+        target: /app/config
+        read_only: true
+      - type: bind
+        source: ${DOCKER_VOLUMES:?err}/stream/configarr/repos
+        target: /app/repos
+    env_file:
+      - "../container-envs/${CONFIGARR__NAME:?err}.env"
+    networks:
+      - default
+    restart: on-failure:${CONFIGARR__MAX_RESTART_ATTEMPS:?err}
+
+  # ── Decluttarr (download-queue janitor) ────────────────────────────────────
+  # Long-running: every `timer` minutes it scans the Sonarr/Radarr queues and
+  # removes failed / stalled / slow / orphaned downloads (plus their partial
+  # files), blocklists them, and triggers a fresh search — so botched grabs
+  # don't silently sit in the queue forever. Config-as-code lives in
+  # ../decluttarr/config.yaml (mounted read-only at /app/config/config.yaml);
+  # the SONARR_API_KEY / RADARR_API_KEY it reads via `!ENV` come from
+  # compose/secrets.yaml (rendered to /dev/shm/stream.env by the infisical-agent).
+  # No download-client creds: removals go through the *arr API with
+  # removeFromClient, so Sonarr/Radarr tell SABnzbd to delete. No web UI / no
+  # Traefik — only needs the default network to reach sonarr:8989 / radarr:7878.
+  decluttarr:
+    image: ghcr.io/manimatter/decluttarr:${DECLUTTARR__VERS_TAG:?err}
+    depends_on:
+      radarr:
+        condition: service_healthy
+      sonarr:
+        condition: service_healthy
+    volumes:
+      - type: bind
+        source: ../decluttarr
+        target: /app/config
+        read_only: true
+    env_file:
+      - "../container-envs/${DECLUTTARR__NAME:?err}.env"
+    networks:
+      - default
+    restart: on-failure:${DECLUTTARR__MAX_RESTART_ATTEMPS:?err}
+  plex:
+    image: lscr.io/linuxserver/plex:${PLEX__VERS_TAG:?err}
+    volumes:
+      - type: bind
+        source: ${DOCKER_VOLUMES:?err}/stream/plex/config
+        target: /config
+      - type: bind
+        source: ${DOCKER_VOLUMES:?err}/stream/shared/media
+        target: /data/media
+    env_file:
+      - "../container-envs/${PLEX__NAME:?err}.env"
+    network_mode: host
+    restart: on-failure:${PLEX__MAX_RESTART_ATTEMPS:?err}
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -fsS http://localhost:32400/identity || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # ── Prowlarr (indexer aggregator) ──────────────────────────────────────────
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr@${PROWLARR__DIGEST:?err}
+    volumes:
+      - type: bind
+        source: ${DOCKER_VOLUMES:?err}/stream/prowlarr/config
+        target: /config
+    env_file:
+      - "../container-envs/${PROWLARR__NAME:?err}.env"
+    networks:
+      - default
+      - proxy
+    restart: on-failure:${PROWLARR__MAX_RESTART_ATTEMPS:?err}
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -fsS http://localhost:9696/ping || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.prowlarr.rule: 'Host(`prowlarr.paiki.homektb.com`)'
+      traefik.http.routers.prowlarr.entrypoints: websecure
+      traefik.http.routers.prowlarr.tls: 'true'
+      traefik.http.services.prowlarr.loadbalancer.server.port: '9696'
+    expose:
+      - '9696'
+
+  # ── Radarr (movies) ────────────────────────────────────────────────────────
+  radarr:
+    image: lscr.io/linuxserver/radarr@${RADARR__DIGEST:?err}
+    volumes:
+      - type: bind
+        source: ${DOCKER_VOLUMES:?err}/stream/radarr/config
+        target: /config
+      # Single /data mount (TRaSH layout) — see Sonarr. One device so imports
+      # hardlink instead of copy; no nested submounts.
+      - type: bind
+        source: ${DOCKER_VOLUMES:?err}/stream/shared
+        target: /data
+    env_file:
+      - "../container-envs/${RADARR__NAME:?err}.env"
+    networks:
+      - default
+      - proxy
+    restart: on-failure:${RADARR__MAX_RESTART_ATTEMPS:?err}
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -fsS http://localhost:7878/ping || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.radarr.rule: 'Host(`radarr.paiki.homektb.com`)'
+      traefik.http.routers.radarr.entrypoints: websecure
+      traefik.http.routers.radarr.tls: 'true'
+      traefik.http.services.radarr.loadbalancer.server.port: '7878'
+    expose:
+      - '7878'
+
+  # ── SABnzbd (usenet download client) ───────────────────────────────────────
+  sabnzbd:
+    image: lscr.io/linuxserver/sabnzbd@${SABNZBD__DIGEST:?err}
+    volumes:
+      - type: bind
+        source: ${DOCKER_VOLUMES:?err}/stream/sabnzbd/config
+        target: /config
+      # Single /data mount (TRaSH layout): SABnzbd writes completed downloads
+      # under /data/usenet/complete on the SAME device the *arr apps import
+      # from, so Sonarr/Radarr hardlink into /data/media instead of copying.
+      # SABnzbd's own paths (download_dir=/data/usenet/incomplete,
+      # complete_dir=/data/usenet/complete) are unchanged.
+      - type: bind
+        source: ${DOCKER_VOLUMES:?err}/stream/shared
+        target: /data
+    env_file:
+      - "../container-envs/${SABNZBD__NAME:?err}.env"
+    networks:
+      - default
+      - proxy
+    restart: on-failure:${SABNZBD__MAX_RESTART_ATTEMPS:?err}
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -fsS http://localhost:8080/ || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.sabnzbd.rule: 'Host(`sabnzbd.paiki.homektb.com`)'
+      traefik.http.routers.sabnzbd.entrypoints: websecure
+      traefik.http.routers.sabnzbd.tls: 'true'
+      traefik.http.services.sabnzbd.loadbalancer.server.port: '8080'
+    expose:
+      - '8080'
+
+  # ── Seer (request management — Overseerr's successor) ──────────────────────
+  # Migrated from sctx/overseerr: the existing /app/config DB auto-migrates in
+  # place on first boot (same path, same port 5055, no conversion). Seer runs as
+  # the non-root `node` user (UID 1000), so `init: true` is required and the host
+  # config dir must be owned 1000:1000 — Overseerr wrote it as root, so it was
+  # chowned during the cutover (see setup.md). No container healthcheck: the
+  # image ships no curl/wget/bash.
+  seerr:
+    image: ghcr.io/seerr-team/seerr:${SEERR__VERS_TAG:?err}
+    volumes:
+      - type: bind
+        source: ${DOCKER_VOLUMES:?err}/stream/seerr/config
+        target: /app/config
+    env_file:
+      - "../container-envs/${SEERR__NAME:?err}.env"
+    networks:
+      - default
+      - proxy
+    restart: on-failure:${SEERR__MAX_RESTART_ATTEMPS:?err}
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.seerr.rule: 'Host(`seerr.paiki.homektb.com`)'
+      traefik.http.routers.seerr.entrypoints: websecure
+      traefik.http.routers.seerr.tls: 'true'
+      traefik.http.services.seerr.loadbalancer.server.port: '5055'
+    expose:
+      - '5055'
+    init: true
+
+  # ── Sonarr (TV) ────────────────────────────────────────────────────────────
+  sonarr:
+    image: lscr.io/linuxserver/sonarr@${SONARR__DIGEST:?err}
+    volumes:
+      - type: bind
+        source: ${DOCKER_VOLUMES:?err}/stream/sonarr/config
+        target: /config
+      # Single /data mount (TRaSH layout): downloads (/data/usenet) and library
+      # (/data/media) live on ONE device, so imports hardlink instead of slow
+      # copy. Do NOT add nested submounts (e.g. /data/media/series) — that makes
+      # them separate devices in-container and breaks hardlinks.
+      - type: bind
+        source: ${DOCKER_VOLUMES:?err}/stream/shared
+        target: /data
+    env_file:
+      - "../container-envs/${SONARR__NAME:?err}.env"
+    networks:
+      - default
+      - proxy
+    restart: on-failure:${SONARR__MAX_RESTART_ATTEMPS:?err}
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -fsS http://localhost:8989/ping || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.sonarr.rule: 'Host(`sonarr.paiki.homektb.com`)'
+      traefik.http.routers.sonarr.entrypoints: websecure
+      traefik.http.routers.sonarr.tls: 'true'
+      traefik.http.services.sonarr.loadbalancer.server.port: '8989'
+    expose:
+      - '8989'
+
+networks:
+  proxy:
+    name: proxy
+    external: true
