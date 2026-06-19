@@ -1,0 +1,29 @@
+include:
+  - path:
+      - ./compose/stack.yaml
+      - ./compose/secrets.yaml
+    env_file:
+      - ./interpolation-envs/main.env
+      # Secrets rendered (RAM) by the infisical-agent on this same host. Must
+      # exist before `up`: the infisical-agent stack runs first, pulls this
+      # stack's secrets from Infisical (folder `/stream`), and renders them here.
+      # Supplies SONARR_API_KEY / RADARR_API_KEY into compose/secrets.yaml's
+      # interpolation scope (consumed by Configarr via `!env` and Decluttarr via
+      # `!ENV`). See setup.md.
+      - /dev/shm/stream.env
+
+# Plex's optional PLEX_CLAIM (first-claim only) is left commented in
+# container-envs/plex.env — it is not rendered via Infisical.
+#
+# Service stubs — real definitions live in compose/stack.yaml (+ secrets.yaml).
+# One stub per service so `docker compose` sees them at the include root.
+services:
+  bazarr: {}
+  configarr: {}
+  decluttarr: {}
+  plex: {}
+  prowlarr: {}
+  radarr: {}
+  sabnzbd: {}
+  seerr: {}
+  sonarr: {}
