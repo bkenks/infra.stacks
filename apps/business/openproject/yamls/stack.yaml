@@ -6,6 +6,11 @@ networks:
   postgres_shared:
     name: postgres_shared
     external: true
+  # Shared reverse-proxy network, created by Ansible and joined by Traefik on
+  # this host. We only join it, so it must already exist (Traefik up first).
+  proxy:
+    external: true
+    name: proxy
 
 volumes:
   assets: {}
@@ -40,11 +45,24 @@ services:
       - default
       - postgres_shared
 
+  # Collaborative-editing websocket. Exposed via Traefik on the SAME domain at
+  # /hocuspocus — the prefix is forwarded INTACT (hocuspocus listens there), so
+  # no stripPrefix. Higher router priority than `web` so /hocuspocus wins over
+  # the catch-all. Browsers connect via OPENPROJECT_..._HOCUSPOCUS__URL
+  # (wss://openprj.homektb.com/hocuspocus, see container-envs/openproject.env).
   hocuspocus:
     image: openproject/hocuspocus:${HOCUSPOCUS__VERSION:?err}
-    ports:
-      - '1234:1234'
     restart: unless-stopped
+    networks:
+      - default
+      - proxy
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.openproject-hocuspocus.rule=Host(`openprj.homektb.com`) && PathPrefix(`/hocuspocus`)
+      - traefik.http.routers.openproject-hocuspocus.entrypoints=websecure
+      - traefik.http.routers.openproject-hocuspocus.tls=true
+      - traefik.http.routers.openproject-hocuspocus.priority=100
+      - traefik.http.services.openproject-hocuspocus.loadbalancer.server.port=1234
 
   seeder:
     image: openproject/openproject:${APP__VERSION:?err}
@@ -79,13 +97,21 @@ services:
       timeout: 3s
       retries: 3
       start_period: 60s
+    # Exposed to this host's Traefik on the shared `proxy` network at
+    # https://openprj.homektb.com — no published host port (Traefik fronts it;
+    # *.homektb.com wildcard TLS is already issued per-host). autoheal=true is
+    # consumed by the autoheal sidecar.
     labels:
       - autoheal=true
-    ports:
-      - '8080:8080'
+      - traefik.enable=true
+      - traefik.http.routers.openproject.rule=Host(`openprj.homektb.com`)
+      - traefik.http.routers.openproject.entrypoints=websecure
+      - traefik.http.routers.openproject.tls=true
+      - traefik.http.services.openproject.loadbalancer.server.port=8080
     networks:
       - default
       - postgres_shared
+      - proxy
 
   worker:
     image: openproject/openproject:${APP__VERSION:?err}
