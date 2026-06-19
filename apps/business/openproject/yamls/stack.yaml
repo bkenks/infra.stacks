@@ -1,8 +1,4 @@
----
-
-name: openproject
-
----
+name: ${APP__NAME:?err}
 
 networks:
   default:
@@ -10,27 +6,35 @@ networks:
   postgres_shared:
     name: postgres_shared
     external: true
+  # Shared reverse-proxy network, created by Ansible and joined by Traefik on
+  # this host. We only join it, so it must already exist (Traefik up first).
+  proxy:
+    external: true
+    name: proxy
 
 volumes:
-  assets:
-
----
+  assets: {}
 
 services:
   autoheal:
-    image: willfarrell/autoheal:1.2.0
+    image: willfarrell/autoheal:${AUTOHEAL__VERSION:?err}
+    env_file:
+      - "../container-envs/autoheal.env"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
 
   cache:
     image: memcached
     restart: unless-stopped
 
   cron:
-    image: openproject/openproject:17-slim
+    image: openproject/openproject:${APP__VERSION:?err}
     depends_on:
       - cache
       - seeder
+    env_file:
+      - "../container-envs/${APP__NAME:?err}.env"
     volumes:
       - type: volume
         source: assets
@@ -39,16 +43,31 @@ services:
     restart: unless-stopped
     networks:
       - default
-      - postgres
+      - postgres_shared
 
+  # Collaborative-editing websocket. Exposed via Traefik on the SAME domain at
+  # /hocuspocus — the prefix is forwarded INTACT (hocuspocus listens there), so
+  # no stripPrefix. Higher router priority than `web` so /hocuspocus wins over
+  # the catch-all. Browsers connect via OPENPROJECT_..._HOCUSPOCUS__URL
+  # (wss://openprj.homektb.com/hocuspocus, see container-envs/openproject.env).
   hocuspocus:
-    image: openproject/hocuspocus:17.1.2
-    ports:
-      - '1234:1234'
+    image: openproject/hocuspocus:${HOCUSPOCUS__VERSION:?err}
     restart: unless-stopped
+    networks:
+      - default
+      - proxy
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.openproject-hocuspocus.rule=Host(`openprj.homektb.com`) && PathPrefix(`/hocuspocus`)
+      - traefik.http.routers.openproject-hocuspocus.entrypoints=websecure
+      - traefik.http.routers.openproject-hocuspocus.tls=true
+      - traefik.http.routers.openproject-hocuspocus.priority=100
+      - traefik.http.services.openproject-hocuspocus.loadbalancer.server.port=1234
 
   seeder:
-    image: openproject/openproject:17-slim
+    image: openproject/openproject:${APP__VERSION:?err}
+    env_file:
+      - "../container-envs/${APP__NAME:?err}.env"
     volumes:
       - type: volume
         source: assets
@@ -56,13 +75,16 @@ services:
     command: "./docker/prod/seeder"
     restart: on-failure
     networks:
-      - postgres
+      - default
+      - postgres_shared
 
   web:
-    image: openproject/openproject:17-slim
+    image: openproject/openproject:${APP__VERSION:?err}
     depends_on:
       - cache
       - seeder
+    env_file:
+      - "../container-envs/${APP__NAME:?err}.env"
     volumes:
       - type: volume
         source: assets
@@ -75,19 +97,29 @@ services:
       timeout: 3s
       retries: 3
       start_period: 60s
+    # Exposed to this host's Traefik on the shared `proxy` network at
+    # https://openprj.homektb.com — no published host port (Traefik fronts it;
+    # *.homektb.com wildcard TLS is already issued per-host). autoheal=true is
+    # consumed by the autoheal sidecar.
     labels:
       - autoheal=true
-    hostname: "${OPENPROJECT_HOST__NAME:-localhost:8080}"
-    ports:
-      - '8080:8080'
+      - traefik.enable=true
+      - traefik.http.routers.openproject.rule=Host(`openprj.homektb.com`)
+      - traefik.http.routers.openproject.entrypoints=websecure
+      - traefik.http.routers.openproject.tls=true
+      - traefik.http.services.openproject.loadbalancer.server.port=8080
     networks:
-      - postgres
+      - default
+      - postgres_shared
+      - proxy
 
   worker:
-    image: openproject/openproject:17-slim
+    image: openproject/openproject:${APP__VERSION:?err}
     depends_on:
       - cache
       - seeder
+    env_file:
+      - "../container-envs/${APP__NAME:?err}.env"
     volumes:
       - type: volume
         source: assets
@@ -95,4 +127,5 @@ services:
     command: "./docker/prod/worker"
     restart: unless-stopped
     networks:
-      - postgres
+      - default
+      - postgres_shared
