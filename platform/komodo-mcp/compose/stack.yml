@@ -1,6 +1,6 @@
 services:
   komodo-mcp:
-    image: ghcr.io/mp-tool/komodo-mcp-server:${KOMODO_MCP__VERS_TAG:?err}
+    image: fj.lilbud.homektb.com/bkenks/komodo-mcp-server:${KOMODO_MCP__VERS_TAG:?err}
     env_file:
       # Literal, non-secret config (MCP_TRANSPORT, KOMODO_URL, TZ). Basename
       # selected by KOMODO_MCP__NAME so the file is named after the software.
