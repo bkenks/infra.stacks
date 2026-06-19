@@ -3,8 +3,12 @@ name: ${APP__NAME:?err}
 networks:
   default:
     name: ${COMPOSE_PROJECT_NAME}_internal
+  # Shared Postgres network created by the postgres stack (real Docker name is
+  # postgres-production_shared); the db is reached at host `postgres-shared`
+  # (a service alias on that network). Other consumers (docuseal, n8n) join the
+  # same external network.
   postgres_shared:
-    name: postgres_shared
+    name: postgres-production_shared
     external: true
   # Shared reverse-proxy network, created by Ansible and joined by Traefik on
   # this host. We only join it, so it must already exist (Traefik up first).
