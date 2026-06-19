@@ -1,8 +1,4 @@
----
-
-name: openproject
-
----
+name: ${APP__NAME:?err}
 
 networks:
   default:
@@ -12,25 +8,28 @@ networks:
     external: true
 
 volumes:
-  assets:
-
----
+  assets: {}
 
 services:
   autoheal:
-    image: willfarrell/autoheal:1.2.0
+    image: willfarrell/autoheal:${AUTOHEAL__VERSION:?err}
+    env_file:
+      - "../container-envs/autoheal.env"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
 
   cache:
     image: memcached
     restart: unless-stopped
 
   cron:
-    image: openproject/openproject:17-slim
+    image: openproject/openproject:${APP__VERSION:?err}
     depends_on:
       - cache
       - seeder
+    env_file:
+      - "../container-envs/${APP__NAME:?err}.env"
     volumes:
       - type: volume
         source: assets
@@ -39,16 +38,18 @@ services:
     restart: unless-stopped
     networks:
       - default
-      - postgres
+      - postgres_shared
 
   hocuspocus:
-    image: openproject/hocuspocus:17.1.2
+    image: openproject/hocuspocus:${HOCUSPOCUS__VERSION:?err}
     ports:
       - '1234:1234'
     restart: unless-stopped
 
   seeder:
-    image: openproject/openproject:17-slim
+    image: openproject/openproject:${APP__VERSION:?err}
+    env_file:
+      - "../container-envs/${APP__NAME:?err}.env"
     volumes:
       - type: volume
         source: assets
@@ -56,13 +57,16 @@ services:
     command: "./docker/prod/seeder"
     restart: on-failure
     networks:
-      - postgres
+      - default
+      - postgres_shared
 
   web:
-    image: openproject/openproject:17-slim
+    image: openproject/openproject:${APP__VERSION:?err}
     depends_on:
       - cache
       - seeder
+    env_file:
+      - "../container-envs/${APP__NAME:?err}.env"
     volumes:
       - type: volume
         source: assets
@@ -77,17 +81,19 @@ services:
       start_period: 60s
     labels:
       - autoheal=true
-    hostname: "${OPENPROJECT_HOST__NAME:-localhost:8080}"
     ports:
       - '8080:8080'
     networks:
-      - postgres
+      - default
+      - postgres_shared
 
   worker:
-    image: openproject/openproject:17-slim
+    image: openproject/openproject:${APP__VERSION:?err}
     depends_on:
       - cache
       - seeder
+    env_file:
+      - "../container-envs/${APP__NAME:?err}.env"
     volumes:
       - type: volume
         source: assets
@@ -95,4 +101,5 @@ services:
     command: "./docker/prod/worker"
     restart: unless-stopped
     networks:
-      - postgres
+      - default
+      - postgres_shared

@@ -114,8 +114,14 @@ templates:
     config:
       polling-interval: "1m"
 
-  # Postgres
+  # Docuseal
   - source-path: /agent-templates/docuseal.tpl
     destination-path: /dev/shm/docuseal.env
+    config:
+      polling-interval: "1m"
+
+  # OpenProject
+  - source-path: /agent-templates/openproject.tpl
+    destination-path: /dev/shm/openproject.env
     config:
       polling-interval: "1m"
