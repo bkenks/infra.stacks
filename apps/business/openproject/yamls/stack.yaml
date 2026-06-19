@@ -1,5 +1,7 @@
 name: ${APP__NAME:?err}
 
+---
+
 networks:
   default:
     name: ${COMPOSE_PROJECT_NAME}_internal
@@ -19,6 +21,22 @@ networks:
 volumes:
   assets: {}
 
+---
+
+# Shared base for the OpenProject app services (cron, seeder, web, worker).
+# Merged into each with `<<: *op-app`; per-service keys below override these.
+# The enterprise_token.rb bind mount is added here so it lands on all four.
+x-op-app: &op-app
+  image: openproject/openproject:${APP__VERSION:?err}
+  env_file:
+    - "../container-envs/${APP__NAME:?err}.env"
+  volumes:
+    - type: volume
+      source: assets
+      target: /var/openproject/assets
+    - "../token/enterprise_token.rb:/app/app/models/enterprise_token.rb"
+  restart: unless-stopped
+
 services:
   autoheal:
     image: willfarrell/autoheal:${AUTOHEAL__VERSION:?err}
@@ -33,18 +51,11 @@ services:
     restart: unless-stopped
 
   cron:
-    image: openproject/openproject:${APP__VERSION:?err}
+    <<: *op-app
     depends_on:
       - cache
       - seeder
-    env_file:
-      - "../container-envs/${APP__NAME:?err}.env"
-    volumes:
-      - type: volume
-        source: assets
-        target: /var/openproject/assets
     command: "./docker/prod/cron"
-    restart: unless-stopped
     networks:
       - default
       - postgres_shared
@@ -69,13 +80,7 @@ services:
       - traefik.http.services.openproject-hocuspocus.loadbalancer.server.port=1234
 
   seeder:
-    image: openproject/openproject:${APP__VERSION:?err}
-    env_file:
-      - "../container-envs/${APP__NAME:?err}.env"
-    volumes:
-      - type: volume
-        source: assets
-        target: /var/openproject/assets
+    <<: *op-app
     command: "./docker/prod/seeder"
     restart: on-failure
     networks:
@@ -83,18 +88,11 @@ services:
       - postgres_shared
 
   web:
-    image: openproject/openproject:${APP__VERSION:?err}
+    <<: *op-app
     depends_on:
       - cache
       - seeder
-    env_file:
-      - "../container-envs/${APP__NAME:?err}.env"
-    volumes:
-      - type: volume
-        source: assets
-        target: /var/openproject/assets
     command: "./docker/prod/web"
-    restart: unless-stopped
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8080/health_checks/default" ]
       interval: 10s
@@ -118,18 +116,11 @@ services:
       - proxy
 
   worker:
-    image: openproject/openproject:${APP__VERSION:?err}
+    <<: *op-app
     depends_on:
       - cache
       - seeder
-    env_file:
-      - "../container-envs/${APP__NAME:?err}.env"
-    volumes:
-      - type: volume
-        source: assets
-        target: /var/openproject/assets
     command: "./docker/prod/worker"
-    restart: unless-stopped
     networks:
       - default
       - postgres_shared
