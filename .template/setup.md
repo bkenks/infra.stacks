@@ -54,6 +54,15 @@ If the stack has no secrets, delete `compose/secrets.yml`, its line in
 
 ### Compose Commands
 
+*Validate the merged config locally (no deploy host / no /dev/shm needed):*
+```bash
+tests/render_compose.sh            # render + validate the merged config
+tests/render_compose.sh --services # any `docker compose config` flag passes through
+```
+Renders `docker compose config` in a throwaway Linux container, faking the
+runtime-only `/dev/shm/...` env files — so it validates without editing the
+compose. Add a `printf ... > /dev/shm/...` line per fake file the stack needs.
+
 *Start Stack (local/standalone testing only — in the homelab deploy via Komodo):*
 ```bash
 docker compose up -d

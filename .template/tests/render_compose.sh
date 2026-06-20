@@ -1,39 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
-
-# ============================================================
-# PRE-FLIGHT
-# ============================================================
-# notes: Setup for environment, compose command, etc
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# COMPOSE BASE COMMAND SETUP
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Add flags that run everytime — each as its own element
-# COMPOSE_BASE_COMMAND+=(-f compose.yaml)
-# COMPOSE_BASE_COMMAND+=(-f compose.override.yaml)
-# COMPOSE_BASE_COMMAND+=(--project-name myproject)
-#
-# A value with spaces stays ONE element — no quoting/splitting trouble
-# COMPOSE_BASE_COMMAND+=(--project-directory "/path/with spaces")
-COMPOSE_BASE_COMMAND=(docker compose)
-
-# COMPOSE BASE COMMAND SETUP
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ENVIRONMENT SETUP
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# notes: Set your environment variables here required to render the compose
-
-# export VAR=test
-
-# ENVIRONMENT SETUP
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-# PRE-FLIGHT
-# ============================================================
-
-# ----- TEST 1 -----
-# notes: Add addition flags or commands in each test
-"${COMPOSE_BASE_COMMAND[@]}" config
+# Validate the compose without editing it: run `docker compose config` in a
+# Linux container (has /dev/shm; macOS doesn't) after faking the runtime-only
+# env files the infisical-agent renders in prod. Uncomment / add one printf line
+# per fake file the stack needs — match the /dev/shm paths in compose.yaml, and
+# put any ${VAR:?err} interpolation values the body expects inside it.
+cd "$(dirname "$0")/.."
+docker run --rm -e COMPOSE_PROJECT_NAME=replaceme.STACKNAME -v "$PWD":/s -w /s docker:cli sh -c '
+  # printf "FOO=test\nBAR=test\n" > /dev/shm/replaceme.SECRETFILE.env
+  docker compose config "$@"
+' -- "$@"
