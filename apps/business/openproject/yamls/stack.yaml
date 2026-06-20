@@ -47,7 +47,7 @@ services:
     restart: unless-stopped
 
   cache:
-    image: memcached
+    image: memcached:${MEMCACHED__VERSION:?err}
     restart: unless-stopped
 
   cron:
@@ -68,6 +68,14 @@ services:
   hocuspocus:
     image: openproject/hocuspocus:${HOCUSPOCUS__VERSION:?err}
     restart: unless-stopped
+    # hocuspocus calls BACK into OpenProject to authenticate editing sessions.
+    # Reach `web` internally over the `default` net (http, not the TLS hairpin);
+    # `web` must be in OPENPROJECT_ADDITIONAL__HOST__NAMES so the host check
+    # passes. OPENPROJECT_HTTPS reflects the external scheme. (SECRET is set in
+    # yamls/secrets.yaml; environment maps from both files merge.)
+    environment:
+      OPENPROJECT_URL: "http://web:8080"
+      OPENPROJECT_HTTPS: "true"
     networks:
       - default
       - proxy
