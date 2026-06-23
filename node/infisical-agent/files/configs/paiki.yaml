@@ -41,6 +41,8 @@ templates:
   # Node: traefik (Cloudflare API token for DNS-01 wildcard TLS)
   - source-path: /agent-templates/node_traefik.tpl
     destination-path: /dev/shm/node_traefik.env
+    config:
+      polling-interval: "1m"
 
   # Node: Infra
   # ============  Section: End  =============
