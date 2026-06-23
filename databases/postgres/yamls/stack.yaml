@@ -24,6 +24,9 @@ services:
       - '5050:80'
 
 networks:
+  db-backup-shared:
+    name: databasus_littlebuddy_db-backup-shared
+    external: true
   default:    # override default name and set COMPOSE_PROJECT_NAME prefix to match default compose behavior
     name: "${COMPOSE_PROJECT_NAME}_shared"
 
