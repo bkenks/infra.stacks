@@ -61,17 +61,36 @@ if [ -d "$tpl_src" ]; then
   done
 fi
 
-# Mirror the agent's output to a log file the healthcheck can scan. The agent
-# only logs to stdout, and a Docker healthcheck can't read `docker logs`, so we
-# tee its output to /tmp/agent.log (container-local, truncated on every start)
-# and the healthcheck greps it for ` ERR ` lines. A permanently failing template
-# (e.g. wrong secret path -> repeated ERR + 30s retry) keeps the process alive,
-# so liveness alone never flags it — the log scan does. `tail -f` streams the
-# same log to stdout so `docker logs` / Komodo still show everything, and
-# `exec`-ing the agent keeps it as PID 1 for a clean SIGTERM on redeploy.
+# Mirror the agent's output to a log file the healthcheck can read. The agent
+# only logs to stdout and a Docker healthcheck can't read `docker logs`, so we
+# write its output to /tmp/agent.log (container-local, truncated on every start).
+# `tail -f` streams the same log to stdout so `docker logs` / Komodo still show
+# everything, and `exec`-ing the agent keeps it as PID 1 for a clean SIGTERM.
+#
+# Health is a CURRENT-STATE question, not a historical one: a failing template or
+# auth keeps the process alive (liveness never flips), but an append-only error
+# log can't be grepped for "currently fine" because the agent is SILENT on
+# success — old ERR lines would linger and pin it unhealthy forever. So instead we
+# stamp /tmp/agent.last_err with the epoch of every ERR/FTL/PNC line; the
+# healthcheck flags unhealthy only while an error was seen recently (see
+# compose/standard.yml). A still-broken agent re-logs within the window (auth
+# retries ~30s, template polls 1m) and stays unhealthy; once the errors stop the
+# last stamp ages out and the container returns to healthy with no restart.
 log="/tmp/agent.log"
+err_stamp="/tmp/agent.last_err"
 : > "$log"
+rm -f "$err_stamp"
 tail -f "$log" &
+
+# Watch the agent's output and stamp the time of each error line. The ANSI-wrapped
+# zerolog level (e.g. ESC[31mERR ESC[0m) still matches the *ERR* glob; uppercase
+# ERR/FTL/PNC appear only in the level column, never in mixed-case message text
+# like "APIError", so this won't false-positive.
+tail -f "$log" | while IFS= read -r line; do
+  case "$line" in
+    *ERR*|*FTL*|*PNC*) date +%s > "$err_stamp" ;;
+  esac
+done &
 
 echo "infisical-agent: starting with $config"
 exec infisical agent --config "$config" >> "$log" 2>&1

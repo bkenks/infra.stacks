@@ -20,14 +20,19 @@ services:
       - ../files/configs:/agent-configs:ro
       - /dev/shm:/dev/shm
     restart: unless-stopped
-    # The agent stays "running" even when a template permanently fails to render
-    # (wrong secret path -> repeated ERR + retry), so liveness never flips it.
-    # entrypoint.sh mirrors the agent's output to /tmp/agent.log; treat any
-    # zerolog ` ERR ` line as unhealthy. The marker is sticky until the next
-    # start (the log is truncated on restart), so a bad config stays unhealthy
-    # until it's fixed and redeployed — which is the point.
+    # The agent stays "running" even when a template/auth permanently fails (wrong
+    # secret path, or Infisical unreachable -> repeated ERR + retry), so liveness
+    # never flips it. entrypoint.sh stamps /tmp/agent.last_err with the epoch of
+    # every ERR/FTL/PNC line; we flag the container unhealthy only while an error
+    # was logged within the last 180s. Why a window and not a plain grep: the agent
+    # is SILENT on success, so a historical error log can't say the agent is
+    # "currently fine" — old ERR lines would pin it unhealthy forever. A still-broken
+    # agent re-logs inside the window (auth retries ~30s, template polls 1m) and stays
+    # unhealthy; once errors stop, the stamp ages past 180s and the container recovers
+    # on its own, no restart. `$$` escapes `$` past compose interpolation so the
+    # arithmetic runs in the container shell, not at compose-parse time.
     healthcheck:
-      test: [ "CMD-SHELL", "! grep -q ' ERR ' /tmp/agent.log" ]
+      test: [ "CMD-SHELL", "[ ! -f /tmp/agent.last_err ] || [ $$(( $$(date +%s) - $$(cat /tmp/agent.last_err) )) -ge 180 ]" ]
       interval: 30s
       timeout: 5s
       retries: 2
