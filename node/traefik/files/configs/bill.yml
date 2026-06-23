@@ -14,7 +14,7 @@
 http:
   routers:
     dashboard:
-      rule: "Host(`traefik.lilbud.homektb.com`) || Host(`traefik.homektb.com`)"
+      rule: "Host(`traefik.bill.homektb.com`) || Host(`traefik.homektb.com`)"
       entryPoints:
         - websecure
       service: api@internal
@@ -28,4 +28,4 @@ http:
           - main: homektb.com
             sans:
               - "*.homektb.com"
-              - "*.lilbud.homektb.com"
+              - "*.bill.homektb.com"
