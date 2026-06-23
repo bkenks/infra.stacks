@@ -1,7 +1,0 @@
----
-# No host port is published — Traefik fronts the UI at
-# databasus-${DATABASUS__HOST}.homektb.com (see compose.yaml labels). This
-# per-env overlay is kept as the env selector for Komodo but carries no
-# overrides now that routing moved to Traefik.
-services:
-  databasus: {}
