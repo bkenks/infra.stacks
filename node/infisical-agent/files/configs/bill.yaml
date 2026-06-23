@@ -1,0 +1,127 @@
+# STANDARD agent config for littlebuddy (control-plane). Long-running; renders
+# this host's app-stack secrets to /dev/shm/<stack>.env, consumed by each stack's
+# compose via `include: -> env_file:`. Migrated from the old
+# stack.infra/infisical/files/agent-config.yaml.
+#
+# Add a consumer: add ONE templates block that points source-path at the shared
+# template files/configs/templates/<stack>.tpl (referenced at runtime as
+# /agent-templates/<stack>.tpl — entrypoint.sh substitutes ${AGENT_HOST} into a
+# writable copy), set destination-path to /dev/shm/<stack>.env, store the stack's
+# secrets in Infisical under /<stack> (APPNAME_SECRETNAME convention), and make
+# sure this host's machine identity is scoped to read that folder. Each template
+# body lives in exactly one file — never copy it between configs; to move a stack
+# to another host, move its source-path block there.
+infisical:
+  address: "https://infisical.homektb.com"
+  exit-after-auth: false              # stay running, keep rendered files fresh
+  revoke-credentials-on-shutdown: false
+
+auth:
+  type: "universal-auth"
+  config:
+    client-id: "/dev/shm/agent.client-id"
+    client-secret: "/dev/shm/agent.client-secret"
+    remove_client_secret_on_read: true   # wipe the secret file right after read
+
+templates:
+  # ============ Section: Start ============
+  # Control Plane: Infra
+
+  # Komodo Core + Mongo — same render as littlebuddy.init.yaml (init seeds it at
+  # cold bootstrap; this standard agent keeps it fresh). komodo/compose injects it
+  # via service env_file (required: false) on core + mongo.
+  - source-path: /agent-templates/komodo_core.tpl
+    destination-path: /dev/shm/komodo_core.env
+    config:
+      polling-interval: "1m"
+
+  # ForgeJo
+  - source-path: /agent-templates/forgejo.tpl
+    destination-path: /dev/shm/forgejo.env
+    config:
+      polling-interval: "1m"
+
+  # komodo-mcp
+  - source-path: /agent-templates/infra_komodo-mcp.tpl
+    destination-path: /dev/shm/infra_komodo-mcp.env
+    config:
+      polling-interval: "1m"
+
+  # Woodpecker CI (Forgejo OAuth client/secret + server<->agent gRPC secret)
+  - source-path: /agent-templates/woodpecker.tpl
+    destination-path: /dev/shm/woodpecker.env
+    config:
+      polling-interval: "1m"
+
+  # Control Plane: Infra
+  # ============  Section: End  =============
+
+  
+
+
+  # ============ Section: Start ============
+  # Node: Infra
+
+  # cloudflared
+  - source-path: /agent-templates/node_cloudflared.tpl
+    destination-path: /dev/shm/node_cloudflared.env
+    config:
+      polling-interval: "1m"
+
+  # Node: zerobyte
+  - source-path: /agent-templates/node_zerobyte.tpl
+    destination-path: /dev/shm/node_zerobyte.env
+    config:
+      polling-interval: "1m"
+
+  # Node: traefik (Cloudflare API token for DNS-01 wildcard TLS)
+  - source-path: /agent-templates/node_traefik.tpl
+    destination-path: /dev/shm/node_traefik.env
+
+  # Node: Infra
+  # ============  Section: End  =============
+
+
+
+
+  # Client: couch-potatoes website
+  - source-path: /agent-templates/client_couch-potatoes_website.tpl
+    destination-path: /dev/shm/client_couch-potatoes_website.env
+    config:
+      polling-interval: "1m"
+
+  # Apps: paperless
+  - source-path: /agent-templates/apps_paperless.tpl
+    destination-path: /dev/shm/apps_paperless.env
+    config:
+      polling-interval: "1m"
+
+  # Biz-ops: frappe
+  - source-path: /agent-templates/biz-ops_frappe.tpl
+    destination-path: /dev/shm/biz-ops_frappe.env
+    config:
+      polling-interval: "1m"
+
+  # Stackform website
+  - source-path: /agent-templates/stackform_website.tpl
+    destination-path: /dev/shm/stackform_website.env
+    config:
+      polling-interval: "1m"
+
+  # Postgres
+  - source-path: /agent-templates/postgres.tpl
+    destination-path: /dev/shm/postgres.env
+    config:
+      polling-interval: "1m"
+
+  # Docuseal
+  - source-path: /agent-templates/docuseal.tpl
+    destination-path: /dev/shm/docuseal.env
+    config:
+      polling-interval: "1m"
+
+  # OpenProject
+  - source-path: /agent-templates/openproject.tpl
+    destination-path: /dev/shm/openproject.env
+    config:
+      polling-interval: "1m"
