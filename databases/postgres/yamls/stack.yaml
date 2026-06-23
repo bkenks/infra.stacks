@@ -1,4 +1,18 @@
+---
 name: postgres
+---
+
+networks:
+  db-backups:
+    name: db-backups
+    external: true
+  default:
+    name: "postgres"
+
+volumes:
+  db: {}
+
+---
 
 services:
   db:
@@ -10,10 +24,10 @@ services:
     networks:
       default:
         aliases:
-          - postgres-shared
+          - postgres
       db-backup-shared:
         aliases:
-          - postgres-shared
+          - postgres
     healthcheck:
       test: pg_isready -U ${POSTGRES_USER} -h localhost -d postgres
       interval: 5s
@@ -25,13 +39,3 @@ services:
     profiles: [ 'full' ]
     ports:
       - '5050:80'
-
-networks:
-  db-backup-shared:
-    name: databasus_littlebuddy_db-backup-shared
-    external: true
-  default:    # override default name and set COMPOSE_PROJECT_NAME prefix to match default compose behavior
-    name: "${COMPOSE_PROJECT_NAME}_shared"
-
-volumes:
-  db:
