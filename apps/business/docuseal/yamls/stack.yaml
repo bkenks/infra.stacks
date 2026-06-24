@@ -14,7 +14,7 @@ services:
       proxy:
         aliases:
           - ${APP__NAME:?err}
-      postgres:
+      postgres-shared:
         aliases:
           - ${APP__NAME:?err}
     labels:
