@@ -80,6 +80,12 @@ templates:
     config:
       polling-interval: "1m"
 
+  # Databasus
+  - source-path: /agent-templates/databasus.tpl
+    destination-path: /dev/shm/databasus_secret.key
+    config:
+      polling-interval: "1m"
+
   # Node: Infra
   # ============  Section: End  =============
 
