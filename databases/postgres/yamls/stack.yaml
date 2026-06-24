@@ -7,7 +7,7 @@ networks:
     name: db-backups
     external: true
   default:
-    name: "postgres"
+    name: postgres-shared
 
 volumes:
   db: {}
