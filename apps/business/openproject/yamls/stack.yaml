@@ -4,16 +4,10 @@ name: ${APP__NAME:?err}
 
 networks:
   default:
-    name: ${COMPOSE_PROJECT_NAME}_internal
-  # Shared Postgres network created by the postgres stack (real Docker name is
-  # postgres-production_shared); the db is reached at host `postgres-shared`
-  # (a service alias on that network). Other consumers (docuseal, n8n) join the
-  # same external network.
-  postgres_shared:
-    name: postgres-production_shared
+    name: openproject
+  postgres-shared:
+    name: postgres-shared
     external: true
-  # Shared reverse-proxy network, created by Ansible and joined by Traefik on
-  # this host. We only join it, so it must already exist (Traefik up first).
   proxy:
     external: true
     name: proxy
@@ -58,7 +52,7 @@ services:
     command: "./docker/prod/cron"
     networks:
       - default
-      - postgres_shared
+      - postgres-shared
 
   # Collaborative-editing websocket. Exposed via Traefik on the SAME domain at
   # /hocuspocus — the prefix is forwarded INTACT (hocuspocus listens there), so
@@ -93,7 +87,7 @@ services:
     restart: on-failure
     networks:
       - default
-      - postgres_shared
+      - postgres-shared
 
   web:
     <<: *op-app
@@ -120,7 +114,7 @@ services:
       - traefik.http.services.openproject.loadbalancer.server.port=8080
     networks:
       - default
-      - postgres_shared
+      - postgres-shared
       - proxy
 
   worker:
@@ -131,4 +125,4 @@ services:
     command: "./docker/prod/worker"
     networks:
       - default
-      - postgres_shared
+      - postgres-shared

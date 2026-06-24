@@ -31,7 +31,7 @@ This stack's specifics:
   `compose.yaml`'s `include: -> env_file:` pulls them in.
 
 DocuSeal connects to the shared Postgres on the external
-`postgres-production_postgres` network (`postgres-production-db:5432`, database
+`postgres-shared` network (`postgres:5432`, database
 `docuseal`).
 
 ### Compose Commands

@@ -31,6 +31,6 @@ networks:
   proxy:
     name: proxy
     external: true
-  postgres:
-    name: postgres-production_shared
+  postgres-shared:
+    name: postgres-shared
     external: true

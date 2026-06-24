@@ -16,5 +16,5 @@ services:
 
 networks:
   postgres:
-    name: postgres-production_postgres
+    name: postgres-shared
     external: true
