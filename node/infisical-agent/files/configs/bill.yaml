@@ -27,7 +27,7 @@ templates:
   # ============ Section: Start ============
   # Control Plane: Infra
 
-  # Komodo Core + Mongo — same render as littlebuddy.init.yaml (init seeds it at
+  # Komodo Core + Mongo — same render as control-plane.bootstrap.yaml (init seeds it at
   # cold bootstrap; this standard agent keeps it fresh). komodo/compose injects it
   # via service env_file (required: false) on core + mongo.
   - source-path: /agent-templates/komodo_core.tpl

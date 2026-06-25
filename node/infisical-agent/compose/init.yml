@@ -1,7 +1,7 @@
 # INIT profile — one-shot CONTROL-PLANE cold bootstrap (run by Ansible).
 # This is the very first agent on a fresh control-plane, BEFORE Traefik and the
 # public hostname exist. It joins the `proxy` network and reaches the Infisical
-# app directly at http://infisical-app:8080 (see files/configs/<host>.init.yaml)
+# app directly at http://infisical-app:8080 (see files/configs/control-plane.bootstrap.yaml)
 # to render the tier-0 bootstrap secrets (Komodo / Cloudflare / Traefik), then
 # EXITS (exit-after-auth). Subservers do NOT use this — they run the standard
 # agent on the public URL, since the control-plane (URL + Traefik) already exists
@@ -16,8 +16,9 @@ services:
     profiles: [ "init" ]
     entrypoint: [ "/bin/sh", "/agent/entrypoint.sh" ]
     environment:
-      AGENT_HOST: ${AGENT_HOST:?err}        # selects files/configs/<host>.init.yaml
-      AGENT_CONFIG_SUFFIX: ".init"
+      AGENT_HOST: ${AGENT_HOST:?err}        # real host name — drives ${AGENT_HOST} secret-path subs
+      AGENT_CONFIG_NAME: "control-plane.bootstrap"  # fixed, host-agnostic bootstrap config
+      AGENT_CONFIG_SUFFIX: ".init"          # keys the /dev/shm/agent.init.* creds (Ansible-written)
     volumes:
       - ../files/entrypoint.sh:/agent/entrypoint.sh:ro
       - ../files/configs:/agent-configs:ro

@@ -14,9 +14,11 @@
 #             of that host's app-stack secrets and keeps them fresh. Creds come
 #             from Komodo per-server variables (INFISICAL_CLIENT_ID/SECRET, env).
 #
-# Per-host config is selected by AGENT_HOST -> files/configs/<host>.yaml (or
-# <host>.init.yaml for the init profile). Each host should have its OWN machine
-# identity, scoped in Infisical to only that host's secret folders.
+# The standard profile selects a per-host config by AGENT_HOST ->
+# files/configs/<host>.yaml. The init profile uses the fixed, host-agnostic
+# files/configs/control-plane.bootstrap.yaml (AGENT_CONFIG_NAME). Each host
+# should have its OWN machine identity, scoped in Infisical to only that host's
+# secret folders.
 include:
   - path:
       - ./compose/init.yml
