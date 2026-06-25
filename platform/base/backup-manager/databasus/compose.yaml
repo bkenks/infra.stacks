@@ -1,4 +1,0 @@
-name: databasus
-
-include:
-  - path: ./yamls/stack.yaml
