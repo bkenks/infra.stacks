@@ -5,8 +5,7 @@ global:
   checkNewVersion: false
   sendAnonymousUsage: false
 
-# Dashboard served via a router (see the per-host file in files/configs/), not a
-# published port.
+# Dashboard served via a router (see files/host.yml), not a published port.
 api:
   dashboard: true
 
@@ -24,7 +23,7 @@ entryPoints:
   websecure:
     address: ":443"
   # Forgejo git-over-SSH. Bound to host :22 so the port-less clone URL
-  # (ssh://git@fj.lilbud.homektb.com/...) reaches Forgejo. Admin sshd was moved
+  # (ssh://git@fj.homektb.com/...) reaches Forgejo. Admin sshd was moved
   # off 22 to 3204 (see infra.ansible) to free this port — redeploy this stack
   # only AFTER that cutover, or the :22 bind conflicts with sshd.
   forgejo-ssh:
@@ -35,21 +34,21 @@ providers:
     # Only containers explicitly labelled traefik.enable=true are exposed.
     exposedByDefault: false
     network: proxy
-  # Per-host dynamic config. compose mounts files/configs/${AGENT_HOST}.yml here
-  # as host.yml (see ../compose/stack.yml). That file carries the dashboard
-  # router and THIS host's ACME cert domains — every host requests *.homektb.com;
-  # maboi additionally requests stackform.app + couchpotatoes.store.
+  # Shared dynamic config. compose mounts files/host.yml here as host.yml (see
+  # ../compose/stack.yml) — IDENTICAL on every host. It carries the dashboard
+  # router and the ACME cert domains for ALL zones (homektb.com + stackform.app +
+  # couchpotatoes.store), so any host can terminate TLS for any service.
   file:
     directory: /etc/traefik/dynamic
     watch: true
 
 # TLS certificates: Cloudflare DNS-01 ACME (Let's Encrypt). The scoped
-# CF_DNS_API_TOKEN (Zone:DNS:Edit + Zone:Read on every zone the host's per-host
-# file requests) is read by the lego cloudflare provider from the container
-# environment — deliberately NOT set here, so no secret lands in git.
-# Which (wildcard) certs get requested is per-host: see files/configs/<host>.yml.
-# Once issued, Traefik serves each wildcard via SNI matching, so app routers need
-# only `tls: true`.
+# CF_DNS_API_TOKEN (Zone:DNS:Edit + Zone:Read on ALL zones — homektb.com +
+# stackform.app + couchpotatoes.store, since every host requests every wildcard)
+# is read by the lego cloudflare provider from the container environment —
+# deliberately NOT set here, so no secret lands in git. Which (wildcard) certs get
+# requested is in files/host.yml. Once issued, Traefik serves each wildcard via
+# SNI matching, so app routers need only `tls: true`.
 certificatesResolvers:
   cloudflare:
     acme:

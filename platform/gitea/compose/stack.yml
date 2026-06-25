@@ -22,7 +22,7 @@ services:
       - proxy
     labels:
       traefik.enable: 'true'
-      traefik.http.routers.gitea.rule: 'Host(`gitea.homektb.com`) || Host(`gitea.lilbud.homektb.com`)'
+      traefik.http.routers.gitea.rule: 'Host(`gitea.homektb.com`)'
       traefik.http.routers.gitea.entrypoints: websecure
       traefik.http.routers.gitea.tls: 'true'
       traefik.http.services.gitea.loadbalancer.server.port: '3000'

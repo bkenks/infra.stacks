@@ -30,7 +30,7 @@ services:
       - proxy
     labels:
       traefik.enable: 'true'
-      traefik.http.routers.forgejo.rule: 'Host(`fj.lilbud.homektb.com`)'
+      traefik.http.routers.forgejo.rule: 'Host(`fj.homektb.com`)'
       traefik.http.routers.forgejo.entrypoints: websecure
       traefik.http.routers.forgejo.tls: 'true'
       traefik.http.services.forgejo.loadbalancer.server.port: '3000'

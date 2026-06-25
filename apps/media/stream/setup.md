@@ -13,12 +13,12 @@ All HTTP services are fronted by Traefik on the wildcard `*.homektb.com` cert
 | Service   | Host                       | Internal port | Notes                                  |
 |-----------|----------------------------|---------------|----------------------------------------|
 | Plex      | host net → `:32400`         | 32400         | **Not** behind Traefik (host_mode)     |
-| Seer      | `seerr.paiki.homektb.com`   | 5055          | request management (Overseerr successor) |
-| Prowlarr  | `prowlarr.paiki.homektb.com`| 9696          | indexer aggregator                     |
-| Bazarr    | `bazarr.paiki.homektb.com`  | 6767          | subtitles                              |
-| SABnzbd   | `sabnzbd.paiki.homektb.com` | 8080          | usenet download client                 |
-| Radarr    | `radarr.paiki.homektb.com`  | 7878          | movies                                 |
-| Sonarr    | `sonarr.paiki.homektb.com`  | 8989          | TV                                     |
+| Seer      | `seerr.homektb.com`   | 5055          | request management (Overseerr successor) |
+| Prowlarr  | `prowlarr.homektb.com`| 9696          | indexer aggregator                     |
+| Bazarr    | `bazarr.homektb.com`  | 6767          | subtitles                              |
+| SABnzbd   | `sabnzbd.homektb.com` | 8080          | usenet download client                 |
+| Radarr    | `radarr.homektb.com`  | 7878          | movies                                 |
+| Sonarr    | `sonarr.homektb.com`  | 8989          | TV                                     |
 | Configarr | — (no UI)                  | —             | one-shot: syncs TRaSH quality config (code) → Sonarr/Radarr, then exits |
 | Decluttarr| — (no UI)                  | —             | long-running: clears failed/stalled/orphaned downloads from the queues |
 

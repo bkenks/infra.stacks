@@ -15,12 +15,12 @@ stack's deploy specifics live in `setup.md`.
 | Service   | Internal port | Reached at                | Purpose                          |
 |-----------|---------------|---------------------------|----------------------------------|
 | Plex      | 32400         | host net `:32400`             | Media server (`network_mode: host`, **not** Traefik) |
-| Seer      | 5055          | `seerr.paiki.homektb.com`     | Request management (Overseerr successor; runs as `node`, `init: true`) |
-| Prowlarr  | 9696          | `prowlarr.paiki.homektb.com`  | Indexer aggregator               |
-| Radarr    | 7878          | `radarr.paiki.homektb.com`    | Movies                           |
-| Sonarr    | 8989          | `sonarr.paiki.homektb.com`    | TV                               |
-| Bazarr    | 6767          | `bazarr.paiki.homektb.com`    | Subtitles                        |
-| SABnzbd   | 8080          | `sabnzbd.paiki.homektb.com`   | Usenet download client           |
+| Seer      | 5055          | `seerr.homektb.com`     | Request management (Overseerr successor; runs as `node`, `init: true`) |
+| Prowlarr  | 9696          | `prowlarr.homektb.com`  | Indexer aggregator               |
+| Radarr    | 7878          | `radarr.homektb.com`    | Movies                           |
+| Sonarr    | 8989          | `sonarr.homektb.com`    | TV                               |
+| Bazarr    | 6767          | `bazarr.homektb.com`    | Subtitles                        |
+| SABnzbd   | 8080          | `sabnzbd.homektb.com`   | Usenet download client           |
 | Configarr | — (no UI)     | —                             | One-shot: syncs TRaSH quality config → Sonarr/Radarr, then exits |
 | Decluttarr| — (no UI)     | —                             | Long-running: clears failed/stalled/orphaned downloads from the queues |
 

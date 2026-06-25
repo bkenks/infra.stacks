@@ -10,16 +10,16 @@ Woodpecker CI is a lightweight, Forgejo-integrated CI/CD engine — a **server**
 (UI/API + gRPC) plus an **agent** that runs pipeline steps as containers via the host
 Docker socket.
 
-- **URL:** https://peck.lilbud.homektb.com (Forgejo OAuth login)
+- **URL:** https://peck.homektb.com (Forgejo OAuth login)
 - **Host:** littlebuddy (control plane). Deployed via Komodo as the `woodpecker-prod` stack.
 - **Stack source:** `stack.infra/woodpecker` (server + agent, SQLite state, Traefik at
-  `peck.lilbud.homektb.com`).
-- **Forge:** self-hosted Forgejo at `https://fj.lilbud.homektb.com`.
+  `peck.homektb.com`).
+- **Forge:** self-hosted Forgejo at `https://fj.homektb.com`.
 
 ## How the stack is wired (one-time, already done)
 
 - **Forgejo OAuth2 app** — lets Woodpecker log users in and read their repos. Redirect URI
-  `https://peck.lilbud.homektb.com/authorize`. Its client ID/secret and the server↔agent
+  `https://peck.homektb.com/authorize`. Its client ID/secret and the server↔agent
   gRPC `WOODPECKER_AGENT_SECRET` live in Infisical under `/woodpecker`, rendered to
   `/dev/shm/woodpecker.env` on littlebuddy by the infisical-agent (template
   `woodpecker.tpl` in `stack.node/infisical-agent`).
@@ -43,7 +43,7 @@ Docker socket.
    Pull-mirrors are read-only and don't fire the push/tag/release webhooks Woodpecker
    needs. (If it's a pull-mirror: Forgejo repo → Settings → Danger Zone → *Convert to
    Regular Repository*, then keep only the push-mirror out to GitHub.)
-2. **Activate the repo in Woodpecker** — log into https://peck.lilbud.homektb.com, find the
+2. **Activate the repo in Woodpecker** — log into https://peck.homektb.com, find the
    repo, enable it. This auto-installs the webhook into the Forgejo repo.
 3. **Add any pipeline secrets** the `.woodpecker.yml` references — Woodpecker UI → repo (or
    org) → Settings → Secrets. Mind each secret's **event filter** (a secret not allowed on
@@ -73,7 +73,7 @@ push it to Forgejo's container registry (packages).
 
 **Flow:** publish a Forgejo release with a bare-semver tag (e.g. `1.0.9`) → Forgejo fires
 the `release` webhook → Woodpecker runs the buildx plugin → image pushed to
-`fj.lilbud.homektb.com/stackform-hq/stackform_website:1.0.9` (+ `latest`) → visible under
+`fj.homektb.com/stackform-hq/stackform_website:1.0.9` (+ `latest`) → visible under
 the org's **Packages** tab.
 
 **Pipeline** (`stackform_website/.woodpecker.yml`):
@@ -86,8 +86,8 @@ steps:
   - name: build-and-push
     image: woodpeckerci/plugin-docker-buildx:6.1.0
     settings:
-      registry: fj.lilbud.homektb.com
-      repo: fj.lilbud.homektb.com/stackform-hq/stackform_website
+      registry: fj.homektb.com
+      repo: fj.homektb.com/stackform-hq/stackform_website
       dockerfile: Dockerfile
       platforms: linux/amd64
       tags:

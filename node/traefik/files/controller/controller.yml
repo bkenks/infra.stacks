@@ -1,0 +1,217 @@
+# Central routing table — mounted on EVERY host (see node/traefik/compose/stack.yml).
+# It routes each single-label service to whichever host actually runs it, re-encrypting
+# to that host's own Traefik on :443. Mounted as-is — NOT interpolated; literals only.
+#
+# How it stays loop-free and portable:
+#   - Routers here are priority:1 (lowest). On ANY host, a service that runs locally
+#     is still served by its own docker-label router (default priority, which is
+#     higher), so only REMOTE services fall through to these routers.
+#   - A host that *.homektb.com DNS isn't pointed at never receives these Host()
+#     requests, so the table sits dormant there — harmless. Whichever host DNS
+#     points at becomes the active central router.
+#   - The table is identical on every host, so promotion is just repointing the
+#     *.homektb.com wildcard DNS at another host. No redeploy, no role flag.
+#   - The host running each service still serves it locally via its docker labels,
+#     unchanged — this only adds the central front door.
+#
+#   host-token -> host         Tailscale IP
+#   littlebuddy               100.114.137.104
+#   paiki                     100.126.19.103
+#   maboi                     100.97.83.95
+#   bill                      100.79.7.11
+# (No MagicDNS in this tailnet — backends use raw 100.x IPs, reachable from the
+#  Traefik container via the host's tailscale0 route.)
+http:
+  routers:
+    # ── Service -> host map. ONE entry per single-label service: rule is its
+    #    public name, service is the host that runs it. This is the only place the
+    #    "which host" knowledge lives (it used to live in DNS). Add a line when a
+    #    service is added; change `service:` when one moves hosts.
+    #    All entries are priority:1 so a locally-run service wins via its own
+    #    docker router on the controller host.
+    #
+    #    Generated from the Komodo stack->server assignment joined with each
+    #    stack's Traefik router rule (2026-06-24). Only littlebuddy and paiki run
+    #    *.homektb.com services; maboi/bill run client sites + infra nodes only.
+
+    # ── littlebuddy (token "lilbud") ──────────────────────────────────────────
+    infisical:
+      rule: "Host(`infisical.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-littlebuddy
+      priority: 1
+      tls: {}
+    komodo:
+      rule: "Host(`komo.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-littlebuddy
+      priority: 1
+      tls: {}
+    komodo-mcp:
+      rule: "Host(`komodo-mcp.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-littlebuddy
+      priority: 1
+      tls: {}
+    forgejo:
+      # Single-label only — the dotted fj.lilbud alias was fully retired across the
+      # repo (git_provider, WOODPECKER_FORGEJO_URL, komodo-mcp image). Out-of-band
+      # cleanup after deploy: repoint local git remotes + Komodo's git-provider
+      # account to fj.homektb.com (the container registry follows the same host).
+      rule: "Host(`fj.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-littlebuddy
+      priority: 1
+      tls: {}
+    woodpecker:
+      # Single-label only — peck.lilbud retired (WOODPECKER_HOST now peck.homektb.com).
+      # Out-of-band cleanup after deploy: re-register the Forgejo OAuth app redirect
+      # URI to https://peck.homektb.com/authorize, or CI login will fail.
+      rule: "Host(`peck.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-littlebuddy
+      priority: 1
+      tls: {}
+    termix:
+      rule: "Host(`termix.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-littlebuddy
+      priority: 1
+      tls: {}
+    docuseal:
+      rule: "Host(`docuseal.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-littlebuddy
+      priority: 1
+      tls: {}
+    openproject:
+      rule: "Host(`openprj.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-littlebuddy
+      priority: 1
+      tls: {}
+    paperless:
+      rule: "Host(`paper.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-littlebuddy
+      priority: 1
+      tls: {}
+    scriberr:
+      rule: "Host(`scriberr.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-littlebuddy
+      priority: 1
+      tls: {}
+
+    # ── paiki (media stack lives here) ────────────────────────────────────────
+    immich:
+      rule: "Host(`immich.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-paiki
+      priority: 1
+      tls: {}
+    sonarr:
+      rule: "Host(`sonarr.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-paiki
+      priority: 1
+      tls: {}
+    radarr:
+      rule: "Host(`radarr.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-paiki
+      priority: 1
+      tls: {}
+    prowlarr:
+      rule: "Host(`prowlarr.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-paiki
+      priority: 1
+      tls: {}
+    bazarr:
+      rule: "Host(`bazarr.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-paiki
+      priority: 1
+      tls: {}
+    sabnzbd:
+      rule: "Host(`sabnzbd.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-paiki
+      priority: 1
+      tls: {}
+    seerr:
+      rule: "Host(`seerr.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-paiki
+      priority: 1
+      tls: {}
+
+    # ── NOTE: mazanoke + convertx are not currently deployed in Komodo. Their
+    #    app routers are already single-label, so these entries are pointed at
+    #    littlebuddy (where the other personal apps run) and stay latent until the
+    #    stacks are deployed. If either lands on another host, flip its service.
+    mazanoke:
+      rule: "Host(`mazanoke.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-littlebuddy
+      priority: 1
+      tls: {}
+    convertx:
+      rule: "Host(`convertx.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-littlebuddy
+      priority: 1
+      tls: {}
+    # databasus / zerobyte: accessed directly by host / Tailscale IP — they no
+    #   longer use Traefik at all (no router here and none in their own stacks).
+
+  services:
+    # ── Host backends (one per host). Identical on every host so this file is
+    #    portable. Re-encrypts to the host's Traefik :443; passHostHeader keeps the
+    #    original Host so that Traefik matches its own router.
+    host-littlebuddy:
+      loadBalancer:
+        passHostHeader: true
+        serversTransport: host-reencrypt
+        servers:
+          - url: "https://100.114.137.104:443"
+    host-paiki:
+      loadBalancer:
+        passHostHeader: true
+        serversTransport: host-reencrypt
+        servers:
+          - url: "https://100.126.19.103:443"
+    host-maboi:
+      loadBalancer:
+        passHostHeader: true
+        serversTransport: host-reencrypt
+        servers:
+          - url: "https://100.97.83.95:443"
+    host-bill:
+      loadBalancer:
+        passHostHeader: true
+        serversTransport: host-reencrypt
+        servers:
+          - url: "https://100.79.7.11:443"
+
+  serversTransports:
+    # The controller terminates the public *.homektb.com TLS, then opens a NEW,
+    # VERIFIED TLS connection to the target host's Traefik :443. Each host serves
+    # its own publicly-trusted Let's Encrypt *.homektb.com wildcard there, so the
+    # connection is validated against the system CA roots (LE ships in the Traefik
+    # image's trust store) — no insecureSkipVerify, no MITM window on the
+    # cross-host hop even within Tailscale.
+    #
+    # We connect by raw Tailscale IP (no MagicDNS), so the default SNI would be the
+    # IP and wouldn't match the cert. `serverName` pins the TLS SNI/validation name
+    # to a name the wildcard covers; the upstream presents *.homektb.com for it and
+    # verification passes. (It need not resolve in DNS — it's only the SNI.) The
+    # HTTP Host header is still the real service name via passHostHeader, which is
+    # what the upstream routes on; SNI only selects/validates the cert.
+    #
+    # REQUIRES each host to keep its ACME *.homektb.com cert (they all request it).
+    # Do NOT switch hosts to Traefik's default self-signed cert here, or this
+    # verification will fail by design.
+    host-reencrypt:
+      serverName: "node.homektb.com"

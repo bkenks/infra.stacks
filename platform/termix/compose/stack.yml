@@ -19,7 +19,7 @@ services:
       retries: 10
     labels:
       traefik.enable: 'true'
-      traefik.http.routers.termix.rule: 'Host(`termix.lilbud.homektb.com`)'
+      traefik.http.routers.termix.rule: 'Host(`termix.homektb.com`)'
       traefik.http.routers.termix.entrypoints: websecure
       traefik.http.routers.termix.tls: 'true'
       traefik.http.services.termix.loadbalancer.server.port: '8080'

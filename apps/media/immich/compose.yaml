@@ -51,7 +51,7 @@ services:
     # Exposed to Traefik on the shared `proxy` network — no published host port.
     labels:
       traefik.enable: 'true'
-      traefik.http.routers.immich.rule: 'Host(`immich.paiki.homektb.com`)'
+      traefik.http.routers.immich.rule: 'Host(`immich.homektb.com`)'
       traefik.http.routers.immich.entrypoints: websecure
       traefik.http.routers.immich.tls: 'true'
       traefik.http.services.immich.loadbalancer.server.port: '2283'
