@@ -115,9 +115,6 @@ run_directory = "./node/cloudflared"
 name = "databasus_littlebuddy"
 [stack.config]
 server = "littlebuddy"
-links = [
-  "https://databasus.lilbud.homektb.com"
-]
 poll_for_updates = true
 linked_repo = "infra.stacks"
 webhook_enabled = false
@@ -129,9 +126,6 @@ file_paths = [
 additional_env_files = [
   { path = "config/production.env", track = true }
 ]
-environment = """
-DATABASUS__HOST=lilbud
-"""
 
 ##
 
@@ -139,9 +133,6 @@ DATABASUS__HOST=lilbud
 name = "databasus_maboi"
 [stack.config]
 server = "maboi"
-links = [
-  "https://databasus.maboi.homektb.com"
-]
 poll_for_updates = true
 linked_repo = "infra.stacks"
 run_directory = "./node/databasus"
@@ -152,9 +143,6 @@ file_paths = [
 additional_env_files = [
   { path = "config/production.env", track = true }
 ]
-environment = """
-DATABASUS__HOST=maboi
-"""
 
 ##
 
@@ -162,9 +150,6 @@ DATABASUS__HOST=maboi
 name = "databasus_paiki"
 [stack.config]
 server = "paiki"
-links = [
-  "https://databasus.paiki.homektb.com"
-]
 poll_for_updates = true
 linked_repo = "infra.stacks"
 run_directory = "./node/databasus"
@@ -175,9 +160,6 @@ file_paths = [
 additional_env_files = [
   { path = "config/production.env", track = true }
 ]
-environment = """
-DATABASUS__HOST=paiki
-"""
 
 ##
 
@@ -458,13 +440,10 @@ run_directory = "./platform/woodpecker"
 name = "zerobyte_littlebuddy"
 [stack.config]
 server = "littlebuddy"
-links = [
-  "https://zerobyte.lilbud.homektb.com"
-]
 linked_repo = "infra.stacks"
 run_directory = "./node/zerobyte"
 environment = """
-ZEROBYTE__HOST=   lilbud
+ZEROBYTE__BASE_URL=   http://100.114.137.104:4096
 """
 
 ##
@@ -476,7 +455,7 @@ template = true
 linked_repo = "node"
 run_directory = "./zerobyte"
 environment = """
-ZEROBYTE__HOST=   
+ZEROBYTE__BASE_URL=   
 """
 
 ##

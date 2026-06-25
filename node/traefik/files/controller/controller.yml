@@ -163,8 +163,8 @@ http:
       service: host-littlebuddy
       priority: 1
       tls: {}
-    # databasus / zerobyte: per-host backup utilities with dynamic hostnames
-    #   (deployed per node). Not central *.homektb.com services — left out.
+    # databasus / zerobyte: accessed directly by host / Tailscale IP — they no
+    #   longer use Traefik at all (no router here and none in their own stacks).
 
   services:
     # ── Host backends (one per host). Identical on every host so this file is

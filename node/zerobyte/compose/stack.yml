@@ -10,20 +10,10 @@ services:
       # Literal, non-secret config (TZ). Basename selected by ZEROBYTE__NAME so
       # the file is named after the software (container-envs/zerobyte.env).
       - "../container-envs/${ZEROBYTE__NAME:?err}.env"
-    networks:
-      - proxy
+    # Accessed directly by host / Tailscale IP — no Traefik. Web UI on ZEROBYTE__PORT.
+    ports:
+      - '${ZEROBYTE__PORT:?err}:${ZEROBYTE__PORT:?err}'
     restart: on-failure:${ZEROBYTE__MAX_RESTART_ATTEMPS:?err}
-    labels:
-      traefik.enable: 'true'
-      # Per-host hostname (dotted scheme): each host runs its own zerobyte, so the
-      # router host is zerobyte.<host>.homektb.com, served by that host's
-      # *.<host>.homektb.com wildcard cert. ZEROBYTE__HOST is the dotted token
-      # (lilbud / maboi / paiki), set PER-SERVER in Komodo like infisical-agent's
-      # AGENT_HOST.
-      traefik.http.routers.zerobyte.rule: 'Host(`zerobyte.${ZEROBYTE__HOST:?err}.${ZEROBYTE__BASE_DOMAIN:?err}`)'
-      traefik.http.routers.zerobyte.entrypoints: websecure
-      traefik.http.routers.zerobyte.tls: 'true'
-      traefik.http.services.zerobyte.loadbalancer.server.port: '${ZEROBYTE__PORT:?err}'
     # Remote-mount support: zerobyte uses FUSE/rclone to mount remote backup
     # backends (S3, B2, SFTP, …). Drop cap_add + devices for a reduced-privilege,
     # local-directory-only deployment (see setup.md).
@@ -31,12 +21,6 @@ services:
       - SYS_ADMIN
     devices:
       - /dev/fuse:/dev/fuse
-
-networks:
-  # Per-host Traefik's shared reverse-proxy network (created by infra.ansible,
-  # owned by stack.node/traefik). Apps publish no host port — Traefik fronts them.
-  proxy:
-    external: true
 
 volumes:
   # Project-scoped named volume on local disk for zerobyte's config + DB.

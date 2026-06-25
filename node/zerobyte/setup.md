@@ -11,22 +11,20 @@
 remote backend, so no host depends on another for its backups, and a single
 host going down takes only its own zerobyte with it.
 
-Reached at `https://zerobyte.<host>.homektb.com` (per-host **dotted** scheme;
-the host token is `lilbud` / `maboi` / `paiki`), served by that host's
-`*.<host>.homektb.com` wildcard cert. No host port is published — Traefik fronts
-it on the `proxy` network.
+Reached **directly by host / Tailscale IP** (e.g. `http://100.114.137.104:4096`) —
+zerobyte no longer uses Traefik. The web UI port (`4096`) is published on the
+host, and the app's own public URL is set per-server via `ZEROBYTE__BASE_URL`.
 
 ## Per-host deploy (Komodo)
 
 Deploy this stack to each host with one **per-server variable**:
 
-| Variable        | Value                  | Notes                                            |
-|-----------------|------------------------|--------------------------------------------------|
-| `ZEROBYTE__HOST`| the host's dotted token | `lilbud` / `maboi` / `paiki` — sets the router host `zerobyte.<token>.homektb.com` + `BASE_URL` |
+| Variable            | Value                   | Notes                                            |
+|---------------------|-------------------------|--------------------------------------------------|
+| `ZEROBYTE__BASE_URL`| the URL you reach it on | e.g. `http://<tailscale-ip>:4096` — sets the app's `BASE_URL` (links/redirects) |
 
 It is intentionally empty in `interpolation-envs/general.env` (`:?err`) so a
-deploy fails fast if the per-server value is missing. This mirrors
-`infisical-agent`'s `AGENT_HOST`.
+deploy fails fast if the per-server value is missing.
 
 ## Secrets
 
@@ -65,7 +63,7 @@ named volume — per upstream docs it must never be a network share.
 *Local/standalone testing only — in the homelab deploy via Komodo:*
 
 ```bash
-ZEROBYTE__HOST=test docker compose up -d   # needs /dev/shm/node_zerobyte.env present
+ZEROBYTE__BASE_URL=http://localhost:4096 docker compose up -d   # needs /dev/shm/node_zerobyte.env present
 ```
 
-First login at `https://zerobyte.<host>.homektb.com` creates the admin account.
+First login at the host's `BASE_URL` (e.g. `http://<tailscale-ip>:4096`) creates the admin account.
