@@ -1,0 +1,83 @@
+# =============================================================================
+# platform — PURPOSE-level orchestrator for the control-plane host.
+# =============================================================================
+# Three levels, each independently deployable:
+#   service  ./<group>/<svc>/compose.yaml   one service, its own project
+#   group    ./<group>/compose.yaml         a functional unit, its own project
+#   purpose  THIS file (project `platform`)       the whole platform, phased
+#
+# The group + service composes are PROFILE-FREE, so they deploy standalone with
+# no flags. This file is the ONLY place that gates deploy order — it tags each
+# service with its own PHASE profile by name (so the lower levels stay clean).
+# `docker compose up` is additive across phases, so a later phase never stops an
+# earlier one. The phase map below is also the deploy-order documentation.
+#
+# It `include:`s the SERVICE composes directly (one include level), NOT the group
+# entrance composes. Why: a service compose's interpolation `env_file` only
+# resolves correctly one include level deep — going purpose -> group -> service
+# (two levels) breaks that path. The groups stay real, standalone-deployable
+# units (deploy a group from its own dir); this file just composes the same
+# services directly, which is exactly where the phase map already lives.
+#
+#   COMPOSE_PROFILES=phase1 docker compose up -d   # backup-manager
+#   COMPOSE_PROFILES=phase2 docker compose up -d   # + secrets-manager (phase1 stays up)
+#   COMPOSE_PROFILES=phase3 docker compose up -d   # + edge
+#   COMPOSE_PROFILES=phase4 docker compose up -d   # + container-manager
+# (one-shot everything: COMPOSE_PROFILES=phase1,phase2,phase3,phase4)
+#
+# Gates (operator pauses) sit BETWEEN phases — driven by Ansible, or by hand:
+#   phase1 -> [restore gate: restore the Infisical DB volume] -> phase2
+#   phase2 -> [identity gate: create the agent machine-identity; the agent then
+#             renders /dev/shm/*.env — wait for them] -> phase3 -> phase4
+name: platform
+
+include:
+  # phase 1 — backup-manager
+  - ./backup-manager/databasus/compose.yaml
+  - ./backup-manager/zerobyte/compose.yaml
+  # phase 2 — secrets-manager
+  - ./secrets-manager/infisical/compose.yaml
+  - ./secrets-manager/infisical-agent/compose.yaml
+  # phase 3 — edge
+  - ./edge/traefik/compose.yaml
+  - ./edge/cloudflared/compose.yaml
+  # phase 4 — container-manager
+  - ./container-manager/komodo/compose.yaml
+  - ./container-manager/komodo-periphery/compose.yaml
+
+# Selection — profiles live ONLY here. Each service carries THREE tags, and
+# COMPOSE_PROFILES matches ANY of them (OR), so this one file is the single
+# entrypoint for three grains of deploy:
+#   COMPOSE_PROFILES=traefik          up   # one SERVICE
+#   COMPOSE_PROFILES=edge             up   # one GROUP (traefik + cloudflared)
+#   COMPOSE_PROFILES=phase1           up   # one PHASE (== backup-manager here)
+# The tags are [phaseN, <group>, <service>]; adding them to an included service
+# (by name) is the one coupling this layer introduces — the group/service composes
+# stay tag-free and standalone-clean.
+#
+# `docker compose up` is ADDITIVE — bringing up a later phase/group does NOT stop
+# earlier ones — so the gated cold bootstrap is just sequential phase ups with the
+# operator gate pauses between:
+#   COMPOSE_PROFILES=phase1 up   # backup-manager
+#   COMPOSE_PROFILES=phase2 up   # + secrets-manager (phase1 stays up)
+#   COMPOSE_PROFILES=phase3 up   # + edge
+#   COMPOSE_PROFILES=phase4 up   # + container-manager
+# One-shot everything: COMPOSE_PROFILES=phase1,phase2,phase3,phase4.
+#
+# Map (block kept alphabetical for the linter; the real tags are in each profiles:):
+#   phase1  backup-manager      databasus, zerobyte
+#   phase2  secrets-manager     infisical-app/-db/-redis, agent
+#   phase3  edge                traefik, cloudflared
+#   phase4  container-manager   komodo-core, mongo-db, komodo-periphery
+services:
+  agent:            { profiles: [phase2, secrets-manager, agent] }
+  cloudflared:      { profiles: [phase3, edge, cloudflared] }
+  databasus:        { profiles: [phase1, backup-manager, databasus] }
+  infisical-app:    { profiles: [phase2, secrets-manager, infisical-app] }
+  infisical-db:     { profiles: [phase2, secrets-manager, infisical-db] }
+  infisical-redis:  { profiles: [phase2, secrets-manager, infisical-redis] }
+  komodo-core:      { profiles: [phase4, container-manager, komodo-core] }
+  komodo-periphery: { profiles: [phase4, container-manager, komodo-periphery] }
+  mongo-db:         { profiles: [phase4, container-manager, mongo-db] }
+  traefik:          { profiles: [phase3, edge, traefik] }
+  zerobyte:         { profiles: [phase1, backup-manager, zerobyte] }

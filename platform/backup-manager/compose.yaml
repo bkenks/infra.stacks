@@ -1,0 +1,20 @@
+# =============================================================================
+# Backup Manager — group entrance compose (its own project: `backup-manager`).
+# =============================================================================
+# Deploys the host's backup agents as ONE unit (run from THIS dir so the project
+# directory is the group root — Komodo/Ansible use project_src=this dir):
+#   cd backup-manager && docker compose up -d
+# Each member is also independently deployable from its own dir.
+#
+# Members: databasus (DB backups), zerobyte (volume backups).
+#
+# Required deploy vars (provided per host at deploy time — see .env / Ansible / Komodo):
+#   ZEROBYTE__BASE_URL   this host's reachable URL for zerobyte (built from
+#                        HOST_IP / TAILSCALE_IP — see service README)
+#   ZEROBYTE_APP_SECRET  rendered to /dev/shm by the Infisical agent
+# Service-version + config vars come from each member's interpolation-envs/.
+name: backup-manager
+
+include:
+  - ./databasus/compose.yaml
+  - ./zerobyte/compose.yaml

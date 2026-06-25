@@ -1,0 +1,15 @@
+name: komodo-periphery
+
+# Standalone, per-host Komodo Periphery agent. One runs on EVERY host so Komodo
+# Core (stack.infra/komodo, on littlebuddy) can manage that host's Docker. No
+# profiles — a plain `up` brings up the single periphery service.
+include:
+  - path:
+      - ./compose/periphery.yaml
+    env_file:
+      - ./interpolation-envs/general.env
+
+volumes:
+  # Distinct from komodo-core's keys volume (see komodo/compose.yaml).
+  periphery-keys:
+    name: komodo-periphery-keys
