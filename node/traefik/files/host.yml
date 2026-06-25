@@ -1,0 +1,51 @@
+# Shared Traefik dynamic config — IDENTICAL on every host (no per-host variants).
+# Mounted at /etc/traefik/dynamic/host.yml (see ../compose/stack.yml) and loaded
+# by the `file` provider (../files/traefik.yml). Mounted as-is — Docker Compose
+# does NOT interpolate ${VARS} here, so everything is a literal.
+#
+# Why ONE file: the platform is stateless/portable — any app can run on any host
+# and lift-and-shift freely between hosts. So every host requests the certs for
+# ALL domains and can therefore terminate TLS for any service that lands on it.
+#
+# It defines:
+#   1. The Traefik dashboard router — traefik.homektb.com, served by whichever
+#      host you reach (to inspect a specific host, hit it directly over Tailscale).
+#   2. The ACME (Cloudflare DNS-01) cert domains every host requests:
+#        homektb.com  — *.homektb.com (single-label services) PLUS the dotted
+#          per-host *.lilbud/paiki/maboi/bill wildcards still used by apps not yet
+#          migrated to single-label (the whole media stack is dotted-only). These
+#          all live in the homektb.com zone, so the homektb.com-scoped token
+#          already covers them — no extra token scope needed. Retire a dotted
+#          wildcard once every app under it moves to a single-label router.
+#        stackform.app / couchpotatoes.store — public client/Stackform sites.
+#
+# ⚠️ CF_DNS_API_TOKEN must hold Zone:DNS:Edit + Zone:Read on ALL THREE zones
+# (homektb.com, stackform.app, couchpotatoes.store) on EVERY host — they must
+# live in the SAME Cloudflare account (one token). A host whose token lacks a
+# zone will fail DNS-01 for that wildcard (noisy retries / LE rate-limit risk)
+# but still serve the zones it can. Widen every host's token before deploying.
+http:
+  routers:
+    dashboard:
+      rule: "Host(`traefik.homektb.com`)"
+      entryPoints:
+        - websecure
+      service: api@internal
+      tls:
+        certResolver: cloudflare
+        # Each cert is requested once, here; Traefik then serves each for its
+        # matching hosts via SNI, so app routers need only `tls: true`.
+        domains:
+          - main: homektb.com
+            sans:
+              - "*.homektb.com"
+              - "*.lilbud.homektb.com"
+              - "*.paiki.homektb.com"
+              - "*.maboi.homektb.com"
+              - "*.bill.homektb.com"
+          - main: stackform.app
+            sans:
+              - "*.stackform.app"
+          - main: couchpotatoes.store
+            sans:
+              - "*.couchpotatoes.store"

@@ -3,11 +3,11 @@
 > 📚 System architecture and the secrets-flow live in Notion → **[Architecture — How It All Connects](https://app.notion.com/p/37931e9a948a819380e7e9ef7d90cf8c)**. This file covers only `stack.infra/woodpecker`: how to deploy/use it and its quirks.
 
 A `server` + `agent` pair. The server hosts the UI/API at
-`peck.lilbud.homektb.com` (Traefik, port 8000) and exposes gRPC on 9000 for the
+`peck.homektb.com` (Traefik, port 8000) and exposes gRPC on 9000 for the
 agent. The agent runs pipeline steps as sibling containers via the host's Docker
 socket. State is SQLite in the `woodpecker-server-data` volume (no external DB).
 
-Forge: self-hosted **Forgejo** at `https://fj.lilbud.homektb.com`
+Forge: self-hosted **Forgejo** at `https://fj.homektb.com`
 (`WOODPECKER_FORGEJO*`).
 
 ### Secrets
@@ -23,9 +23,9 @@ Secrets live in Infisical under the `/woodpecker` folder:
 ### One-time setup (before first deploy)
 
 1. **Register the OAuth2 app in Forgejo** at
-   `https://fj.lilbud.homektb.com/user/settings/applications` (or
+   `https://fj.homektb.com/user/settings/applications` (or
    `/admin/applications` for a system-wide app). Redirect URI must be exactly:
-   `https://peck.lilbud.homektb.com/authorize`. Copy the generated client ID +
+   `https://peck.homektb.com/authorize`. Copy the generated client ID +
    secret into Infisical `/woodpecker`.
 2. **Generate the agent secret:** `openssl rand -hex 32` → Infisical
    `/woodpecker/WOODPECKER_AGENT_SECRET`.
@@ -35,7 +35,7 @@ Secrets live in Infisical under the `/woodpecker` folder:
    If Woodpecker runs on a different host, add the same `source-path` block to
    that host's config and scope its machine identity to read Infisical
    `/woodpecker`.
-4. **DNS:** point `peck.lilbud.homektb.com` at the host, covered by the
+4. **DNS:** point `peck.homektb.com` at the host, covered by the
    `*.lilbud.homektb.com` wildcard cert.
 
 ### Compose Commands

@@ -1,6 +1,6 @@
 services:
   komodo-mcp:
-    image: fj.lilbud.homektb.com/bkenks/komodo-mcp-server:${KOMODO_MCP__VERS_TAG:?err}
+    image: fj.homektb.com/bkenks/komodo-mcp-server:${KOMODO_MCP__VERS_TAG:?err}
     env_file:
       # Literal, non-secret config (MCP_TRANSPORT, KOMODO_URL, TZ). Basename
       # selected by KOMODO_MCP__NAME so the file is named after the software.
@@ -27,7 +27,7 @@ services:
       # cert), tailnet/LAN-only. Protected by basic-auth: the MCP HTTP endpoint
       # has no built-in auth and can drive the full Komodo fleet. ---
       traefik.enable: 'true'
-      traefik.http.routers.komodo-mcp.rule: 'Host(`komodo-mcp.homektb.com`) || Host(`komodo-mcp.lilbud.homektb.com`)'
+      traefik.http.routers.komodo-mcp.rule: 'Host(`komodo-mcp.homektb.com`)'
       traefik.http.routers.komodo-mcp.entrypoints: websecure
       traefik.http.routers.komodo-mcp.tls: 'true'
       traefik.http.routers.komodo-mcp.middlewares: komodo-mcp-auth
