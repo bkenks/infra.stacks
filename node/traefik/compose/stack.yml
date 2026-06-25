@@ -30,19 +30,16 @@ services:
       # is the host's whole dynamic config. Add a host: create
       # files/configs/<host>.yml (copy paiki.yml for a homektb-only subserver).
       - ../files/configs/${AGENT_HOST:?AGENT_HOST is required — selects files/configs/<host>.yml}.yml:/etc/traefik/dynamic/host.yml:ro
-      # Controller role toggle. TRAEFIK_ROLE (Komodo per-server var, default
-      # `node`) selects which file lands as the central routing table:
-      #   node       -> files/controller/node.yml       (empty no-op)
-      #   controller -> files/controller/controller.yml (the central table that
-      #                 routes single-label *.homektb.com to the host running each
-      #                 service, re-encrypting to that host's Traefik :443).
-      # Every host carries BOTH files, so promoting a host to the central router
-      # is just: set TRAEFIK_ROLE=controller here, point *.homektb.com DNS at it,
-      # and demote the old controller to `node`. The table's routers are
-      # priority:1, so a service that runs ON the controller is still served by
-      # its own local docker router — only remote services fall through to the
-      # table. No app labels change.
-      - ../files/controller/${TRAEFIK_ROLE:-node}.yml:/etc/traefik/dynamic/controller.yml:ro
+      # Central routing table — mounted on EVERY host (no toggle). It routes each
+      # single-label *.homektb.com service to whichever host runs it, re-encrypting
+      # to that host's Traefik :443. The table's routers are priority:1 (lowest),
+      # so on any host a locally-running service is served by its own docker-label
+      # router (higher default priority) and only REMOTE services fall through to
+      # the table. A host that DNS isn't pointed at never receives these Host()
+      # requests, so the table sits dormant there. Result: every host is a ready
+      # central router — promotion is just repointing *.homektb.com DNS, no
+      # redeploy. No app labels change.
+      - ../files/controller/controller.yml:/etc/traefik/dynamic/controller.yml:ro
       # Persist the ACME account + issued certs (acme.json) across redeploys so
       # we don't re-request the wildcards (and risk LE rate limits) each time.
       - letsencrypt:/letsencrypt

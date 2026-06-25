@@ -1,15 +1,16 @@
-# Controller role ENABLED (TRAEFIK_ROLE=controller).
-# This host is the SINGLE central router. *.homektb.com DNS points here; this file
-# routes each single-label service to whichever host actually runs it, re-encrypting
+# Central routing table — mounted on EVERY host (see node/traefik/compose/stack.yml).
+# It routes each single-label service to whichever host actually runs it, re-encrypting
 # to that host's own Traefik on :443. Mounted as-is — NOT interpolated; literals only.
 #
 # How it stays loop-free and portable:
-#   - Routers here are priority:1 (lowest). On THIS host, any service that runs
-#     locally is still served by its own docker-label router (default priority,
-#     which is higher), so only REMOTE services fall through to these routers.
-#   - The host backends below are identical on every host, so this exact file works
-#     unchanged whichever host you promote. Promotion = TRAEFIK_ROLE=controller +
-#     repoint *.homektb.com DNS. Demote the old controller to TRAEFIK_ROLE=node.
+#   - Routers here are priority:1 (lowest). On ANY host, a service that runs locally
+#     is still served by its own docker-label router (default priority, which is
+#     higher), so only REMOTE services fall through to these routers.
+#   - A host that *.homektb.com DNS isn't pointed at never receives these Host()
+#     requests, so the table sits dormant there — harmless. Whichever host DNS
+#     points at becomes the active central router.
+#   - The table is identical on every host, so promotion is just repointing the
+#     *.homektb.com wildcard DNS at another host. No redeploy, no role flag.
 #   - The host running each service still serves it locally via its docker labels,
 #     unchanged — this only adds the central front door.
 #

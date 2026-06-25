@@ -1,6 +1,0 @@
-# Controller role DISABLED (TRAEFIK_ROLE=node, the default).
-# This host is a plain per-host Traefik — it does NOT act as the central router.
-# Mounted at /etc/traefik/dynamic/controller.yml; an empty dynamic config is a
-# no-op for the file provider. To make THIS host the central router, set the
-# Komodo per-server variable TRAEFIK_ROLE=controller and redeploy (which swaps in
-# controller.yml), then point the *.homektb.com wildcard DNS at this host.
