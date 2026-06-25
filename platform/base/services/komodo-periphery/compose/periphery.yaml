@@ -1,7 +1,6 @@
 ---
 services:
   komodo-periphery:
-    profiles: [ "node", "control-plane" ]
     image: ghcr.io/moghtech/komodo-periphery:${KOMO_VERS}
     container_name: komodo-periphery
     volumes:

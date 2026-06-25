@@ -7,16 +7,19 @@
 
 Renders a host's stack secrets from Infisical to `/dev/shm/<stack>.env` (RAM, never disk). Each consumer stack pulls its file in via the compose `include: -> env_file:` convention. Long-running on **every** host while the Infisical server runs on only one.
 
-## Two modes (compose profile)
+## How it reaches Infisical — `INFISICAL_ADDRESS`
 
-The agent is the same everywhere; the only per-mode difference is how it reaches Infisical (and, for the control plane, joining the `proxy` network so it can reach the app before Traefik / the public URL exist):
+The agent is the same everywhere — one service, no compose profiles. The only
+per-host difference is the `INFISICAL_ADDRESS` env var. The agent **always** joins
+the `proxy` network (harmless on a plain node; required on the Infisical host so
+it can reach the app directly before Traefik / the public URL exist).
 
-| Profile | Infisical address | Network | For |
-|---|---|---|---|
-| `control-plane` | `http://infisical-app:8080` (internal) | joins `proxy` | the host that runs Infisical itself; can bootstrap before Traefik exists |
-| `node` | `https://infisical.homektb.com` (public) | default | every other host |
+| Host | `INFISICAL_ADDRESS` | For |
+|---|---|---|
+| the Infisical host | `http://infisical-app:8080` (internal) | runs Infisical itself; can bootstrap before Traefik exists |
+| every other host | `https://infisical.homektb.com` (public) — the default | reaches Infisical over the public URL |
 
-Set the profile via `COMPOSE_PROFILES` (`.env` defaults it to `node`).
+`.env` defaults `INFISICAL_ADDRESS` to the public URL; the Infisical host overrides it.
 
 ## What it renders — `AGENT_SERVICES` + the registry
 
@@ -58,12 +61,13 @@ Per-host runtime variables (Komodo per-server variables / Ansible):
 ```
 AGENT_HOST=<host>                       # selects ${AGENT_HOST} secret paths
 AGENT_SERVICES="postgres traefik …"     # which services to render
-INFISICAL_CLIENT_ID=… / INFISICAL_CLIENT_SECRET=…   # machine-identity creds (node path)
+INFISICAL_ADDRESS=<url>                  # override only on the Infisical host (internal addr)
+INFISICAL_CLIENT_ID=… / INFISICAL_CLIENT_SECRET=…   # machine-identity creds
 ```
 
 ```bash
-# node (most hosts) — via Komodo, with COMPOSE_PROFILES=node and the vars above.
-# control-plane — via Ansible at bootstrap (pre-writes /dev/shm creds), COMPOSE_PROFILES=control-plane.
+# most hosts — via Komodo, with the vars above (INFISICAL_ADDRESS defaults to the public URL).
+# the Infisical host — via Ansible at bootstrap (pre-writes /dev/shm creds), INFISICAL_ADDRESS=http://infisical-app:8080.
 ```
 
 Each host gets its **own machine identity**, scoped in Infisical to only the folders of the services in its `AGENT_SERVICES`. Machine-identity creds are never committed — they come from Komodo per-server variables (`INFISICAL_CLIENT_ID/SECRET`, env) or Ansible (`/dev/shm`) at runtime, and the secret file is wiped on read (`remove_client_secret_on_read`).

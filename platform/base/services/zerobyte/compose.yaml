@@ -1,3 +1,5 @@
+name: zerobyte
+
 include:
   - path:
       - ./compose/stack.yml

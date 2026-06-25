@@ -1,7 +1,6 @@
 ---
 services:
   komodo-core:
-    profiles: [ "control-plane" ]
     image: ghcr.io/moghtech/komodo-core:${KOMO_VERS}
     container_name: komodo-core
     volumes:
@@ -23,11 +22,11 @@ services:
     extra_hosts:
       - host.docker.internal:host-gateway ## Allows for systemd Periphery connection at "https://host.docker.internal:8120"
     restart: unless-stopped
-    # `default` keeps Core talking to mongo-db/periphery; `proxy` exposes the UI
-    # to this host's Traefik (stack.node/traefik). 9120 stays published below as
+    # `komodo` (this stack's internal net) keeps Core talking to mongo-db;
+    # `proxy` exposes the UI to this host's Traefik. 9120 stays published below as
     # a recovery fallback — Komodo manages Traefik, so don't lock yourself out.
     networks:
-      - default
+      - komodo
       - proxy
     labels:
       komodo.skip: # Prevent Komodo from stopping with StopAllContainers

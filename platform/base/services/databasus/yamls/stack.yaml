@@ -11,7 +11,6 @@ volumes:
 services:
   databasus:
     image: databasus/databasus@sha256:f748c20cecb3cf3162d80ebfddd4f192b5e4ee640d600c9daf726310ac49e51c
-    profiles: [ "restore", "identity", "node", "control-plane" ]
     volumes:
       - app-data:/databasus-data
     # Accessed directly by host / Tailscale IP — no Traefik. Web UI on 4005.

@@ -10,10 +10,10 @@
 #                 (files/configs/templates/<service>.tpl) verbatim — for renamed
 #                 or duplicated keys, host-scoped paths, or raw-value files.
 #
-# Two deploy modes, selected by compose profile (see compose/agent.yml); the only
-# per-mode difference is INFISICAL_ADDRESS (+ the control-plane joining the proxy
-# network so it can reach infisical-app directly before Traefik/the public URL
-# exist). Both modes are long-running and render the same way.
+# One long-running service (no compose profiles). How it reaches Infisical is just
+# the INFISICAL_ADDRESS env var — public URL by default; the Infisical host
+# overrides it to the internal http://infisical-app:8080 (reachable over the proxy
+# network the agent always joins, before Traefik/the public URL exist).
 #
 # Creds: written from env (INFISICAL_CLIENT_ID/SECRET, the Komodo/node path) when
 # present, otherwise the pre-written /dev/shm files are used (the Ansible/

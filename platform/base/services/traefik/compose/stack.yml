@@ -1,7 +1,6 @@
 ---
 services:
   traefik:
-    profiles: [ "node", "control-plane" ]
     image: docker.io/library/traefik:${TRAEFIK__VERS_TAG:?err}
     env_file: ../container-envs/traefik.env
     environment:

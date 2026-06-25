@@ -1,3 +1,5 @@
+name: traefik
+
 include:
   - path:
       - ./compose/stack.yml

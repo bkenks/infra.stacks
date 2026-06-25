@@ -1,7 +1,6 @@
 ---
 services:
   zerobyte:
-    profiles: [ "restore", "identity", "node", "control-plane" ]
     image: ghcr.io/nicotsx/zerobyte:${ZEROBYTE__VERS_TAG:?err}
     volumes:
       - /etc/localtime:/etc/localtime:ro

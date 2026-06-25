@@ -1,7 +1,6 @@
 ---
 services:
   cloudflared:
-    profiles: [ "node", "control-plane" ]
     image: cloudflare/cloudflared:${CLOUDFLARED__VERS_TAG}
     env_file: ../container-envs/cloudflared.env
     command: tunnel --no-autoupdate run

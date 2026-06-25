@@ -1,38 +1,23 @@
 # =============================================================================
-# platform/base — the unified per-host platform stack.
+# platform/base — convenience launcher for the per-host platform services.
 # =============================================================================
-# ONE compose project that carries every tier-0 service, deployed in one of two
-# MODES selected by COMPOSE_PROFILES (see .env):
+# Each service under ./services/<svc>/ is a SELF-CONTAINED, independently
+# deployable compose project (its own `name:`, its own internal network, joining
+# the shared external nets — proxy / db-backups — for anything cross-service).
+# Deploy or redeploy any one on its own:
 #
-#   control-plane   ALL services: databasus, zerobyte, infisical (+db/redis),
-#                   infisical-agent, traefik, cloudflared, komodo-periphery,
-#                   komodo (core+mongo). Runs on the control-plane host only.
+#   docker compose -f services/traefik/compose.yaml up -d
 #
-#   node            The per-host edge: databasus, zerobyte, infisical-agent,
-#                   traefik, cloudflared, komodo-periphery. No Infisical, no
-#                   Komodo Core (those live on the control plane). Runs on every
-#                   other host.
+# This top-level file just `include:`s them all so a single `docker compose up`
+# here brings the whole platform up together (as one fused `platform-base`
+# project) for local/dev convenience. It carries NO modes, NO profiles, NO gates
+# — "which services run on a host" is a deploy-time choice (which stacks you
+# point at the host), handled by Komodo / infra.ansible, not baked in here.
 #
-# Two intermediate profiles gate a COLD control-plane bootstrap (driven by
-# infra.ansible, with a manual pause at each gate):
-#
-#   restore    databasus + zerobyte only. Gate: optionally restore the Infisical
-#              DB volume before Infisical starts.
-#   identity   + Infisical. Gate: create the agent's machine identity in the
-#              freshly-bootstrapped Infisical, if it doesn't already exist.
-#
-# Cold control-plane order:  restore? -> identity -> (agent renders /dev/shm) ->
-# control-plane. The agent must render the tier-0 /dev/shm/*.env files BEFORE the
-# consuming services are created (their compose reads ${VAR:?err} at parse time),
-# so bootstrap brings the agent up first; thereafter /dev/shm stays populated
-# across redeploys (env is baked at container create; the agent refreshes it and
-# re-renders on reboot). See infra.ansible playbooks/deploy.yml.
-#
-# The active profile also selects the agent variant: agent-control-plane uses
-# the in-project Infisical address (http://infisical-app:8080), agent-node the
-# public URL. Per-host secret set / creds are provided via the project env
-# (COMPOSE_PROFILES, AGENT_HOST, AGENT_SERVICES, INFISICAL_CLIENT_ID/SECRET) —
-# set in .env for local use, and per-host by infra.ansible / Komodo.
+# Bootstrap ordering still matters (the Infisical agent must render the tier-0
+# /dev/shm/*.env files before the services that read ${VAR:?err} at parse time,
+# and traefik owns the shared `proxy` net). That ordering lives in the deploy
+# layer (infra.ansible / a Komodo procedure), not in this file.
 name: platform-base
 
 include:
@@ -44,10 +29,3 @@ include:
   - ./services/cloudflared/compose.yaml
   - ./services/komodo-periphery/compose.yaml
   - ./services/komodo/compose.yaml
-
-networks:
-  # Rename the project default network (platform-base_default -> platform-base).
-  # The cross-stack shared networks (proxy, db-backups, volume-backups) stay
-  # external and are joined only by the services that need them.
-  default:
-    name: platform-base

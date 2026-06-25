@@ -2,14 +2,14 @@
 # Infisical Agent — renders each host's stack secrets to /dev/shm (RAM).
 # =============================================================================
 # Long-running on EVERY host. What it renders is driven by AGENT_SERVICES (see
-# files/services.tab); how it reaches Infisical is one of two compose profiles:
-#
-#   control-plane  internal address (http://infisical-app:8080), joins `proxy` —
-#                  for the host that runs Infisical itself.
-#   node           public address (https://infisical.homektb.com) — every other host.
+# files/services.tab); how it reaches Infisical is just the INFISICAL_ADDRESS env
+# var (public URL by default; the Infisical host overrides it to the internal
+# http://infisical-app:8080). No compose profiles.
 #
 # Each host should have its OWN machine identity, scoped in Infisical to only the
 # folders of the services in its AGENT_SERVICES. See compose/agent.yml + README.
+name: infisical-agent
+
 include:
   - path:
       - ./compose/agent.yml

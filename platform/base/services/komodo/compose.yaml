@@ -19,7 +19,11 @@ volumes:
     name: komodo-keys
 
 networks:
-  # Shared reverse-proxy network OWNED/created by stack.node/traefik. We only
+  # This stack's internal network (Core <-> mongo-db). Uniquely keyed so the
+  # stack is collision-free standalone and when fused under the platform launcher.
+  komodo:
+    name: komodo
+  # Shared reverse-proxy network OWNED/created by the traefik stack. We only
   # join it here (komodo-core), so the traefik stack must be deployed first.
   proxy:
     external: true

@@ -1,21 +1,23 @@
 # Infisical Agent — long-running secret renderer, deployed to EVERY host.
 #
-# One service definition, two modes selected by compose profile. The ONLY
-# per-mode difference is the Infisical address (+ the control-plane joining the
-# proxy network to reach infisical-app directly before Traefik/the public URL
-# exist). What each host renders is driven by AGENT_SERVICES, not a per-host file.
+# ONE service. How it reaches Infisical is just an env var (INFISICAL_ADDRESS),
+# set per-host — no compose profiles. What each host renders is driven by
+# AGENT_SERVICES (see files/services.tab), not a per-host file.
 #
-#   control-plane  Address = internal http://infisical-app:8080, joins `proxy`.
-#                  For the host that runs Infisical itself (no public URL needed,
-#                  and it can bootstrap before Traefik exists).
-#   node           Address = public https://infisical.homektb.com. For every
-#                  other host (Infisical isn't local; reach it over the URL).
+#   default (every node)   INFISICAL_ADDRESS = public https://infisical.homektb.com.
+#   the Infisical host      override INFISICAL_ADDRESS = http://infisical-app:8080
+#                           (internal — reachable over `proxy` before Traefik /
+#                           the public URL exist during a cold bootstrap).
+#
+# The agent always joins `proxy` (harmless on a plain node; required on the
+# Infisical host so it can reach infisical-app directly).
 #
 # Per-host runtime vars (Komodo per-server variables / Ansible):
 #   AGENT_HOST=<host>                 selects ${AGENT_HOST} secret paths
 #   AGENT_SERVICES="postgres traefik …"  which services to render (see files/services.tab)
-#   INFISICAL_CLIENT_ID / _SECRET     machine-identity creds (node path; the
-#                                     control-plane path pre-writes /dev/shm creds via Ansible)
+#   INFISICAL_ADDRESS=<url>           override only on the Infisical host (internal addr)
+#   INFISICAL_CLIENT_ID / _SECRET     machine-identity creds (on the Infisical host,
+#                                     Ansible may pre-write /dev/shm creds instead)
 
 x-agent: &agent
   image: docker.io/infisical/cli:${INFISICAL_AGENT__VERS_TAG:?err}
@@ -49,27 +51,20 @@ x-agent-env: &agent-env
   INFISICAL_CLIENT_SECRET: ${INFISICAL_CLIENT_SECRET:-}
 
 services:
-  agent-control-plane:
+  agent:
     <<: *agent
-    profiles: [ "control-plane" ]
     environment:
       <<: *agent-env
-      INFISICAL_ADDRESS: "http://infisical-app:8080"
-    # Join the proxy network so the agent can reach `infisical-app` directly
-    # before Traefik / the public URL exist (Ansible ensures `proxy` exists).
+      # Public Infisical URL by default; the Infisical host overrides this to the
+      # internal address (http://infisical-app:8080) via its per-host env.
+      INFISICAL_ADDRESS: ${INFISICAL_ADDRESS:-https://infisical.homektb.com}
+    # Always join the proxy network: harmless on a plain node, and required on the
+    # Infisical host to reach `infisical-app` directly before Traefik / the public
+    # URL exist. Ansible owns/creates `proxy` at host provisioning time.
     networks:
       - proxy
 
-  agent-node:
-    <<: *agent
-    profiles: [ "node" ]
-    environment:
-      <<: *agent-env
-      INFISICAL_ADDRESS: "https://infisical.homektb.com"
-
 networks:
-  # Only the control-plane profile attaches to it; declared external because
-  # Ansible owns/creates `proxy` at host provisioning time.
   proxy:
     external: true
     name: proxy

@@ -1,7 +1,6 @@
 ---
 services:
   mongo-db:
-    profiles: [ "control-plane" ]
     image: mongo:8.2.4
     container_name: mongo-db
     volumes:
@@ -17,5 +16,7 @@ services:
       - '27017:27017'
     command: --quiet --wiredTigerCacheSizeGB 0.25
     restart: unless-stopped
+    networks:
+      - komodo
     labels:
       komodo.skip: # Prevent Komodo from stopping with StopAllContainers
