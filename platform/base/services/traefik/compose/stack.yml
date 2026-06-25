@@ -52,6 +52,7 @@ services:
 
 volumes:
   letsencrypt:
+    name: traefik-letsencrypt
 
 networks:
   # This stack OWNS the shared reverse-proxy network. The explicit `name: proxy`

@@ -5,7 +5,7 @@ services:
     image: ghcr.io/moghtech/komodo-core:${KOMO_VERS}
     container_name: komodo-core
     volumes:
-      - keys:/config/keys # Store auto-generated PKI keys for v2 authentication
+      - komodo-keys:/config/keys # Store auto-generated PKI keys for v2 authentication
       - ${DOCKER_VOLUMES}/dcm/komodo/data/backups:/backups # Store dated backups of the database - https://komo.do/docs/setup/backup
       - ${DOCKER_VOLUMES}/dcm/komodo/data/syncs:/syncs # Store sync files on server
     env_file:

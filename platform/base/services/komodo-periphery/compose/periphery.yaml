@@ -5,7 +5,7 @@ services:
     image: ghcr.io/moghtech/komodo-periphery:${KOMO_VERS}
     container_name: komodo-periphery
     volumes:
-      - keys:/config/keys # Auto-generated PKI keys for v2 authentication
+      - periphery-keys:/config/keys # Auto-generated PKI keys for v2 authentication
       - /var/run/docker.sock:/var/run/docker.sock # Manage this host's containers
       - /proc:/proc # See host processes from inside the container
       - /etc/komodo:/etc/komodo # Periphery agent root (same path inside and outside the container)

@@ -73,9 +73,9 @@ networks:
     name: proxy
 
 volumes:
-  # Project-scoped named volumes (infisical_postgres-data / infisical_redis-data).
-  # If a volume already exists on a host (e.g. migrated/persistent data), compose
-  # logs a harmless "volume already exists but was not created by Docker Compose"
-  # warning and uses it as-is — expected, not an error.
-  postgres-data: {}
-  redis-data: {}
+  # Explicit global names (not project-prefixed) so the data is stable across
+  # project renames and unique within the unified platform-base project.
+  postgres-data:
+    name: infisical-db
+  redis-data:
+    name: infisical-redis

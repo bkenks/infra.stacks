@@ -24,5 +24,6 @@ services:
       - /dev/fuse:/dev/fuse
 
 volumes:
-  # Project-scoped named volume on local disk for zerobyte's config + DB.
-  zerobyte-data: {}
+  # Explicit global name (project-independent) for zerobyte's config + DB.
+  zerobyte-data:
+    name: zerobyte

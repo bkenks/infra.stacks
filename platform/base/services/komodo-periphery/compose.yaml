@@ -10,4 +10,6 @@ include:
       - ./interpolation-envs/general.env
 
 volumes:
-  keys:
+  # Distinct from komodo-core's keys volume (see komodo/compose.yaml).
+  periphery-keys:
+    name: komodo-periphery-keys

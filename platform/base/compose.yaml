@@ -44,3 +44,10 @@ include:
   - ./services/cloudflared/compose.yaml
   - ./services/komodo-periphery/compose.yaml
   - ./services/komodo/compose.yaml
+
+networks:
+  # Rename the project default network (platform-base_default -> platform-base).
+  # The cross-stack shared networks (proxy, db-backups, volume-backups) stay
+  # external and are joined only by the services that need them.
+  default:
+    name: platform-base
