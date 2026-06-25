@@ -54,14 +54,20 @@ http:
       priority: 1
       tls: {}
     forgejo:
-      # NOTE: currently exposed as fj.lilbud.homektb.com (dotted). This single-label
-      # form is a breaking URL change — flip the stack's label to match on migrate.
+      # forgejo answers BOTH fj.homektb.com (this route) and fj.lilbud.homektb.com.
+      # The dotted alias is retained on the forgejo stack because the git remotes,
+      # the komodo-mcp image registry path, woodpecker's FORGEJO_URL, and komodo's
+      # git_provider all still point at it — retire it only after those migrate.
       rule: "Host(`fj.homektb.com`)"
       entryPoints: [websecure]
       service: host-littlebuddy
       priority: 1
       tls: {}
     woodpecker:
+      # woodpecker answers BOTH peck.homektb.com (this route) and peck.lilbud.homektb.com.
+      # The dotted alias is retained because WOODPECKER_HOST and the Forgejo OAuth
+      # redirect URI are registered at peck.lilbud — retire it after re-registering
+      # the OAuth app + flipping WOODPECKER_HOST to the single-label name.
       rule: "Host(`peck.homektb.com`)"
       entryPoints: [websecure]
       service: host-littlebuddy

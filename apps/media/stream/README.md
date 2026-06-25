@@ -286,7 +286,7 @@ to 4K/2160p. Template names come from the
 
 > Migrated from Overseerr — the existing config/database carries over automatically
 > on first boot, so an established instance needs no re-setup. The steps below are
-> for a **fresh** install. UI is reached at `seerr.paiki.homektb.com`.
+> for a **fresh** install. UI is reached at `seerr.homektb.com`.
 
 1. Access Seer in a browser (<your-server-ip>:5055).
 
