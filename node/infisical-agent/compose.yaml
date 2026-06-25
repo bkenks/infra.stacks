@@ -1,27 +1,17 @@
 # =============================================================================
 # Infisical Agent — renders each host's stack secrets to /dev/shm (RAM).
 # =============================================================================
-# Two profiles (pick one per deployment):
+# Long-running on EVERY host. What it renders is driven by AGENT_SERVICES (see
+# files/services.tab); how it reaches Infisical is one of two compose profiles:
 #
-#   init      One-shot bootstrap for a COLD control-plane, BEFORE Traefik/the
-#             public URL exist. Joins the `proxy` network and reaches the
-#             Infisical app directly (http://infisical-app:8080) to render the
-#             tier-0 secrets (Komodo + Traefik + Cloudflare), then EXITS
-#             (exit-after-auth). Run by Ansible; creds written to /dev/shm by
-#             Ansible. CONTROL-PLANE ONLY — subservers use `standard`.
+#   control-plane  internal address (http://infisical-app:8080), joins `proxy` —
+#                  for the host that runs Infisical itself.
+#   node           public address (https://infisical.homektb.com) — every other host.
 #
-#   standard  Long-running, Komodo-managed, deployed to every host. Renders all
-#             of that host's app-stack secrets and keeps them fresh. Creds come
-#             from Komodo per-server variables (INFISICAL_CLIENT_ID/SECRET, env).
-#
-# The standard profile selects a per-host config by AGENT_HOST ->
-# files/configs/<host>.yaml. The init profile uses the fixed, host-agnostic
-# files/configs/control-plane.bootstrap.yaml (AGENT_CONFIG_NAME). Each host
-# should have its OWN machine identity, scoped in Infisical to only that host's
-# secret folders.
+# Each host should have its OWN machine identity, scoped in Infisical to only the
+# folders of the services in its AGENT_SERVICES. See compose/agent.yml + README.
 include:
   - path:
-      - ./compose/init.yml
-      - ./compose/standard.yml
+      - ./compose/agent.yml
     env_file:
       - ./interpolation-envs/general.env
