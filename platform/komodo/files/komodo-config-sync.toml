@@ -115,6 +115,9 @@ run_directory = "./node/cloudflared"
 name = "databasus_littlebuddy"
 [stack.config]
 server = "littlebuddy"
+links = [
+  "https://databasus.lilbud.homektb.com"
+]
 poll_for_updates = true
 linked_repo = "infra.stacks"
 webhook_enabled = false
@@ -126,6 +129,9 @@ file_paths = [
 additional_env_files = [
   { path = "config/production.env", track = true }
 ]
+environment = """
+DATABASUS__HOST=lilbud
+"""
 
 ##
 
@@ -133,6 +139,9 @@ additional_env_files = [
 name = "databasus_maboi"
 [stack.config]
 server = "maboi"
+links = [
+  "https://databasus.maboi.homektb.com"
+]
 poll_for_updates = true
 linked_repo = "infra.stacks"
 run_directory = "./node/databasus"
@@ -143,6 +152,9 @@ file_paths = [
 additional_env_files = [
   { path = "config/production.env", track = true }
 ]
+environment = """
+DATABASUS__HOST=maboi
+"""
 
 ##
 
@@ -150,6 +162,9 @@ additional_env_files = [
 name = "databasus_paiki"
 [stack.config]
 server = "paiki"
+links = [
+  "https://databasus.paiki.homektb.com"
+]
 poll_for_updates = true
 linked_repo = "infra.stacks"
 run_directory = "./node/databasus"
@@ -160,6 +175,9 @@ file_paths = [
 additional_env_files = [
   { path = "config/production.env", track = true }
 ]
+environment = """
+DATABASUS__HOST=paiki
+"""
 
 ##
 
@@ -440,10 +458,13 @@ run_directory = "./platform/woodpecker"
 name = "zerobyte_littlebuddy"
 [stack.config]
 server = "littlebuddy"
+links = [
+  "https://zerobyte.lilbud.homektb.com"
+]
 linked_repo = "infra.stacks"
 run_directory = "./node/zerobyte"
 environment = """
-ZEROBYTE__BASE_URL=   http://100.114.137.104:4096
+ZEROBYTE__HOST=   lilbud
 """
 
 ##
@@ -455,7 +476,7 @@ template = true
 linked_repo = "node"
 run_directory = "./zerobyte"
 environment = """
-ZEROBYTE__BASE_URL=   
+ZEROBYTE__HOST=   
 """
 
 ##
@@ -548,7 +569,7 @@ name = "client_couch-potatoes_website"
 tags = ["stackform", "client"]
 [repo.config]
 server = "littlebuddy"
-git_provider = "fj.homektb.com"
+git_provider = "fj.lilbud.homektb.com"
 git_account = "bkenks"
 repo = "stackform-hq/client_couch-potatoes_website"
 
@@ -559,7 +580,7 @@ name = "client_royalty-hvac_website"
 tags = ["stackform", "client"]
 [repo.config]
 server = "littlebuddy"
-git_provider = "fj.homektb.com"
+git_provider = "fj.lilbud.homektb.com"
 git_account = "bkenks"
 repo = "stackform-hq/client_royalty-hvac_website"
 
@@ -569,7 +590,7 @@ repo = "stackform-hq/client_royalty-hvac_website"
 name = "databases"
 [repo.config]
 server = "littlebuddy"
-git_provider = "fj.homektb.com"
+git_provider = "fj.lilbud.homektb.com"
 git_account = "bkenks"
 repo = "ktbgroup-self-hosted/stack.databases"
 
@@ -602,7 +623,7 @@ repo = "ktbgroup-self-hosted/stack.infra"
 name = "infra.stacks"
 [repo.config]
 server = "littlebuddy"
-git_provider = "fj.homektb.com"
+git_provider = "fj.lilbud.homektb.com"
 git_account = "bkenks"
 repo = "ktbgroup-self-hosted/infra.stacks"
 
@@ -652,7 +673,7 @@ repo = "stackform-hq/"
 name = "stackform_website"
 [repo.config]
 server = "littlebuddy"
-git_provider = "fj.homektb.com"
+git_provider = "fj.lilbud.homektb.com"
 git_account = "bkenks"
 repo = "stackform-hq/stackform_website"
 
