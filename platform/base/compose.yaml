@@ -1,0 +1,46 @@
+# =============================================================================
+# platform/base — the unified per-host platform stack.
+# =============================================================================
+# ONE compose project that carries every tier-0 service, deployed in one of two
+# MODES selected by COMPOSE_PROFILES (see .env):
+#
+#   control-plane   ALL services: databasus, zerobyte, infisical (+db/redis),
+#                   infisical-agent, traefik, cloudflared, komodo-periphery,
+#                   komodo (core+mongo). Runs on the control-plane host only.
+#
+#   node            The per-host edge: databasus, zerobyte, infisical-agent,
+#                   traefik, cloudflared, komodo-periphery. No Infisical, no
+#                   Komodo Core (those live on the control plane). Runs on every
+#                   other host.
+#
+# Two intermediate profiles gate a COLD control-plane bootstrap (driven by
+# infra.ansible, with a manual pause at each gate):
+#
+#   restore    databasus + zerobyte only. Gate: optionally restore the Infisical
+#              DB volume before Infisical starts.
+#   identity   + Infisical. Gate: create the agent's machine identity in the
+#              freshly-bootstrapped Infisical, if it doesn't already exist.
+#
+# Cold control-plane order:  restore? -> identity -> (agent renders /dev/shm) ->
+# control-plane. The agent must render the tier-0 /dev/shm/*.env files BEFORE the
+# consuming services are created (their compose reads ${VAR:?err} at parse time),
+# so bootstrap brings the agent up first; thereafter /dev/shm stays populated
+# across redeploys (env is baked at container create; the agent refreshes it and
+# re-renders on reboot). See infra.ansible playbooks/deploy.yml.
+#
+# The active profile also selects the agent variant: agent-control-plane uses
+# the in-project Infisical address (http://infisical-app:8080), agent-node the
+# public URL. Per-host secret set / creds are provided via the project env
+# (COMPOSE_PROFILES, AGENT_HOST, AGENT_SERVICES, INFISICAL_CLIENT_ID/SECRET) —
+# set in .env for local use, and per-host by infra.ansible / Komodo.
+name: platform-base
+
+include:
+  - ./services/databasus/compose.yaml
+  - ./services/zerobyte/compose.yaml
+  - ./services/infisical/compose.yaml
+  - ./services/infisical-agent/compose.yaml
+  - ./services/traefik/compose.yaml
+  - ./services/cloudflared/compose.yaml
+  - ./services/komodo-periphery/compose.yaml
+  - ./services/komodo/compose.yaml
