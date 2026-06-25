@@ -1,0 +1,60 @@
+# Service registry — the global catalogue of every stack the agent can render.
+#
+# entrypoint.sh reads this to turn the per-host AGENT_SERVICES list (a space- or
+# comma-separated set of service names) into a generated agent config at startup.
+# Adding a stack = ONE row here; a host opts in by adding the name to its
+# AGENT_SERVICES. No per-host config files.
+#
+# Pipe-delimited, one row per service. Lines starting with # and blank lines are
+# ignored. Columns:
+#
+#   service | project | env | folder | dest | type
+#
+#   service  name used in AGENT_SERVICES (and the custom .tpl basename for type=custom)
+#   project  Infisical project id (UUID)
+#   env      Infisical environment slug (always prod here)
+#   folder   Infisical secret path; may contain ${AGENT_HOST} (substituted at runtime)
+#   dest     output file under /dev/shm/ — MUST match what the consumer stack's
+#            compose reads via env_file (don't rename without updating the consumer)
+#   type     dump   = render the WHOLE folder as KEY=VALUE via listSecrets (default)
+#            custom = use the hand-written files/configs/templates/<service>.tpl as-is
+#                     (for renamed/duplicated keys, host-scoped paths, or raw-value files)
+#
+# Folder dump only reproduces a stack's env correctly when the Infisical secret
+# names already equal the consumer's env-var names. Where they differ — or the
+# output isn't KEY=VALUE — the row is type=custom and keeps its own template.
+
+# service                | project                              | env  | folder                           | dest                              | type
+
+# --- Apps project (2f0eb3d1) ---
+postgres                 | 2f0eb3d1-3e2a-4ce7-8060-5e47ad877e47 | prod | /postgres                        | postgres.env                      | dump
+paperless                | 2f0eb3d1-3e2a-4ce7-8060-5e47ad877e47 | prod | /paperless                       | apps_paperless.env                | dump
+docuseal                 | 2f0eb3d1-3e2a-4ce7-8060-5e47ad877e47 | prod | /docuseal                        | docuseal.env                      | dump
+openproject              | 2f0eb3d1-3e2a-4ce7-8060-5e47ad877e47 | prod | /openproject                     | openproject.env                   | dump
+immich                   | 2f0eb3d1-3e2a-4ce7-8060-5e47ad877e47 | prod | /immich                          | immich.env                        | dump
+stream                   | 2f0eb3d1-3e2a-4ce7-8060-5e47ad877e47 | prod | /stream                          | stream.env                        | dump
+
+# --- Frappe project (12ed25dd) ---
+frappe                   | 12ed25dd-c0d2-4a78-9b10-472fc09fe554 | prod | /frappe                          | biz-ops_frappe.env                | dump
+
+# --- Couch-potatoes client project (fb1dd6a7) ---
+couch-potatoes-website   | fb1dd6a7-3924-415b-b6c3-3071fc93aaae | prod | /website                         | client_couch-potatoes_website.env | dump
+
+# --- Stackform project (15d61370) ---
+stackform-website        | 15d61370-a2ec-4993-9bbd-3774a63f7b94 | prod | /website                         | stackform_website.env             | dump
+
+# --- Infra project (86324d9b) ---
+traefik                  | 86324d9b-3dd7-49d4-b252-69228c5ee0c7 | prod | /traefik                         | node_traefik.env                  | dump
+zerobyte                 | 86324d9b-3dd7-49d4-b252-69228c5ee0c7 | prod | /zerobyte                        | node_zerobyte.env                 | dump
+forgejo                  | 86324d9b-3dd7-49d4-b252-69228c5ee0c7 | prod | /forgejo                         | forgejo.env                       | dump
+gitea                    | 86324d9b-3dd7-49d4-b252-69228c5ee0c7 | prod | /gitea                           | gitea.env                         | dump
+komodo-mcp               | 86324d9b-3dd7-49d4-b252-69228c5ee0c7 | prod | /komodo-mcp                      | infra_komodo-mcp.env              | dump
+woodpecker               | 86324d9b-3dd7-49d4-b252-69228c5ee0c7 | prod | /woodpecker                      | woodpecker.env                    | dump
+
+# --- Infra project — custom (renamed/duplicated keys, host-scoped path, raw value) ---
+# komodo: renames KOMODO_DB_* -> KOMODO_DATABASE_* and reuses the DB creds for MONGO_INITDB_ROOT_*
+komodo                   | 86324d9b-3dd7-49d4-b252-69228c5ee0c7 | prod | /komodo                          | komodo_core.env                   | custom
+# databasus: renders the raw SECRET_KEY value to a .key file (not KEY=VALUE)
+databasus                | 86324d9b-3dd7-49d4-b252-69228c5ee0c7 | prod | /databasus                       | databasus_secret.key              | custom
+# cloudflared: host-scoped folder + renames TUNNEL_TOKEN -> CLOUDFLARE_TUNNEL_TOKEN
+cloudflared              | 86324d9b-3dd7-49d4-b252-69228c5ee0c7 | prod | /hosts/${AGENT_HOST}/cloudflared | node_cloudflared.env              | custom

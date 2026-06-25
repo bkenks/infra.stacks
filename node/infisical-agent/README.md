@@ -1,43 +1,73 @@
 # infisical-agent
 
-Renders each host's stack secrets from Infisical to `/dev/shm/<stack>.env` (RAM, never disk). Each consumer stack pulls its file in via the compose `include: -> env_file:` convention. Split out of the `infisical` server stack so it can run on **every** host while the server runs on only one.
+> 📚 System architecture, secrets-flow, and the tier-0 bootstrap order live in Notion →
+> **Architecture — How It All Connects** / **Bootstrapping a Host from Scratch**.
+> This file covers only `node/infisical-agent`: what it does, how to deploy/use it,
+> and its quirks. (Notion = prose/architecture; repo = compose/usage.)
 
-Runs in one of two profiles — **`init`** (Ansible, control-plane only, one-shot, renders tier-0 secrets during cold bootstrap) and **`standard`** (Komodo, every host, long-running). The profile model, why `init` exists, and how periphery PKI auth means subservers need no Infisical secrets are all documented in Notion:
+Renders a host's stack secrets from Infisical to `/dev/shm/<stack>.env` (RAM, never disk). Each consumer stack pulls its file in via the compose `include: -> env_file:` convention. Long-running on **every** host while the Infisical server runs on only one.
 
-> 📚 **Notion → [Bootstrapping a Host from Scratch — Tier-0 Ordering](https://app.notion.com/p/37931e9a948a8124ad6de974216d93cd)** → "The agent: `init` vs `standard` profiles". (Notion = prose/architecture; this README = config/usage.)
+## Two modes (compose profile)
 
-## Per-host config
+The agent is the same everywhere; the only per-mode difference is how it reaches Infisical (and, for the control plane, joining the `proxy` network so it can reach the app before Traefik / the public URL exist):
 
-The **standard** profile selects a per-host config: `AGENT_HOST` → `files/configs/<host>.yaml`. The **init** profile uses the fixed, host-agnostic `files/configs/control-plane.bootstrap.yaml` (set via `AGENT_CONFIG_NAME` in `compose/init.yml`); `AGENT_HOST` there only carries the real host name for the `${AGENT_HOST}` secret-path substitution. Each host gets its **own machine identity**, scoped in Infisical to only that host's secret folders — so a host's identity and its config both only ever touch its own stacks.
+| Profile | Infisical address | Network | For |
+|---|---|---|---|
+| `control-plane` | `http://infisical-app:8080` (internal) | joins `proxy` | the host that runs Infisical itself; can bootstrap before Traefik exists |
+| `node` | `https://infisical.homektb.com` (public) | default | every other host |
 
-Add a host: create `files/configs/<host>.yaml`, create a scoped machine identity in Infisical, then deploy the `standard` profile from Komodo with per-server vars `AGENT_HOST=<host>`, `INFISICAL_CLIENT_ID=…`, `INFISICAL_CLIENT_SECRET=…`.
+Set the profile via `COMPOSE_PROFILES` (`.env` defaults it to `node`).
 
-## Templates — one shared file per stack
+## What it renders — `AGENT_SERVICES` + the registry
 
-Each stack's render template lives in **exactly one file** under `files/configs/templates/<stack>.tpl` (Go `text/template`). Host configs never inline a `template-content:` body — they reference the shared file via `source-path` and supply only the per-host `destination-path` (and `config:`):
+There are **no per-host config files**. A host declares what to render with one variable:
 
-```yaml
-templates:
-  - source-path: /agent-templates/komodo_core.tpl
-    destination-path: /dev/shm/komodo_core.env
-    config:
-      polling-interval: "1m"
+```
+AGENT_SERVICES="postgres traefik cloudflared komodo"   # space- or comma-separated
 ```
 
-This means a stack's template body is defined once and reused across every host that runs it. **To move a stack between hosts, move its `source-path` block** — never copy the template. The `init` and `standard` profiles share the same `.tpl` files; only `destination-path` differs between them.
+`entrypoint.sh` reads each name from the **service registry** (`files/services.tab`) and **generates** the agent config at startup. The registry is the global catalogue — one pipe-delimited row per service:
 
-**`${AGENT_HOST}` substitution.** The Infisical agent's template engine has no access to the environment, so host-specific secret paths (e.g. cloudflared's `/hosts/<host>/cloudflared`) can't be expressed in a template directly. `entrypoint.sh` bridges this: it copies `files/configs/templates/*.tpl` (mounted at `/agent-configs/templates`) to a writable `/agent-templates/`, substituting the literal `${AGENT_HOST}` with the host name — the only substitution performed; secret *values* are still fetched by the agent at render time. Configs therefore point `source-path` at `/agent-templates/<stack>.tpl`, not the read-only original. Templates without the placeholder are copied through unchanged.
+```
+service | project | env | folder | dest | type
+```
 
-Add a consumer to a host: add a `source-path` block to that host's config pointing at the shared `.tpl` (create the `.tpl` if the stack is new), store the stack's secrets in Infisical under `/<stack>` (`APPNAME_SECRETNAME` convention), and scope the host's machine identity to read that folder.
+- **`type=dump`** (the default, 15 of 18 services) — renders the **entire Infisical folder** as `KEY=VALUE` via `listSecrets`. Works because the secret names already equal the consumer's env-var names. No template file needed; it's generated on the fly.
+- **`type=custom`** — uses the hand-written `files/configs/templates/<service>.tpl` verbatim. Only for the cases a folder dump can't express:
+  - `komodo` — renames `KOMODO_DB_*` → `KOMODO_DATABASE_*` and reuses the DB creds for `MONGO_INITDB_ROOT_*`
+  - `databasus` — renders a raw value to a `.key` file (not `KEY=VALUE`)
+  - `cloudflared` — host-scoped folder `/hosts/<host>/cloudflared` + renames `TUNNEL_TOKEN` → `CLOUDFLARE_TUNNEL_TOKEN`
+
+`dest` MUST match what the consumer stack's compose reads via `env_file` — don't rename it without updating the consumer.
+
+### `${AGENT_HOST}` substitution
+
+The Infisical template engine has no env access, so host-specific secret paths (cloudflared's `/hosts/<host>/cloudflared`) can't be expressed in a template or registry folder directly. `entrypoint.sh` substitutes the literal `${AGENT_HOST}` (in both the registry `folder` and any custom `.tpl`) with the real host name before the agent runs — the only substitution performed; secret *values* are still fetched by the agent at render time.
+
+## Add a service
+
+1. Add **one row** to `files/services.tab` (`service | project | env | folder | dest | type`).
+2. If the Infisical secret names already match the consumer's env vars → `type=dump`, done. Otherwise add `files/configs/templates/<service>.tpl` and set `type=custom`.
+3. Store the secrets in Infisical under the row's `folder`; scope each consuming host's machine identity to read it.
+4. Append the service name to that host's `AGENT_SERVICES`.
 
 ## Deploy
 
-```bash
-# init (control-plane bootstrap) — via Ansible:
-ansible-playbook playbooks/deploy.yml --tags infisical-agent   # writes creds to /dev/shm, runs the init profile
+Per-host runtime variables (Komodo per-server variables / Ansible):
 
-# standard — via Komodo: deploy this stack with COMPOSE_PROFILES=standard and the
-# per-server variables above.
+```
+AGENT_HOST=<host>                       # selects ${AGENT_HOST} secret paths
+AGENT_SERVICES="postgres traefik …"     # which services to render
+INFISICAL_CLIENT_ID=… / INFISICAL_CLIENT_SECRET=…   # machine-identity creds (node path)
 ```
 
-Machine-identity creds are never committed — they come from Ansible (`/dev/shm`) or Komodo per-server variables at runtime, and the secret file is wiped on read (`remove_client_secret_on_read`).
+```bash
+# node (most hosts) — via Komodo, with COMPOSE_PROFILES=node and the vars above.
+# control-plane — via Ansible at bootstrap (pre-writes /dev/shm creds), COMPOSE_PROFILES=control-plane.
+```
+
+Each host gets its **own machine identity**, scoped in Infisical to only the folders of the services in its `AGENT_SERVICES`. Machine-identity creds are never committed — they come from Komodo per-server variables (`INFISICAL_CLIENT_ID/SECRET`, env) or Ansible (`/dev/shm`) at runtime, and the secret file is wiped on read (`remove_client_secret_on_read`).
+
+## Health
+
+The agent stays running even when a template/auth permanently fails, so liveness never flips it. `entrypoint.sh` stamps `/tmp/agent.last_err` with the epoch of every `ERR`/`FTL`/`PNC` log line; the healthcheck (in `compose/agent.yml`) marks the container unhealthy only while an error was logged within the last 180s — a still-broken agent re-logs within the window and stays unhealthy, and once errors stop the stamp ages out and it recovers on its own with no restart.
