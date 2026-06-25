@@ -23,7 +23,7 @@ entryPoints:
   websecure:
     address: ":443"
   # Forgejo git-over-SSH. Bound to host :22 so the port-less clone URL
-  # (ssh://git@fj.lilbud.homektb.com/...) reaches Forgejo. Admin sshd was moved
+  # (ssh://git@fj.homektb.com/...) reaches Forgejo. Admin sshd was moved
   # off 22 to 3204 (see infra.ansible) to free this port — redeploy this stack
   # only AFTER that cutover, or the :22 bind conflicts with sshd.
   forgejo-ssh:

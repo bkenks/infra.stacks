@@ -15,7 +15,7 @@ services:
       - proxy
     labels:
       traefik.enable: 'true'
-      traefik.http.routers.woodpecker.rule: 'Host(`peck.homektb.com`) || Host(`peck.lilbud.homektb.com`)'
+      traefik.http.routers.woodpecker.rule: 'Host(`peck.homektb.com`)'
       traefik.http.routers.woodpecker.entrypoints: websecure
       traefik.http.routers.woodpecker.tls: 'true'
       traefik.http.services.woodpecker.loadbalancer.server.port: '8000'

@@ -569,7 +569,7 @@ name = "client_couch-potatoes_website"
 tags = ["stackform", "client"]
 [repo.config]
 server = "littlebuddy"
-git_provider = "fj.lilbud.homektb.com"
+git_provider = "fj.homektb.com"
 git_account = "bkenks"
 repo = "stackform-hq/client_couch-potatoes_website"
 
@@ -580,7 +580,7 @@ name = "client_royalty-hvac_website"
 tags = ["stackform", "client"]
 [repo.config]
 server = "littlebuddy"
-git_provider = "fj.lilbud.homektb.com"
+git_provider = "fj.homektb.com"
 git_account = "bkenks"
 repo = "stackform-hq/client_royalty-hvac_website"
 
@@ -590,7 +590,7 @@ repo = "stackform-hq/client_royalty-hvac_website"
 name = "databases"
 [repo.config]
 server = "littlebuddy"
-git_provider = "fj.lilbud.homektb.com"
+git_provider = "fj.homektb.com"
 git_account = "bkenks"
 repo = "ktbgroup-self-hosted/stack.databases"
 
@@ -623,7 +623,7 @@ repo = "ktbgroup-self-hosted/stack.infra"
 name = "infra.stacks"
 [repo.config]
 server = "littlebuddy"
-git_provider = "fj.lilbud.homektb.com"
+git_provider = "fj.homektb.com"
 git_account = "bkenks"
 repo = "ktbgroup-self-hosted/infra.stacks"
 
@@ -673,7 +673,7 @@ repo = "stackform-hq/"
 name = "stackform_website"
 [repo.config]
 server = "littlebuddy"
-git_provider = "fj.lilbud.homektb.com"
+git_provider = "fj.homektb.com"
 git_account = "bkenks"
 repo = "stackform-hq/stackform_website"
 

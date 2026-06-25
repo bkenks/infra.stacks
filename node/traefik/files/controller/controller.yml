@@ -54,20 +54,19 @@ http:
       priority: 1
       tls: {}
     forgejo:
-      # forgejo answers BOTH fj.homektb.com (this route) and fj.lilbud.homektb.com.
-      # The dotted alias is retained on the forgejo stack because the git remotes,
-      # the komodo-mcp image registry path, woodpecker's FORGEJO_URL, and komodo's
-      # git_provider all still point at it — retire it only after those migrate.
+      # Single-label only — the dotted fj.lilbud alias was fully retired across the
+      # repo (git_provider, WOODPECKER_FORGEJO_URL, komodo-mcp image). Out-of-band
+      # cleanup after deploy: repoint local git remotes + Komodo's git-provider
+      # account to fj.homektb.com (the container registry follows the same host).
       rule: "Host(`fj.homektb.com`)"
       entryPoints: [websecure]
       service: host-littlebuddy
       priority: 1
       tls: {}
     woodpecker:
-      # woodpecker answers BOTH peck.homektb.com (this route) and peck.lilbud.homektb.com.
-      # The dotted alias is retained because WOODPECKER_HOST and the Forgejo OAuth
-      # redirect URI are registered at peck.lilbud — retire it after re-registering
-      # the OAuth app + flipping WOODPECKER_HOST to the single-label name.
+      # Single-label only — peck.lilbud retired (WOODPECKER_HOST now peck.homektb.com).
+      # Out-of-band cleanup after deploy: re-register the Forgejo OAuth app redirect
+      # URI to https://peck.homektb.com/authorize, or CI login will fail.
       rule: "Host(`peck.homektb.com`)"
       entryPoints: [websecure]
       service: host-littlebuddy
@@ -148,21 +147,22 @@ http:
       priority: 1
       tls: {}
 
-    # ── UNRESOLVED — not registered in Komodo; host unconfirmed (likely
-    #    littlebuddy, where the other personal apps run). Uncomment + set the host
-    #    once confirmed.
-    # mazanoke:
-    #   rule: "Host(`mazanoke.homektb.com`)"
-    #   entryPoints: [websecure]
-    #   service: host-littlebuddy
-    #   priority: 1
-    #   tls: {}
-    # convertx:
-    #   rule: "Host(`convertx.homektb.com`)"
-    #   entryPoints: [websecure]
-    #   service: host-littlebuddy
-    #   priority: 1
-    #   tls: {}
+    # ── NOTE: mazanoke + convertx are not currently deployed in Komodo. Their
+    #    app routers are already single-label, so these entries are pointed at
+    #    littlebuddy (where the other personal apps run) and stay latent until the
+    #    stacks are deployed. If either lands on another host, flip its service.
+    mazanoke:
+      rule: "Host(`mazanoke.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-littlebuddy
+      priority: 1
+      tls: {}
+    convertx:
+      rule: "Host(`convertx.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-littlebuddy
+      priority: 1
+      tls: {}
     # databasus / zerobyte: per-host backup utilities with dynamic hostnames
     #   (deployed per node). Not central *.homektb.com services — left out.
 
