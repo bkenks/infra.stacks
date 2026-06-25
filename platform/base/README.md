@@ -5,66 +5,92 @@
 > This README covers only this stack: what it is and how to deploy it.
 > (Notion = prose/architecture; repo = compose/usage.)
 
-The per-host **platform services** — the tier-0 stacks that underpin every host.
-Each one under `services/<svc>/` is a **self-contained, independently deployable
-compose project** (its own `name:`, its own internal network, joining the shared
-external nets for anything cross-service). They are **loosely coupled**: no
-shared compose project, no profiles, no modes — deploy, redeploy, or restart any
-one on its own without touching the others.
+The per-host **platform services** — the tier-0 stacks that underpin every host —
+organised into **three independently-deployable levels**:
 
-The top-level `compose.yaml` is just a **convenience launcher** that `include:`s
-them all, so a single `docker compose up` here brings the whole platform up
-together (as one fused `platform-base` project) for local/dev. It carries no
-modes and no gates.
+| Level | File | Project | Use |
+|---|---|---|---|
+| **service** | `<group>/<svc>/compose.yaml` | the service | deploy/redeploy one service |
+| **group** | `<group>/compose.yaml` | the group | deploy a functional unit |
+| **purpose** | `./compose.yaml` | `platform-base` | the whole platform, phased |
 
-## Services
+Loosely coupled: service and group composes carry **no profiles** and deploy
+standalone with no flags. Inter-service traffic rides the shared external nets
+(`proxy`, `db-backups`); each multi-container service keeps its own internal net.
 
-| Service (`services/`) | what it is | net |
+## Groups
+
+| Group (phase) | Services | What |
 |---|---|---|
-| traefik | per-host reverse proxy (owns the shared `proxy` net) | proxy |
-| infisical (+ db, redis) | secrets manager (control-plane host only) | infisical, proxy |
-| infisical-agent | renders each host's secrets to `/dev/shm/*.env` | proxy |
-| komodo (core + mongo) | orchestrator UI + DB (control-plane host only) | komodo, proxy |
-| komodo-periphery | per-host Komodo agent | (docker socket) |
-| cloudflared | Cloudflare Tunnel ingress | proxy |
-| databasus | DB backup agent | db-backups |
-| zerobyte | volume backup agent | (host/Tailscale) |
+| **backup-manager** (1) | databasus, zerobyte | DB + volume backups |
+| **secrets-manager** (2) | infisical (+db/redis), infisical-agent | secrets + renderer |
+| **edge** (3) | traefik, cloudflared | reverse proxy + tunnel ingress |
+| **container-manager** (4) | komodo (core+mongo), komodo-periphery | orchestrator |
 
-**Which services run on a host** is a deploy-time choice (which stacks you point
-at the host), not a compose mode. The Infisical host runs everything; every other
-host runs only the edge set (traefik, infisical-agent, komodo-periphery,
-cloudflared, databasus, zerobyte).
-
-The Infisical agent reaches Infisical via `INFISICAL_ADDRESS` (public URL by
-default; the Infisical host overrides it to the internal `http://infisical-app:8080`).
-What each host renders is set per host via `AGENT_SERVICES` (keys from
-`services/infisical-agent/files/services.tab`).
+**Which services run on a host** is a deploy choice, not a compose mode. The
+control-plane host runs all four groups; every other host runs only the edge +
+backup groups plus the `infisical-agent` and `komodo-periphery` services (Infisical
+and Komodo Core live on the control plane).
 
 ## Deploy
 
-Per-host env (`AGENT_HOST`, `AGENT_SERVICES`, `INFISICAL_ADDRESS`,
-`INFISICAL_CLIENT_ID/SECRET`) is injected by **infra.ansible** (cold bootstrap)
-and **Komodo** (steady state); `.env` holds local defaults. Secrets are never
-committed.
-
-Deploy a single service:
+**One service** — from its own dir (or `project_src=<dir>`):
 
 ```bash
-docker compose -f services/traefik/compose.yaml up -d
+cd edge/traefik && docker compose up -d
 ```
 
-**Bootstrap ordering** still matters but lives in the deploy layer (infra.ansible /
-a Komodo procedure), not in compose. The Infisical agent must render the tier-0
-`/dev/shm/*.env` files *before* the services that read `${VAR:?err}` at parse time,
-and traefik must create the shared `proxy` net first. So a cold control-plane
-comes up roughly: traefik → infisical → (create agent machine identity) →
-infisical-agent (renders `/dev/shm`) → the rest. Thereafter `/dev/shm` stays
-populated across redeploys.
+**One group** — from the group dir (Komodo/Ansible use `project_src=<group dir>`):
+
+```bash
+cd backup-manager && docker compose up -d
+```
+
+> Run a group from its OWN dir (not `-f backup-manager/compose.yaml` from here) —
+> a service's interpolation `env_file` only resolves with the group dir as the
+> project root.
+
+**The whole platform, phased** (purpose level) — cumulative `COMPOSE_PROFILES`,
+where phaseN brings up all earlier phases too. This is the gated cold bootstrap,
+and you can drive it by hand or via Ansible:
+
+```bash
+COMPOSE_PROFILES=phase1 docker compose up -d   # backup-manager
+COMPOSE_PROFILES=phase2 docker compose up -d   # + secrets-manager
+COMPOSE_PROFILES=phase3 docker compose up -d   # + edge
+COMPOSE_PROFILES=phase4 docker compose up -d   # + container-manager (all)
+```
+
+Profiles live ONLY in this top `compose.yaml` (added per-service by name), so the
+group/service composes stay clean. The phase map is documented there.
+
+### Gates (operator pauses BETWEEN phases)
+
+```
+phase1  ──[restore gate: restore the Infisical DB volume]──▶ phase2
+phase2  ──[identity gate: create the agent machine-identity;
+           the agent then renders /dev/shm/*.env — wait for them]──▶ phase3 ──▶ phase4
+```
+
+The agent reaches Infisical via `INFISICAL_ADDRESS` (public URL default; the
+Infisical host overrides to internal `http://infisical-app:8080`). What each host
+renders is set per host via `AGENT_SERVICES` (keys from
+`secrets-manager/infisical-agent/files/services.tab`). The agent retries auth, so
+it tolerates coming up in phase 2 before the identity exists — it renders once the
+identity is created.
+
+## Deploy vars
+
+Per-host env is injected by **infra.ansible** (cold bootstrap) and **Komodo**
+(steady state); `.env` holds local defaults. Secrets are never committed. Each
+group's entrance compose lists its required deploy vars; the standard set threaded
+through the services is `ROOT_DOMAIN_NAME`, `HOST_IP` / `TAILSCALE_IP` /
+`TAILSCALE_HOSTNAME`, `DOCKER_VOLUMES`, `AGENT_HOST` / `AGENT_SERVICES`.
 
 Validate the compose locally (Linux container — macOS has no `/dev/shm`):
 
 ```bash
-docker run --rm -e AGENT_HOST=test -e AGENT_SERVICES=traefik \
+docker run --rm -e COMPOSE_PROFILES=phase4 -e AGENT_HOST=test -e AGENT_SERVICES=traefik \
   -e ZEROBYTE__BASE_URL=http://x:4096 -e DOCKER_VOLUMES=/srv -e ROOT_DOMAIN_NAME=homektb.com \
   -v "$PWD":/s -w /s docker:cli sh -c '
     printf "INFISICAL_ENCRYPTION_KEY=t\nINFISICAL_AUTH_SECRET=t\nINFISICAL_DB_PASSWORD=t\n" > /dev/shm/infisical-bootstrap.env

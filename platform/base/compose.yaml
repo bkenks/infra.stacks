@@ -1,31 +1,67 @@
 # =============================================================================
-# platform/base — convenience launcher for the per-host platform services.
+# platform/base — PURPOSE-level orchestrator for the control-plane host.
 # =============================================================================
-# Each service under ./services/<svc>/ is a SELF-CONTAINED, independently
-# deployable compose project (its own `name:`, its own internal network, joining
-# the shared external nets — proxy / db-backups — for anything cross-service).
-# Deploy or redeploy any one on its own:
+# Three levels, each independently deployable:
+#   service  ./<group>/<svc>/compose.yaml   one service, its own project
+#   group    ./<group>/compose.yaml         a functional unit, its own project
+#   purpose  THIS file (project `platform-base`)  the whole platform, phased
 #
-#   docker compose -f services/traefik/compose.yaml up -d
+# The group + service composes are PROFILE-FREE, so they deploy standalone with
+# no flags. This file is the ONLY place that gates deploy order — it layers
+# cumulative PHASE profiles onto each service by name (so the lower levels stay
+# clean). The phase map below is also the deploy-order documentation.
 #
-# This top-level file just `include:`s them all so a single `docker compose up`
-# here brings the whole platform up together (as one fused `platform-base`
-# project) for local/dev convenience. It carries NO modes, NO profiles, NO gates
-# — "which services run on a host" is a deploy-time choice (which stacks you
-# point at the host), handled by Komodo / infra.ansible, not baked in here.
+# It `include:`s the SERVICE composes directly (one include level), NOT the group
+# entrance composes. Why: a service compose's interpolation `env_file` only
+# resolves correctly one include level deep — going purpose -> group -> service
+# (two levels) breaks that path. The groups stay real, standalone-deployable
+# units (deploy a group from its own dir); this file just composes the same
+# services directly, which is exactly where the phase map already lives.
 #
-# Bootstrap ordering still matters (the Infisical agent must render the tier-0
-# /dev/shm/*.env files before the services that read ${VAR:?err} at parse time,
-# and traefik owns the shared `proxy` net). That ordering lives in the deploy
-# layer (infra.ansible / a Komodo procedure), not in this file.
+#   COMPOSE_PROFILES=phase1 docker compose up -d   # backup-manager
+#   COMPOSE_PROFILES=phase2 docker compose up -d   # + secrets-manager
+#   COMPOSE_PROFILES=phase3 docker compose up -d   # + edge
+#   COMPOSE_PROFILES=phase4 docker compose up -d   # + container-manager (all)
+#
+# Gates (operator pauses) sit BETWEEN phases — driven by Ansible, or by hand:
+#   phase1 -> [restore gate: restore the Infisical DB volume] -> phase2
+#   phase2 -> [identity gate: create the agent machine-identity; the agent then
+#             renders /dev/shm/*.env — wait for them] -> phase3 -> phase4
 name: platform-base
 
 include:
-  - ./services/databasus/compose.yaml
-  - ./services/zerobyte/compose.yaml
-  - ./services/infisical/compose.yaml
-  - ./services/infisical-agent/compose.yaml
-  - ./services/traefik/compose.yaml
-  - ./services/cloudflared/compose.yaml
-  - ./services/komodo-periphery/compose.yaml
-  - ./services/komodo/compose.yaml
+  # phase 1 — backup-manager
+  - ./backup-manager/databasus/compose.yaml
+  - ./backup-manager/zerobyte/compose.yaml
+  # phase 2 — secrets-manager
+  - ./secrets-manager/infisical/compose.yaml
+  - ./secrets-manager/infisical-agent/compose.yaml
+  # phase 3 — edge
+  - ./edge/traefik/compose.yaml
+  - ./edge/cloudflared/compose.yaml
+  # phase 4 — container-manager
+  - ./container-manager/komodo/compose.yaml
+  - ./container-manager/komodo-periphery/compose.yaml
+
+# Phase gating — profiles live ONLY here. Cumulative: phaseN runs all earlier
+# phases too. Adding `profiles:` to an included service (by name) is the one
+# coupling this layer introduces; the group/service composes have none.
+#
+# Phase map (the include: list above is in deploy order; this block is kept
+# alphabetical for the linter — the phase is encoded in each service's profiles):
+#   phase1  backup-manager      databasus, zerobyte
+#   phase2  + secrets-manager   infisical-app/-db/-redis, agent
+#   phase3  + edge              traefik, cloudflared
+#   phase4  + container-manager komodo-core, mongo-db, komodo-periphery
+services:
+  agent: { profiles: [phase2, phase3, phase4] }
+  cloudflared: { profiles: [phase3, phase4] }
+  databasus: { profiles: [phase1, phase2, phase3, phase4] }
+  infisical-app: { profiles: [phase2, phase3, phase4] }
+  infisical-db: { profiles: [phase2, phase3, phase4] }
+  infisical-redis: { profiles: [phase2, phase3, phase4] }
+  komodo-core: { profiles: [phase4] }
+  komodo-periphery: { profiles: [phase4] }
+  mongo-db: { profiles: [phase4] }
+  traefik: { profiles: [phase3, phase4] }
+  zerobyte: { profiles: [phase1, phase2, phase3, phase4] }

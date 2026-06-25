@@ -1,0 +1,22 @@
+# =============================================================================
+# Container Manager — group entrance compose (its own project: `container-manager`).
+# =============================================================================
+# Deploys the Komodo orchestrator as ONE unit (run from THIS dir):
+#   cd container-manager && docker compose up -d
+# Each member is also independently deployable from its own dir.
+#
+# Members: komodo (Core UI + Mongo DB — control plane only), komodo-periphery
+# (per-host agent, runs on EVERY host).
+#
+# NOTE: most hosts run ONLY the periphery agent (Komodo Core lives on the control
+# plane). On a node, deploy container-manager/komodo-periphery on its own, not
+# this whole group.
+#
+# Required deploy vars (per host, at deploy time — see .env / Ansible / Komodo):
+#   ROOT_DOMAIN_NAME      base domain (KOMODO_HOST = https://komo.${ROOT_DOMAIN_NAME})
+#   DOCKER_VOLUMES        host volumes root (Komodo/Mongo bind mounts; periphery)
+name: container-manager
+
+include:
+  - ./komodo/compose.yaml
+  - ./komodo-periphery/compose.yaml
