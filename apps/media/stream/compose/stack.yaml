@@ -96,6 +96,11 @@ services:
         target: /data/media
     env_file:
       - "../container-envs/${PLEX__NAME:?err}.env"
+    # Pass the host's Intel N150 iGPU through so Plex can use Quick Sync (VAAPI)
+    # for hardware transcoding instead of pegging the CPU on software transcodes.
+    # Plex runs as root here (PUID/PGID 0), so no group_add for render is needed.
+    devices:
+      - /dev/dri:/dev/dri
     network_mode: host
     restart: on-failure:${PLEX__MAX_RESTART_ATTEMPS:?err}
     healthcheck:
