@@ -7,9 +7,10 @@
 #   purpose  THIS file (project `platform-base`)  the whole platform, phased
 #
 # The group + service composes are PROFILE-FREE, so they deploy standalone with
-# no flags. This file is the ONLY place that gates deploy order — it layers
-# cumulative PHASE profiles onto each service by name (so the lower levels stay
-# clean). The phase map below is also the deploy-order documentation.
+# no flags. This file is the ONLY place that gates deploy order — it tags each
+# service with its own PHASE profile by name (so the lower levels stay clean).
+# `docker compose up` is additive across phases, so a later phase never stops an
+# earlier one. The phase map below is also the deploy-order documentation.
 #
 # It `include:`s the SERVICE composes directly (one include level), NOT the group
 # entrance composes. Why: a service compose's interpolation `env_file` only
@@ -19,9 +20,10 @@
 # services directly, which is exactly where the phase map already lives.
 #
 #   COMPOSE_PROFILES=phase1 docker compose up -d   # backup-manager
-#   COMPOSE_PROFILES=phase2 docker compose up -d   # + secrets-manager
+#   COMPOSE_PROFILES=phase2 docker compose up -d   # + secrets-manager (phase1 stays up)
 #   COMPOSE_PROFILES=phase3 docker compose up -d   # + edge
-#   COMPOSE_PROFILES=phase4 docker compose up -d   # + container-manager (all)
+#   COMPOSE_PROFILES=phase4 docker compose up -d   # + container-manager
+# (one-shot everything: COMPOSE_PROFILES=phase1,phase2,phase3,phase4)
 #
 # Gates (operator pauses) sit BETWEEN phases — driven by Ansible, or by hand:
 #   phase1 -> [restore gate: restore the Infisical DB volume] -> phase2
@@ -43,25 +45,35 @@ include:
   - ./container-manager/komodo/compose.yaml
   - ./container-manager/komodo-periphery/compose.yaml
 
-# Phase gating — profiles live ONLY here. Cumulative: phaseN runs all earlier
-# phases too. Adding `profiles:` to an included service (by name) is the one
-# coupling this layer introduces; the group/service composes have none.
+# Phase gating — profiles live ONLY here. Each service carries ONLY its own phase
+# (the phase is effectively the group label). Adding `profiles:` to an included
+# service (by name) is the one coupling this layer introduces; the group/service
+# composes have none.
 #
-# Phase map (the include: list above is in deploy order; this block is kept
-# alphabetical for the linter — the phase is encoded in each service's profiles):
+# `docker compose up` is ADDITIVE across phases — bringing up a later phase does
+# NOT stop earlier ones — so the gated bootstrap is just sequential ups with the
+# gate pauses between:
+#   COMPOSE_PROFILES=phase1 up   # backup-manager
+#   COMPOSE_PROFILES=phase2 up   # + secrets-manager (phase1 stays up)
+#   COMPOSE_PROFILES=phase3 up   # + edge
+#   COMPOSE_PROFILES=phase4 up   # + container-manager
+# A single `COMPOSE_PROFILES=phaseN` brings up ONLY phase N (handy to redeploy one
+# group). To bring everything up in one shot: COMPOSE_PROFILES=phase1,phase2,phase3,phase4.
+#
+# Phase map (block kept alphabetical for the linter; phase is in each profiles:):
 #   phase1  backup-manager      databasus, zerobyte
-#   phase2  + secrets-manager   infisical-app/-db/-redis, agent
-#   phase3  + edge              traefik, cloudflared
-#   phase4  + container-manager komodo-core, mongo-db, komodo-periphery
+#   phase2  secrets-manager     infisical-app/-db/-redis, agent
+#   phase3  edge                traefik, cloudflared
+#   phase4  container-manager   komodo-core, mongo-db, komodo-periphery
 services:
-  agent: { profiles: [phase2, phase3, phase4] }
-  cloudflared: { profiles: [phase3, phase4] }
-  databasus: { profiles: [phase1, phase2, phase3, phase4] }
-  infisical-app: { profiles: [phase2, phase3, phase4] }
-  infisical-db: { profiles: [phase2, phase3, phase4] }
-  infisical-redis: { profiles: [phase2, phase3, phase4] }
+  agent: { profiles: [phase2] }
+  cloudflared: { profiles: [phase3] }
+  databasus: { profiles: [phase1] }
+  infisical-app: { profiles: [phase2] }
+  infisical-db: { profiles: [phase2] }
+  infisical-redis: { profiles: [phase2] }
   komodo-core: { profiles: [phase4] }
   komodo-periphery: { profiles: [phase4] }
   mongo-db: { profiles: [phase4] }
-  traefik: { profiles: [phase3, phase4] }
-  zerobyte: { profiles: [phase1, phase2, phase3, phase4] }
+  traefik: { profiles: [phase3] }
+  zerobyte: { profiles: [phase1] }

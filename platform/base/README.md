@@ -50,19 +50,22 @@ cd backup-manager && docker compose up -d
 > a service's interpolation `env_file` only resolves with the group dir as the
 > project root.
 
-**The whole platform, phased** (purpose level) — cumulative `COMPOSE_PROFILES`,
-where phaseN brings up all earlier phases too. This is the gated cold bootstrap,
-and you can drive it by hand or via Ansible:
+**The whole platform, phased** (purpose level) — each service is tagged with its
+own phase profile, and `docker compose up` is **additive** (a later phase never
+stops an earlier one). So the gated cold bootstrap is just sequential ups, by hand
+or via Ansible:
 
 ```bash
 COMPOSE_PROFILES=phase1 docker compose up -d   # backup-manager
-COMPOSE_PROFILES=phase2 docker compose up -d   # + secrets-manager
+COMPOSE_PROFILES=phase2 docker compose up -d   # + secrets-manager (phase1 stays up)
 COMPOSE_PROFILES=phase3 docker compose up -d   # + edge
-COMPOSE_PROFILES=phase4 docker compose up -d   # + container-manager (all)
+COMPOSE_PROFILES=phase4 docker compose up -d   # + container-manager
 ```
 
-Profiles live ONLY in this top `compose.yaml` (added per-service by name), so the
-group/service composes stay clean. The phase map is documented there.
+A single `COMPOSE_PROFILES=phaseN` brings up ONLY phase N — handy to redeploy one
+group (e.g. `phase3` = just edge). One-shot everything:
+`COMPOSE_PROFILES=phase1,phase2,phase3,phase4`. Profiles live ONLY in this top
+`compose.yaml` (per-service by name), so the group/service composes stay clean.
 
 ### Gates (operator pauses BETWEEN phases)
 
