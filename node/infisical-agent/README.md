@@ -8,7 +8,7 @@ Runs in one of two profiles — **`init`** (Ansible, control-plane only, one-sho
 
 ## Per-host config
 
-`AGENT_HOST` selects `files/configs/<host>.yaml` (standard) or `files/configs/<host>.init.yaml` (init). Each host gets its **own machine identity**, scoped in Infisical to only that host's secret folders — so a host's identity and its config both only ever touch its own stacks.
+The **standard** profile selects a per-host config: `AGENT_HOST` → `files/configs/<host>.yaml`. The **init** profile uses the fixed, host-agnostic `files/configs/control-plane.bootstrap.yaml` (set via `AGENT_CONFIG_NAME` in `compose/init.yml`); `AGENT_HOST` there only carries the real host name for the `${AGENT_HOST}` secret-path substitution. Each host gets its **own machine identity**, scoped in Infisical to only that host's secret folders — so a host's identity and its config both only ever touch its own stacks.
 
 Add a host: create `files/configs/<host>.yaml`, create a scoped machine identity in Infisical, then deploy the `standard` profile from Komodo with per-server vars `AGENT_HOST=<host>`, `INFISICAL_CLIENT_ID=…`, `INFISICAL_CLIENT_SECRET=…`.
 

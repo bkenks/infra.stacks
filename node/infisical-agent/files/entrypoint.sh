@@ -9,15 +9,15 @@
 # config wipes the secret file right after it's read.
 set -eu
 
-: "${AGENT_HOST:?AGENT_HOST is required (selects files/configs/<host>...yaml)}"
+: "${AGENT_HOST:?AGENT_HOST is required (per-host secret-path subs + standard config selection)}"
 
 # Cred file paths are keyed to the profile via AGENT_CONFIG_SUFFIX (".init" for
 # the init profile, empty for standard) so the init (Ansible-written) and standard
 # (Komodo env-written) agents never share a file in /dev/shm. They run with
 # different effective uids — Ansible as host root, the Komodo container often
 # userns-remapped — and on the sticky /dev/shm (1777) a non-owner can't overwrite
-# the other's file. The matching <host>.init.yaml / <host>.yaml configs point at
-# these same paths.
+# the other's file. The matching configs (the host-agnostic control-plane
+# bootstrap config / the per-host <host>.yaml) point at these same paths.
 cred_id="/dev/shm/agent${AGENT_CONFIG_SUFFIX:-}.client-id"
 cred_secret="/dev/shm/agent${AGENT_CONFIG_SUFFIX:-}.client-secret"
 
@@ -37,7 +37,12 @@ if [ ! -s "$cred_id" ] || [ ! -s "$cred_secret" ]; then
 fi
 chmod 0600 "$cred_id" "$cred_secret" 2>/dev/null || true
 
-config="/agent-configs/${AGENT_HOST}${AGENT_CONFIG_SUFFIX:-}.yaml"
+# Config selection. Standard agent: per-host config (${AGENT_HOST}.yaml). The
+# init/bootstrap profile sets AGENT_CONFIG_NAME to a fixed, host-agnostic name
+# (control-plane.bootstrap) — the control-plane bootstrap is the same wherever it
+# runs, while AGENT_HOST still carries the real host for ${AGENT_HOST} secret-path
+# subs. AGENT_CONFIG_SUFFIX is unchanged (it keys the /dev/shm/agent.init.* creds).
+config="/agent-configs/${AGENT_CONFIG_NAME:-${AGENT_HOST}${AGENT_CONFIG_SUFFIX:-}}.yaml"
 if [ ! -f "$config" ]; then
   echo "infisical-agent: config not found: $config" >&2
   exit 1

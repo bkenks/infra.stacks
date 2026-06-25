@@ -2,7 +2,12 @@
 # tier-0 secrets needed to bring up the orchestration layer (Komodo) + proxy
 # (Traefik) + tunnel (Cloudflare) BEFORE Komodo exists to manage anything, then
 # EXITS. Run by Ansible (`--tags infisical-agent`). Once Komodo is up, the
-# standard agent (littlebuddy.yaml) takes over and this is never used again.
+# host's standard agent (<host>.yaml) takes over and this is never used again.
+#
+# NOT host-specific: this is the control-plane bootstrap, selected by a fixed
+# AGENT_CONFIG_NAME (see compose/init.yml + entrypoint.sh), so it stays the same
+# regardless of which host happens to be the control plane. AGENT_HOST still
+# carries the real host name for the per-host ${AGENT_HOST} secret-path subs.
 #
 # Reaches the Infisical app DIRECTLY over the proxy network (Traefik/the public
 # URL don't exist yet at cold bootstrap). `infisical-app` is the app's alias on
@@ -13,7 +18,7 @@
 #
 # Templates are shared with the standard agent (files/configs/templates/*.tpl,
 # referenced as /agent-templates/<stack>.tpl after entrypoint.sh substitutes
-# ${AGENT_HOST}); only the destination-path differs from littlebuddy.yaml.
+# ${AGENT_HOST}); only the destination-path differs from the host's <host>.yaml.
 infisical:
   address: "http://infisical-app:8080"
   exit-after-auth: true               # render once, then exit
