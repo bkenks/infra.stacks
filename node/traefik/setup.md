@@ -91,3 +91,47 @@ Traefik proxies the Komodo UI, so bring a host up in this order:
 Point `*.homektb.com` (or a hosts entry) at the host, then hit
 `https://infisical.homektb.com` (valid Cloudflare wildcard TLS — no cert warning).
 Dashboard: `https://traefik.homektb.com`.
+
+## Central controller role (single front router)
+
+This same stack can also act as the **one central router** in front of all the
+other hosts, so `*.homektb.com` points at a single host and routing to the right
+host is done here — not in DNS. The role is a **portable toggle**: every host
+already carries the controller config; you just flip which host is active.
+
+**How it works.** A Komodo per-server variable `TRAEFIK_ROLE` (default `node`)
+selects which file mounts as the central routing table
+(`files/controller/<role>.yml` → `/etc/traefik/dynamic/controller.yml`):
+
+| `TRAEFIK_ROLE` | Mounted file        | Effect |
+|----------------|---------------------|--------|
+| `node` (default) | `controller/node.yml`       | empty no-op — plain per-host Traefik |
+| `controller`     | `controller/controller.yml` | central table: routes each single-label `*.homektb.com` service to the host that runs it, re-encrypting to that host's Traefik `:443` |
+
+The table's routers are **`priority: 1`** (lowest), so on the controller host a
+service that runs *locally* is still served by its own docker-label router
+(higher default priority) — only **remote** services fall through to the table.
+No loops, and **app labels never change**. Backends re-encrypt to each host's
+`:443` over a **verified** TLS connection: each host already serves its
+publicly-trusted Let's Encrypt `*.homektb.com` wildcard, so the controller
+validates it against the system CA roots (via a `serverName` the wildcard covers,
+since we dial raw Tailscale IPs) — no `insecureSkipVerify`. This means each host
+must **keep** its ACME `*.homektb.com` cert (don't switch hosts to a self-signed
+cert). The controller already holds the `*.homektb.com` wildcard (every host
+requests it) and the `CF_DNS_API_TOKEN` (via `node_traefik.env`), so **no new cert
+or secret**.
+
+**Promote a host to controller:**
+1. Set `TRAEFIK_ROLE=controller` on that host (Komodo per-server var); set
+   `TRAEFIK_ROLE=node` on the previous controller.
+2. Point the `*.homektb.com` wildcard DNS (and/or the cloudflared wildcard
+   ingress) at the new controller host.
+3. Redeploy this stack from Komodo on both hosts.
+
+**The service → host map** lives in `files/controller/controller.yml` — one router
+entry per single-label service (`rule:` = its public name, `service:` = the host
+backend that runs it). This is the only place the "which host" knowledge lives
+(it replaces per-service DNS records). Add a line when a service is added; change
+`service:` when one moves hosts. The seed entries there must be verified/extended
+against the real inventory. Host backends (Tailscale IPs) are identical on every
+host, so the file is portable as-is.

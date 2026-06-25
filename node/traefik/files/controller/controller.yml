@@ -1,0 +1,210 @@
+# Controller role ENABLED (TRAEFIK_ROLE=controller).
+# This host is the SINGLE central router. *.homektb.com DNS points here; this file
+# routes each single-label service to whichever host actually runs it, re-encrypting
+# to that host's own Traefik on :443. Mounted as-is — NOT interpolated; literals only.
+#
+# How it stays loop-free and portable:
+#   - Routers here are priority:1 (lowest). On THIS host, any service that runs
+#     locally is still served by its own docker-label router (default priority,
+#     which is higher), so only REMOTE services fall through to these routers.
+#   - The host backends below are identical on every host, so this exact file works
+#     unchanged whichever host you promote. Promotion = TRAEFIK_ROLE=controller +
+#     repoint *.homektb.com DNS. Demote the old controller to TRAEFIK_ROLE=node.
+#   - The host running each service still serves it locally via its docker labels,
+#     unchanged — this only adds the central front door.
+#
+#   host-token -> host         Tailscale IP
+#   littlebuddy               100.114.137.104
+#   paiki                     100.126.19.103
+#   maboi                     100.97.83.95
+#   bill                      100.79.7.11
+# (No MagicDNS in this tailnet — backends use raw 100.x IPs, reachable from the
+#  Traefik container via the host's tailscale0 route.)
+http:
+  routers:
+    # ── Service -> host map. ONE entry per single-label service: rule is its
+    #    public name, service is the host that runs it. This is the only place the
+    #    "which host" knowledge lives (it used to live in DNS). Add a line when a
+    #    service is added; change `service:` when one moves hosts.
+    #    All entries are priority:1 so a locally-run service wins via its own
+    #    docker router on the controller host.
+    #
+    #    Generated from the Komodo stack->server assignment joined with each
+    #    stack's Traefik router rule (2026-06-24). Only littlebuddy and paiki run
+    #    *.homektb.com services; maboi/bill run client sites + infra nodes only.
+
+    # ── littlebuddy (token "lilbud") ──────────────────────────────────────────
+    infisical:
+      rule: "Host(`infisical.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-littlebuddy
+      priority: 1
+      tls: {}
+    komodo:
+      rule: "Host(`komo.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-littlebuddy
+      priority: 1
+      tls: {}
+    komodo-mcp:
+      rule: "Host(`komodo-mcp.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-littlebuddy
+      priority: 1
+      tls: {}
+    forgejo:
+      # NOTE: currently exposed as fj.lilbud.homektb.com (dotted). This single-label
+      # form is a breaking URL change — flip the stack's label to match on migrate.
+      rule: "Host(`fj.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-littlebuddy
+      priority: 1
+      tls: {}
+    woodpecker:
+      rule: "Host(`peck.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-littlebuddy
+      priority: 1
+      tls: {}
+    termix:
+      rule: "Host(`termix.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-littlebuddy
+      priority: 1
+      tls: {}
+    docuseal:
+      rule: "Host(`docuseal.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-littlebuddy
+      priority: 1
+      tls: {}
+    openproject:
+      rule: "Host(`openprj.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-littlebuddy
+      priority: 1
+      tls: {}
+    paperless:
+      rule: "Host(`paper.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-littlebuddy
+      priority: 1
+      tls: {}
+    scriberr:
+      rule: "Host(`scriberr.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-littlebuddy
+      priority: 1
+      tls: {}
+
+    # ── paiki (media stack lives here) ────────────────────────────────────────
+    immich:
+      rule: "Host(`immich.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-paiki
+      priority: 1
+      tls: {}
+    sonarr:
+      rule: "Host(`sonarr.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-paiki
+      priority: 1
+      tls: {}
+    radarr:
+      rule: "Host(`radarr.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-paiki
+      priority: 1
+      tls: {}
+    prowlarr:
+      rule: "Host(`prowlarr.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-paiki
+      priority: 1
+      tls: {}
+    bazarr:
+      rule: "Host(`bazarr.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-paiki
+      priority: 1
+      tls: {}
+    sabnzbd:
+      rule: "Host(`sabnzbd.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-paiki
+      priority: 1
+      tls: {}
+    seerr:
+      rule: "Host(`seerr.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-paiki
+      priority: 1
+      tls: {}
+
+    # ── UNRESOLVED — not registered in Komodo; host unconfirmed (likely
+    #    littlebuddy, where the other personal apps run). Uncomment + set the host
+    #    once confirmed.
+    # mazanoke:
+    #   rule: "Host(`mazanoke.homektb.com`)"
+    #   entryPoints: [websecure]
+    #   service: host-littlebuddy
+    #   priority: 1
+    #   tls: {}
+    # convertx:
+    #   rule: "Host(`convertx.homektb.com`)"
+    #   entryPoints: [websecure]
+    #   service: host-littlebuddy
+    #   priority: 1
+    #   tls: {}
+    # databasus / zerobyte: per-host backup utilities with dynamic hostnames
+    #   (deployed per node). Not central *.homektb.com services — left out.
+
+  services:
+    # ── Host backends (one per host). Identical on every host so this file is
+    #    portable. Re-encrypts to the host's Traefik :443; passHostHeader keeps the
+    #    original Host so that Traefik matches its own router.
+    host-littlebuddy:
+      loadBalancer:
+        passHostHeader: true
+        serversTransport: host-reencrypt
+        servers:
+          - url: "https://100.114.137.104:443"
+    host-paiki:
+      loadBalancer:
+        passHostHeader: true
+        serversTransport: host-reencrypt
+        servers:
+          - url: "https://100.126.19.103:443"
+    host-maboi:
+      loadBalancer:
+        passHostHeader: true
+        serversTransport: host-reencrypt
+        servers:
+          - url: "https://100.97.83.95:443"
+    host-bill:
+      loadBalancer:
+        passHostHeader: true
+        serversTransport: host-reencrypt
+        servers:
+          - url: "https://100.79.7.11:443"
+
+  serversTransports:
+    # The controller terminates the public *.homektb.com TLS, then opens a NEW,
+    # VERIFIED TLS connection to the target host's Traefik :443. Each host serves
+    # its own publicly-trusted Let's Encrypt *.homektb.com wildcard there, so the
+    # connection is validated against the system CA roots (LE ships in the Traefik
+    # image's trust store) — no insecureSkipVerify, no MITM window on the
+    # cross-host hop even within Tailscale.
+    #
+    # We connect by raw Tailscale IP (no MagicDNS), so the default SNI would be the
+    # IP and wouldn't match the cert. `serverName` pins the TLS SNI/validation name
+    # to a name the wildcard covers; the upstream presents *.homektb.com for it and
+    # verification passes. (It need not resolve in DNS — it's only the SNI.) The
+    # HTTP Host header is still the real service name via passHostHeader, which is
+    # what the upstream routes on; SNI only selects/validates the cert.
+    #
+    # REQUIRES each host to keep its ACME *.homektb.com cert (they all request it).
+    # Do NOT switch hosts to Traefik's default self-signed cert here, or this
+    # verification will fail by design.
+    host-reencrypt:
+      serverName: "node.homektb.com"
