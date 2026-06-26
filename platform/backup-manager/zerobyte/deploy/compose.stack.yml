@@ -1,0 +1,34 @@
+services:
+  app:
+    image: ghcr.io/nicotsx/zerobyte:${ZEROBYTE__VERS_TAG:?err}
+    container_name: ${SERVICE_NAME}-app
+    volumes:
+      # Bind Mounts
+      - /etc/localtime:/etc/localtime:ro
+      - /var/lib/docker/volumes:/source/docker-volumes
+      # Named Volumes
+      - data:/var/lib/zerobyte
+    environment:
+      # Literals
+      TZ: America/New_York
+      # Interpolated Literals
+      BASE_URL: ${ZEROBYTE__BASE_URL:?err}
+      # Injected
+      APP_SECRET: ${ZEROBYTE_APP_SECRET:?err}
+    ports:
+      - '${ZEROBYTE__PORT:?err}:${ZEROBYTE__PORT:?err}' # Core Infra: No Proxy
+    networks:
+      - default
+    restart: on-failure:${ZEROBYTE__MAX_RESTART_ATTEMPS:?err}
+    cap_add:
+      - SYS_ADMIN
+    devices:
+      - /dev/fuse:/dev/fuse
+
+networks:
+  default:
+    name: ${SERVICE_NAME}
+
+volumes:
+  app:
+    name: ${SERVICE_NAME}-app
