@@ -10,10 +10,11 @@
 // /dev/shm agent render, and so it has no include.env_file in its parent
 // compose.yaml. Non-secret identity (names, ports, versions, DB login) is baked
 // here from the old interpolation.env.
-local infra = import 'infra.libsonnet';
+local lib = import 'lib.libsonnet';
 
 local stack = 'infisical';
-local n = infra.net.names(stack);
+local n = lib.compose.names(stack);
+local roles = lib.compose.roles;
 
 local appVersion = 'v0.160.9';   // docker.io/infisical/infisical
 local dbVersion = '16-alpine';   // docker.io/library/postgres
@@ -27,16 +28,16 @@ local dbName = 'infisical';
   name: stack,
 
   services: {
-    app: {
+    [roles.app]: {
       image: 'docker.io/infisical/infisical:' + appVersion,
-      container_name: n.container('app'),  // 'infisical-app' — matches reg.endpoints host
+      container_name: n.container(roles.app),  // 'infisical-app' — matches reg.endpoints host
       depends_on: {
         db: { condition: 'service_healthy' },
         redis: { condition: 'service_healthy' },
       },
       environment: {
         // --- Site ---
-        SITE_URL: infra.net.publicUrl('infisical'),  // https://infisical.homektb.com
+        SITE_URL: lib.compose.publicUrl('infisical'),  // https://infisical.homektb.com
 
         // --- SMTP (optional; leave blank to disable email) ---
         SMTP_HOST: '${INFISICAL__SMTP_HOST:-}',
@@ -47,19 +48,19 @@ local dbName = 'infisical';
         NODE_ENV: 'production',
 
         // --- Redis ---
-        REDIS_URL: 'redis://' + n.alias('redis') + ':6379',
+        REDIS_URL: 'redis://' + n.alias(roles.redis) + ':6379',
 
         // Secrets — preserved as deploy-env interpolation (fed by /dev/shm/infisical.env).
         ENCRYPTION_KEY: '${INFISICAL_ENCRYPTION_KEY:?err}',
         AUTH_SECRET: '${INFISICAL_AUTH_SECRET:?err}',
-        DB_CONNECTION_URI: 'postgres://' + dbUser + ':${INFISICAL_DB_PASSWORD:?err}@' + n.alias('db') + ':5432/' + dbName,
+        DB_CONNECTION_URI: 'postgres://' + dbUser + ':${INFISICAL_DB_PASSWORD:?err}@' + n.alias(roles.db) + ':5432/' + dbName,
         SMTP_USERNAME: '${INFISICAL__SMTP_USERNAME:-}',
         SMTP_PASSWORD: '${INFISICAL_SMTP_PASSWORD:-}',
       },
       networks: {
-        default: { aliases: [n.alias('app')] },
-        [infra.net.netName('infisical')]: { aliases: [n.alias('app')] },  // shared-infisical (owned)
-        [infra.net.netName('proxy')]: { aliases: [n.alias('app')] },      // shared-proxy (joined)
+        default: { aliases: [n.alias(roles.app)] },
+        [lib.compose.netName('infisical')]: { aliases: [n.alias(roles.app)] },  // shared-infisical (owned)
+        [lib.compose.netName('proxy')]: { aliases: [n.alias(roles.app)] },      // shared-proxy (joined)
       },
       restart: 'unless-stopped',
       healthcheck: {
@@ -69,14 +70,14 @@ local dbName = 'infisical';
         retries: 3,
         start_period: '40s',
       },
-      labels: infra.mixins.proxyAdd('infisical', 'infisical', appPort),
+      labels: lib.mixins.proxyAdd('infisical', 'infisical', appPort),
       expose: [std.toString(appPort)],
     },
 
-    db: {
+    [roles.db]: {
       image: 'docker.io/library/postgres:' + dbVersion,
-      container_name: n.container('db'),  // 'infisical-db'
-      volumes: ['db:/var/lib/postgresql/data'],
+      container_name: n.container(roles.db),  // 'infisical-db'
+      volumes: [roles.db + ':/var/lib/postgresql/data'],
       environment: {
         POSTGRES_USER: dbUser,
         POSTGRES_DB: dbName,
@@ -84,7 +85,7 @@ local dbName = 'infisical';
         POSTGRES_PASSWORD: '${INFISICAL_DB_PASSWORD:?err}',
       },
       networks: {
-        default: { aliases: [n.alias('db')] },
+        default: { aliases: [n.alias(roles.db)] },
       },
       restart: 'unless-stopped',
       healthcheck: {
@@ -96,15 +97,15 @@ local dbName = 'infisical';
       expose: ['5432'],
     },
 
-    redis: {
+    [roles.redis]: {
       image: 'docker.io/library/redis:' + redisVersion,
-      container_name: n.container('redis'),  // 'infisical-redis'
-      volumes: ['redis:/data'],
+      container_name: n.container(roles.redis),  // 'infisical-redis'
+      volumes: [roles.redis + ':/data'],
       environment: {
         ALLOW_EMPTY_PASSWORD: 'yes',
       },
       networks: {
-        default: { aliases: [n.alias('redis')] },
+        default: { aliases: [n.alias(roles.redis)] },
       },
       restart: 'unless-stopped',
       healthcheck: {
@@ -118,12 +119,12 @@ local dbName = 'infisical';
   },
 
   networks:
-    infra.net.default(stack)        // private net (renamed default) 'infisical' — app <-> db <-> redis
-    + infra.net.own('infisical')    // shared-infisical (owned; apps join)
-    + infra.net.join('proxy'),      // shared-proxy (traefik owns)
+    n.network        // private net (renamed default) 'infisical' — app <-> db <-> redis
+    + lib.compose.own('infisical')    // shared-infisical (owned; apps join)
+    + lib.compose.join('proxy'),      // shared-proxy (traefik owns)
 
   volumes: {
-    db: { name: n.volume('db') },        // 'infisical-db'
-    redis: { name: n.volume('redis') },  // 'infisical-redis'
+    [roles.db]: { name: n.volume(roles.db) },        // 'infisical-db'
+    [roles.redis]: { name: n.volume(roles.redis) },  // 'infisical-redis'
   },
 }

@@ -63,7 +63,7 @@
   #   public  — via Traefik at https://<sub>.<domain>; `domain` pulls from domains.
   endpoints: {
     postgres: {
-      private: { host: 'postgres', port: 5432, network: $.sharedNetworks.postgres },
+      private: { host: 'postgres-db', port: 5432, network: $.sharedNetworks.postgres },  // host == the db service's <stack>-<role> name/alias
     },
     infisical: {
       private: { host: 'infisical-app', port: 8080, network: $.sharedNetworks.infisical },

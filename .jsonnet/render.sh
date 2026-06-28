@@ -7,7 +7,7 @@
 #                      env_file; the parent is hand-written and NOT regenerated)
 #   <name>.jsonnet  -> <name>.yaml          (e.g. services.jsonnet -> services.yaml)
 # Library imports resolve by bare name via the -J jpath below, so a source at any
-# depth does `import 'infra.libsonnet'`.
+# depth does `import 'lib.libsonnet'`.
 set -eu
 
 src="$1"

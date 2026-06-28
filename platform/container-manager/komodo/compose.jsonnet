@@ -4,11 +4,11 @@
 // Names, aliases, versions, and the public domain come from this file or the
 // shared registry. Only per-HOST runtime values stay as ${...} so docker
 // compose interpolates them at deploy time.
-local infra = import 'infra.libsonnet';
-local reg = infra.registry;
+local lib = import 'lib.libsonnet';
+local reg = lib.registry;
 
 local stack = 'komodo';
-local n = infra.net.names(stack);
+local n = lib.compose.names(stack);
 
 local version = '2.1.2';        // Komodo image tag (was interpolation var KOMO_VERS)
 local mongoVersion = '8.2.4';
@@ -45,9 +45,9 @@ local vols = '${DOCKER_VOLUMES}';  // per-host volume root — runtime interpola
       init: true,
       networks: {
         default: { aliases: [n.alias('core')] },                       // talk to mongo-db
-        [infra.net.netName('proxy')]: { aliases: [n.alias('core')] },  // expose to Traefik (shared-proxy)
+        [lib.compose.netName('proxy')]: { aliases: [n.alias('core')] },  // expose to Traefik (shared-proxy)
       },
-      labels: infra.mixins.komodoSkip + infra.mixins.proxyAdd('komodo', 'komo', 9120),
+      labels: lib.mixins.komodoSkip + lib.mixins.proxyAdd('komodo', 'komo', 9120),
     },
 
     'mongo-db': {
@@ -69,7 +69,7 @@ local vols = '${DOCKER_VOLUMES}';  // per-host volume root — runtime interpola
       networks: {
         default: { aliases: [n.alias('mongo')] },
       },
-      labels: infra.mixins.komodoSkip,
+      labels: lib.mixins.komodoSkip,
     },
   },
 
@@ -79,6 +79,6 @@ local vols = '${DOCKER_VOLUMES}';  // per-host volume root — runtime interpola
   },
 
   networks:
-    infra.net.default(stack)   // private net (renamed default) 'komodo' — Core <-> mongo-db
-    + infra.net.join('proxy'),  // join shared-proxy (owned by traefik)
+    n.network   // private net (renamed default) 'komodo' — Core <-> mongo-db
+    + lib.compose.join('proxy'),  // join shared-proxy (owned by traefik)
 }

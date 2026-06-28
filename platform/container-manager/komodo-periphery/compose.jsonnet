@@ -3,10 +3,10 @@
 // Source of truth: this file compiles to compose.yaml (do not edit the YAML).
 // Identity (name, image, port, version) is baked in at compile time. Only
 // genuine per-HOST runtime values (DOCKER_VOLUMES) stay as ${...}.
-local infra = import 'infra.libsonnet';
+local lib = import 'lib.libsonnet';
 
 local stack = 'komodo-periphery';
-local n = infra.net.names(stack);
+local n = lib.compose.names(stack);
 
 local version = '2.1.2';          // Komodo image tag; keep in sync with komodo/compose.jsonnet
 local port = 8120;
@@ -28,11 +28,11 @@ local vols = '${DOCKER_VOLUMES}';  // per-host volume root — runtime interpola
         '/dev/shm/:/dev/shm/',
       ],
       env_file: ['./periphery.env'],
-      ports: [infra.net.publish(port)],
+      ports: [lib.compose.publish(port)],
       networks: {
         default: { aliases: [n.stack] },  // 'komodo-periphery' — project-independent name
       },
-      labels: infra.mixins.komodoSkip,
+      labels: lib.mixins.komodoSkip,
       restart: 'unless-stopped',
       init: true,
     },
@@ -43,5 +43,5 @@ local vols = '${DOCKER_VOLUMES}';  // per-host volume root — runtime interpola
     [n.volume('keys')]: { name: n.volume('keys') },  // 'komodo-periphery-keys'
   },
 
-  networks: infra.net.default(stack),  // private net (renamed default) 'komodo-periphery'
+  networks: n.network,  // private net (renamed default) 'komodo-periphery'
 }

@@ -1,7 +1,7 @@
 // compose.libsonnet
 //
 // Helpers for building docker-compose fragments that reference the registry.
-// Import via the umbrella (infra.net.*) or directly.
+// Import via the umbrella (lib.compose.*) or directly.
 local reg = import 'registry.libsonnet';
 
 // File-private alias for the shared-networks registry. The real Docker name
@@ -15,19 +15,12 @@ local nets = reg.sharedNetworks;
 
   // CONSUMER: join an existing shared network. external:true means it must
   // already exist, so the OWNER stack has to deploy first.
-  //   networks: net.join('proxy')
+  //   networks: compose.join('proxy')
   join(key):: { [nets[key].name]: { external: true, name: nets[key].name } },
 
   // OWNER: create the shared network this stack owns (registry records who).
-  //   networks: net.own('dbBackups')
+  //   networks: compose.own('dbBackups')
   own(key):: { [nets[key].name]: { name: nets[key].name } },
-
-  // This stack's PRIVATE network: the auto 'default' net renamed to `name`.
-  // Other compose projects can't attach to it (it isn't external) — that's the
-  // isolation. NOTE: this is project isolation, NOT docker's `internal: true`
-  // flag (which blocks internet egress); we don't set that.
-  //   networks: net.default('databasus')
-  default(name):: { default: { name: name } },
 
   // Publish a port to the same host port:  publish(4005) -> '4005:4005'
   publish(port):: std.toString(port) + ':' + std.toString(port),
@@ -50,13 +43,27 @@ local nets = reg.sharedNetworks;
   //   publicUrl('infisical') -> 'https://infisical.homektb.com'
   publicUrl(key):: 'https://' + reg.endpoints[key].public.sub + '.' + reg.endpoints[key].public.domain,
 
+  // Predefined role constants for the common service roles, so a typo fails at
+  // COMPILE time (same guard as registry keys). They're just strings — pass any
+  // OTHER role inline when you need one that isn't predefined:
+  //   n.container(compose.roles.app)   // predefined, typo-safe
+  //   n.volume('keys')                 // arbitrary role, still fine
+  roles:: { app: 'app', db: 'db', redis: 'redis' },
+
   // Consistent stack-local naming, following the EXT_APP_NM convention
-  // (<stack>-<role>). Pass any role: container('core'), volume('keys'),
-  // alias('mongo'). The three are intentionally the same machinery — the names
-  // just label intent at the call site. Names are generated, never hand-typed.
+  // (<stack>-<role>). Pass a role constant (compose.roles.app) or any string
+  // (container('core'), volume('keys'), alias('mongo')). container/volume/alias
+  // are the same machinery — the name just labels intent at the call site.
+  // Names are generated, never hand-typed.
   names(stack):: {
     stack:: stack,
-    net:: stack,                       // private network name == service name
+    // This stack's PRIVATE network: the auto 'default' net renamed to the stack
+    // name. Drop into `networks:` (merge shared nets with +). Other compose
+    // projects can't attach (not external) — that's the isolation; this is
+    // project isolation, NOT docker's `internal: true` (which blocks egress).
+    //   networks: n.network
+    //   networks: n.network + compose.own('postgres') + compose.join('dbBackups')
+    network:: { default: { name: stack } },
     container(role):: stack + '-' + role,
     volume(role):: stack + '-' + role,
     alias(role):: stack + '-' + role,

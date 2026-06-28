@@ -3,10 +3,10 @@
 // Renders to compose.yaml — do not edit the YAML. Traefik creates shared-proxy
 // (deploy it FIRST; consumers join it external). Service discovery is pinned to
 // shared-proxy in files/traefik.yml (providers.docker.network) — keep in sync.
-local infra = import 'infra.libsonnet';
+local lib = import 'lib.libsonnet';
 
 local stack = 'traefik';
-local n = infra.net.names(stack);
+local n = lib.compose.names(stack);
 local version = 'v3.6.7';  // >= v3.6.1 so Docker 29 API negotiation works
 
 {
@@ -34,7 +34,7 @@ local version = 'v3.6.7';  // >= v3.6.1 so Docker 29 API negotiation works
         'letsencrypt:/letsencrypt',  // persist acme.json across redeploys (volume keyed below)
       ],
       networks: {
-        [infra.net.netName('proxy')]: { aliases: [stack] },  // alias 'traefik' on shared-proxy
+        [lib.compose.netName('proxy')]: { aliases: [stack] },  // alias 'traefik' on shared-proxy
       },
       healthcheck: {
         test: ['CMD', 'traefik', 'healthcheck', '--ping'],
@@ -46,7 +46,7 @@ local version = 'v3.6.7';  // >= v3.6.1 so Docker 29 API negotiation works
     },
   },
 
-  networks: infra.net.own('proxy'),  // OWNS shared-proxy (creates it; deploy first)
+  networks: lib.compose.own('proxy'),  // OWNS shared-proxy (creates it; deploy first)
 
   volumes: {
     letsencrypt: { name: n.volume('letsencrypt') },  // 'traefik-letsencrypt'

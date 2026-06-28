@@ -7,10 +7,10 @@
 // TUNNEL_TOKEN is a secret, interpolated from /dev/shm/node_cloudflared.env
 // (rendered by the Infisical agent; declared as the interpolation source in the
 // parent compose.yaml's include.env_file).
-local infra = import 'infra.libsonnet';
+local lib = import 'lib.libsonnet';
 
 local stack = 'cloudflared';
-local n = infra.net.names(stack);
+local n = lib.compose.names(stack);
 
 local version = '2026.5.2';  // from interpolation-envs/production.env
 
@@ -28,12 +28,12 @@ local version = '2026.5.2';  // from interpolation-envs/production.env
       },
       restart: 'unless-stopped',
       networks: {
-        [infra.net.netName('proxy')]: { aliases: [stack] },
+        [lib.compose.netName('proxy')]: { aliases: [stack] },
       },
     },
   },
 
   networks:
-    infra.net.default(stack)   // private default net (unused here — no peers)
-    + infra.net.join('proxy'),  // join shared-proxy (owned by traefik)
+    n.network   // private default net (unused here — no peers)
+    + lib.compose.join('proxy'),  // join shared-proxy (owned by traefik)
 }

@@ -4,12 +4,16 @@
 // shared-db-backups (databasus owns that; postgres exposes itself on it for
 // backups). Renders to compose.yaml — do not edit the YAML.
 //
-// The db service keeps the alias `postgres` on every network, so consumer
-// connection strings (postgres:5432) are unchanged by the network rename.
-local infra = import 'infra.libsonnet';
+// The db service is named `postgres-db` (the <stack>-<role> convention) and
+// publishes that as its alias on every network, so consumers dial
+// postgres-db:5432. That hostname is the single source in the registry
+// (reg.endpoints.postgres.private.host) — change it there and this follows.
+local lib = import 'lib.libsonnet';
 
 local stack = 'postgres';
-local alias = 'postgres';  // hostname apps dial — must match reg.endpoints.postgres.host
+local n = lib.compose.names(stack);
+local roles = lib.compose.roles;
+local addr = lib.compose.endpoint('postgres').private.host;  // 'postgres-db' — container_name + network alias (registry SoT)
 local pgVersion = '18';
 local pgadminVersion = '9.13';
 
@@ -17,10 +21,11 @@ local pgadminVersion = '9.13';
   name: stack,
 
   services: {
-    db: {
+    [roles.db]: {
       image: 'postgres:' + pgVersion,
+      container_name: addr,  // 'postgres-db'
       profiles: ['full', 'no_pgadmin'],
-      volumes: ['db:/var/lib/postgresql'],
+      volumes: [roles.db + ':/var/lib/postgresql'],
       environment: {
         // Secrets — interpolated from /dev/shm/postgres.env (parent include.env_file)
         POSTGRES_USER: '${POSTGRES_USER:?err}',
@@ -28,9 +33,9 @@ local pgadminVersion = '9.13';
       },
       restart: 'always',
       networks: {
-        default: { aliases: [alias] },
-        [infra.net.netName('postgres')]: { aliases: [alias] },   // shared-postgres
-        [infra.net.netName('dbBackups')]: { aliases: [alias] },  // shared-db-backups
+        default: { aliases: [addr] },
+        [lib.compose.netName('postgres')]: { aliases: [addr] },   // shared-postgres
+        [lib.compose.netName('dbBackups')]: { aliases: [addr] },  // shared-db-backups
       },
       healthcheck: {
         test: 'pg_isready -U ${POSTGRES_USER} -h localhost -d postgres',
@@ -42,6 +47,7 @@ local pgadminVersion = '9.13';
 
     pgadmin: {
       image: 'dpage/pgadmin4:' + pgadminVersion,
+      container_name: n.container('admin'),  // 'postgres-admin'
       profiles: ['full'],
       ports: ['5050:80'],
       environment: {
@@ -56,9 +62,9 @@ local pgadminVersion = '9.13';
   },
 
   networks:
-    infra.net.default(stack)       // default net -> 'postgres' (private; db + pgadmin)
-    + infra.net.own('postgres')     // shared-postgres (owned; apps join)
-    + infra.net.join('dbBackups'),  // shared-db-backups (databasus owns)
+    n.network       // default net -> 'postgres' (private; db + pgadmin)
+    + lib.compose.own('postgres')     // shared-postgres (owned; apps join)
+    + lib.compose.join('dbBackups'),  // shared-db-backups (databasus owns)
 
-  volumes: { db: {} },
+  volumes: { [roles.db]: {} },
 }

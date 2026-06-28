@@ -18,10 +18,10 @@
 //
 // Renders to compose.yaml — do not edit the YAML. Identity (name, version) is
 // baked here; only genuine per-HOST values stay as ${...} for compose interp.
-local infra = import 'infra.libsonnet';
+local lib = import 'lib.libsonnet';
 
 local stack = 'infisical-agent';
-local n = infra.net.names(stack);
+local n = lib.compose.names(stack);
 
 local version = '0.43.89';  // docker.io/infisical/cli
 
@@ -48,7 +48,7 @@ local version = '0.43.89';  // docker.io/infisical/cli
         INFISICAL_CLIENT_ID: '${INFISICAL_CLIENT_ID:?err}',
         INFISICAL_CLIENT_SECRET: '${INFISICAL_CLIENT_SECRET:?err}',
         // Public URL by default (works on every host); per-host override allowed.
-        INFISICAL_ADDRESS: '${INFISICAL_ADDRESS:-' + infra.net.publicUrl('infisical') + '}',
+        INFISICAL_ADDRESS: '${INFISICAL_ADDRESS:-' + lib.compose.publicUrl('infisical') + '}',
       },
       networks: {
         default: { aliases: [n.alias('agent')] },  // egress to reach the public Infisical URL
@@ -72,5 +72,5 @@ local version = '0.43.89';  // docker.io/infisical/cli
     },
   },
 
-  networks: infra.net.default(stack),  // private net (renamed default) 'infisical-agent'
+  networks: n.network,  // private net (renamed default) 'infisical-agent'
 }
