@@ -5,4 +5,6 @@
 # /dev/shm/agent.client-* files), never the agent itself. Komodo targets THIS.
 name: infisical-agent
 include:
-  - ./compose.stack.yaml
+  - path: ./compose.stack.yaml
+    env_file:
+      - /dev/shm/platform.env

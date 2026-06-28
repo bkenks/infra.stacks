@@ -1,8 +1,8 @@
 // infisical-agent — renders each host's stack secrets to /dev/shm (tmpfs/RAM).
 //
 // Long-running on EVERY host. It authenticates to Infisical with this host's own
-// machine identity, then renders the folders named in AGENT_SERVICES (see
-// services.yaml, generated from the registry) to its /dev/shm dest file — the
+// machine identity, then renders the folders named in AGENT_SERVICES (see the
+// templates/ fragments, generated from the registry) to its /dev/shm dest file — the
 // very files other stacks
 // interpolate from (declared as include.env_file in each stack's parent
 // compose.yaml). It is therefore the BOOTSTRAP of secret delivery and cannot
@@ -35,12 +35,12 @@ local version = '0.43.89';  // docker.io/infisical/cli
       entrypoint: ['/bin/sh', '/agent/entrypoint.sh'],
       volumes: [
         './files/entrypoint.sh:/agent/entrypoint.sh:ro',
-        './services.yaml:/agent/services.yaml:ro',  // generated from registry.agentServices
+        './templates:/agent/templates:ro',     // per-service config fragments, generated from registry.agentServices
         '/dev/shm:/dev/shm',                   // read creds + write rendered <stack>.env files
       ],
       environment: {
         AGENT_HOST: '${AGENT_HOST:?err}',          // per-host: drives ${AGENT_HOST} secret-path subs
-        AGENT_SERVICES: '${AGENT_SERVICES:?err}',  // per-host: which services.yaml rows to render
+        AGENT_SERVICES: '${AGENT_SERVICES:?err}',  // per-host: which templates/ fragments to render
         // Machine-identity auth — the bootstrap credential. From the deploy env
         // (the Komodo/node path); it can't come from a rendered /dev/shm file
         // (this agent produces those). entrypoint.sh also accepts pre-written

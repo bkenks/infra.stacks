@@ -1,31 +1,53 @@
-// services.jsonnet — generates services.yaml, the Infisical-agent secret
-// catalogue (mounted into the container; entrypoint.sh reads it).
+// services.jsonnet — generates templates/<svc>.yaml, one self-contained
+// Infisical-agent config fragment per service (multi-file output via
+// `jsonnet -S -m`; see .jsonnet/render.sh).
 //
 // Source of truth is the registry's `agentServices` (+ `projects` for UUIDs).
-// Edit there, NOT services.yaml — that file is GENERATED. The project KEY is
-// resolved to its UUID here. For type=map the structured `keys` object is
-// flattened to a space-separated "OUT=FROM" string (easy for entrypoint.sh's
-// awk parser); for type=raw the single `key` is passed through.
+// Edit there, NOT the generated templates/ — those files are GENERATED.
+//
+// Each fragment is a complete `templates:` list ENTRY with an INLINE
+// `template-content`, so entrypoint.sh no longer builds Go templates in shell:
+// it just `cat`s the fragments named in AGENT_SERVICES under a `templates:`
+// header (and substitutes ${AGENT_HOST}, the one runtime-only value, on the way
+// in — the agent's template engine has no env access).
+//
+//   type=dump  whole Infisical folder -> KEY=VALUE (secret names == env names)
+//   type=map   explicit OUTPUT=FROM renames/duplications (registry `keys`)
+//   type=raw   a single secret's raw value, no KEY= prefix (registry `key`)
 local reg = import 'registry.libsonnet';
 
-// { OUT: 'FROM', ... } -> "OUT=FROM OUT2=FROM2" (sorted; order is irrelevant for env)
-local flattenKeys(m) = std.join(' ', [k + '=' + m[k] for k in std.objectFields(m)]);
+// The Go-template body (list of lines, unindented) for one service, by type.
+local bodyLines(s) =
+  local project = reg.projects[s.project];
+  local env = std.get(s, 'env', 'prod');
+  local folder = s.folder;
+  if s.type == 'dump' then [
+    '{{- with listSecrets "' + project + '" "' + env + '" "' + folder + '" }}',
+    '{{- range . }}',
+    '{{ .Key }}={{ .Value }}',
+    '{{- end }}',
+    '{{- end }}',
+  ] else if s.type == 'map' then [
+    out + '={{ with getSecretByName "' + project + '" "' + env + '" "' + folder + '" "' + s.keys[out] + '" }}{{ .Value }}{{ end }}'
+    for out in std.objectFields(s.keys)
+  ] else [  // raw
+    '{{- with getSecretByName "' + project + '" "' + env + '" "' + folder + '" "' + s.key + '" -}}{{ .Value }}{{- end -}}',
+  ];
 
-local entry(s) = {
-  project: reg.projects[s.project],
-  env: std.get(s, 'env', 'prod'),
-  folder: s.folder,
-  dest: s.dest,
-  type: s.type,
-} + (
-  if s.type == 'map' then { keys: flattenKeys(s.keys) }
-  else if s.type == 'raw' then { key: s.key }
-  else {}
-);
+// Indent each body line by 4 spaces for the YAML `template-content: |` scalar.
+local indentBody(s) = std.join('\n', ['    ' + l for l in bodyLines(s)]);
+
+// One complete `templates:` list entry (rendered as raw YAML, not via
+// manifestYamlDoc, so the Go-template bytes are exact and auditable).
+local fragment(s) =
+  '# GENERATED from services.jsonnet by .jsonnet/render.sh — DO NOT EDIT.\n' +
+  '- destination-path: /dev/shm/' + s.dest + '\n' +
+  '  config:\n' +
+  '    polling-interval: "1m"\n' +
+  '  template-content: |\n' +
+  indentBody(s) + '\n';
 
 {
-  services: {
-    [name]: entry(reg.agentServices[name])
-    for name in std.objectFields(reg.agentServices)
-  },
+  [name + '.yaml']: fragment(reg.agentServices[name])
+  for name in std.objectFields(reg.agentServices)
 }

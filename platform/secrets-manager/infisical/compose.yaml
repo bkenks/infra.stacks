@@ -1,8 +1,11 @@
 # Parent compose — Komodo deploy entrypoint for the infisical stack.
-# Hand-written (NOT generated). Includes the jsonnet-rendered service defs.
-# No interpolation env_file: infisical IS the secrets server, so it can't pull
-# its own secrets from the agent (chicken-and-egg). Its ${INFISICAL_*} values
-# come from Komodo's stack Environment at deploy. Komodo targets THIS file.
+# Hand-written (NOT generated). Includes the jsonnet-rendered service defs and
+# declares the interpolation env_file: the shared platform secret file Ansible
+# renders (/dev/shm/platform.env). infisical IS the secrets server, so it can't
+# pull its own secrets from the Infisical agent (chicken-and-egg) — but Ansible
+# bootstraps platform.env independently, so its ${INFISICAL_*} values come from
+# there. Komodo targets THIS file.
 name: infisical
 include:
-  - ./compose.stack.yaml
+  - path: ./compose.stack.yaml
+    env_file: /dev/shm/platform.env

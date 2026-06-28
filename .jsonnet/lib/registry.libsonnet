@@ -96,9 +96,10 @@
   # AGENT SERVICES (secret catalogue)
   # ============================================================
   # notes: The catalogue of every stack the Infisical agent can render. SINGLE
-  # SOURCE — services.yaml (mounted into the agent) is GENERATED from this; a host
-  # opts a service in via AGENT_SERVICES. Fields:
-  #   project  key into `projects` (resolved to the UUID in services.yaml)
+  # SOURCE — services.jsonnet generates one agent-config fragment per service into
+  # templates/<svc>.yaml (mounted into the agent); a host opts a service in via
+  # AGENT_SERVICES. Fields:
+  #   project  key into `projects` (resolved to the UUID in the fragment)
   #   folder   Infisical secret path (may contain ${AGENT_HOST}, substituted at runtime)
   #   dest     output file under /dev/shm/ — MUST equal what the consumer reads
   #            (a stack's parent compose.yaml include.env_file, or a bind mount)
@@ -109,28 +110,29 @@
   #            raw  = a single secret's raw value, NO KEY= prefix, via `key`
   #                   (for non-KEY=VALUE files, e.g. a *.key bind mount)
   #   env      Infisical environment slug; defaults to 'prod' when omitted
-  # services.yaml is fully generated from this — there are NO hand-written .tpl
-  # files; entrypoint.sh builds each agent template from type + keys/key.
+  # The per-service templates/ fragments are fully generated from this (with the
+  # inline Go template baked in by services.jsonnet); entrypoint.sh only selects
+  # and concatenates them — it builds no templates itself.
   agentServices: {
     # --- Apps project ---
     postgres: { project: 'apps', folder: '/postgres', dest: 'postgres.env', type: 'dump' },
-    paperless: { project: 'apps', folder: '/paperless', dest: 'apps_paperless.env', type: 'dump' },
+    paperless: { project: 'apps', folder: '/paperless', dest: 'paperless.env', type: 'dump' },
     docuseal: { project: 'apps', folder: '/docuseal', dest: 'docuseal.env', type: 'dump' },
     openproject: { project: 'apps', folder: '/openproject', dest: 'openproject.env', type: 'dump' },
     immich: { project: 'apps', folder: '/immich', dest: 'immich.env', type: 'dump' },
     stream: { project: 'apps', folder: '/stream', dest: 'stream.env', type: 'dump' },
     # --- Frappe project ---
-    frappe: { project: 'frappe', folder: '/frappe', dest: 'biz-ops_frappe.env', type: 'dump' },
+    frappe: { project: 'frappe', folder: '/frappe', dest: 'frappe.env', type: 'dump' },
     # --- Couch-potatoes client project ---
     'couch-potatoes-website': { project: 'couchPotatoes', folder: '/website', dest: 'client_couch-potatoes_website.env', type: 'dump' },
     # --- Stackform project ---
     'stackform-website': { project: 'stackform', folder: '/website', dest: 'stackform_website.env', type: 'dump' },
     # --- Infra project (dump) ---
     traefik: { project: 'infra', folder: '/traefik', dest: 'node_traefik.env', type: 'dump' },
-    zerobyte: { project: 'infra', folder: '/zerobyte', dest: 'node_zerobyte.env', type: 'dump' },
+    zerobyte: { project: 'infra', folder: '/zerobyte', dest: 'zerobyte.env', type: 'dump' },
     forgejo: { project: 'infra', folder: '/forgejo', dest: 'forgejo.env', type: 'dump' },
     gitea: { project: 'infra', folder: '/gitea', dest: 'gitea.env', type: 'dump' },
-    'komodo-mcp': { project: 'infra', folder: '/komodo-mcp', dest: 'infra_komodo-mcp.env', type: 'dump' },
+    'komodo-mcp': { project: 'infra', folder: '/komodo-mcp', dest: 'komodo-mcp.env', type: 'dump' },
     woodpecker: { project: 'infra', folder: '/woodpecker', dest: 'woodpecker.env', type: 'dump' },
     # --- Infra project (map: renamed/duplicated keys) ---
     # komodo renames KOMODO_DB_* -> KOMODO_DATABASE_* and reuses the DB creds for MONGO_INITDB_ROOT_*.

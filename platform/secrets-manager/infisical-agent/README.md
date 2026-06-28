@@ -29,30 +29,35 @@ There are **no per-host config files**. A host declares what to render with one 
 AGENT_SERVICES="postgres traefik cloudflared komodo"   # space- or comma-separated
 ```
 
-`entrypoint.sh` reads each name from the **service registry** (`files/services.tab`) and **generates** the agent config at startup. The registry is the global catalogue — one pipe-delimited row per service:
+The catalogue lives in **`registry.libsonnet`** (`agentServices`). `services.jsonnet`
+generates **one self-contained agent-config fragment per service** into
+**`templates/<svc>.yaml`** — each a single `templates:` list entry with the Go
+template **inline** (`template-content`). At startup `entrypoint.sh` writes the
+static `infisical:`/`auth:` header, then for each name in `AGENT_SERVICES` simply
+**concatenates** that service's fragment under a `templates:` key. It does **no**
+YAML parsing and **no** template generation — all of that is baked at build time
+by jsonnet. The fragments are committed; the pre-commit hook re-renders them
+whenever `registry.libsonnet`/`services.jsonnet` changes (`.jsonnet/render.sh`).
 
-```
-service | project | env | folder | dest | type
-```
+Each registry entry has a `type` that decides the inline template `services.jsonnet` bakes:
 
-- **`type=dump`** (the default, 15 of 18 services) — renders the **entire Infisical folder** as `KEY=VALUE` via `listSecrets`. Works because the secret names already equal the consumer's env-var names. No template file needed; it's generated on the fly.
-- **`type=custom`** — uses the hand-written `files/configs/templates/<service>.tpl` verbatim. Only for the cases a folder dump can't express:
-  - `komodo` — renames `KOMODO_DB_*` → `KOMODO_DATABASE_*` and reuses the DB creds for `MONGO_INITDB_ROOT_*`
-  - `databasus` — renders a raw value to a `.key` file (not `KEY=VALUE`)
-  - `cloudflared` — host-scoped folder `/hosts/<host>/cloudflared` + renames `TUNNEL_TOKEN` → `CLOUDFLARE_TUNNEL_TOKEN`
+- **`type=dump`** (most services) — renders the **entire Infisical folder** as `KEY=VALUE` via `listSecrets`. Works because the secret names already equal the consumer's env-var names.
+- **`type=map`** — explicit `OUTPUT=FROM` renames/duplications via the entry's `keys` map (`getSecretByName`). E.g. `komodo` renames `KOMODO_DB_*` → `KOMODO_DATABASE_*` and reuses the DB creds for `MONGO_INITDB_ROOT_*`; `cloudflared` renames `TUNNEL_TOKEN` → `CLOUDFLARE_TUNNEL_TOKEN`.
+- **`type=raw`** — a single secret's raw value, no `KEY=` prefix, via the entry's `key` (for non-`KEY=VALUE` files, e.g. `databasus`'s `.key` bind mount).
 
 `dest` MUST match what the consumer stack's compose reads via `env_file` — don't rename it without updating the consumer.
 
 ### `${AGENT_HOST}` substitution
 
-The Infisical template engine has no env access, so host-specific secret paths (cloudflared's `/hosts/<host>/cloudflared`) can't be expressed in a template or registry folder directly. `entrypoint.sh` substitutes the literal `${AGENT_HOST}` (in both the registry `folder` and any custom `.tpl`) with the real host name before the agent runs — the only substitution performed; secret *values* are still fetched by the agent at render time.
+The Infisical template engine has no env access, so host-specific secret paths (cloudflared's `/hosts/<host>/cloudflared`) can't be expressed in the template directly. The literal `${AGENT_HOST}` is baked into the fragment by jsonnet, and `entrypoint.sh` substitutes it with the real host name (a single `sed`) as it concatenates the fragment — the only substitution performed; secret *values* are still fetched by the agent at render time.
 
 ## Add a service
 
-1. Add **one row** to `files/services.tab` (`service | project | env | folder | dest | type`).
-2. If the Infisical secret names already match the consumer's env vars → `type=dump`, done. Otherwise add `files/configs/templates/<service>.tpl` and set `type=custom`.
-3. Store the secrets in Infisical under the row's `folder`; scope each consuming host's machine identity to read it.
-4. Append the service name to that host's `AGENT_SERVICES`.
+1. Add **one entry** to `agentServices` in `.jsonnet/lib/registry.libsonnet` (`project`, `folder`, `dest`, `type`; plus `keys` for `map` or `key` for `raw`).
+2. If the Infisical secret names already match the consumer's env vars → `type=dump`. Otherwise use `type=map` (renames) or `type=raw` (single raw value).
+3. Commit — the pre-commit hook re-renders `templates/<svc>.yaml` (or run `.jsonnet/render.sh platform/secrets-manager/infisical-agent/services.jsonnet`).
+4. Store the secrets in Infisical under the entry's `folder`; scope each consuming host's machine identity to read it.
+5. Append the service name to that host's `AGENT_SERVICES`.
 
 ## Deploy
 

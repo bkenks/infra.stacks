@@ -70,13 +70,10 @@ This stack renders **two secrets** — the Sonarr and Radarr API keys that Confi
 1. **Store in Infisical** under the **`/stream`** folder, **prod** environment:
    - `SONARR_API_KEY` — Sonarr → Settings → General → Security → API Key
    - `RADARR_API_KEY` — Radarr → Settings → General → Security → API Key
-2. **Add an agent template** so the host's infisical-agent renders them. In
-   `stack.node/infisical-agent`:
-   - Add `files/configs/templates/stream.tpl` (see that repo) with the `/stream`
-     secrets.
-   - Add one `templates:` block to the config of **whichever host runs this
-     stack** (`files/configs/<host>.yaml`): `source-path:
-     /agent-templates/stream.tpl`, `destination-path: /dev/shm/stream.env`.
+2. **Render them via the host's infisical-agent.** `stream` is already in the
+   agent registry (`.jsonnet/lib/registry.libsonnet` → `agentServices.stream`,
+   `type=dump`, `dest: stream.env`), so no template work is needed — just:
+   - Append `stream` to `AGENT_SERVICES` for **whichever host runs this stack**.
    - Make sure that host's machine identity is scoped to read `/stream`.
 3. The agent renders `/dev/shm/stream.env`; `compose.yaml` pulls it into the
    interpolation scope via `include: → env_file:`, and `compose/secrets.yaml`

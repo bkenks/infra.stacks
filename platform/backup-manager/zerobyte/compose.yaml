@@ -1,8 +1,8 @@
 # Parent compose — Komodo deploy entrypoint for the zerobyte stack.
 # Hand-written (NOT generated). Includes the jsonnet-rendered service defs and
 # declares the interpolation env_file: the per-host secret file the Infisical
-# agent renders (registry agentServices dest `node_zerobyte.env`). Komodo targets THIS.
+# agent renders (registry agentServices dest `zerobyte.env`). Komodo targets THIS.
 name: zerobyte
 include:
   - path: ./compose.stack.yaml
-    env_file: /dev/shm/node_zerobyte.env
+    env_file: /dev/shm/platform.env

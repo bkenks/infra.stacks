@@ -50,7 +50,8 @@ local dbName = 'infisical';
         // --- Redis ---
         REDIS_URL: 'redis://' + n.alias(roles.redis) + ':6379',
 
-        // Secrets — preserved as deploy-env interpolation (fed by /dev/shm/infisical.env).
+        // Secrets — interpolated from /dev/shm/platform.env (parent include.env_file;
+        // Ansible-rendered, so infisical can read its own secrets despite being the server).
         ENCRYPTION_KEY: '${INFISICAL_ENCRYPTION_KEY:?err}',
         AUTH_SECRET: '${INFISICAL_AUTH_SECRET:?err}',
         DB_CONNECTION_URI: 'postgres://' + dbUser + ':${INFISICAL_DB_PASSWORD:?err}@' + n.alias(roles.db) + ':5432/' + dbName,

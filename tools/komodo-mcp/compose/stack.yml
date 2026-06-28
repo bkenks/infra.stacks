@@ -31,7 +31,7 @@ services:
       traefik.http.routers.komodo-mcp.entrypoints: websecure
       traefik.http.routers.komodo-mcp.tls: 'true'
       traefik.http.routers.komodo-mcp.middlewares: komodo-mcp-auth
-      # htpasswd users string rendered to /dev/shm/apps_komodo-mcp.env by the
+      # htpasswd users string rendered to /dev/shm/komodo-mcp.env by the
       # agent; arrives as a value, so the bcrypt `$` need no `$$` escaping here.
       traefik.http.middlewares.komodo-mcp-auth.basicauth.users: ${KOMODO_MCP_BASICAUTH_USERS:?err}
       traefik.http.services.komodo-mcp.loadbalancer.server.port: '8000'

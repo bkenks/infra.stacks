@@ -31,5 +31,5 @@ services:
     restart: unless-stopped
     volumes:
     - ./files/entrypoint.sh:/agent/entrypoint.sh:ro
-    - ./services.yaml:/agent/services.yaml:ro
+    - ./templates:/agent/templates:ro
     - /dev/shm:/dev/shm

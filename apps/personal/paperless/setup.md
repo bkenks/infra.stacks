@@ -16,7 +16,7 @@ Infisical agent secrets-flow).
 This stack's specifics:
 - Secrets live in Infisical under the `/paperless` folder
   (`PAPERLESS_SECRET_KEY`, `PAPERLESS_PG_PASS`); the agent renders them to
-  `/dev/shm/apps_paperless.env` on the **same host** before `up`.
+  `/dev/shm/paperless.env` on the **same host** before `up`.
 - `${DOCKER_VOLUMES}` available in the host/Komodo interpolation environment —
   the `export/` and `consume/` bind mounts live under
   `${DOCKER_VOLUMES}/apps/paperless/`.

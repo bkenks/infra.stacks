@@ -1,8 +1,3 @@
-# Parent compose — Komodo deploy entrypoint for the komodo-periphery stack.
-# Hand-written (NOT generated). Includes the jsonnet-rendered service defs.
-# No interpolation env_file: ${...} values are per-host (${DOCKER_VOLUMES}, the
-# passkey) supplied by Komodo's stack Environment; static config is in the
-# committed ./periphery.env. Komodo targets THIS file.
 name: komodo-periphery
 include:
   - ./compose.stack.yaml

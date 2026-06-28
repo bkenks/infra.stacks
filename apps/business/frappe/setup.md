@@ -31,7 +31,7 @@ Tier-0 Ordering](https://app.notion.com/p/37931e9a948a8124ad6de974216d93cd) (the
 Infisical agent secrets-flow).
 
 This stack's specifics — one key, stored in Infisical under the **`/frappe`**
-folder (**`prod`** env), rendered to `/dev/shm/biz-ops_frappe.env` and pulled into
+folder (**`prod`** env), rendered to `/dev/shm/frappe.env` and pulled into
 `docker-compose.yml` via `include: -> env_file:`:
 
 | Key | Use |

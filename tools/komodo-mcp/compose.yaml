@@ -9,7 +9,7 @@ include:
       # Must exist before `up`: the infisical-agent stack runs first and pulls
       # KOMODO_API_KEY / KOMODO_API_SECRET / KOMODO_MCP_BASICAUTH_USERS from
       # Infisical (/komodo-mcp) and renders them here.
-      - /dev/shm/infra_komodo-mcp.env
+      - /dev/shm/komodo-mcp.env
 
 services:
   komodo-mcp: {}
