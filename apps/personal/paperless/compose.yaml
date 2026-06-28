@@ -9,7 +9,7 @@ include:
       # Must exist before `up`: the infisical-agent stack runs first and pulls
       # PAPERLESS_SECRET_KEY / PAPERLESS_PG_PASS from Infisical (/paperless) and
       # renders them here.
-      - /dev/shm/apps_paperless.env
+      - /dev/shm/paperless.env
 
 services:
   broker: {}

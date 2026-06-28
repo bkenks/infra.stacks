@@ -31,7 +31,7 @@ local vols = '${DOCKER_VOLUMES}';  // per-host volume root — runtime interpola
       environment: {
         // Public URL behind Traefik; built from the registry's root domain.
         KOMODO_HOST: 'https://komo.' + reg.rootDomain,
-        // Secrets — interpolated from /dev/shm/komodo_core.env (parent include.env_file)
+        // Secrets — interpolated from /dev/shm/platform.env (parent include.env_file)
         KOMODO_DATABASE_USERNAME: '${KOMODO_DATABASE_USERNAME:?err}',
         KOMODO_DATABASE_PASSWORD: '${KOMODO_DATABASE_PASSWORD:?err}',
         KOMODO_WEBHOOK_SECRET: '${KOMODO_WEBHOOK_SECRET:?err}',
@@ -59,7 +59,7 @@ local vols = '${DOCKER_VOLUMES}';  // per-host volume root — runtime interpola
       ],
       env_file: ['./core.env'],  // committed non-secret config (shared with core)
       environment: {
-        // Secrets — interpolated from /dev/shm/komodo_core.env (parent include.env_file)
+        // Secrets — interpolated from /dev/shm/platform.env (parent include.env_file)
         MONGO_INITDB_ROOT_USERNAME: '${MONGO_INITDB_ROOT_USERNAME:?err}',
         MONGO_INITDB_ROOT_PASSWORD: '${MONGO_INITDB_ROOT_PASSWORD:?err}',
       },

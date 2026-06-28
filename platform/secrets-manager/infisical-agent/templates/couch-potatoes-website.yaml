@@ -1,0 +1,11 @@
+# GENERATED from services.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
+- destination-path: /dev/shm/client_couch-potatoes_website.env
+  config:
+    polling-interval: "1m"
+  template-content: |
+    {{- with listSecrets "fb1dd6a7-3924-415b-b6c3-3071fc93aaae" "prod" "/website" }}
+    {{- range . }}
+    {{ .Key }}={{ .Value }}
+    {{- end }}
+    {{- end }}
+

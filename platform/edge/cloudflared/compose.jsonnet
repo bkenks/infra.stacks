@@ -4,9 +4,9 @@
 // Joins the host's shared-proxy network so tunnel ingress can route to Traefik
 // by name (e.g. `https://traefik:443`). No private-net peers — single service.
 //
-// TUNNEL_TOKEN is a secret, interpolated from /dev/shm/node_cloudflared.env
-// (rendered by the Infisical agent; declared as the interpolation source in the
-// parent compose.yaml's include.env_file).
+// TUNNEL_TOKEN is a secret, interpolated from /dev/shm/platform.env
+// (rendered by Ansible for bootstrapped core platform services; declared as the
+// interpolation source in the parent compose.yaml's include.env_file).
 local lib = import 'lib.libsonnet';
 
 local stack = 'cloudflared';
@@ -23,7 +23,7 @@ local version = '2026.5.2';  // from interpolation-envs/production.env
       command: 'tunnel --no-autoupdate run',
       environment: {
         TZ: 'America/New_York',
-        // Secret — interpolated from /dev/shm/node_cloudflared.env (parent include.env_file)
+        // Secret — interpolated from /dev/shm/platform.env (parent include.env_file)
         TUNNEL_TOKEN: '${CLOUDFLARE_TUNNEL_TOKEN:?err}',
       },
       restart: 'unless-stopped',

@@ -1,9 +1,20 @@
 pre-commit:
   jobs:
+    # A staged .jsonnet re-renders just that file.
     - name: regenerate-jsonnet
       glob: "**/*.jsonnet"
       run: |
         for file in {staged_files}; do
+          out=$(.jsonnet/render.sh "$file")
+          git add "$out"
+        done
+    # A staged .libsonnet (e.g. registry.libsonnet) can affect ANY .jsonnet, so
+    # re-render them all — otherwise a registry-only edit leaves the committed
+    # outputs (compose.stack.yaml, infisical-agent templates/, …) silently stale.
+    - name: regenerate-jsonnet-deps
+      glob: "**/*.libsonnet"
+      run: |
+        find . -path ./.git -prune -o -type f -name '*.jsonnet' -print | while read -r file; do
           out=$(.jsonnet/render.sh "$file")
           git add "$out"
         done

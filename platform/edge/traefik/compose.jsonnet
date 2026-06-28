@@ -19,7 +19,7 @@ local version = 'v3.6.7';  // >= v3.6.1 so Docker 29 API negotiation works
       environment: {
         TZ: 'America/New_York',
         // Secret — CF_DNS_API_TOKEN for the Cloudflare DNS-01 ACME challenge (lego
-        // reads it from the container env). Interpolated from /dev/shm/node_traefik.env
+        // reads it from the container env). Interpolated from /dev/shm/platform.env
         // (parent include.env_file).
         CF_DNS_API_TOKEN: '${CF_DNS_API_TOKEN:?err}',
       },
