@@ -89,7 +89,7 @@ networks:
   # We only attach to it — Traefik must be deployed on this host first.
   proxy:
     external: true
-    name: proxy
+    name: shared-proxy
 
 # Volume names are PINNED to the old project-scoped names (the previous layout
 # used `name: paperless-${DOCK_ENV}`, prefixing volumes `paperless-production_`)

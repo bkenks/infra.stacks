@@ -1,0 +1,20 @@
+# GENERATED from compose.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
+name: cloudflared
+networks:
+  default:
+    name: cloudflared
+  shared-proxy:
+    external: true
+    name: shared-proxy
+services:
+  cloudflared:
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:?err}
+      TZ: America/New_York
+    image: cloudflare/cloudflared:2026.5.2
+    networks:
+      shared-proxy:
+        aliases:
+        - cloudflared
+    restart: unless-stopped

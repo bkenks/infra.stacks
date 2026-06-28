@@ -1,30 +1,9 @@
+# Parent compose — Komodo deploy entrypoint for the komodo stack.
+# Hand-written (NOT generated). Includes the jsonnet-rendered service defs and
+# declares the interpolation env_file: the secret file the Infisical agent
+# renders (registry agentServices dest `komodo_core.env`). The per-host ${DOCKER_VOLUMES}
+# comes from Komodo's stack Environment. Komodo targets THIS file.
 name: komodo
-
 include:
-  - path:
-      - ./compose/core.yaml # Komodo Core - the UI
-      - ./compose/mongo.yaml # Komodo Database - configuration storage
-    env_file:
-      - ./interpolation-envs/general.env
-
-services:
-  komodo-core:
-    depends_on:
-      - mongo-db
-
-volumes:
-  # Distinct from komodo-periphery's keys volume — both would otherwise merge to
-  # one volume in the unified project and cross-contaminate PKI.
-  komodo-keys:
-    name: komodo-keys
-
-networks:
-  # This stack's internal network (Core <-> mongo-db). Uniquely keyed so the
-  # stack is collision-free standalone and when fused under the platform launcher.
-  komodo:
-    name: komodo
-  # Shared reverse-proxy network OWNED/created by the traefik stack. We only
-  # join it here (komodo-core), so the traefik stack must be deployed first.
-  proxy:
-    external: true
-    name: proxy
+  - path: ./compose.stack.yaml
+    env_file: /dev/shm/komodo_core.env

@@ -1,0 +1,32 @@
+# Build custom Komodo Periphery image (with go-jsonnet) and push to Forgejo's
+# container registry when a release is published.
+#
+# Trigger: a published release tag (e.g. 1.0.0) becomes the image tag via
+# ${CI_COMMIT_TAG}, landing at:
+#   fj.lilbud.homektb.com/ktbgroup-self-hosted/komodo-periphery:1.0.0
+#
+# Prerequisites:
+#   - Repo activated in Woodpecker.
+#   - Repo secrets `forgejo_registry_user` + `forgejo_registry_token` with
+#     read:package + write:package scope.
+#   - Woodpecker allows plugin-docker-buildx to run privileged.
+
+when:
+  - event: release
+
+steps:
+  - name: build-and-push-komodo-periphery
+    image: woodpeckerci/plugin-docker-buildx:6.1.0
+    settings:
+      registry: fj.lilbud.homektb.com
+      repo: fj.lilbud.homektb.com/ktbgroup-self-hosted/komodo-periphery
+      dockerfile: platform/container-manager/komodo-periphery/Dockerfile
+      context: platform/container-manager/komodo-periphery/
+      platforms: linux/amd64,linux/arm64
+      tags:
+        - ${CI_COMMIT_TAG}
+        - latest
+      username:
+        from_secret: forgejo_registry_user
+      password:
+        from_secret: forgejo_registry_token

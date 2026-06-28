@@ -3,12 +3,13 @@
 #
 # We don't ship a static per-host agent config anymore. Instead the host passes
 # AGENT_SERVICES (a space/comma list of service names) and we GENERATE the agent
-# config at startup from the service registry (files/services.tab):
-#   - type=dump   services become a listSecrets folder dump (whole Infisical
-#                 folder -> KEY=VALUE), generated on the fly.
-#   - type=custom services use their hand-written template
-#                 (files/configs/templates/<service>.tpl) verbatim — for renamed
-#                 or duplicated keys, host-scoped paths, or raw-value files.
+# config at startup from the service catalogue (services.yaml, itself generated
+# from registry.libsonnet's agentServices):
+#   - type=dump  listSecrets folder dump (whole Infisical folder -> KEY=VALUE)
+#   - type=map   explicit OUTPUT=FROM renames/duplications (catalogue `keys`)
+#   - type=raw   a single secret's raw value, no KEY= prefix (catalogue `key`)
+# Every template is generated here from the catalogue — there are NO hand-written
+# .tpl files and no template mount.
 #
 # One long-running service (no compose profiles). How it reaches Infisical is just
 # the INFISICAL_ADDRESS env var — public URL by default; the Infisical host
@@ -21,12 +22,11 @@
 set -eu
 
 : "${AGENT_HOST:?AGENT_HOST is required (host name; drives \${AGENT_HOST} secret-path subs)}"
-: "${AGENT_SERVICES:?AGENT_SERVICES is required (space/comma list of services from services.tab)}"
-: "${INFISICAL_ADDRESS:?INFISICAL_ADDRESS is required (set per mode in compose/agent.yml)}"
+: "${AGENT_SERVICES:?AGENT_SERVICES is required (space/comma list of services from services.yaml)}"
+: "${INFISICAL_ADDRESS:?INFISICAL_ADDRESS is required (public URL by default; per-host override)}"
 
-registry="/agent/services.tab"
-tpl_src="/agent-configs/templates"   # hand-written custom templates (read-only mount)
-tpl_out="/agent-templates"           # writable copies / generated dump templates
+registry="/agent/services.yaml"
+tpl_out="/agent-templates"           # generated agent templates (all built from the catalogue)
 config="/tmp/agent.generated.yaml"
 cred_id="/dev/shm/agent.client-id"
 cred_secret="/dev/shm/agent.client-secret"
@@ -65,52 +65,76 @@ auth:
 templates:
 EOF
 
-# Look a service up in the registry: skip comments/blanks, trim the first
-# pipe-delimited column, print the whole matching row. Non-zero if not found.
-lookup() {
-  awk -F'|' -v svc="$1" '
-    /^[[:space:]]*#/ { next }
-    /^[[:space:]]*$/ { next }
-    { c=$1; gsub(/^[[:space:]]+|[[:space:]]+$/, "", c); if (c == svc) { print; found=1; exit } }
-    END { exit !found }
+# Extract one field of a service from the generated YAML catalogue. The schema is
+# fixed (pyyaml output, 2-space indent), so a small awk state machine is enough —
+# no yq needed. Empty output means the service or field is absent.
+#   services:
+#     <svc>:           <- 2-space header
+#       dest: ...      <- 4-space fields
+#       env: ...
+#       folder: ...
+#       project: ...
+#       type: ...
+field() {
+  awk -v svc="$1" -v key="$2" '
+    /^  [^[:space:]].*:[[:space:]]*$/ {                 # "  <svc>:" header (2-space)
+      s=$0; sub(/^  /,"",s); sub(/:[[:space:]]*$/,"",s); cur=(s==svc); next
+    }
+    /^[^[:space:]]/ { cur=0 }                            # back to column 0 (e.g. "services:")
+    cur && /^    [^[:space:]]/ {                         # "    key: value" (4-space)
+      l=$0; sub(/^    /,"",l); k=l; sub(/:.*/,"",k)
+      if (k==key) { v=l; sub(/^[^:]*:[[:space:]]*/,"",v); gsub(/^"|"$/,"",v); print v; exit }
+    }
   ' "$registry"
 }
-
-# Pull and trim a given column (1-based) from a registry row.
-col() { printf '%s' "$1" | awk -F'|' -v n="$2" '{c=$n; gsub(/^[ \t]+|[ \t]+$/,"",c); print c}'; }
 
 # Normalise commas to spaces so AGENT_SERVICES accepts either separator.
 services=$(printf '%s' "$AGENT_SERVICES" | tr ',' ' ')
 
 for svc in $services; do
-  row=$(lookup "$svc") || { echo "infisical-agent: unknown service '$svc' (not in services.tab)" >&2; exit 1; }
-
-  project=$(col "$row" 2)
-  env=$(col "$row" 3)
-  folder=$(col "$row" 4)
-  dest=$(col "$row" 5)
-  type=$(col "$row" 6)
+  project=$(field "$svc" project)
+  [ -n "$project" ] || { echo "infisical-agent: unknown service '$svc' (not in services.yaml)" >&2; exit 1; }
+  env=$(field "$svc" env)
+  folder=$(field "$svc" folder)
+  dest=$(field "$svc" dest)
+  type=$(field "$svc" type)
 
   # The Infisical template engine has no env access, so ${AGENT_HOST} in a path
   # is substituted here (only var substituted; secret VALUES are fetched at render).
   folder=$(printf '%s' "$folder" | sed "s|\${AGENT_HOST}|${AGENT_HOST}|g")
 
-  if [ "$type" = "custom" ]; then
-    if [ ! -f "$tpl_src/${svc}.tpl" ]; then
-      echo "infisical-agent: custom service '$svc' has no template $tpl_src/${svc}.tpl" >&2
+  tpl="$tpl_out/${svc}.tpl"
+  case "$type" in
+    dump)
+      # Whole Infisical folder -> KEY=VALUE (secret names already match env names).
+      {
+        printf '{{- with listSecrets "%s" "%s" "%s" }}\n' "$project" "$env" "$folder"
+        printf '{{- range . }}\n'
+        printf '{{ .Key }}={{ .Value }}\n'
+        printf '{{- end }}\n'
+        printf '{{- end }}\n'
+      } > "$tpl"
+      ;;
+    map)
+      # Explicit OUTPUT=FROM renames/duplications (space-separated pairs from `keys`).
+      : > "$tpl"
+      for pair in $(field "$svc" keys); do
+        out=${pair%%=*}
+        from=${pair#*=}
+        printf '%s={{ with getSecretByName "%s" "%s" "%s" "%s" }}{{ .Value }}{{ end }}\n' \
+          "$out" "$project" "$env" "$folder" "$from" >> "$tpl"
+      done
+      ;;
+    raw)
+      # A single secret's RAW value, no KEY= prefix (for *.key files etc.).
+      printf '{{- with getSecretByName "%s" "%s" "%s" "%s" -}}{{ .Value }}{{- end -}}\n' \
+        "$project" "$env" "$folder" "$(field "$svc" key)" > "$tpl"
+      ;;
+    *)
+      echo "infisical-agent: service '$svc' has unknown type '$type'" >&2
       exit 1
-    fi
-    sed "s|\${AGENT_HOST}|${AGENT_HOST}|g" "$tpl_src/${svc}.tpl" > "$tpl_out/${svc}.tpl"
-  else
-    # Folder dump: render the entire Infisical folder as KEY=VALUE.
-    {
-      printf '{{- with listSecrets "%s" "%s" "%s" }}\n' "$project" "$env" "$folder"
-      printf '{{- range . }}\n'
-      printf '{{ .Key }}={{ .Value }}\n'
-      printf '{{- end }}\n'
-      printf '{{- end }}\n'
-    } > "$tpl_out/${svc}.tpl"
-  fi
+      ;;
+  esac
 
   {
     printf '  - source-path: %s/%s.tpl\n' "$tpl_out" "$svc"

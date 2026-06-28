@@ -1,0 +1,35 @@
+# GENERATED from compose.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
+name: infisical-agent
+networks:
+  default:
+    name: infisical-agent
+services:
+  agent:
+    container_name: infisical-agent-agent
+    entrypoint:
+    - /bin/sh
+    - /agent/entrypoint.sh
+    environment:
+      AGENT_HOST: ${AGENT_HOST:?err}
+      AGENT_SERVICES: ${AGENT_SERVICES:?err}
+      INFISICAL_ADDRESS: ${INFISICAL_ADDRESS:-https://infisical.homektb.com}
+      INFISICAL_CLIENT_ID: ${INFISICAL_CLIENT_ID:?err}
+      INFISICAL_CLIENT_SECRET: ${INFISICAL_CLIENT_SECRET:?err}
+    healthcheck:
+      interval: 30s
+      retries: 2
+      start_period: 30s
+      test:
+      - CMD-SHELL
+      - '[ ! -f /tmp/agent.last_err ] || [ $$(( $$(date +%s) - $$(cat /tmp/agent.last_err) )) -ge 180 ]'
+      timeout: 5s
+    image: docker.io/infisical/cli:0.43.89
+    networks:
+      default:
+        aliases:
+        - infisical-agent-agent
+    restart: unless-stopped
+    volumes:
+    - ./files/entrypoint.sh:/agent/entrypoint.sh:ro
+    - ./services.yaml:/agent/services.yaml:ro
+    - /dev/shm:/dev/shm

@@ -1,0 +1,9 @@
+pre-commit:
+  jobs:
+    - name: regenerate-jsonnet
+      glob: "**/*.jsonnet"
+      run: |
+        for file in {staged_files}; do
+          out=$(.jsonnet/render.sh "$file")
+          git add "$out"
+        done

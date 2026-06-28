@@ -6,11 +6,11 @@ networks:
   default:
     name: openproject
   postgres-shared:
-    name: postgres-shared
+    name: shared-postgres
     external: true
   proxy:
     external: true
-    name: proxy
+    name: shared-proxy
 
 volumes:
   assets: {}

@@ -211,7 +211,7 @@ networks:
   # We only join it — so the network must already exist on this host (Traefik up).
   proxy:
     external: true
-    name: proxy
+    name: shared-proxy
 
 volumes:
   # sites — CRITICAL, shared by every Frappe service. Holds common_site_config.json,
