@@ -1,15 +1,8 @@
+# Parent compose — Komodo deploy entrypoint for the komodo-periphery stack.
+# Hand-written (NOT generated). Includes the jsonnet-rendered service defs.
+# No interpolation env_file: ${...} values are per-host (${DOCKER_VOLUMES}, the
+# passkey) supplied by Komodo's stack Environment; static config is in the
+# committed ./periphery.env. Komodo targets THIS file.
 name: komodo-periphery
-
-# Standalone, per-host Komodo Periphery agent. One runs on EVERY host so Komodo
-# Core (stack.infra/komodo, on littlebuddy) can manage that host's Docker. No
-# profiles — a plain `up` brings up the single periphery service.
 include:
-  - path:
-      - ./compose/periphery.yaml
-    env_file:
-      - ./interpolation-envs/general.env
-
-volumes:
-  # Distinct from komodo-core's keys volume (see komodo/compose.yaml).
-  periphery-keys:
-    name: komodo-periphery-keys
+  - ./compose.stack.yaml

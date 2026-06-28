@@ -29,7 +29,7 @@ networks:
   # We only attach to it — Traefik must be deployed on this host first.
   proxy:
     external: true
-    name: proxy
+    name: shared-proxy
 
 volumes:
   data: {}

@@ -1,12 +1,8 @@
+# Parent compose — Komodo deploy entrypoint for the cloudflared stack.
+# Hand-written (NOT generated). Includes the jsonnet-rendered service defs and
+# declares the interpolation env_file: the per-host secret file the Infisical
+# agent renders (registry agentServices dest `node_cloudflared.env`). Komodo targets THIS.
 name: cloudflared
-
 include:
-  - path:
-      - ./compose/stack.yml
-      - ./compose/secrets.yml
-    env_file:
-      - ./interpolation-envs/production.env
-      - /dev/shm/node_cloudflared.env # Must create this before deploying, if using container manager, create inside container
-
-services:
-  cloudflared: {}
+  - path: ./compose.stack.yaml
+    env_file: /dev/shm/node_cloudflared.env

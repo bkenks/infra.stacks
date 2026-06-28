@@ -1,0 +1,54 @@
+# GENERATED from compose.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
+name: postgres
+networks:
+  default:
+    name: postgres
+  shared-db-backups:
+    external: true
+    name: shared-db-backups
+  shared-postgres:
+    name: shared-postgres
+services:
+  db:
+    container_name: postgres-db
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASS:?err}
+      POSTGRES_USER: ${POSTGRES_USER:?err}
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test: pg_isready -U ${POSTGRES_USER} -h localhost -d postgres
+      timeout: 5s
+    image: postgres:18
+    networks:
+      default:
+        aliases:
+        - postgres-db
+      shared-db-backups:
+        aliases:
+        - postgres-db
+      shared-postgres:
+        aliases:
+        - postgres-db
+    profiles:
+    - full
+    - no_pgadmin
+    restart: always
+    volumes:
+    - db:/var/lib/postgresql
+  pgadmin:
+    container_name: postgres-admin
+    environment:
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'True'
+      PGADMIN_CONFIG_SERVER_MODE: 'True'
+      PGADMIN_DEFAULT_EMAIL: briankenkel.t@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: ${PG_ADMIN_PASS:?err}
+    image: dpage/pgadmin4:9.13
+    networks:
+      default: {}
+    ports:
+    - 5050:80
+    profiles:
+    - full
+volumes:
+  db: {}

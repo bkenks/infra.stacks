@@ -1,0 +1,31 @@
+# GENERATED from compose.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
+name: zerobyte
+networks:
+  default:
+    name: zerobyte
+services:
+  app:
+    cap_add:
+    - SYS_ADMIN
+    container_name: zerobyte-app
+    devices:
+    - /dev/fuse:/dev/fuse
+    environment:
+      APP_SECRET: ${SECRET__APP_SECRET:?err}
+      BASE_URL: http://${TAILSCALE_HOSTNAME:?err}:4096
+      TZ: America/New_York
+    image: ghcr.io/nicotsx/zerobyte:v0.39
+    networks:
+      default:
+        aliases:
+        - zerobyte-app
+    ports:
+    - 4096:4096
+    restart: unless-stopped
+    volumes:
+    - /etc/localtime:/etc/localtime:ro
+    - /var/lib/docker/volumes:/source/docker-volumes
+    - app:/var/lib/zerobyte
+volumes:
+  app:
+    name: zerobyte-app

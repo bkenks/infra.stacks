@@ -1,0 +1,70 @@
+# GENERATED from compose.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
+name: komodo
+networks:
+  default:
+    name: komodo
+  shared-proxy:
+    external: true
+    name: shared-proxy
+services:
+  komodo-core:
+    container_name: komodo-core
+    depends_on:
+    - mongo-db
+    env_file:
+    - ./core.env
+    environment:
+      KOMODO_DATABASE_PASSWORD: ${KOMODO_DATABASE_PASSWORD:?err}
+      KOMODO_DATABASE_USERNAME: ${KOMODO_DATABASE_USERNAME:?err}
+      KOMODO_HOST: https://komo.homektb.com
+      KOMODO_JWT_SECRET: ${KOMODO_JWT_SECRET:?err}
+      KOMODO_WEBHOOK_SECRET: ${KOMODO_WEBHOOK_SECRET:?err}
+    extra_hosts:
+    - host.docker.internal:host-gateway
+    image: ghcr.io/moghtech/komodo-core:2.1.2
+    init: true
+    labels:
+      komodo.skip: ''
+      traefik.enable: 'true'
+      traefik.http.routers.komodo.entrypoints: websecure
+      traefik.http.routers.komodo.rule: Host(`komo.homektb.com`)
+      traefik.http.routers.komodo.tls: 'true'
+      traefik.http.services.komodo.loadbalancer.server.port: '9120'
+    networks:
+      default:
+        aliases:
+        - komodo-core
+      shared-proxy:
+        aliases:
+        - komodo-core
+    ports:
+    - 9120:9120
+    restart: unless-stopped
+    volumes:
+    - komodo-keys:/config/keys
+    - ${DOCKER_VOLUMES}/dcm/komodo/data/backups:/backups
+    - ${DOCKER_VOLUMES}/dcm/komodo/data/syncs:/syncs
+  mongo-db:
+    command: --quiet --wiredTigerCacheSizeGB 0.25
+    container_name: mongo-db
+    env_file:
+    - ./core.env
+    environment:
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:?err}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:?err}
+    image: mongo:8.2.4
+    labels:
+      komodo.skip: ''
+    networks:
+      default:
+        aliases:
+        - komodo-mongo
+    ports:
+    - 27017:27017
+    restart: unless-stopped
+    volumes:
+    - ${DOCKER_VOLUMES}/dcm/mongo/data:/data/db
+    - ${DOCKER_VOLUMES}/dcm/mongo/config:/data/configdb
+volumes:
+  komodo-keys:
+    name: komodo-keys

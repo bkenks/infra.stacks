@@ -33,7 +33,7 @@ providers:
   docker:
     # Only containers explicitly labelled traefik.enable=true are exposed.
     exposedByDefault: false
-    network: proxy
+    network: shared-proxy
   # Shared dynamic config. compose mounts files/host.yml here as host.yml (see
   # ../compose/stack.yml) — IDENTICAL on every host. It carries the dashboard
   # router and the ACME cert domains for ALL zones (homektb.com + stackform.app +

@@ -29,8 +29,8 @@ volumes:
 
 networks:
   proxy:
-    name: proxy
+    name: shared-proxy
     external: true
   postgres-shared:
-    name: postgres-shared
+    name: shared-postgres
     external: true
