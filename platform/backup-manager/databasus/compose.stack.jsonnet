@@ -19,7 +19,6 @@ local version = 'sha256:f748c20cecb3cf3162d80ebfddd4f192b5e4ee640d600c9daf726310
   services: {
     [roles.app]: {
       image: 'databasus/databasus@' + version,
-      profiles: [stack],
       volumes: [
         // Secret rendered by the Infisical agent (SECRET_KEY -> this path).
         '/dev/shm/' + stack + '_secret.key:/databasus-data/secret.key:ro',

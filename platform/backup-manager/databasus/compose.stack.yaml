@@ -17,8 +17,6 @@ services:
         - databasus-app
     ports:
     - 4005:4005
-    profiles:
-    - databasus
     restart: unless-stopped
     volumes:
     - /dev/shm/databasus_secret.key:/databasus-data/secret.key:ro
