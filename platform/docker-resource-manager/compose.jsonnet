@@ -1,4 +1,4 @@
-// network-bootstrap — parent compose (Komodo deploy entrypoint). Renders to compose.yaml.
+// docker-resource-manager — parent compose (Komodo deploy entrypoint). Renders to compose.yaml.
 // Includes the rendered child compose.stack.yaml. No secrets, no env_file: this
 // stack only creates the shared networks and exits.
 {

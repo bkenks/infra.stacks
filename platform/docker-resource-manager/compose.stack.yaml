@@ -1,5 +1,5 @@
 # GENERATED from compose.stack.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
-name: network-bootstrap
+name: docker-resource-manager
 networks:
   shared-db-backups:
     name: shared-db-backups
