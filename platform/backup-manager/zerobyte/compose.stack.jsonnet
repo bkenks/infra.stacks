@@ -21,7 +21,7 @@ local version = 'v0.39';
   services: {
     [roles.app]: {
       image: 'ghcr.io/nicotsx/zerobyte:' + version,
-      container_name: n.container(roles.app),  // 'zerobyte-app'
+      container_name: n.container(roles.app),
       volumes: [
         '/etc/localtime:/etc/localtime:ro',
         '/var/lib/docker/volumes:/source/docker-volumes',  // the volumes it backs up
