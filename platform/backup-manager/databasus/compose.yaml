@@ -1,7 +1,4 @@
-# Parent compose — Komodo deploy entrypoint for the databasus stack.
-# Hand-written (NOT generated). Includes the jsonnet-rendered service defs.
-# No interpolation env_file: databasus has no ${...} secrets — its secret is a
-# raw .key file bind-mounted from /dev/shm. Komodo targets THIS file.
-name: databasus
+# GENERATED from compose.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
 include:
-  - ./compose.stack.yaml
+- path: ./compose.stack.yaml
+name: databasus

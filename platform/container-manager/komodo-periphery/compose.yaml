@@ -1,3 +1,4 @@
-name: komodo-periphery
+# GENERATED from compose.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
 include:
-  - ./compose.stack.yaml
+- path: ./compose.stack.yaml
+name: komodo-periphery

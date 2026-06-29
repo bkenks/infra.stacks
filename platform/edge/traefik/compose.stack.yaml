@@ -1,4 +1,4 @@
-# GENERATED from compose.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
+# GENERATED from compose.stack.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
 name: traefik
 networks:
   shared-proxy:

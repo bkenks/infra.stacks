@@ -2,13 +2,13 @@
 # Render a .jsonnet source to YAML next to it, and print the output path.
 #   Usage: .jsonnet/render.sh path/to/<name>.jsonnet
 # Output naming:
-#   compose.jsonnet  -> compose.stack.yaml  (the static compose.yaml parent
-#                       `include`s this child and declares the interpolation
-#                       env_file; the parent is hand-written and NOT regenerated)
+#   <name>.jsonnet   -> <name>.yaml         (single YAML doc). A stack splits its
+#                       source into compose.stack.jsonnet -> compose.stack.yaml
+#                       (the child) and compose.jsonnet -> compose.yaml (the Komodo
+#                       parent that `include`s the child + declares its env_files).
 #   services.jsonnet -> templates/          (MULTI-FILE: one agent-config fragment
 #                       per service; the object's string fields are written raw,
 #                       one file per field name. See services.jsonnet.)
-#   <name>.jsonnet   -> <name>.yaml         (single YAML doc)
 # Library imports resolve by bare name via the -J jpath below, so a source at any
 # depth does `import 'lib.libsonnet'`.
 set -eu
@@ -33,10 +33,7 @@ if [ "$(basename "$src")" = "services.jsonnet" ]; then
   exit 0
 fi
 
-case "$(basename "$src")" in
-  compose.jsonnet) out="$dir/compose.stack.yaml" ;;
-  *) out="$dir/$(basename "$src" .jsonnet).yaml" ;;
-esac
+out="$dir/$(basename "$src" .jsonnet).yaml"
 
 {
   printf '# GENERATED from %s by .jsonnet/render.sh — DO NOT EDIT.\n' "$(basename "$src")"

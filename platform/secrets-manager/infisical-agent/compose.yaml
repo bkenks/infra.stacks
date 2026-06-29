@@ -1,10 +1,6 @@
-# Parent compose — Komodo deploy entrypoint for the infisical-agent stack.
-# Hand-written (NOT generated). Includes the jsonnet-rendered service defs.
-# No interpolation env_file: the agent bootstraps secret delivery, so its
-# machine-identity creds come from Komodo's stack Environment (or pre-written
-# /dev/shm/agent.client-* files), never the agent itself. Komodo targets THIS.
-name: infisical-agent
+# GENERATED from compose.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
 include:
-  - path: ./compose.stack.yaml
-    env_file:
-      - /dev/shm/platform.env
+- env_file:
+  - /dev/shm/platform.env
+  path: ./compose.stack.yaml
+name: infisical-agent

@@ -1,47 +1,9 @@
-// komodo-periphery — Komodo Periphery agent (runs on every host).
-//
-// Source of truth: this file compiles to compose.yaml (do not edit the YAML).
-// Identity (name, image, port, version) is baked in at compile time. Only
-// genuine per-HOST runtime values (DOCKER_VOLUMES) stay as ${...}.
-local lib = import 'lib.libsonnet';
-
-local stack = 'komodo-periphery';
-local n = lib.compose.names(stack);
-
-local version = '2.1.2';          // Komodo image tag; keep in sync with komodo/compose.jsonnet
-local port = 8120;
-local vols = '${DOCKER_VOLUMES}';  // per-host volume root — runtime interpolated
-
+// komodo-periphery — parent compose (Komodo deploy entrypoint). Renders to
+// compose.yaml. No interpolation env_file: config is committed ./periphery.env
+// (service-level) and DOCKER_VOLUMES comes from Komodo's stack Environment.
 {
-  name: stack,
-
-  services: {
-    [stack]: {
-      image: 'fj.lilbud.homektb.com/ktbgroup-self-hosted/komodo-periphery:' + version,
-      container_name: n.stack,  // 'komodo-periphery'
-      volumes: [
-        n.volume('keys') + ':/config/keys',          // auto-generated PKI keys for v2 authentication
-        '/var/run/docker.sock:/var/run/docker.sock',  // manage this host's containers
-        '/proc:/proc',                                // see host processes from inside the container
-        '/etc/komodo:/etc/komodo',                    // periphery agent root (same path inside and outside)
-        vols + ':' + vols,                            // mirror docker volumes for directory pre-creation
-        '/dev/shm/:/dev/shm/',
-      ],
-      env_file: ['./periphery.env'],
-      ports: [lib.compose.publish(port)],
-      networks: {
-        default: { aliases: [n.stack] },  // 'komodo-periphery' — project-independent name
-      },
-      labels: lib.mixins.komodoSkip,
-      restart: 'unless-stopped',
-      init: true,
-    },
-  },
-
-  volumes: {
-    // Distinct from komodo-core's keys volume (see komodo/compose.jsonnet) so PKI never cross-contaminates.
-    [n.volume('keys')]: { name: n.volume('keys') },  // 'komodo-periphery-keys'
-  },
-
-  networks: n.network,  // private net (renamed default) 'komodo-periphery'
+  name: 'komodo-periphery',
+  include: [
+    { path: './compose.stack.yaml' },
+  ],
 }

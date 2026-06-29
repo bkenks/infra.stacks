@@ -1,10 +1,6 @@
-# Parent compose — Komodo deploy entrypoint for the komodo stack.
-# Hand-written (NOT generated). Includes the jsonnet-rendered service defs and
-# declares the interpolation env_file: the shared platform secret file Ansible
-# renders (/dev/shm/platform.env — core platform services are bootstrapped, so
-# Ansible writes it, not the Infisical agent). The per-host ${DOCKER_VOLUMES}
-# comes from Komodo's stack Environment. Komodo targets THIS file.
-name: komodo
+# GENERATED from compose.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
 include:
-  - path: ./compose.stack.yaml
-    env_file: /dev/shm/platform.env
+- env_file:
+  - /dev/shm/platform.env
+  path: ./compose.stack.yaml
+name: komodo
