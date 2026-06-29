@@ -1,0 +1,22 @@
+# GENERATED from compose.stack.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
+name: network-bootstrap
+networks:
+  shared-db-backups:
+    name: shared-db-backups
+  shared-infisical:
+    name: shared-infisical
+  shared-postgres:
+    name: shared-postgres
+  shared-proxy:
+    name: shared-proxy
+services:
+  init:
+    command:
+    - 'true'
+    image: docker.io/library/busybox:1.37.0
+    networks:
+      shared-db-backups: {}
+      shared-infisical: {}
+      shared-postgres: {}
+      shared-proxy: {}
+    restart: 'no'
