@@ -31,7 +31,7 @@ local version = 'v0.39';
         TZ: 'America/New_York',
         // Per-host: the node's tailscale hostname. Secret: from the deploy env.
         BASE_URL: 'http://${TAILSCALE_HOSTNAME:?err}:' + std.toString(port),
-        APP_SECRET: '${SECRET__APP_SECRET:?err}',
+        APP_SECRET: '${ZROBYT__APP_SECRET:?err}',
       },
       ports: [lib.compose.publish(port)],  // '4096:4096' — core infra, no proxy
       networks: {
