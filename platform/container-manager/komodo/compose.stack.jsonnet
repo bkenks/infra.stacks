@@ -32,10 +32,10 @@ local vols = '${DOCKER_VOLUMES}';  // per-host volume root — runtime interpola
         // Public URL behind Traefik; built from the registry's root domain.
         KOMODO_HOST: 'https://komo.' + reg.rootDomain,
         // Secrets — interpolated from /dev/shm/platform.env (parent include.env_file)
-        KOMODO_DATABASE_USERNAME: '${KOMODO_DATABASE_USERNAME:?err}',
-        KOMODO_DATABASE_PASSWORD: '${KOMODO_DATABASE_PASSWORD:?err}',
-        KOMODO_WEBHOOK_SECRET: '${KOMODO_WEBHOOK_SECRET:?err}',
-        KOMODO_JWT_SECRET: '${KOMODO_JWT_SECRET:?err}',
+        KOMODO_DATABASE_USERNAME: '${KOMO_DB_USERNAME:?err}',
+        KOMODO_DATABASE_PASSWORD: '${KOMO_DB_PASSWORD:?err}',
+        KOMODO_WEBHOOK_SECRET: '${KOMO_WEBHOOK_SECRET:?err}',
+        KOMODO_JWT_SECRET: '${KOMO_JWT_SECRET:?err}',
       },
       // 9120 published as a recovery fallback — Komodo manages Traefik, so don't
       // lock yourself out of the UI.
@@ -60,8 +60,8 @@ local vols = '${DOCKER_VOLUMES}';  // per-host volume root — runtime interpola
       env_file: ['./core.env'],  // committed non-secret config (shared with core)
       environment: {
         // Secrets — interpolated from /dev/shm/platform.env (parent include.env_file)
-        MONGO_INITDB_ROOT_USERNAME: '${MONGO_INITDB_ROOT_USERNAME:?err}',
-        MONGO_INITDB_ROOT_PASSWORD: '${MONGO_INITDB_ROOT_PASSWORD:?err}',
+        MONGO_INITDB_ROOT_USERNAME: '${KOMO_DB_USERNAME:?err}',
+        MONGO_INITDB_ROOT_PASSWORD: '${KOMO_DB_PASSWORD:?err}',
       },
       ports: ['27017:27017'],
       command: '--quiet --wiredTigerCacheSizeGB 0.25',

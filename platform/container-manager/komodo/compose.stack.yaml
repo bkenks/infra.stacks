@@ -14,11 +14,11 @@ services:
     env_file:
     - ./core.env
     environment:
-      KOMODO_DATABASE_PASSWORD: ${KOMODO_DATABASE_PASSWORD:?err}
-      KOMODO_DATABASE_USERNAME: ${KOMODO_DATABASE_USERNAME:?err}
+      KOMODO_DATABASE_PASSWORD: ${KOMO_DB_PASSWORD:?err}
+      KOMODO_DATABASE_USERNAME: ${KOMO_DB_USERNAME:?err}
       KOMODO_HOST: https://komo.homektb.com
-      KOMODO_JWT_SECRET: ${KOMODO_JWT_SECRET:?err}
-      KOMODO_WEBHOOK_SECRET: ${KOMODO_WEBHOOK_SECRET:?err}
+      KOMODO_JWT_SECRET: ${KOMO_JWT_SECRET:?err}
+      KOMODO_WEBHOOK_SECRET: ${KOMO_WEBHOOK_SECRET:?err}
     extra_hosts:
     - host.docker.internal:host-gateway
     image: ghcr.io/moghtech/komodo-core:2.1.2
@@ -50,8 +50,8 @@ services:
     env_file:
     - ./core.env
     environment:
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:?err}
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:?err}
+      MONGO_INITDB_ROOT_PASSWORD: ${KOMO_DB_PASSWORD:?err}
+      MONGO_INITDB_ROOT_USERNAME: ${KOMO_DB_USERNAME:?err}
     image: mongo:8.2.4
     labels:
       komodo.skip: ''
