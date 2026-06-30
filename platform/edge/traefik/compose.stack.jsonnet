@@ -23,8 +23,17 @@ local proxyNetwork = 'proxy';
       image: 'docker.io/library/traefik:' + version,
       container_name: extName,
       restart: 'unless-stopped',
+      // Hard memory ceiling. Without it a request spike (e.g. the controller-table
+      // routing loop that froze littlebuddy 2026-06-29) can consume all host RAM.
+      // With it, the cgroup OOM-kills just Traefik and restart:unless-stopped
+      // brings it back — the host stays up. GOMEMLIMIT (below) keeps Go's GC
+      // aggressive well under this so it rarely trips on legitimate load.
+      mem_limit: '1g',
       environment: {
         TZ: 'America/New_York',
+        // Keep Go's heap target below mem_limit so GC reclaims hard before the
+        // cgroup OOM-kills the container.
+        GOMEMLIMIT: '750MiB',
         // Secret — CF_DNS_API_TOKEN for the Cloudflare DNS-01 ACME challenge (lego
         // reads it from the container env). Interpolated from /dev/shm/platform.env
         // (parent include.env_file).
