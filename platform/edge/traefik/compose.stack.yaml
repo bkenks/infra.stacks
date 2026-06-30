@@ -4,7 +4,8 @@ networks:
   shared-proxy:
     name: shared-proxy
 services:
-  traefik:
+  app:
+    container_name: traefik-app
     environment:
       CF_DNS_API_TOKEN: ${CF_DNS_API_TOKEN:?err}
       TZ: America/New_York
@@ -22,7 +23,7 @@ services:
     networks:
       shared-proxy:
         aliases:
-        - traefik
+        - traefik-app
     ports:
     - 80:80
     - 443:443

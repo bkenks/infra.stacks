@@ -4,17 +4,24 @@
 // (deploy it FIRST; consumers join it external). Service discovery is pinned to
 // shared-proxy in files/traefik.yml (providers.docker.network) — keep in sync.
 local lib = import 'lib.libsonnet';
+local c = lib.compose;
+local roles = c.roles;
 
 local stack = 'traefik';
 local n = lib.compose.names(stack);
 local version = 'v3.6.7';  // >= v3.6.1 so Docker 29 API negotiation works
 
+local proxyNetwork = 'proxy';
+
 {
   name: stack,
 
   services: {
-    traefik: {
+    [roles.app]: {
+      local extName = n.container(roles.app),
+
       image: 'docker.io/library/traefik:' + version,
+      container_name: extName,
       restart: 'unless-stopped',
       environment: {
         TZ: 'America/New_York',
@@ -34,7 +41,9 @@ local version = 'v3.6.7';  // >= v3.6.1 so Docker 29 API negotiation works
         'letsencrypt:/letsencrypt',  // persist acme.json across redeploys (volume keyed below)
       ],
       networks: {
-        [lib.compose.netName('proxy')]: { aliases: [stack] },  // alias 'traefik' on shared-proxy
+        [lib.compose.netName(proxyNetwork)]: {
+          aliases: [extName]
+        },
       },
       healthcheck: {
         test: ['CMD', 'traefik', 'healthcheck', '--ping'],
@@ -46,7 +55,7 @@ local version = 'v3.6.7';  // >= v3.6.1 so Docker 29 API negotiation works
     },
   },
 
-  networks: lib.compose.own('proxy'),  // OWNS shared-proxy (creates it; deploy first)
+  networks: lib.compose.own(proxyNetwork),  // OWNS shared-proxy (creates it; deploy first)
 
   volumes: {
     letsencrypt: { name: n.volume('letsencrypt') },  // 'traefik-letsencrypt'

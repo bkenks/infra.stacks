@@ -61,7 +61,8 @@ services:
     - 27017:27017
     restart: unless-stopped
     volumes:
-    - komodo-db:/data
+    - /srv/docker/bind-mounts/dcm/mongo/data:/data/db
+    - /srv/docker/bind-mounts/dcm/mongo/config:/data/configdb
 volumes:
   komodo-db:
     name: komodo-db

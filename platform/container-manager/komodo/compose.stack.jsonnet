@@ -65,9 +65,8 @@ local komodoEnv = './core.env';
       image: 'mongo:' + mongoVersion,
       container_name: n.container(db),  // referenced as komodo-db:27017 in core.env
       volumes: [
-        // vols + '/dcm/mongo/data:/data/db',
-        // vols + '/dcm/mongo/config:/data/configdb',
-        n.volume(db) + ":/data",
+        r.dockerVolumes + '/dcm/mongo/data:/data/db',
+        r.dockerVolumes + '/dcm/mongo/config:/data/configdb',
       ],
       env_file: komodoEnv,
       environment: {
