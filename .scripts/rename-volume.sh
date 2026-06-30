@@ -4,14 +4,15 @@
 # (preserving perms/owner/timestamps), then optionally removes OLD.
 #
 # Usage: rename-volume.sh <oldname> <newname> [-f] [-k] [-m] [--host <ssh-host>]
-#   -f, --force    skip the removal prompt; also override the target-in-use guard when merging
+#   -f, --force    skip the removal prompt; also override the in-use guards
+#                  (copy from a running source, or merge into a running target)
 #   -k, --keep     keep the old volume (copy only, never remove)
 #   -m, --merge    allow an existing target; copy OLD on top of it (files collide -> OLD wins)
 #   --host HOST    run docker over ssh on HOST instead of locally
 #   -h, --help     show this help
 set -euo pipefail
 
-usage() { sed -n '2,11p' "$0"; exit "${1:-0}"; }
+usage() { sed -n '2,12p' "$0"; exit "${1:-0}"; }
 
 OLD="" NEW="" FORCE=0 KEEP=0 MERGE=0 HOST=""
 while [[ $# -gt 0 ]]; do
@@ -40,11 +41,13 @@ if d volume inspect "$NEW" >/dev/null 2>&1; then
   TARGET_EXISTS=1
 fi
 
-# Refuse if any container (running or stopped) still references the old volume.
-INUSE=$(d ps -a --filter "volume=$OLD" --format '{{.Names}}' || true)
-if [[ -n "$INUSE" ]]; then
-  echo "the following containers reference '$OLD' — stop/recreate them first:" >&2
-  echo "$INUSE" | sed 's/^/  - /' >&2
+# Only a RUNNING source container is a problem for the copy — it can mutate data
+# mid-read. Stopped containers are safe to copy from (the removal step below handles
+# the fact that they still pin the volume). Override the live-copy block with -f.
+RUN_OLD=$(d ps --filter "volume=$OLD" --format '{{.Names}}' || true)
+if [[ -n "$RUN_OLD" && "$FORCE" -ne 1 ]]; then
+  echo "running container(s) reference source '$OLD' — stop them first (or -f to copy live):" >&2
+  echo "$RUN_OLD" | sed 's/^/  - /' >&2
   exit 1
 fi
 
@@ -81,5 +84,13 @@ if [[ "$FORCE" -ne 1 ]]; then
   read -r -p "remove old volume '$OLD'? [y/N] " ans
   [[ "$ans" =~ ^[Yy]$ ]] || { echo "left '$OLD' in place."; exit 0; }
 fi
-d volume rm "$OLD" >/dev/null
-echo "removed old volume '$OLD'. Done: '$NEW' is ready."
+# docker volume rm fails while ANY container (even stopped) still references OLD.
+if d volume rm "$OLD" >/dev/null 2>&1; then
+  echo "removed old volume '$OLD'. Done: '$NEW' is ready."
+else
+  STILL=$(d ps -a --filter "volume=$OLD" --format '{{.Names}}' || true)
+  echo "copied to '$NEW', but '$OLD' could not be removed — still referenced by:" >&2
+  echo "$STILL" | sed 's/^/  - /' >&2
+  echo "recreate/redeploy those onto '$NEW' (or 'docker rm' them), then: docker volume rm $OLD" >&2
+  exit 1
+fi
