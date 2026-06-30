@@ -41,7 +41,8 @@ services:
     restart: unless-stopped
     volumes:
     - komodo-keys:/config/keys
-    - komodo-app:/
+    - /srv/docker/bind-mounts/dcm/komodo/data/backups:/backups
+    - /srv/docker/bind-mounts/dcm/komodo/data/syncs:/syncs
   db:
     command: --quiet --wiredTigerCacheSizeGB 0.25
     container_name: komodo-db
@@ -62,8 +63,6 @@ services:
     volumes:
     - komodo-db:/data
 volumes:
-  komodo-app:
-    name: komodo-app
   komodo-db:
     name: komodo-db
   komodo-keys:

@@ -20,7 +20,6 @@ local db = c.roles.db;
 local version = '2.1.2';        // Komodo image tag (was interpolation var KOMO_VERS)
 local mongoVersion = '8.2.4';
 local komodoEnv = './core.env';
-local vols = '${DOCKER_VOLUMES}';  // per-host volume root — runtime interpolated
 
 {
   name: stack,
@@ -32,9 +31,8 @@ local vols = '${DOCKER_VOLUMES}';  // per-host volume root — runtime interpola
       depends_on: [ db ],
       volumes: [
         n.volume('keys') + ':/config/keys',  // auto-generated v2 PKI keys
-        // vols + '/dcm/komodo/data/backups:/backups',
-        // vols + '/dcm/komodo/data/syncs:/syncs',
-        n.volume(app) + ":/",
+        r.dockerVolumes + '/dcm/komodo/data/backups:/backups',
+        r.dockerVolumes + '/dcm/komodo/data/syncs:/syncs',
       ],
       env_file: komodoEnv,  // committed non-secret config (KOMODO_* tunables)
       environment: {
@@ -81,7 +79,9 @@ local vols = '${DOCKER_VOLUMES}';  // per-host volume root — runtime interpola
       command: '--quiet --wiredTigerCacheSizeGB 0.25',
       restart: 'unless-stopped',
       networks: {
-        default: { aliases: [n.alias(db)] },
+        default: {
+          aliases: [n.alias(db)]
+        },
       },
       labels: lib.mixins.komodoSkip,
     },
@@ -91,9 +91,6 @@ local vols = '${DOCKER_VOLUMES}';  // per-host volume root — runtime interpola
     // Distinct from komodo-periphery's keys volume so PKI never cross-contaminates.
     [n.volume('keys')]: {
       name: n.volume('keys')
-    },
-    [n.volume(app)]: {
-      name: n.volume(app),
     },
     [n.volume(db)]: {
       name: n.volume(db),
