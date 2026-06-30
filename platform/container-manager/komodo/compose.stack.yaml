@@ -7,12 +7,10 @@ networks:
     external: true
     name: shared-proxy
 services:
-  komodo-core:
-    container_name: komodo-core
-    depends_on:
-    - mongo-db
-    env_file:
-    - ./core.env
+  app:
+    container_name: komodo-app
+    depends_on: db
+    env_file: ./core.env
     environment:
       KOMODO_DATABASE_PASSWORD: ${KOMO_DB_PASSWORD:?err}
       KOMODO_DATABASE_USERNAME: ${KOMO_DB_USERNAME:?err}
@@ -42,13 +40,11 @@ services:
     restart: unless-stopped
     volumes:
     - komodo-keys:/config/keys
-    - ${DOCKER_VOLUMES}/dcm/komodo/data/backups:/backups
-    - ${DOCKER_VOLUMES}/dcm/komodo/data/syncs:/syncs
-  mongo-db:
+    - komodo-app:/
+  db:
     command: --quiet --wiredTigerCacheSizeGB 0.25
-    container_name: mongo-db
-    env_file:
-    - ./core.env
+    container_name: komodo-db
+    env_file: ./core.env
     environment:
       MONGO_INITDB_ROOT_PASSWORD: ${KOMO_DB_PASSWORD:?err}
       MONGO_INITDB_ROOT_USERNAME: ${KOMO_DB_USERNAME:?err}
@@ -58,13 +54,16 @@ services:
     networks:
       default:
         aliases:
-        - komodo-mongo
+        - komodo-db
     ports:
     - 27017:27017
     restart: unless-stopped
     volumes:
-    - ${DOCKER_VOLUMES}/dcm/mongo/data:/data/db
-    - ${DOCKER_VOLUMES}/dcm/mongo/config:/data/configdb
+    - komodo-db:/data
 volumes:
+  komodo-app:
+    name: komodo-app
+  komodo-db:
+    name: komodo-db
   komodo-keys:
     name: komodo-keys
