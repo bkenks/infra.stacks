@@ -29,7 +29,7 @@ local vols = '${DOCKER_VOLUMES}';  // per-host volume root — runtime interpola
     [app]: {
       image: 'ghcr.io/moghtech/komodo-core:' + version,
       container_name: n.container(app),
-      depends_on: db,
+      depends_on: [ db ],
       volumes: [
         n.volume('keys') + ':/config/keys',  // auto-generated v2 PKI keys
         // vols + '/dcm/komodo/data/backups:/backups',

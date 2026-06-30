@@ -9,7 +9,8 @@ networks:
 services:
   app:
     container_name: komodo-app
-    depends_on: db
+    depends_on:
+    - db
     env_file: ./core.env
     environment:
       KOMODO_DATABASE_PASSWORD: ${KOMO_DB_PASSWORD:?err}
