@@ -13,7 +13,7 @@ local n = lib.compose.names(stack);
 local roles = lib.compose.roles;
 
 local port = 4096;
-local version = 'v0.39';
+local version = 'v0.40';
 
 {
   name: stack,
