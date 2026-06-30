@@ -8,7 +8,7 @@ services:
     container_name: komodo-periphery
     env_file:
     - ./periphery.env
-    image: ghcr.io/moghtech/komodo-periphery2.1.2
+    image: ghcr.io/moghtech/komodo-periphery:2.1.2
     init: true
     labels:
       komodo.skip: ''

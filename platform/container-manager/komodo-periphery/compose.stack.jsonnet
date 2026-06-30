@@ -23,7 +23,7 @@ local port = 8120;
 
   services: {
     [p.role]: {
-      image: 'ghcr.io/moghtech/komodo-periphery' + version,
+      image: 'ghcr.io/moghtech/komodo-periphery:' + version,
       container_name: p.extName,  // 'komodo-periphery'
       volumes: [
         p.keysVolume + ':/config/keys',          // auto-generated PKI keys for v2 authentication
