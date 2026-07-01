@@ -1,0 +1,86 @@
+# GENERATED from compose.stack.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
+name: gitea
+networks:
+  default:
+    name: gitea
+  shared-proxy:
+    external: true
+    name: shared-proxy
+services:
+  app:
+    container_name: gitea-app
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      GITEA__SERVER__SSH_DOMAIN: gitea.homektb.com
+      GITEA__SERVER__SSH_LISTEN_PORT: '22'
+      GITEA__SERVER__SSH_PORT: '2222'
+      GITEA__database__DB_TYPE: postgres
+      GITEA__database__HOST: gitea-db:5432
+      GITEA__database__NAME: gitea
+      GITEA__database__PASSWD: ${GITEA_DB_PASSWORD:?err}
+      GITEA__database__USER: gitea
+      USER_GID: '1000'
+      USER_UID: '1000'
+    expose:
+    - '3000'
+    - '22'
+    healthcheck:
+      interval: 15s
+      retries: 10
+      test:
+      - CMD
+      - wget
+      - -q
+      - --spider
+      - http://localhost:3000/
+      timeout: 5s
+    image: docker.gitea.com/gitea:1.24.4
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.gitea.entrypoints: websecure
+      traefik.http.routers.gitea.rule: Host(`gitea.homektb.com`)
+      traefik.http.routers.gitea.tls: 'true'
+      traefik.http.services.gitea.loadbalancer.server.port: '3000'
+      traefik.tcp.routers.gitea-ssh.entrypoints: gitea-ssh
+      traefik.tcp.routers.gitea-ssh.rule: HostSNI(`*`)
+      traefik.tcp.services.gitea-ssh.loadbalancer.server.port: '22'
+    networks:
+      default:
+        aliases:
+        - gitea-app
+      shared-proxy:
+        aliases:
+        - gitea-app
+    restart: on-failure:5
+    volumes:
+    - gitea-app:/data
+  db:
+    container_name: gitea-db
+    environment:
+      POSTGRES_DB: gitea
+      POSTGRES_PASSWORD: ${GITEA_DB_PASSWORD:?err}
+      POSTGRES_USER: gitea
+    expose:
+    - '5432'
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready --username=gitea
+      timeout: 10s
+    image: docker.io/library/postgres:16-alpine
+    networks:
+      default:
+        aliases:
+        - gitea-db
+    restart: on-failure:5
+    volumes:
+    - gitea-db:/var/lib/postgresql/data
+volumes:
+  gitea-app:
+    name: gitea-app
+  gitea-db:
+    name: gitea-db

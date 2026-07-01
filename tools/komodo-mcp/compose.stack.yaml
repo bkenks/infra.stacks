@@ -1,0 +1,39 @@
+# GENERATED from compose.stack.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
+name: komodo-mcp
+networks:
+  default:
+    name: komodo-mcp
+  shared-proxy:
+    external: true
+    name: shared-proxy
+services:
+  app:
+    container_name: komodo-mcp-app
+    environment:
+      KOMODO_API_KEY: ${KOMODO_API_KEY:?err}
+      KOMODO_API_SECRET: ${KOMODO_API_SECRET:?err}
+      KOMODO_URL: https://komo.homektb.com
+      MCP_ALLOWED_HOSTS: komodo-mcp.homektb.com
+      MCP_TRANSPORT: http
+      MCP_TRUST_PROXY: '1'
+      TZ: America/Chicago
+    expose:
+    - '8000'
+    image: fj.homektb.com/bkenks/komodo-mcp-server:1.4.1
+    labels:
+      komodo.skip: ''
+      traefik.enable: 'true'
+      traefik.http.middlewares.komodo-mcp-auth.basicauth.users: ${KOMODO_MCP_BASICAUTH_USERS:?err}
+      traefik.http.routers.komodo-mcp.entrypoints: websecure
+      traefik.http.routers.komodo-mcp.middlewares: komodo-mcp-auth
+      traefik.http.routers.komodo-mcp.rule: Host(`komodo-mcp.homektb.com`)
+      traefik.http.routers.komodo-mcp.tls: 'true'
+      traefik.http.services.komodo-mcp.loadbalancer.server.port: '8000'
+    networks:
+      default:
+        aliases:
+        - komodo-mcp-app
+      shared-proxy:
+        aliases:
+        - komodo-mcp-app
+    restart: on-failure:5

@@ -14,6 +14,14 @@
 #   - The host running each service still serves it locally via its docker labels,
 #     unchanged — this only adds the central front door.
 #
+# ⚠️ The priority story above only holds while the local service is UP. If a
+# single-label service is stopped/redeployed on its home host its docker router
+# vanishes, the request falls through to the priority:1 router here, which points
+# back at the SAME host — and loops, melting the host (froze littlebuddy on
+# 2026-06-29 via the infisical-agents' polling). The controller-hop middleware +
+# priority:2 controller-loop-sink router below break that loop (fast 502). See the
+# loop-guard router comment for the full mechanism.
+#
 #   host-token -> host         Tailscale IP
 #   littlebuddy               100.114.137.104
 #   paiki                     100.126.19.103
@@ -34,24 +42,43 @@ http:
     #    stack's Traefik router rule (2026-06-24). Only littlebuddy and paiki run
     #    *.homektb.com services; maboi/bill run client sites + infra nodes only.
 
+    # ── Loop guard ────────────────────────────────────────────────────────────
+    # Catches any request that has ALREADY taken the central hop (carries
+    # X-Controller-Hop, stamped by controller-hop below) yet is back here with no
+    # local docker router to serve it — i.e. the target service is down on its home
+    # host. priority:2 beats the priority:1 host routers (so it wins over a second
+    # fall-through) but loses to any real docker-label router (priority = rule
+    # length ≫ 2), so a healthy service is unaffected. Dead-ends to a fast 502
+    # instead of looping back into the table. Without this, a stopped single-label
+    # service melts the host (froze littlebuddy 2026-06-29).
+    controller-loop-sink:
+      rule: "Header(`X-Controller-Hop`, `1`)"
+      entryPoints: [websecure]
+      service: controller-loop-sink
+      priority: 2
+      tls: {}
+
     # ── littlebuddy (token "lilbud") ──────────────────────────────────────────
     infisical:
       rule: "Host(`infisical.homektb.com`)"
       entryPoints: [websecure]
       service: host-littlebuddy
       priority: 1
+      middlewares: [controller-hop]
       tls: {}
     komodo:
       rule: "Host(`komo.homektb.com`)"
       entryPoints: [websecure]
       service: host-littlebuddy
       priority: 1
+      middlewares: [controller-hop]
       tls: {}
     komodo-mcp:
       rule: "Host(`komodo-mcp.homektb.com`)"
       entryPoints: [websecure]
       service: host-littlebuddy
       priority: 1
+      middlewares: [controller-hop]
       tls: {}
     forgejo:
       # Single-label only — the dotted fj.lilbud alias was fully retired across the
@@ -62,6 +89,7 @@ http:
       entryPoints: [websecure]
       service: host-littlebuddy
       priority: 1
+      middlewares: [controller-hop]
       tls: {}
     woodpecker:
       # Single-label only — peck.lilbud retired (WOODPECKER_HOST now peck.homektb.com).
@@ -71,36 +99,42 @@ http:
       entryPoints: [websecure]
       service: host-littlebuddy
       priority: 1
+      middlewares: [controller-hop]
       tls: {}
     termix:
       rule: "Host(`termix.homektb.com`)"
       entryPoints: [websecure]
       service: host-littlebuddy
       priority: 1
+      middlewares: [controller-hop]
       tls: {}
     docuseal:
       rule: "Host(`docuseal.homektb.com`)"
       entryPoints: [websecure]
       service: host-littlebuddy
       priority: 1
+      middlewares: [controller-hop]
       tls: {}
     openproject:
       rule: "Host(`openprj.homektb.com`)"
       entryPoints: [websecure]
       service: host-littlebuddy
       priority: 1
+      middlewares: [controller-hop]
       tls: {}
     paperless:
       rule: "Host(`paper.homektb.com`)"
       entryPoints: [websecure]
       service: host-littlebuddy
       priority: 1
+      middlewares: [controller-hop]
       tls: {}
     scriberr:
       rule: "Host(`scriberr.homektb.com`)"
       entryPoints: [websecure]
       service: host-littlebuddy
       priority: 1
+      middlewares: [controller-hop]
       tls: {}
 
     # ── paiki (media stack lives here) ────────────────────────────────────────
@@ -109,42 +143,49 @@ http:
       entryPoints: [websecure]
       service: host-paiki
       priority: 1
+      middlewares: [controller-hop]
       tls: {}
     sonarr:
       rule: "Host(`sonarr.homektb.com`)"
       entryPoints: [websecure]
       service: host-paiki
       priority: 1
+      middlewares: [controller-hop]
       tls: {}
     radarr:
       rule: "Host(`radarr.homektb.com`)"
       entryPoints: [websecure]
       service: host-paiki
       priority: 1
+      middlewares: [controller-hop]
       tls: {}
     prowlarr:
       rule: "Host(`prowlarr.homektb.com`)"
       entryPoints: [websecure]
       service: host-paiki
       priority: 1
+      middlewares: [controller-hop]
       tls: {}
     bazarr:
       rule: "Host(`bazarr.homektb.com`)"
       entryPoints: [websecure]
       service: host-paiki
       priority: 1
+      middlewares: [controller-hop]
       tls: {}
     sabnzbd:
       rule: "Host(`sabnzbd.homektb.com`)"
       entryPoints: [websecure]
       service: host-paiki
       priority: 1
+      middlewares: [controller-hop]
       tls: {}
     seerr:
       rule: "Host(`seerr.homektb.com`)"
       entryPoints: [websecure]
       service: host-paiki
       priority: 1
+      middlewares: [controller-hop]
       tls: {}
 
     # ── NOTE: mazanoke + convertx are not currently deployed in Komodo. Their
@@ -156,17 +197,37 @@ http:
       entryPoints: [websecure]
       service: host-littlebuddy
       priority: 1
+      middlewares: [controller-hop]
       tls: {}
     convertx:
       rule: "Host(`convertx.homektb.com`)"
       entryPoints: [websecure]
       service: host-littlebuddy
       priority: 1
+      middlewares: [controller-hop]
       tls: {}
     # databasus / zerobyte: accessed directly by host / Tailscale IP — they no
     #   longer use Traefik at all (no router here and none in their own stacks).
 
+  middlewares:
+    # Stamps the central re-encrypt hop so the loop guard (controller-loop-sink)
+    # can tell a request has already passed through this table once. Attached to
+    # every host-routing router above; harmless extra request header on the backend.
+    controller-hop:
+      headers:
+        customRequestHeaders:
+          X-Controller-Hop: "1"
+
   services:
+    # Dead-end for looped requests (see controller-loop-sink router / header comment).
+    # 127.0.0.1:1 has nothing listening, so Traefik fails fast with 502 — no retry,
+    # no per-hop connection/goroutine buildup. Better a quick 502 than a host meltdown.
+    controller-loop-sink:
+      loadBalancer:
+        passHostHeader: false
+        servers:
+          - url: "http://127.0.0.1:1"
+
     # ── Host backends (one per host). Identical on every host so this file is
     #    portable. Re-encrypts to the host's Traefik :443; passHostHeader keeps the
     #    original Host so that Traefik matches its own router.

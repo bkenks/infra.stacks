@@ -1,19 +1,6 @@
+# GENERATED from compose.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
 include:
-  - path:
-      - ./compose/stack.yml
-      - ./compose/secrets.yml
-    env_file:
-      - ./interpolation-envs/general.env
-      - ./interpolation-envs/production.env
-      # Secrets rendered (RAM) by the infisical-agent on this same host.
-      # Must exist before `up`: the infisical-agent stack runs first and pulls
-      # PAPERLESS_SECRET_KEY / PAPERLESS_PG_PASS from Infisical (/paperless) and
-      # renders them here.
-      - /dev/shm/paperless.env
-
-services:
-  broker: {}
-  db: {}
-  gotenberg: {}
-  tika: {}
-  webserver: {}
+- env_file:
+  - /dev/shm/paperless.env
+  path: ./compose.stack.yaml
+name: paperless

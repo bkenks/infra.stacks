@@ -5,37 +5,44 @@
 // shared registry. Only per-HOST runtime values stay as ${...} so docker
 // compose interpolates them at deploy time.
 local lib = import 'lib.libsonnet';
-local reg = lib.registry;
+local r = lib.registry;
+local c = lib.compose;
+
+// 
 
 local stack = 'komodo';
-local n = lib.compose.names(stack);
+local n = c.names(stack);
+local app = c.roles.app;
+local db = c.roles.db;
+
+// 
 
 local version = '2.1.2';        // Komodo image tag (was interpolation var KOMO_VERS)
 local mongoVersion = '8.2.4';
-local vols = '${DOCKER_VOLUMES}';  // per-host volume root — runtime interpolated
+local komodoEnv = './core.env';
 
 {
   name: stack,
 
   services: {
-    'komodo-core': {
+    [app]: {
       image: 'ghcr.io/moghtech/komodo-core:' + version,
-      container_name: n.container('core'),
-      depends_on: ['mongo-db'],
+      container_name: n.container(app),
+      depends_on: [ db ],
       volumes: [
         n.volume('keys') + ':/config/keys',  // auto-generated v2 PKI keys
-        vols + '/dcm/komodo/data/backups:/backups',
-        vols + '/dcm/komodo/data/syncs:/syncs',
+        r.dockerVolumes + '/dcm/komodo/data/backups:/backups',
+        r.dockerVolumes + '/dcm/komodo/data/syncs:/syncs',
       ],
-      env_file: ['./core.env'],  // committed non-secret config (KOMODO_* tunables)
+      env_file: komodoEnv,  // committed non-secret config (KOMODO_* tunables)
       environment: {
         // Public URL behind Traefik; built from the registry's root domain.
-        KOMODO_HOST: 'https://komo.' + reg.rootDomain,
+        KOMODO_HOST: 'https://komo.' + r.domains.homektb,
         // Secrets — interpolated from /dev/shm/platform.env (parent include.env_file)
-        KOMODO_DATABASE_USERNAME: '${KOMODO_DATABASE_USERNAME:?err}',
-        KOMODO_DATABASE_PASSWORD: '${KOMODO_DATABASE_PASSWORD:?err}',
-        KOMODO_WEBHOOK_SECRET: '${KOMODO_WEBHOOK_SECRET:?err}',
-        KOMODO_JWT_SECRET: '${KOMODO_JWT_SECRET:?err}',
+        KOMODO_DATABASE_USERNAME: '${KOMO_DB_USERNAME:?err}',
+        KOMODO_DATABASE_PASSWORD: '${KOMO_DB_PASSWORD:?err}',
+        KOMODO_WEBHOOK_SECRET: '${KOMO_WEBHOOK_SECRET:?err}',
+        KOMODO_JWT_SECRET: '${KOMO_JWT_SECRET:?err}',
       },
       // 9120 published as a recovery fallback — Komodo manages Traefik, so don't
       // lock yourself out of the UI.
@@ -44,30 +51,36 @@ local vols = '${DOCKER_VOLUMES}';  // per-host volume root — runtime interpola
       restart: 'unless-stopped',
       init: true,
       networks: {
-        default: { aliases: [n.alias('core')] },                       // talk to mongo-db
-        [lib.compose.netName('proxy')]: { aliases: [n.alias('core')] },  // expose to Traefik (shared-proxy)
+        default: {
+          aliases: [n.alias('core')]
+        },
+        [lib.compose.netName('proxy')]: {
+          aliases: [n.alias('core')]
+        },
       },
       labels: lib.mixins.komodoSkip + lib.mixins.proxyAdd('komodo', 'komo', 9120),
     },
 
-    'mongo-db': {
+    [db]: {
       image: 'mongo:' + mongoVersion,
-      container_name: 'mongo-db',  // referenced as mongo-db:27017 in core.env
+      container_name: n.container(db),  // referenced as komodo-db:27017 in core.env
       volumes: [
-        vols + '/dcm/mongo/data:/data/db',
-        vols + '/dcm/mongo/config:/data/configdb',
+        r.dockerVolumes + '/dcm/mongo/data:/data/db',
+        r.dockerVolumes + '/dcm/mongo/config:/data/configdb',
       ],
-      env_file: ['./core.env'],  // committed non-secret config (shared with core)
+      env_file: komodoEnv,
       environment: {
         // Secrets — interpolated from /dev/shm/platform.env (parent include.env_file)
-        MONGO_INITDB_ROOT_USERNAME: '${MONGO_INITDB_ROOT_USERNAME:?err}',
-        MONGO_INITDB_ROOT_PASSWORD: '${MONGO_INITDB_ROOT_PASSWORD:?err}',
+        MONGO_INITDB_ROOT_USERNAME: '${KOMO_DB_USERNAME:?err}',
+        MONGO_INITDB_ROOT_PASSWORD: '${KOMO_DB_PASSWORD:?err}',
       },
       ports: ['27017:27017'],
       command: '--quiet --wiredTigerCacheSizeGB 0.25',
       restart: 'unless-stopped',
       networks: {
-        default: { aliases: [n.alias('mongo')] },
+        default: {
+          aliases: [n.alias(db)]
+        },
       },
       labels: lib.mixins.komodoSkip,
     },
@@ -75,7 +88,12 @@ local vols = '${DOCKER_VOLUMES}';  // per-host volume root — runtime interpola
 
   volumes: {
     // Distinct from komodo-periphery's keys volume so PKI never cross-contaminates.
-    [n.volume('keys')]: { name: n.volume('keys') },
+    [n.volume('keys')]: {
+      name: n.volume('keys')
+    },
+    [n.volume(db)]: {
+      name: n.volume(db),
+    },
   },
 
   networks:

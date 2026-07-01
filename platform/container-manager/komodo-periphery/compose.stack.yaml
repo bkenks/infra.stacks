@@ -1,14 +1,14 @@
 # GENERATED from compose.stack.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
-name: komodo-periphery
+name: komodo
 networks:
   default:
-    name: komodo-periphery
+    name: komodo
 services:
-  komodo-periphery:
+  periphery:
     container_name: komodo-periphery
     env_file:
     - ./periphery.env
-    image: fj.lilbud.homektb.com/ktbgroup-self-hosted/komodo-periphery:2.1.2
+    image: ghcr.io/moghtech/komodo-periphery:2.1.2
     init: true
     labels:
       komodo.skip: ''
@@ -24,8 +24,8 @@ services:
     - /var/run/docker.sock:/var/run/docker.sock
     - /proc:/proc
     - /etc/komodo:/etc/komodo
-    - ${DOCKER_VOLUMES}:${DOCKER_VOLUMES}
     - /dev/shm/:/dev/shm/
+    - /srv/docker/bind-mounts:/srv/docker/bind-mounts
 volumes:
   komodo-periphery-keys:
     name: komodo-periphery-keys

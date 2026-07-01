@@ -1,24 +1,4 @@
----
-services:
-  mazanoke:
-    image: ghcr.io/civilblur/mazanoke:v1.1.5
-    container_name: ${COMPOSE_PROJECT_NAME}_mazanoke
-    networks:
-      - default
-      - proxy
-    restart: unless-stopped
-    # Exposed to Traefik on the shared `proxy` network — no published host port.
-    labels:
-      traefik.enable: 'true'
-      traefik.http.routers.mazanoke.rule: 'Host(`mazanoke.homektb.com`)'
-      traefik.http.routers.mazanoke.entrypoints: websecure
-      traefik.http.routers.mazanoke.tls: 'true'
-      traefik.http.services.mazanoke.loadbalancer.server.port: '80'
-    expose:
-      - '80'
-
-networks:
-  # Shared reverse-proxy network, created by Ansible and joined by Traefik.
-  proxy:
-    external: true
-    name: proxy
+# GENERATED from compose.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
+include:
+- path: ./compose.stack.yaml
+name: mazanoke

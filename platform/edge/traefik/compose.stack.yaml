@@ -4,9 +4,11 @@ networks:
   shared-proxy:
     name: shared-proxy
 services:
-  traefik:
+  app:
+    container_name: traefik-app
     environment:
       CF_DNS_API_TOKEN: ${CF_DNS_API_TOKEN:?err}
+      GOMEMLIMIT: 750MiB
       TZ: America/New_York
     healthcheck:
       interval: 30s
@@ -19,10 +21,11 @@ services:
       - --ping
       timeout: 5s
     image: docker.io/library/traefik:v3.6.7
+    mem_limit: 1g
     networks:
       shared-proxy:
         aliases:
-        - traefik
+        - traefik-app
     ports:
     - 80:80
     - 443:443

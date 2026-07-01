@@ -1,0 +1,86 @@
+// forgejo — self-hosted git forge, source of truth for our repos (push-mirrors
+// to GitHub). Reached at fj.homektb.com via Traefik; SSH (git clone/push) via a
+// raw-TCP Traefik router on port 22.
+//
+// Source of truth: this file compiles to compose.stack.yaml — do not edit the
+// YAML. Joins shared-proxy (traefik owns) to be reachable. `db` is this stack's
+// OWN dedicated Postgres — it does NOT join shared-postgres.
+local lib = import 'lib.libsonnet';
+
+local stack = 'forgejo';
+local n = lib.compose.names(stack);
+local db = lib.compose.roles.db;
+
+// role name in compose is 'server' (matches the old stack + Forgejo's own docs).
+local server = 'server';
+
+local dbVersion = '14'; // docker.io/library/postgres
+local port = 3000;
+
+local dbUser = 'forgejo';
+local dbName = 'forgejo';
+
+{
+  name: stack,
+
+  services: {
+    [server]: {
+      // Temporarily pulling from a clone since codeberg.org/forgejo/forgejo was
+      // having problems — keep this fork image, do NOT revert to upstream.
+      image: 'forgejoclone/forgejo:15',
+      container_name: n.container(server),
+      volumes: [
+        n.volume(server) + ':/data',
+        '/etc/localtime:/etc/localtime:ro',
+      ],
+      environment: {
+        FORGEJO____APP_NAME: 'Forgejo',
+        FORGEJO__database__DB_TYPE: 'postgres',
+        FORGEJO__database__HOST: n.alias(db) + ':5432',
+        FORGEJO__database__NAME: dbName,
+        FORGEJO__database__USER: dbUser,
+        // Secret — interpolated from /dev/shm/forgejo.env (parent include.env_file)
+        FORGEJO__database__PASSWD: '${DB_PASSWORD:?err}',
+        USER_UID: '1000',
+        USER_GID: '1000',
+      },
+      restart: 'on-failure:5',
+      expose: [std.toString(port), '22'],
+      networks: {
+        default: { aliases: [n.alias(server)] },
+        [lib.compose.netName('proxy')]: { aliases: [n.alias(server)] },
+      },
+      labels: lib.mixins.proxyAdd(stack, 'fj', port) + {
+        // --- SSH (raw TCP) --- proxyAdd only builds HTTP routers, so these are
+        // added manually.
+        'traefik.tcp.routers.forgejo-ssh.rule': 'HostSNI(`*`)',
+        'traefik.tcp.routers.forgejo-ssh.entrypoints': 'forgejo-ssh',
+        'traefik.tcp.services.forgejo-ssh.loadbalancer.server.port': '22',
+      },
+    },
+
+    [db]: {
+      image: 'docker.io/library/postgres:' + dbVersion,
+      container_name: n.container(db),
+      volumes: [n.volume(db) + ':/var/lib/postgresql/data'],
+      environment: {
+        POSTGRES_USER: dbUser,
+        POSTGRES_DB: dbName,
+        // Secret — interpolated from /dev/shm/forgejo.env (parent include.env_file)
+        POSTGRES_PASSWORD: '${DB_PASSWORD:?err}',
+      },
+      restart: 'on-failure:5',
+      networks: { default: { aliases: [n.alias(db)] } },
+      expose: ['5432'],
+    },
+  },
+
+  volumes: {
+    [n.volume(server)]: { name: n.volume(server) },
+    [n.volume(db)]: { name: n.volume(db) },
+  },
+
+  networks:
+    n.network
+    + lib.compose.join('proxy'),
+}

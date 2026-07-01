@@ -1,11 +1,4 @@
+# GENERATED from compose.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
 include:
-  - path:
-      - ./compose/stack.yml
-    env_file:
-      - ./interpolation-envs/general.env
-      - ./interpolation-envs/production.env
-      # This stack has no secrets, so no /dev/shm/*.env from the infisical-agent.
-
-services:
-  app: {}
-  guacd: {}
+- path: ./compose.stack.yaml
+name: termix

@@ -8,18 +8,24 @@
 // (rendered by Ansible for bootstrapped core platform services; declared as the
 // interpolation source in the parent compose.yaml's include.env_file).
 local lib = import 'lib.libsonnet';
+local r = lib.registry;
+local c = lib.compose;
 
 local stack = 'cloudflared';
-local n = lib.compose.names(stack);
-
-local version = '2026.5.2';  // from interpolation-envs/production.env
+local n = c.names(stack);
+local cf = {
+  version: '2026.5.2',
+  role: 'tunnel',
+  extName: n.container(self.role),
+};
 
 {
   name: stack,
 
   services: {
-    cloudflared: {
-      image: 'cloudflare/cloudflared:' + version,
+    [cf.role]: {
+      image: 'cloudflare/cloudflared:' + cf.version,
+      container_name: cf.extName,
       command: 'tunnel --no-autoupdate run',
       environment: {
         TZ: 'America/New_York',
@@ -28,7 +34,7 @@ local version = '2026.5.2';  // from interpolation-envs/production.env
       },
       restart: 'unless-stopped',
       networks: {
-        [lib.compose.netName('proxy')]: { aliases: [stack] },
+        [r.sharedNetworks.proxy.name]: { aliases: [cf.extName] },
       },
     },
   },

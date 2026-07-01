@@ -1,9 +1,6 @@
-# Master Compose - handles only explicit .env (interpolation only) definition
-
+# GENERATED from compose.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
 include:
-  - path:
-      - ./compose/stack.yaml
-      - ./compose/environment.yaml
-    env_file:
-      - ./interpolation-envs/constants.env
-      - /dev/shm/forgejo.env # Secrets rendered (RAM) by the infisical-agent on this same host.
+- env_file:
+  - /dev/shm/forgejo.env
+  path: ./compose.stack.yaml
+name: forgejo
