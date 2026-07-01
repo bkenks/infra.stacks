@@ -1,15 +1,6 @@
----
-services:
-  n8n:
-    image: docker.n8n.io/n8nio/n8n:2.20.6
-    restart: unless-stopped
-    # Run as the image's default user (node, UID 1000). Do NOT add user: "0:0"
-    # again — that makes n8n write to /root/.n8n inside the container's
-    # ephemeral writable layer instead of the bind-mounted /home/node/.n8n,
-    # and every redeploy wipes the data. Host dir is owned by UID 1000.
-    # Resolve *.homektb.com against blueberry-pi so LAN-only services
-    # (carbone, etc.) work from inside the container. See Notion: "Network
-    # architecture & the Docker / Tailscale DNS gotcha".
-    dns:
-      - 192.168.1.6
-      - 1.1.1.1
+# GENERATED from compose.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
+include:
+- env_file:
+  - /dev/shm/postgres.env
+  path: ./compose.stack.yaml
+name: n8n

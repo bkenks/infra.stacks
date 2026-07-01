@@ -1,0 +1,60 @@
+# GENERATED from compose.stack.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
+name: n8n
+networks:
+  default:
+    name: n8n
+  shared-postgres:
+    external: true
+    name: shared-postgres
+  shared-proxy:
+    external: true
+    name: shared-proxy
+services:
+  app:
+    container_name: n8n-app
+    dns:
+    - 192.168.1.6
+    - 1.1.1.1
+    environment:
+      DB_POSTGRESDB_DATABASE: n8n
+      DB_POSTGRESDB_HOST: postgres-db
+      DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASS:?err}
+      DB_POSTGRESDB_PORT: '5432'
+      DB_POSTGRESDB_SCHEMA: public
+      DB_POSTGRESDB_USER: ${POSTGRES_USER:?err}
+      DB_TYPE: postgresdb
+      GENERIC_TIMEZONE: America/New_York
+      N8N_BLOCK_ENV_ACCESS_IN_NODE: 'true'
+      N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: 'true'
+      N8N_GIT_NODE_DISABLE_BARE_REPOS: 'true'
+      N8N_HOST: n8n.homektb.com
+      N8N_PORT: '5678'
+      N8N_PROTOCOL: https
+      N8N_PROXY_HOPS: '1'
+      N8N_RUNNERS_ENABLED: 'true'
+      NODE_ENV: production
+      TZ: America/New_York
+      WEBHOOK_URL: https://n8n.homektb.com/
+    expose:
+    - '5678'
+    image: docker.n8n.io/n8nio/n8n:2.20.6
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.n8n.entrypoints: websecure
+      traefik.http.routers.n8n.rule: Host(`n8n.homektb.com`)
+      traefik.http.routers.n8n.tls: 'true'
+      traefik.http.services.n8n.loadbalancer.server.port: '5678'
+    networks:
+      default:
+        aliases:
+        - n8n-app
+      shared-postgres:
+        aliases:
+        - n8n-app
+      shared-proxy:
+        aliases:
+        - n8n-app
+    restart: unless-stopped
+    volumes:
+    - /srv/docker/bind-mounts/apps/n8n/data/.n8n:/home/node/.n8n
+    - /srv/docker/bind-mounts/apps/n8n/data/local-files:/files

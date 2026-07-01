@@ -1,0 +1,65 @@
+# GENERATED from compose.stack.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
+name: termix
+networks:
+  default:
+    name: termix
+  shared-proxy:
+    external: true
+    name: shared-proxy
+services:
+  app:
+    container_name: termix-app
+    depends_on:
+      guacd:
+        condition: service_started
+    environment:
+      PORT: '8080'
+    expose:
+    - '8080'
+    healthcheck:
+      interval: 15s
+      retries: 10
+      test:
+      - CMD
+      - wget
+      - -q
+      - --spider
+      - http://localhost:8080/
+      timeout: 5s
+    image: ghcr.io/lukegus/termix:2.4.1
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.termix.entrypoints: websecure
+      traefik.http.routers.termix.rule: Host(`termix.homektb.com`)
+      traefik.http.routers.termix.tls: 'true'
+      traefik.http.services.termix.loadbalancer.server.port: '8080'
+    networks:
+      default:
+        aliases:
+        - termix-app
+      shared-proxy:
+        aliases:
+        - termix-app
+    restart: on-failure:5
+    volumes:
+    - termix-data:/app/data
+  guacd:
+    container_name: termix-guacd
+    expose:
+    - '4822'
+    healthcheck:
+      interval: 15s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - nc -z localhost 4822 || exit 1
+      timeout: 5s
+    image: docker.io/guacamole/guacd:1.6.0
+    networks:
+      default:
+        aliases:
+        - termix-guacd
+    restart: on-failure:5
+volumes:
+  termix-data:
+    name: termix-data

@@ -1,0 +1,76 @@
+# GENERATED from compose.stack.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
+name: immich
+networks:
+  default:
+    name: immich
+  shared-proxy:
+    external: true
+    name: shared-proxy
+services:
+  database:
+    container_name: immich-database
+    environment:
+      POSTGRES_DB: immich
+      POSTGRES_INITDB_ARGS: --data-checksums
+      POSTGRES_PASSWORD: ${IMMICH_DB_PASSWORD:?err}
+      POSTGRES_USER: immich
+    image: ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:bcf63357191b76a916ae5eb93464d65c07511da41e3bf7a8416db519b40b1c23
+    networks:
+      default:
+        aliases:
+        - immich-database
+    restart: unless-stopped
+    shm_size: 128mb
+    volumes:
+    - /srv/docker/bind-mounts/apps/immich/postgres:/var/lib/postgresql/data
+  machine-learning:
+    container_name: immich-machine-learning
+    environment:
+      TZ: America/New_York
+    image: ghcr.io/immich-app/immich-machine-learning:v2.7.5
+    networks:
+      default:
+        aliases:
+        - immich-machine-learning
+    restart: unless-stopped
+    volumes:
+    - /srv/docker/bind-mounts/apps/immich/model-cache:/cache
+  redis:
+    container_name: immich-redis
+    image: docker.io/valkey/valkey:9@sha256:8436e10bc65c94886a91d4415b6a6dfa9cb5a306fb3b996e5bb67cd2b4854193
+    networks:
+      default:
+        aliases:
+        - immich-redis
+    restart: unless-stopped
+  server:
+    container_name: immich-server
+    depends_on:
+    - database
+    - redis
+    environment:
+      DB_DATABASE_NAME: immich
+      DB_HOSTNAME: immich-database
+      DB_PASSWORD: ${IMMICH_DB_PASSWORD:?err}
+      DB_USERNAME: immich
+      REDIS_HOSTNAME: immich-redis
+      TZ: America/New_York
+    expose:
+    - '2283'
+    image: ghcr.io/immich-app/immich-server:v2.7.5
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.immich.entrypoints: websecure
+      traefik.http.routers.immich.rule: Host(`immich.homektb.com`)
+      traefik.http.routers.immich.tls: 'true'
+      traefik.http.services.immich.loadbalancer.server.port: '2283'
+    networks:
+      default:
+        aliases:
+        - immich-server
+      shared-proxy:
+        aliases:
+        - immich-server
+    restart: unless-stopped
+    volumes:
+    - /mnt/immich-library:/data

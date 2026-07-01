@@ -1,31 +1,6 @@
-name: convertx-${DOCK_ENV}
-
-services:
-  convertx:
-    image: ghcr.io/c4illin/convertx
-    container_name: ${COMPOSE_PROJECT_NAME}-convertx
-    volumes:
-      - ${DOCKER_VOLUMES}/apps/convertx:/app/data
-    env_file:
-      - envs/production.env
-    networks:
-      - default
-      - proxy
-    restart: unless-stopped
-    # Exposed to Traefik on the shared `proxy` network — no published host port.
-    labels:
-      traefik.enable: 'true'
-      traefik.http.routers.convertx.rule: 'Host(`convertx.homektb.com`)'
-      traefik.http.routers.convertx.entrypoints: websecure
-      traefik.http.routers.convertx.tls: 'true'
-      traefik.http.services.convertx.loadbalancer.server.port: '3000'
-    expose:
-      - '3000'
-
-networks:
-  default:
-    name: ${COMPOSE_PROJECT_NAME}-net
-  # Shared reverse-proxy network, created by Ansible and joined by Traefik.
-  proxy:
-    external: true
-    name: proxy
+# GENERATED from compose.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
+include:
+- env_file:
+  - /dev/shm/convertx.env
+  path: ./compose.stack.yaml
+name: convertx

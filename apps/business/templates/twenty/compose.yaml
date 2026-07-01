@@ -1,49 +1,7 @@
-services:
-  redis:
-    image: redis:8.6.1
-    container_name: ${COMPOSE_PROJECT_NAME}_redis
-    networks:
-      - twenty
-    command: [ "--maxmemory-policy", "noeviction" ]
-    restart: always
-    healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
-  server:
-    image: twentycrm/twenty:v1.18.1
-    container_name: ${COMPOSE_PROJECT_NAME}_server
-    depends_on:
-      redis:
-        condition: service_healthy
-    volumes:
-      - server-storage:/app/packages/twenty-server/.local-storage
-    networks:
-      - twenty
-    restart: always
-    healthcheck:
-      test: curl --fail http://localhost:3000/healthz
-      interval: 5s
-      timeout: 5s
-      retries: 20
-
-  worker:
-    image: twentycrm/twenty:v1.18.1
-    container_name: ${COMPOSE_PROJECT_NAME}_worker
-    depends_on:
-      server:
-        condition: service_healthy
-    volumes:
-      - server-storage:/app/packages/twenty-server/.local-storage
-    networks:
-      - twenty
-    command: [ "yarn", "worker:prod" ]
-    restart: always
-
-networks:
-  twenty:
-
-volumes:
-  server-storage:
+# GENERATED from compose.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
+include:
+- env_file:
+  - /dev/shm/twenty.env
+  - /dev/shm/postgres.env
+  path: ./compose.stack.yaml
+name: twenty

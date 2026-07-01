@@ -1,0 +1,32 @@
+# GENERATED from compose.stack.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
+name: convertx
+networks:
+  default:
+    name: convertx
+  shared-proxy:
+    external: true
+    name: shared-proxy
+services:
+  app:
+    container_name: convertx-app
+    environment:
+      JWT_SECRET: ${CONVERTX_JWT_SECRET:?err}
+    expose:
+    - '3000'
+    image: ghcr.io/c4illin/convertx
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.convertx.entrypoints: websecure
+      traefik.http.routers.convertx.rule: Host(`convertx.homektb.com`)
+      traefik.http.routers.convertx.tls: 'true'
+      traefik.http.services.convertx.loadbalancer.server.port: '3000'
+    networks:
+      default:
+        aliases:
+        - convertx-app
+      shared-proxy:
+        aliases:
+        - convertx-app
+    restart: unless-stopped
+    volumes:
+    - /srv/docker/bind-mounts/apps/convertx:/app/data

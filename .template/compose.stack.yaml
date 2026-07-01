@@ -1,0 +1,43 @@
+# GENERATED from compose.stack.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
+name: replaceme
+networks:
+  default:
+    name: replaceme
+  shared-postgres:
+    external: true
+    name: shared-postgres
+  shared-proxy:
+    external: true
+    name: shared-proxy
+services:
+  app:
+    container_name: replaceme-app
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres-db:5432/replaceme
+      PORT: '8080'
+      SOME_SECRET: ${SOME_VAR:?err}
+    expose:
+    - '8080'
+    image: REPLACE_ME/image:0.0.0
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.replaceme.entrypoints: websecure
+      traefik.http.routers.replaceme.rule: Host(`replaceme.homektb.com`)
+      traefik.http.routers.replaceme.tls: 'true'
+      traefik.http.services.replaceme.loadbalancer.server.port: '8080'
+    networks:
+      default:
+        aliases:
+        - replaceme-app
+      shared-postgres:
+        aliases:
+        - replaceme-app
+      shared-proxy:
+        aliases:
+        - replaceme-app
+    restart: on-failure:5
+    volumes:
+    - replaceme-data:/data
+volumes:
+  replaceme-data:
+    name: replaceme-data

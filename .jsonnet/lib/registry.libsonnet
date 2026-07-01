@@ -122,6 +122,8 @@
     openproject: { project: 'apps', folder: '/openproject', dest: 'openproject.env', type: 'dump' },
     immich: { project: 'apps', folder: '/immich', dest: 'immich.env', type: 'dump' },
     stream: { project: 'apps', folder: '/stream', dest: 'stream.env', type: 'dump' },
+    convertx: { project: 'apps', folder: '/convertx', dest: 'convertx.env', type: 'dump' },
+    twenty: { project: 'apps', folder: '/twenty', dest: 'twenty.env', type: 'dump' },
     # --- Frappe project ---
     frappe: { project: 'frappe', folder: '/frappe', dest: 'frappe.env', type: 'dump' },
     # --- Couch-potatoes client project ---

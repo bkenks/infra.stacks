@@ -1,0 +1,28 @@
+# GENERATED from compose.stack.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
+name: mazanoke
+networks:
+  default:
+    name: mazanoke
+  shared-proxy:
+    external: true
+    name: shared-proxy
+services:
+  app:
+    container_name: mazanoke-app
+    expose:
+    - '80'
+    image: ghcr.io/civilblur/mazanoke:v1.1.5
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.mazanoke.entrypoints: websecure
+      traefik.http.routers.mazanoke.rule: Host(`mazanoke.homektb.com`)
+      traefik.http.routers.mazanoke.tls: 'true'
+      traefik.http.services.mazanoke.loadbalancer.server.port: '80'
+    networks:
+      default:
+        aliases:
+        - mazanoke-app
+      shared-proxy:
+        aliases:
+        - mazanoke-app
+    restart: unless-stopped
