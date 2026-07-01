@@ -11,7 +11,7 @@ local lib = import 'lib.libsonnet';
 local r = lib.registry;
 local c = lib.compose;
 
-local stack = 'cloudflare';
+local stack = 'cloudflared';
 local n = c.names(stack);
 local cf = {
   version: '2026.5.2',

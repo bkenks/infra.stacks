@@ -1,15 +1,15 @@
 # GENERATED from compose.stack.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
-name: cloudflare
+name: cloudflared
 networks:
   default:
-    name: cloudflare
+    name: cloudflared
   shared-proxy:
     external: true
     name: shared-proxy
 services:
   tunnel:
     command: tunnel --no-autoupdate run
-    container_name: cloudflare-tunnel
+    container_name: cloudflared-tunnel
     environment:
       TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:?err}
       TZ: America/New_York
@@ -17,5 +17,5 @@ services:
     networks:
       shared-proxy:
         aliases:
-        - cloudflare-tunnel
+        - cloudflared-tunnel
     restart: unless-stopped
