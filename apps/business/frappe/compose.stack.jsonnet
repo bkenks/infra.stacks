@@ -116,7 +116,7 @@ local frappeImageService(role) = {
     [db]: {
       image: 'docker.io/library/mariadb:' + mariadbVersion,
       container_name: n.container(db),
-      volumes: [n.volume('db-data') + ':/var/lib/mysql'],
+      volumes: [n.volume(db) + ':/var/lib/mysql'],
       environment: {
         MARIADB_AUTO_UPGRADE: '1',
         // Secret — interpolated from /dev/shm/frappe.env (parent include.env_file)
@@ -207,7 +207,7 @@ local frappeImageService(role) = {
     [redisQueue]: {
       image: 'docker.io/library/redis:' + redisVersion,
       container_name: n.container(redisQueue),
-      volumes: [n.volume('redis-queue-data') + ':/data'],
+      volumes: [n.volume(redisQueue) + ':/data'],
       restart: restart,
       expose: ['6379'],
       networks: { default: { aliases: [n.alias(redisQueue)] } },
@@ -233,13 +233,15 @@ local frappeImageService(role) = {
   },
 
   volumes: {
-    // sites — CRITICAL, shared by every Frappe service. Holds
+    // sites — CRITICAL, shared by every Frappe service (no single owning role,
+    // so it keeps a descriptive key rather than a bare service role). Holds
     // common_site_config.json, all per-site dirs, uploads, and backups.
     [n.volume('sites')]: { name: n.volume('sites') },
-    // db-data — CRITICAL. MariaDB data directory.
-    [n.volume('db-data')]: { name: n.volume('db-data') },
-    // redis-queue-data — persists queued/in-flight jobs across restarts.
-    [n.volume('redis-queue-data')]: { name: n.volume('redis-queue-data') },
+    // db — CRITICAL. MariaDB data directory. Sole volume owned by the `db` service.
+    [n.volume(db)]: { name: n.volume(db) },
+    // redis-queue — persists queued/in-flight jobs across restarts. Sole volume
+    // owned by the `redis-queue` service.
+    [n.volume(redisQueue)]: { name: n.volume(redisQueue) },
   },
 
   networks:

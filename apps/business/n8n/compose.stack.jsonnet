@@ -8,7 +8,7 @@ local lib = import 'lib.libsonnet';
 local stack = 'n8n';
 local n = lib.compose.names(stack);
 local app = lib.compose.roles.app;
-local pgHost = lib.compose.endpoint('postgres').private.host;  // 'postgres-db'
+local pgHost = lib.compose.endpoint('postgres').private.host;  // 'postgres_db'
 local pgPort = lib.compose.endpoint('postgres').private.port;  // 5432
 
 local version = '2.20.6';

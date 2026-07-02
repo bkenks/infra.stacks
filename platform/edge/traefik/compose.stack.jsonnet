@@ -47,7 +47,7 @@ local proxyNetwork = 'proxy';
         './files/traefik.yml:/etc/traefik/traefik.yml:ro',
         './files/host.yml:/etc/traefik/dynamic/host.yml:ro',           // shared dynamic config
         './files/controller/controller.yml:/etc/traefik/dynamic/controller.yml:ro',  // central routing table
-        'letsencrypt:/letsencrypt',  // persist acme.json across redeploys (volume keyed below)
+        roles.app + ':/letsencrypt',  // persist acme.json across redeploys (volume keyed below)
       ],
       networks: {
         [lib.compose.netName(proxyNetwork)]: {
@@ -67,6 +67,6 @@ local proxyNetwork = 'proxy';
   networks: lib.compose.own(proxyNetwork),  // OWNS shared-proxy (creates it; deploy first)
 
   volumes: {
-    letsencrypt: { name: n.volume('letsencrypt') },  // 'traefik-letsencrypt'
+    [roles.app]: { name: n.volume(roles.app) },  // 'traefik_app'
   },
 }

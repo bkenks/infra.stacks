@@ -30,7 +30,7 @@ local komodoEnv = './core.env';
       container_name: n.container(app),
       depends_on: [ db ],
       volumes: [
-        n.volume('keys') + ':/config/keys',  // auto-generated v2 PKI keys
+        app + ':/config/keys',  // auto-generated v2 PKI keys
         r.dockerVolumes + '/dcm/komodo/data/backups:/backups',
         r.dockerVolumes + '/dcm/komodo/data/syncs:/syncs',
       ],
@@ -63,7 +63,7 @@ local komodoEnv = './core.env';
 
     [db]: {
       image: 'mongo:' + mongoVersion,
-      container_name: n.container(db),  // referenced as komodo-db:27017 in core.env
+      container_name: n.container(db),  // referenced as komodo_db:27017 in core.env
       volumes: [
         r.dockerVolumes + '/dcm/mongo/data:/data/db',
         r.dockerVolumes + '/dcm/mongo/config:/data/configdb',
@@ -88,10 +88,10 @@ local komodoEnv = './core.env';
 
   volumes: {
     // Distinct from komodo-periphery's keys volume so PKI never cross-contaminates.
-    [n.volume('keys')]: {
-      name: n.volume('keys')
+    [app]: {
+      name: n.volume(app)
     },
-    [n.volume(db)]: {
+    [db]: {
       name: n.volume(db),
     },
   },

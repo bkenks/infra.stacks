@@ -30,7 +30,7 @@ local dbName = 'forgejo';
       image: 'forgejoclone/forgejo:15',
       container_name: n.container(server),
       volumes: [
-        n.volume(server) + ':/data',
+        server + ':/data',
         '/etc/localtime:/etc/localtime:ro',
       ],
       environment: {
@@ -62,7 +62,7 @@ local dbName = 'forgejo';
     [db]: {
       image: 'docker.io/library/postgres:' + dbVersion,
       container_name: n.container(db),
-      volumes: [n.volume(db) + ':/var/lib/postgresql/data'],
+      volumes: [db + ':/var/lib/postgresql/data'],
       environment: {
         POSTGRES_USER: dbUser,
         POSTGRES_DB: dbName,
@@ -76,8 +76,8 @@ local dbName = 'forgejo';
   },
 
   volumes: {
-    [n.volume(server)]: { name: n.volume(server) },
-    [n.volume(db)]: { name: n.volume(db) },
+    [server]: { name: n.volume(server) },
+    [db]: { name: n.volume(db) },
   },
 
   networks:

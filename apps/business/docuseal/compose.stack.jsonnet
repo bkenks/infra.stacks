@@ -8,7 +8,7 @@ local lib = import 'lib.libsonnet';
 local stack = 'docuseal';
 local n = lib.compose.names(stack);
 local app = lib.compose.roles.app;
-local pgHost = lib.compose.endpoint('postgres').private.host;  // 'postgres-db'
+local pgHost = lib.compose.endpoint('postgres').private.host;  // 'postgres_db'
 local pgPort = lib.compose.endpoint('postgres').private.port;  // 5432
 
 local version = '2.5.3';
@@ -21,7 +21,7 @@ local port = 3000;
     [app]: {
       image: 'docuseal/docuseal:' + version,
       container_name: n.container(app),
-      volumes: [n.volume('data') + ':/data/docuseal'],
+      volumes: [n.volume(app) + ':/data/docuseal'],
       environment: {
         PORT: std.toString(port),
         // Canonical host. Doubles as the SSL switch (forces HTTPS redirects) and
@@ -44,7 +44,7 @@ local port = 3000;
     },
   },
 
-  volumes: { [n.volume('data')]: { name: n.volume('data') } },
+  volumes: { [n.volume(app)]: { name: n.volume(app) } },
 
   networks:
     n.network

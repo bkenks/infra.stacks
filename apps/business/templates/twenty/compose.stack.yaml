@@ -14,7 +14,7 @@ services:
     command:
     - --maxmemory-policy
     - noeviction
-    container_name: twenty-redis
+    container_name: twenty_redis
     expose:
     - '6379'
     healthcheck:
@@ -29,10 +29,10 @@ services:
     networks:
       default:
         aliases:
-        - twenty-redis
+        - twenty_redis
     restart: unless-stopped
   server:
-    container_name: twenty-server
+    container_name: twenty_server
     depends_on:
       redis:
         condition: service_healthy
@@ -45,8 +45,8 @@ services:
       CALENDAR_PROVIDER_GOOGLE_ENABLED: 'true'
       MESSAGING_PROVIDER_GMAIL_ENABLED: 'true'
       NODE_PORT: '3000'
-      PG_DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres-db:5432/twenty
-      REDIS_URL: redis://twenty-redis:6379
+      PG_DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres_db:5432/twenty
+      REDIS_URL: redis://twenty_redis:6379
       SERVER_URL: https://twenty.homektb.com
       STORAGE_TYPE: local
     expose:
@@ -70,21 +70,21 @@ services:
     networks:
       default:
         aliases:
-        - twenty-server
+        - twenty_server
       shared-postgres:
         aliases:
-        - twenty-server
+        - twenty_server
       shared-proxy:
         aliases:
-        - twenty-server
+        - twenty_server
     restart: unless-stopped
     volumes:
-    - twenty-server-storage:/app/packages/twenty-server/.local-storage
+    - twenty_server-storage:/app/packages/twenty-server/.local-storage
   worker:
     command:
     - yarn
     - worker:prod
-    container_name: twenty-worker
+    container_name: twenty_worker
     depends_on:
       server:
         condition: service_healthy
@@ -98,21 +98,21 @@ services:
       DISABLE_CRON_JOBS_REGISTRATION: 'true'
       DISABLE_DB_MIGRATIONS: 'true'
       MESSAGING_PROVIDER_GMAIL_ENABLED: 'true'
-      PG_DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres-db:5432/twenty
-      REDIS_URL: redis://twenty-redis:6379
+      PG_DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres_db:5432/twenty
+      REDIS_URL: redis://twenty_redis:6379
       SERVER_URL: https://twenty.homektb.com
       STORAGE_TYPE: local
     image: docker.io/twentycrm/twenty:v1.18.1
     networks:
       default:
         aliases:
-        - twenty-worker
+        - twenty_worker
       shared-postgres:
         aliases:
-        - twenty-worker
+        - twenty_worker
     restart: unless-stopped
     volumes:
-    - twenty-server-storage:/app/packages/twenty-server/.local-storage
+    - twenty_server-storage:/app/packages/twenty-server/.local-storage
 volumes:
-  twenty-server-storage:
-    name: twenty-server-storage
+  twenty_server-storage:
+    name: twenty_server-storage

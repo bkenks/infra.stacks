@@ -8,7 +8,7 @@ networks:
     name: shared-proxy
 services:
   db:
-    container_name: forgejo-db
+    container_name: forgejo_db
     environment:
       POSTGRES_DB: forgejo
       POSTGRES_PASSWORD: ${DB_PASSWORD:?err}
@@ -19,16 +19,16 @@ services:
     networks:
       default:
         aliases:
-        - forgejo-db
+        - forgejo_db
     restart: on-failure:5
     volumes:
-    - forgejo-db:/var/lib/postgresql/data
+    - db:/var/lib/postgresql/data
   server:
-    container_name: forgejo-server
+    container_name: forgejo_server
     environment:
       FORGEJO____APP_NAME: Forgejo
       FORGEJO__database__DB_TYPE: postgres
-      FORGEJO__database__HOST: forgejo-db:5432
+      FORGEJO__database__HOST: forgejo_db:5432
       FORGEJO__database__NAME: forgejo
       FORGEJO__database__PASSWD: ${DB_PASSWORD:?err}
       FORGEJO__database__USER: forgejo
@@ -50,16 +50,16 @@ services:
     networks:
       default:
         aliases:
-        - forgejo-server
+        - forgejo_server
       shared-proxy:
         aliases:
-        - forgejo-server
+        - forgejo_server
     restart: on-failure:5
     volumes:
-    - forgejo-server:/data
+    - server:/data
     - /etc/localtime:/etc/localtime:ro
 volumes:
-  forgejo-db:
-    name: forgejo-db
-  forgejo-server:
-    name: forgejo-server
+  db:
+    name: forgejo_db
+  server:
+    name: forgejo_server

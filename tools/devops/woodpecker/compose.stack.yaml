@@ -9,7 +9,7 @@ networks:
 services:
   agent:
     command: agent
-    container_name: woodpecker-agent
+    container_name: woodpecker_agent
     depends_on:
     - server
     environment:
@@ -20,13 +20,13 @@ services:
     networks:
       default:
         aliases:
-        - woodpecker-agent
+        - woodpecker_agent
     restart: on-failure:5
     volumes:
-    - woodpecker-agent-config:/etc/woodpecker
+    - agent:/etc/woodpecker
     - /var/run/docker.sock:/var/run/docker.sock
   server:
-    container_name: woodpecker-server
+    container_name: woodpecker_server
     environment:
       WOODPECKER_AGENT_SECRET: ${WOODPECKER_AGENT_SECRET:?err}
       WOODPECKER_FORGEJO: 'true'
@@ -49,15 +49,15 @@ services:
     networks:
       default:
         aliases:
-        - woodpecker-server
+        - woodpecker_server
       shared-proxy:
         aliases:
-        - woodpecker-server
+        - woodpecker_server
     restart: on-failure:5
     volumes:
-    - woodpecker-server-data:/var/lib/woodpecker
+    - server:/var/lib/woodpecker
 volumes:
-  woodpecker-agent-config:
-    name: woodpecker-agent-config
-  woodpecker-server-data:
-    name: woodpecker-server-data
+  agent:
+    name: woodpecker_agent
+  server:
+    name: woodpecker_server

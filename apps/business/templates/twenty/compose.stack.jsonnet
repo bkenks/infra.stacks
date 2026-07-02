@@ -14,7 +14,7 @@ local redis = lib.compose.roles.redis;
 local server = 'server';
 local worker = 'worker';
 
-local pgHost = lib.compose.endpoint('postgres').private.host;  // 'postgres-db'
+local pgHost = lib.compose.endpoint('postgres').private.host;  // 'postgres_db'
 local pgPort = lib.compose.endpoint('postgres').private.port;  // 5432
 local dbName = 'twenty';
 

@@ -10,7 +10,7 @@ networks:
     name: shared-postgres
 services:
   db:
-    container_name: postgres-db
+    container_name: postgres_db
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASS:?err}
       POSTGRES_USER: ${POSTGRES_USER:?err}
@@ -23,13 +23,13 @@ services:
     networks:
       default:
         aliases:
-        - postgres-db
+        - postgres_db
       shared-db-backups:
         aliases:
-        - postgres-db
+        - postgres_db
       shared-postgres:
         aliases:
-        - postgres-db
+        - postgres_db
     profiles:
     - full
     - no_pgadmin
@@ -37,7 +37,7 @@ services:
     volumes:
     - db:/var/lib/postgresql
   pgadmin:
-    container_name: postgres-admin
+    container_name: postgres_admin
     environment:
       PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'True'
       PGADMIN_CONFIG_SERVER_MODE: 'True'
@@ -51,4 +51,5 @@ services:
     profiles:
     - full
 volumes:
-  db: {}
+  db:
+    name: postgres_db

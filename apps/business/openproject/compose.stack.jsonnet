@@ -9,7 +9,7 @@ local lib = import 'lib.libsonnet';
 
 local stack = 'openproject';
 local n = lib.compose.names(stack);
-local pgHost = lib.compose.endpoint('postgres').private.host;  // 'postgres-db'
+local pgHost = lib.compose.endpoint('postgres').private.host;  // 'postgres_db'
 local pgPort = lib.compose.endpoint('postgres').private.port;  // 5432
 
 // Public host: subdomain is 'openprj', NOT the stack name 'openproject'.

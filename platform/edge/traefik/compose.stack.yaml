@@ -5,7 +5,7 @@ networks:
     name: shared-proxy
 services:
   app:
-    container_name: traefik-app
+    container_name: traefik_app
     environment:
       CF_DNS_API_TOKEN: ${CF_DNS_API_TOKEN:?err}
       GOMEMLIMIT: 750MiB
@@ -25,7 +25,7 @@ services:
     networks:
       shared-proxy:
         aliases:
-        - traefik-app
+        - traefik_app
     ports:
     - 80:80
     - 443:443
@@ -36,7 +36,7 @@ services:
     - ./files/traefik.yml:/etc/traefik/traefik.yml:ro
     - ./files/host.yml:/etc/traefik/dynamic/host.yml:ro
     - ./files/controller/controller.yml:/etc/traefik/dynamic/controller.yml:ro
-    - letsencrypt:/letsencrypt
+    - app:/letsencrypt
 volumes:
-  letsencrypt:
-    name: traefik-letsencrypt
+  app:
+    name: traefik_app

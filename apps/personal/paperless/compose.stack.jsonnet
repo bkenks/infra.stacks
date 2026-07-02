@@ -7,9 +7,10 @@
 // owns). `db` is this stack's OWN dedicated Postgres — it does NOT join
 // shared-postgres.
 //
-// Volume names are PINNED to the pre-jsonnet layout (`paperless-production_*`)
-// so existing data is reused regardless of the compose project name Komodo
-// assigns — see README.md for why.
+// Volume names follow the standard KTB convention (n.volume(...)) — this was
+// previously pinned to the pre-jsonnet layout (`paperless-production_*`) to
+// avoid a rename; that pin is now dropped as part of the naming-convention
+// pass, so existing volumes must be migrated/renamed on next deploy.
 local lib = import 'lib.libsonnet';
 
 local stack = 'paperless';
@@ -35,12 +36,11 @@ local dbName = 'paperless';
 local exportMount = lib.registry.dockerVolumes + '/apps/paperless/export';
 local consumeMount = lib.registry.dockerVolumes + '/apps/paperless/consume';
 
-// Volume KEYS as locals; the `name:` values below are PINNED literals — do NOT
-// run these through n.volume(...) (see header comment + README.md).
-local dataVol = 'data';
-local mediaVol = 'media';
-local pgDataVol = 'pg-data';
-local redisDataVol = 'redis-data';
+// Volume resource keys. broker/db each own exactly one volume, so the key is
+// just the service's own role (broker/db); webserver owns two, so its keys
+// get a '_<purpose>' suffix.
+local dataVol = webserver + '_data';
+local mediaVol = webserver + '_media';
 
 {
   name: stack,
@@ -49,7 +49,7 @@ local redisDataVol = 'redis-data';
     [broker]: {
       image: 'docker.io/library/redis:' + brokerVersion,
       container_name: n.container(broker),
-      volumes: [redisDataVol + ':/data'],
+      volumes: [broker + ':/data'],
       environment: {
         ALLOW_EMPTY_PASSWORD: 'yes',
       },
@@ -67,7 +67,7 @@ local redisDataVol = 'redis-data';
     [db]: {
       image: 'docker.io/library/postgres:' + dbVersion,
       container_name: n.container(db),
-      volumes: [pgDataVol + ':/var/lib/postgresql'],
+      volumes: [db + ':/var/lib/postgresql'],
       environment: {
         POSTGRES_USER: dbUser,
         POSTGRES_DB: dbName,
@@ -160,10 +160,10 @@ local redisDataVol = 'redis-data';
   },
 
   volumes: {
-    [dataVol]: { name: 'paperless-production_data' },
-    [mediaVol]: { name: 'paperless-production_media' },
-    [pgDataVol]: { name: 'paperless-production_pg-data' },
-    [redisDataVol]: { name: 'paperless-production_redis-data' },
+    [broker]: { name: n.volume(broker) },
+    [db]: { name: n.volume(db) },
+    [dataVol]: { name: n.volume(dataVol) },
+    [mediaVol]: { name: n.volume(mediaVol) },
   },
 
   networks:

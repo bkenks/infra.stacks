@@ -8,7 +8,7 @@ networks:
     name: shared-proxy
 services:
   app:
-    container_name: scriberr-app
+    container_name: scriberr_app
     environment:
       ALLOWED_ORIGINS: https://scriberr.homektb.com
       APP_ENV: production
@@ -26,16 +26,16 @@ services:
     networks:
       default:
         aliases:
-        - scriberr-app
+        - scriberr_app
       shared-proxy:
         aliases:
-        - scriberr-app
+        - scriberr_app
     restart: unless-stopped
     volumes:
-    - scriberr-data:/app/data
-    - scriberr-whisperx-env:/app/whisperx-env
+    - app_data:/app/data
+    - app_whisperx-env:/app/whisperx-env
 volumes:
-  scriberr-data:
-    name: scriberr-data
-  scriberr-whisperx-env:
-    name: scriberr-whisperx-env
+  app_data:
+    name: scriberr_app_data
+  app_whisperx-env:
+    name: scriberr_app_whisperx-env

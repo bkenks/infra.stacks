@@ -8,7 +8,7 @@ networks:
     name: shared-proxy
 services:
   app:
-    container_name: mazanoke-app
+    container_name: mazanoke_app
     expose:
     - '80'
     image: ghcr.io/civilblur/mazanoke:v1.1.5
@@ -21,8 +21,8 @@ services:
     networks:
       default:
         aliases:
-        - mazanoke-app
+        - mazanoke_app
       shared-proxy:
         aliases:
-        - mazanoke-app
+        - mazanoke_app
     restart: unless-stopped

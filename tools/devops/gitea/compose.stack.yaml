@@ -8,7 +8,7 @@ networks:
     name: shared-proxy
 services:
   app:
-    container_name: gitea-app
+    container_name: gitea_app
     depends_on:
       db:
         condition: service_healthy
@@ -17,7 +17,7 @@ services:
       GITEA__SERVER__SSH_LISTEN_PORT: '22'
       GITEA__SERVER__SSH_PORT: '2222'
       GITEA__database__DB_TYPE: postgres
-      GITEA__database__HOST: gitea-db:5432
+      GITEA__database__HOST: gitea_db:5432
       GITEA__database__NAME: gitea
       GITEA__database__PASSWD: ${GITEA_DB_PASSWORD:?err}
       GITEA__database__USER: gitea
@@ -49,15 +49,15 @@ services:
     networks:
       default:
         aliases:
-        - gitea-app
+        - gitea_app
       shared-proxy:
         aliases:
-        - gitea-app
+        - gitea_app
     restart: on-failure:5
     volumes:
-    - gitea-app:/data
+    - app:/data
   db:
-    container_name: gitea-db
+    container_name: gitea_db
     environment:
       POSTGRES_DB: gitea
       POSTGRES_PASSWORD: ${GITEA_DB_PASSWORD:?err}
@@ -75,12 +75,12 @@ services:
     networks:
       default:
         aliases:
-        - gitea-db
+        - gitea_db
     restart: on-failure:5
     volumes:
-    - gitea-db:/var/lib/postgresql/data
+    - db:/var/lib/postgresql/data
 volumes:
-  gitea-app:
-    name: gitea-app
-  gitea-db:
-    name: gitea-db
+  app:
+    name: gitea_app
+  db:
+    name: gitea_db

@@ -38,6 +38,6 @@ local version = 'sha256:f748c20cecb3cf3162d80ebfddd4f192b5e4ee640d600c9daf726310
     + lib.compose.own('dbBackups'),  // databasus OWNS shared-db-backups; the DBs join it
 
   volumes: {
-    [roles.app]: { name: n.volume(roles.app) },  // 'databasus-app'
+    [roles.app]: { name: n.volume(roles.app) },  // 'databasus_app'
   },
 }

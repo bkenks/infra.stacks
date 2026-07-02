@@ -46,6 +46,6 @@ local version = 'v0.40';
   networks: n.network,  // private net (renamed default) 'zerobyte'
 
   volumes: {
-    [roles.app]: { name: n.volume(roles.app) },  // 'zerobyte-app'
+    [roles.app]: { name: n.volume(roles.app) },  // 'zerobyte_app'
   },
 }

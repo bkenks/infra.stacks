@@ -7,7 +7,7 @@ services:
   app:
     cap_add:
     - SYS_ADMIN
-    container_name: zerobyte-app
+    container_name: zerobyte_app
     devices:
     - /dev/fuse:/dev/fuse
     environment:
@@ -18,7 +18,7 @@ services:
     networks:
       default:
         aliases:
-        - zerobyte-app
+        - zerobyte_app
     ports:
     - 4096:4096
     restart: unless-stopped
@@ -28,4 +28,4 @@ services:
     - app:/var/lib/zerobyte
 volumes:
   app:
-    name: zerobyte-app
+    name: zerobyte_app

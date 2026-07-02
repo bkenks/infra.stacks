@@ -20,7 +20,9 @@
 // baked here; only genuine per-HOST values stay as ${...} for compose interp.
 local lib = import 'lib.libsonnet';
 
-local stack = 'infisical-agent';
+// Naming is merged into the 'infisical' project (matches komodo-periphery's
+// merge into 'komodo') — this stack is Infisical's agent, not its own app.
+local stack = 'infisical';
 local n = lib.compose.names(stack);
 
 local version = '0.43.89';  // docker.io/infisical/cli
@@ -31,7 +33,7 @@ local version = '0.43.89';  // docker.io/infisical/cli
   services: {
     agent: {
       image: 'docker.io/infisical/cli:' + version,
-      container_name: n.container('agent'),  // 'infisical-agent-agent'
+      container_name: n.container('agent'),  // 'infisical_agent'
       entrypoint: ['/bin/sh', '/agent/entrypoint.sh'],
       volumes: [
         './files/entrypoint.sh:/agent/entrypoint.sh:ro',
@@ -72,5 +74,5 @@ local version = '0.43.89';  // docker.io/infisical/cli
     },
   },
 
-  networks: n.network,  // private net (renamed default) 'infisical-agent'
+  networks: n.network,  // private net (renamed default) 'infisical' — shared name with infisical-core's own default net, same tradeoff as komodo-periphery/komodo
 }

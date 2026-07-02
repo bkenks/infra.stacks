@@ -24,7 +24,7 @@ local guacdPort = 4822;
       image: 'ghcr.io/lukegus/termix:' + appVersion,
       container_name: n.container(app),
       depends_on: { [guacd]: { condition: 'service_started' } },
-      volumes: [n.volume('data') + ':/app/data'],
+      volumes: [app + ':/app/data'],
       environment: { PORT: std.toString(port) },
       restart: 'on-failure:5',
       healthcheck: {
@@ -56,7 +56,7 @@ local guacdPort = 4822;
     },
   },
 
-  volumes: { [n.volume('data')]: { name: n.volume('data') } },
+  volumes: { [app]: { name: n.volume(app) } },
 
   networks: n.network + lib.compose.join('proxy'),
 }

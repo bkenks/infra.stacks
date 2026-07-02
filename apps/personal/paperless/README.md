@@ -22,11 +22,11 @@ Non-secret config (DB user/name, versions, locale, service endpoints) is baked d
 
 The `export/` and `consume/` bind mounts live under `${lib.registry.dockerVolumes}/apps/paperless/` (baked into `compose.stack.jsonnet` at compile time, resolved from `.jsonnet/lib/registry.libsonnet` → `dockerVolumes`).
 
-### Why the volume names are pinned
+### Volume naming
 
-This stack's four named volumes are **pinned** to explicit literal names in `compose.stack.jsonnet` — `data` → `paperless-production_data`, `media` → `paperless-production_media`, `pg-data` → `paperless-production_pg-data`, `redis-data` → `paperless-production_redis-data` — instead of being generated via `n.volume(...)` (which would produce `paperless-data`, etc.).
+This stack's four named volumes now follow the standard KTB naming convention (`n.volume(...)`, `<project>_<service-role>`, no redundant descriptor for a single-volume service): `broker` → `paperless_broker`, `db` → `paperless_db`, and `webserver`'s two volumes → `paperless_webserver_data` / `paperless_webserver_media` (suffixed since `webserver` owns more than one).
 
-This preserves data from an even-older pre-Komodo layout that set `name: paperless-${DOCK_ENV}`, prefixing its volumes `paperless-production_`. A prior migration already fixed the volume-prefix drift once by pinning these names explicitly; running them through the standard `n.volume(...)` naming here would repeat that same mistake and orphan the real data. So there is **no volume-rename step needed** for this stack's jsonnet migration (unlike `docuseal`) — the pinned names carry straight through unchanged, and Compose logs a harmless "volume already exists but was not created by Docker Compose" warning on deploy.
+An earlier revision of this stack pinned these to literal legacy names (`paperless-production_*`, from a pre-Komodo layout) to avoid a volume rename. That pinning has since been removed in favor of the standard convention — **this stack's volumes were renamed** (`.scripts/rename-volume.sh`, originals kept) as part of that migration; see the naming-convention migration PR for the old→new mapping.
 
 ### Compose Commands
 
