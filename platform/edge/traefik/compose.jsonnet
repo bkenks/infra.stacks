@@ -6,7 +6,12 @@
   include: [
     {
       path: './compose.stack.yaml',
-      env_file: ['/dev/shm/platform.env'],
+      env_file: [
+        {
+          path: ['/dev/shm/platform.env', "/dev/shm/cloudflared.env"],
+          required: false
+        },
+      ],
     },
   ],
 }
