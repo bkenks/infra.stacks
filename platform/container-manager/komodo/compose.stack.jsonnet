@@ -20,6 +20,7 @@ local db = c.roles.db;
 local version = '2.1.2';        // Komodo image tag (was interpolation var KOMO_VERS)
 local mongoVersion = '8.2.4';
 local komodoEnv = './core.env';
+local stackDir = '/bind-mounts/dcm';
 
 {
   name: stack,
@@ -31,8 +32,8 @@ local komodoEnv = './core.env';
       depends_on: [ db ],
       volumes: [
         app + ':/config/keys',  // auto-generated v2 PKI keys
-        r.dockerVolumes + '/dcm/komodo/data/backups:/backups',
-        r.dockerVolumes + '/dcm/komodo/data/syncs:/syncs',
+        r.dockerDir + stackDir + '/komodo/data/backups:/backups',
+        r.dockerDir + stackDir + '/komodo/data/syncs:/syncs',
       ],
       env_file: komodoEnv,  // committed non-secret config (KOMODO_* tunables)
       environment: {
@@ -65,8 +66,8 @@ local komodoEnv = './core.env';
       image: 'mongo:' + mongoVersion,
       container_name: n.container(db),  // referenced as komodo_db:27017 in core.env
       volumes: [
-        r.dockerVolumes + '/dcm/mongo/data:/data/db',
-        r.dockerVolumes + '/dcm/mongo/config:/data/configdb',
+        r.dockerDir + stackDir + '/mongo/data:/data/db',
+        r.dockerDir + stackDir + '/mongo/config:/data/configdb',
       ],
       env_file: komodoEnv,
       environment: {

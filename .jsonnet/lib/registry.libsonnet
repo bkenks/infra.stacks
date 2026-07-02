@@ -16,7 +16,7 @@
   # notes: Literal independent variables used accross all containers.
   # rootDomain is the default zone; pull any other zone from `domains`.
   rootDomain: $.domains.homektb,
-  dockerVolumes: '/srv/docker/bind-mounts',
+  dockerDir: '/srv/docker',
   # GLOBAL VARIABLES
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

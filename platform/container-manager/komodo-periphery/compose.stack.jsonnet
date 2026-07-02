@@ -34,7 +34,7 @@ local port = 8120;
         '/proc:/proc',                                // see host processes from inside the container
         '/etc/komodo:/etc/komodo',                    // periphery agent root (same path inside and outside)
         '/dev/shm/:/dev/shm/:ro',
-        r.dockerVolumes + ':' + r.dockerVolumes,                            // mirror docker volumes for directory pre-creation
+        r.dockerDir + ':' + r.dockerDir,                            // mirror docker volumes for directory pre-creation
       ],
       env_file: ['./periphery.env'],
       ports: [lib.compose.publish(port)],
