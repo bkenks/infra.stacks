@@ -8,7 +8,7 @@ local lib = import 'lib.libsonnet';
 
 local stack = 'databasus';
 local n = lib.compose.names(stack);
-local roles = lib.compose.roles;
+local roles = lib.registry.roles;
 
 local port = 4005;
 local version = 'sha256:f748c20cecb3cf3162d80ebfddd4f192b5e4ee640d600c9daf726310ac49e51c';
@@ -24,10 +24,10 @@ local version = 'sha256:f748c20cecb3cf3162d80ebfddd4f192b5e4ee640d600c9daf726310
         '/dev/shm/' + stack + '_secret.key:/databasus-data/secret.key:ro',
         roles.app + ':/databasus-data',
       ],
-      ports: [lib.compose.publish(port)],
+      ports: [std.toString(port) + ':' + std.toString(port)],
       networks: {
         default: { aliases: [n.alias(roles.app)] },
-        [lib.compose.netName('dbBackups')]: { aliases: [n.alias(roles.app)] },
+        [lib.registry.sharedNetworks.dbBackups.name]: { aliases: [n.alias(roles.app)] },
       },
       restart: 'unless-stopped',
     },

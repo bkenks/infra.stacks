@@ -65,7 +65,7 @@ local ports = {
       expose: [std.toString(ports.bazarr)],
       networks: {
         default: { aliases: [n.alias('bazarr')] },
-        [lib.compose.netName('proxy')]: { aliases: [n.alias('bazarr')] },
+        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias('bazarr')] },
       },
       labels: lib.mixins.proxyAdd('bazarr', 'bazarr', ports.bazarr),
     },
@@ -173,7 +173,7 @@ local ports = {
       expose: [std.toString(ports.prowlarr)],
       networks: {
         default: { aliases: [n.alias('prowlarr')] },
-        [lib.compose.netName('proxy')]: { aliases: [n.alias('prowlarr')] },
+        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias('prowlarr')] },
       },
       labels: lib.mixins.proxyAdd('prowlarr', 'prowlarr', ports.prowlarr),
     },
@@ -197,7 +197,7 @@ local ports = {
       expose: [std.toString(ports.radarr)],
       networks: {
         default: { aliases: [n.alias('radarr')] },
-        [lib.compose.netName('proxy')]: { aliases: [n.alias('radarr')] },
+        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias('radarr')] },
       },
       labels: lib.mixins.proxyAdd('radarr', 'radarr', ports.radarr),
     },
@@ -221,7 +221,7 @@ local ports = {
       expose: [std.toString(ports.sabnzbd)],
       networks: {
         default: { aliases: [n.alias('sabnzbd')] },
-        [lib.compose.netName('proxy')]: { aliases: [n.alias('sabnzbd')] },
+        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias('sabnzbd')] },
       },
       labels: lib.mixins.proxyAdd('sabnzbd', 'sabnzbd', ports.sabnzbd),
     },
@@ -238,7 +238,7 @@ local ports = {
       expose: [std.toString(ports.seerr)],
       networks: {
         default: { aliases: [n.alias('seerr')] },
-        [lib.compose.netName('proxy')]: { aliases: [n.alias('seerr')] },
+        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias('seerr')] },
       },
       labels: lib.mixins.proxyAdd('seerr', 'seerr', ports.seerr),
       init: true,
@@ -263,7 +263,7 @@ local ports = {
       expose: [std.toString(ports.sonarr)],
       networks: {
         default: { aliases: [n.alias('sonarr')] },
-        [lib.compose.netName('proxy')]: { aliases: [n.alias('sonarr')] },
+        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias('sonarr')] },
       },
       labels: lib.mixins.proxyAdd('sonarr', 'sonarr', ports.sonarr),
     },

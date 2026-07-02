@@ -16,7 +16,7 @@ local lib = import 'lib.libsonnet';
 local stack = 'paperless';
 local n = lib.compose.names(stack);
 local broker = 'broker';
-local db = lib.compose.roles.db;
+local db = lib.registry.roles.db;
 local gotenberg = 'gotenberg';
 local tika = 'tika';
 local webserver = 'webserver';
@@ -151,7 +151,7 @@ local mediaVol = webserver + '_media';
       },
       networks: {
         default: { aliases: [n.alias(webserver)] },
-        [lib.compose.netName('proxy')]: { aliases: [n.alias(webserver)] },
+        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias(webserver)] },
       },
       // Exposed to Traefik on shared-proxy — no published host port.
       labels: lib.mixins.proxyAdd(stack, 'paper', webPort),

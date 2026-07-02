@@ -16,7 +16,7 @@ local n = lib.compose.names(stack);
 local db = 'database';
 local ml = 'machine-learning';
 local app = 'server';
-local redis = lib.compose.roles.redis;
+local redis = lib.registry.roles.redis;
 
 local dbVersion = 'ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:bcf63357191b76a916ae5eb93464d65c07511da41e3bf7a8416db519b40b1c23';
 local mlVersion = 'ghcr.io/immich-app/immich-machine-learning:v2.7.5';
@@ -84,7 +84,7 @@ local tz = 'America/New_York';
       expose: [std.toString(port)],
       networks: {
         default: { aliases: [n.alias(app)] },
-        [lib.compose.netName('proxy')]: { aliases: [n.alias(app)] },
+        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias(app)] },
       },
       labels: lib.mixins.proxyAdd('immich', 'immich', port),
     },

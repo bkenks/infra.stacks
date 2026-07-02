@@ -10,12 +10,12 @@ local lib = import 'lib.libsonnet';
 
 local stack = 'twenty';
 local n = lib.compose.names(stack);
-local redis = lib.compose.roles.redis;
+local redis = lib.registry.roles.redis;
 local server = 'server';
 local worker = 'worker';
 
-local pgHost = lib.compose.endpoint('postgres').private.host;  // 'postgres_db'
-local pgPort = lib.compose.endpoint('postgres').private.port;  // 5432
+local pgHost = lib.registry.endpoints.postgres.private.host;  // 'postgres_db'
+local pgPort = lib.registry.endpoints.postgres.private.port;  // 5432
 local dbName = 'twenty';
 
 local imageVersion = 'v1.18.1';  // twentycrm/twenty
@@ -80,8 +80,8 @@ local commonEnv = {
       expose: [std.toString(serverPort)],
       networks: {
         default: { aliases: [n.alias(server)] },
-        [lib.compose.netName('proxy')]: { aliases: [n.alias(server)] },
-        [lib.compose.netName('postgres')]: { aliases: [n.alias(server)] },
+        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias(server)] },
+        [lib.registry.sharedNetworks.postgres.name]: { aliases: [n.alias(server)] },
       },
       labels: lib.mixins.proxyAdd(stack, stack, serverPort),
     },
@@ -101,7 +101,7 @@ local commonEnv = {
       restart: 'unless-stopped',
       networks: {
         default: { aliases: [n.alias(worker)] },
-        [lib.compose.netName('postgres')]: { aliases: [n.alias(worker)] },
+        [lib.registry.sharedNetworks.postgres.name]: { aliases: [n.alias(worker)] },
       },
     },
   },

@@ -13,7 +13,7 @@ local lib = import 'lib.libsonnet';
 
 local stack = 'infisical';
 local n = lib.compose.names(stack);
-local roles = lib.compose.roles;
+local roles = lib.registry.roles;
 
 local appVersion = 'v0.160.9';   // docker.io/infisical/infisical
 local dbVersion = '16-alpine';   // docker.io/library/postgres
@@ -59,8 +59,8 @@ local dbName = 'infisical';
       },
       networks: {
         default: { aliases: [n.alias(roles.app)] },
-        [lib.compose.netName('infisical')]: { aliases: [n.alias(roles.app)] },  // shared-infisical (owned)
-        [lib.compose.netName('proxy')]: { aliases: [n.alias(roles.app)] },      // shared-proxy (joined)
+        [lib.registry.sharedNetworks.infisical.name]: { aliases: [n.alias(roles.app)] },  // shared-infisical (owned)
+        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias(roles.app)] },      // shared-proxy (joined)
       },
       restart: 'unless-stopped',
       healthcheck: {

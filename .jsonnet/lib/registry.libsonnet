@@ -39,6 +39,19 @@
 
 
   # ============================================================
+  # SERVICE ROLES
+  # ============================================================
+  # notes: Predefined role-name constants for the common service roles, so a typo
+  # fails at compile time (same guard as every other registry key). Reference by
+  # KEY (roles.app); pass any OTHER role inline as a string when you need one
+  # that isn't predefined (container/volume/alias naming just labels intent).
+  roles: { app: 'app', db: 'db', redis: 'redis' },
+  # SERVICE ROLES
+  # ============================================================
+
+
+
+  # ============================================================
   # SHARED DOCKER NETWORKS
   # ============================================================
   # notes: Networks shared between containers that don't live in the same stack as

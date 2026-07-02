@@ -8,7 +8,7 @@ local lib = import 'lib.libsonnet';
 
 local stack = 'frappe';
 local n = lib.compose.names(stack);
-local roles = lib.compose.roles;
+local roles = lib.registry.roles;
 
 // Roles. `db` is the common constant (typo-safe); the rest are plain strings —
 // frappe has two redis instances (cache/queue) so there's no single `roles.redis`.
@@ -163,7 +163,7 @@ local frappeImageService(role) = {
       expose: [std.toString(frontendPort)],
       networks: {
         default: { aliases: [n.alias(frontend)] },
-        [lib.compose.netName('proxy')]: { aliases: [n.alias(frontend)] },
+        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias(frontend)] },
       },
       // Single-site rule today (business.stackform.app), so proxyAdd's
       // single-Host() assumption fits. Onboarding a second tenant means this

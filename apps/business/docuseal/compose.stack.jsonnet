@@ -7,9 +7,9 @@ local lib = import 'lib.libsonnet';
 
 local stack = 'docuseal';
 local n = lib.compose.names(stack);
-local app = lib.compose.roles.app;
-local pgHost = lib.compose.endpoint('postgres').private.host;  // 'postgres_db'
-local pgPort = lib.compose.endpoint('postgres').private.port;  // 5432
+local app = lib.registry.roles.app;
+local pgHost = lib.registry.endpoints.postgres.private.host;  // 'postgres_db'
+local pgPort = lib.registry.endpoints.postgres.private.port;  // 5432
 
 local version = '2.5.3';
 local port = 3000;
@@ -37,8 +37,8 @@ local port = 3000;
       expose: [std.toString(port)],
       networks: {
         default: { aliases: [n.alias(app)] },
-        [lib.compose.netName('proxy')]: { aliases: [n.alias(app)] },
-        [lib.compose.netName('postgres')]: { aliases: [n.alias(app)] },
+        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias(app)] },
+        [lib.registry.sharedNetworks.postgres.name]: { aliases: [n.alias(app)] },
       },
       labels: lib.mixins.proxyAdd(stack, stack, port),
     },

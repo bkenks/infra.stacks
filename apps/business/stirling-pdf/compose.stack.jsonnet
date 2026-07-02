@@ -6,7 +6,7 @@ local lib = import 'lib.libsonnet';
 
 local stack = 'stirling-pdf';
 local n = lib.compose.names(stack);
-local app = lib.compose.roles.app;
+local app = lib.registry.roles.app;
 
 local version = '2.10.1';
 local port = 8080;
@@ -38,7 +38,7 @@ local base = lib.registry.dockerVolumes + '/apps/stirling-pdf';
       expose: [std.toString(port)],
       networks: {
         default: { aliases: [n.alias(app)] },
-        [lib.compose.netName('proxy')]: { aliases: [n.alias(app)] },
+        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias(app)] },
       },
       labels: lib.mixins.proxyAdd(stack, stack, port),
     },

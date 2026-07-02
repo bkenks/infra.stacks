@@ -10,7 +10,7 @@ local lib = import 'lib.libsonnet';
 
 local stack = 'zerobyte';
 local n = lib.compose.names(stack);
-local roles = lib.compose.roles;
+local roles = lib.registry.roles;
 
 local port = 4096;
 local version = 'v0.40';
@@ -33,7 +33,7 @@ local version = 'v0.40';
         BASE_URL: 'http://${TAILSCALE_HOSTNAME:?err}:' + std.toString(port),
         APP_SECRET: '${ZROBYT__APP_SECRET:?err}',
       },
-      ports: [lib.compose.publish(port)],  // '4096:4096' — core infra, no proxy
+      ports: [std.toString(port) + ':' + std.toString(port)],  // '4096:4096' — core infra, no proxy
       networks: {
         default: { aliases: [n.alias(roles.app)] },
       },

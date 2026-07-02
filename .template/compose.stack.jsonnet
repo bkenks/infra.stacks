@@ -10,12 +10,12 @@ local lib = import 'lib.libsonnet';
 
 local stack = 'replaceme';
 local n = lib.compose.names(stack);
-local app = lib.compose.roles.app;
+local app = lib.registry.roles.app;
 
 // Only needed if this stack has its own DB on shared-postgres — delete these
 // two locals (and the postgres network join + DATABASE_URL below) otherwise.
-local pgHost = lib.compose.endpoint('postgres').private.host;  // 'postgres_db'
-local pgPort = lib.compose.endpoint('postgres').private.port;  // 5432
+local pgHost = lib.registry.endpoints.postgres.private.host;  // 'postgres_db'
+local pgPort = lib.registry.endpoints.postgres.private.port;  // 5432
 
 local version = '0.0.0';
 local port = 8080;
@@ -53,9 +53,9 @@ local port = 8080;
       networks: {
         default: { aliases: [n.alias(app)] },
         // Join shared-proxy (traefik owns) so this service is reachable.
-        [lib.compose.netName('proxy')]: { aliases: [n.alias(app)] },
+        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias(app)] },
         // Join shared-postgres (postgres owns) to reach the DB — delete if unused.
-        [lib.compose.netName('postgres')]: { aliases: [n.alias(app)] },
+        [lib.registry.sharedNetworks.postgres.name]: { aliases: [n.alias(app)] },
       },
 
       // Traefik routing + TLS on the shared wildcard cert. Delete if this

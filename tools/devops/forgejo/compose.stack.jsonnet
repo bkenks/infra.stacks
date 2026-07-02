@@ -9,7 +9,7 @@ local lib = import 'lib.libsonnet';
 
 local stack = 'forgejo';
 local n = lib.compose.names(stack);
-local db = lib.compose.roles.db;
+local db = lib.registry.roles.db;
 
 // role name in compose is 'server' (matches the old stack + Forgejo's own docs).
 local server = 'server';
@@ -48,7 +48,7 @@ local dbName = 'forgejo';
       expose: [std.toString(port), '22'],
       networks: {
         default: { aliases: [n.alias(server)] },
-        [lib.compose.netName('proxy')]: { aliases: [n.alias(server)] },
+        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias(server)] },
       },
       labels: lib.mixins.proxyAdd(stack, 'fj', port) + {
         // --- SSH (raw TCP) --- proxyAdd only builds HTTP routers, so these are

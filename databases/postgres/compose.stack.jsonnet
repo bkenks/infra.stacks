@@ -12,8 +12,8 @@ local lib = import 'lib.libsonnet';
 
 local stack = 'postgres';
 local n = lib.compose.names(stack);
-local roles = lib.compose.roles;
-local addr = lib.compose.endpoint('postgres').private.host;  // 'postgres_db' — container_name + network alias (registry SoT)
+local roles = lib.registry.roles;
+local addr = lib.registry.endpoints.postgres.private.host;  // 'postgres_db' — container_name + network alias (registry SoT)
 local pgVersion = '18';
 local pgadminVersion = '9.13';
 
@@ -31,11 +31,12 @@ local pgadminVersion = '9.13';
         POSTGRES_USER: '${POSTGRES_USER:?err}',
         POSTGRES_PASSWORD: '${POSTGRES_PASS:?err}',
       },
+      ports: [ '6109:5432' ],
       restart: 'always',
       networks: {
         default: { aliases: [addr] },
-        [lib.compose.netName('postgres')]: { aliases: [addr] },   // shared-postgres
-        [lib.compose.netName('dbBackups')]: { aliases: [addr] },  // shared-db-backups
+        [lib.registry.sharedNetworks.postgres.name]: { aliases: [addr] },   // shared-postgres
+        [lib.registry.sharedNetworks.dbBackups.name]: { aliases: [addr] },  // shared-db-backups
       },
       healthcheck: {
         test: 'pg_isready -U ${POSTGRES_USER} -h localhost -d postgres',
@@ -45,20 +46,20 @@ local pgadminVersion = '9.13';
       },
     },
 
-    pgadmin: {
-      image: 'dpage/pgadmin4:' + pgadminVersion,
-      container_name: n.container('admin'),  // 'postgres_admin'
-      profiles: ['full'],
-      ports: ['5050:80'],
-      environment: {
-        PGADMIN_DEFAULT_EMAIL: 'briankenkel.t@gmail.com',
-        // Secret — interpolated from /dev/shm/postgres.env (parent include.env_file)
-        PGADMIN_DEFAULT_PASSWORD: '${PG_ADMIN_PASS:?err}',
-        PGADMIN_CONFIG_SERVER_MODE: 'True',
-        PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'True',
-      },
-      networks: { default: {} },
-    },
+    // pgadmin: {
+    //   image: 'dpage/pgadmin4:' + pgadminVersion,
+    //   container_name: n.container('admin'),  // 'postgres_admin'
+    //   profiles: ['full'],
+    //   ports: ['5050:80'],
+    //   environment: {
+    //     PGADMIN_DEFAULT_EMAIL: 'briankenkel.t@gmail.com',
+    //     // Secret — interpolated from /dev/shm/postgres.env (parent include.env_file)
+    //     PGADMIN_DEFAULT_PASSWORD: '${PG_ADMIN_PASS:?err}',
+    //     PGADMIN_CONFIG_SERVER_MODE: 'True',
+    //     PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'True',
+    //   },
+    //   networks: { default: {} },
+    // },
   },
 
   networks:

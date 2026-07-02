@@ -12,8 +12,8 @@ local c = lib.compose;
 
 local stack = 'komodo';
 local n = c.names(stack);
-local app = c.roles.app;
-local db = c.roles.db;
+local app = lib.registry.roles.app;
+local db = lib.registry.roles.db;
 
 // 
 
@@ -55,7 +55,7 @@ local stackDir = '/bind-mounts/dcm';
         default: {
           aliases: [n.alias('core')]
         },
-        [lib.compose.netName('proxy')]: {
+        [lib.registry.sharedNetworks.proxy.name]: {
           aliases: [n.alias('core')]
         },
       },

@@ -5,7 +5,7 @@ local lib = import 'lib.libsonnet';
 
 local stack = 'scriberr';
 local n = lib.compose.names(stack);
-local app = lib.compose.roles.app;
+local app = lib.registry.roles.app;
 
 // app owns two volumes, so each resource key is suffixed with its purpose
 // (<service-role>_<purpose>) instead of the bare role — see docker-compose.md.
@@ -37,7 +37,7 @@ local port = 8080;
       expose: [std.toString(port)],
       networks: {
         default: { aliases: [n.alias(app)] },
-        [lib.compose.netName('proxy')]: { aliases: [n.alias(app)] },
+        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias(app)] },
       },
       labels: lib.mixins.proxyAdd(stack, stack, port),
     },

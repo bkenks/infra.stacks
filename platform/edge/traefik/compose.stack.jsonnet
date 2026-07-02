@@ -4,8 +4,7 @@
 // (deploy it FIRST; consumers join it external). Service discovery is pinned to
 // shared-proxy in files/traefik.yml (providers.docker.network) — keep in sync.
 local lib = import 'lib.libsonnet';
-local c = lib.compose;
-local roles = c.roles;
+local roles = lib.registry.roles;
 
 local stack = 'traefik';
 local n = lib.compose.names(stack);
@@ -50,7 +49,7 @@ local proxyNetwork = 'proxy';
         roles.app + ':/letsencrypt',  // persist acme.json across redeploys (volume keyed below)
       ],
       networks: {
-        [lib.compose.netName(proxyNetwork)]: {
+        [lib.registry.sharedNetworks[proxyNetwork].name]: {
           aliases: [extName]
         },
       },

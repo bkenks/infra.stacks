@@ -7,7 +7,7 @@ local lib = import 'lib.libsonnet';
 
 local stack = 'mazanoke';
 local n = lib.compose.names(stack);
-local app = lib.compose.roles.app;
+local app = lib.registry.roles.app;
 
 local version = 'v1.1.5';
 local port = 80;
@@ -23,7 +23,7 @@ local port = 80;
       expose: [std.toString(port)],
       networks: {
         default: { aliases: [n.alias(app)] },
-        [lib.compose.netName('proxy')]: { aliases: [n.alias(app)] },
+        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias(app)] },
       },
       labels: lib.mixins.proxyAdd(stack, stack, port),
     },

@@ -45,7 +45,7 @@ local grpcPort = 9000;
       expose: [std.toString(httpPort), std.toString(grpcPort)],
       networks: {
         default: { aliases: [n.alias('server')] },
-        [lib.compose.netName('proxy')]: { aliases: [n.alias('server')] },
+        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias('server')] },
       },
       labels: lib.mixins.proxyAdd('woodpecker', 'peck', httpPort),
     },

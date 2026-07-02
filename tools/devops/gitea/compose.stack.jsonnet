@@ -8,8 +8,8 @@ local lib = import 'lib.libsonnet';
 
 local stack = 'gitea';
 local n = lib.compose.names(stack);
-local app = lib.compose.roles.app;
-local db = lib.compose.roles.db;
+local app = lib.registry.roles.app;
+local db = lib.registry.roles.db;
 
 local appVersion = '1.24.4';   // docker.gitea.com/gitea
 local dbVersion = '16-alpine'; // docker.io/library/postgres
@@ -66,7 +66,7 @@ local dbName = 'gitea';
       expose: [std.toString(port), '22'],
       networks: {
         default: { aliases: [n.alias(app)] },
-        [lib.compose.netName('proxy')]: { aliases: [n.alias(app)] },
+        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias(app)] },
       },
       labels: lib.mixins.proxyAdd(stack, stack, port) + {
         // --- SSH (raw TCP) --- proxyAdd only builds HTTP routers, so these are

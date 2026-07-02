@@ -9,8 +9,8 @@ local lib = import 'lib.libsonnet';
 
 local stack = 'openproject';
 local n = lib.compose.names(stack);
-local pgHost = lib.compose.endpoint('postgres').private.host;  // 'postgres_db'
-local pgPort = lib.compose.endpoint('postgres').private.port;  // 5432
+local pgHost = lib.registry.endpoints.postgres.private.host;  // 'postgres_db'
+local pgPort = lib.registry.endpoints.postgres.private.port;  // 5432
 
 // Public host: subdomain is 'openprj', NOT the stack name 'openproject'.
 local sub = 'openprj';
@@ -106,7 +106,7 @@ local hocuspocusLabels = lib.mixins.proxyAdd(stack + '-hocuspocus', sub, hocuspo
       environment: opAppEnv + opAppSecrets,
       networks: {
         default: { aliases: [n.alias('cron')] },
-        [lib.compose.netName('postgres')]: { aliases: [n.alias('cron')] },
+        [lib.registry.sharedNetworks.postgres.name]: { aliases: [n.alias('cron')] },
       },
     },
 
@@ -130,7 +130,7 @@ local hocuspocusLabels = lib.mixins.proxyAdd(stack + '-hocuspocus', sub, hocuspo
       expose: [std.toString(hocuspocusPort)],
       networks: {
         default: { aliases: [n.alias('hocuspocus')] },
-        [lib.compose.netName('proxy')]: { aliases: [n.alias('hocuspocus')] },
+        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias('hocuspocus')] },
       },
       labels: hocuspocusLabels,
     },
@@ -142,7 +142,7 @@ local hocuspocusLabels = lib.mixins.proxyAdd(stack + '-hocuspocus', sub, hocuspo
       environment: opAppEnv + opAppSecrets,
       networks: {
         default: { aliases: [n.alias('seeder')] },
-        [lib.compose.netName('postgres')]: { aliases: [n.alias('seeder')] },
+        [lib.registry.sharedNetworks.postgres.name]: { aliases: [n.alias('seeder')] },
       },
     },
 
@@ -165,8 +165,8 @@ local hocuspocusLabels = lib.mixins.proxyAdd(stack + '-hocuspocus', sub, hocuspo
       expose: [std.toString(webPort)],
       networks: {
         default: { aliases: [n.alias('web')] },
-        [lib.compose.netName('postgres')]: { aliases: [n.alias('web')] },
-        [lib.compose.netName('proxy')]: { aliases: [n.alias('web')] },
+        [lib.registry.sharedNetworks.postgres.name]: { aliases: [n.alias('web')] },
+        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias('web')] },
       },
     },
 
@@ -177,7 +177,7 @@ local hocuspocusLabels = lib.mixins.proxyAdd(stack + '-hocuspocus', sub, hocuspo
       environment: opAppEnv + opAppSecrets,
       networks: {
         default: { aliases: [n.alias('worker')] },
-        [lib.compose.netName('postgres')]: { aliases: [n.alias('worker')] },
+        [lib.registry.sharedNetworks.postgres.name]: { aliases: [n.alias('worker')] },
       },
     },
   },

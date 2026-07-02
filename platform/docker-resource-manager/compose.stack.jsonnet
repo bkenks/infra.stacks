@@ -24,7 +24,7 @@ local netKeys = std.objectFields(reg.sharedNetworks);
     init: {
       image: 'docker.io/library/busybox:' + version,
       // Attach to every shared net so compose actually creates them, then exit 0.
-      networks: { [lib.compose.netName(k)]: {} for k in netKeys },
+      networks: { [reg.sharedNetworks[k].name]: {} for k in netKeys },
       command: ['true'],
       restart: 'no',
     },

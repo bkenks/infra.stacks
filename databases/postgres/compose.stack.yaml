@@ -30,26 +30,14 @@ services:
       shared-postgres:
         aliases:
         - postgres_db
+    ports:
+    - 6109:5432
     profiles:
     - full
     - no_pgadmin
     restart: always
     volumes:
     - db:/var/lib/postgresql
-  pgadmin:
-    container_name: postgres_admin
-    environment:
-      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'True'
-      PGADMIN_CONFIG_SERVER_MODE: 'True'
-      PGADMIN_DEFAULT_EMAIL: briankenkel.t@gmail.com
-      PGADMIN_DEFAULT_PASSWORD: ${PG_ADMIN_PASS:?err}
-    image: dpage/pgadmin4:9.13
-    networks:
-      default: {}
-    ports:
-    - 5050:80
-    profiles:
-    - full
 volumes:
   db:
     name: postgres_db

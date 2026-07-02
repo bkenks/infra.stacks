@@ -10,7 +10,7 @@ local lib = import 'lib.libsonnet';
 
 local stack = 'komodo-mcp';
 local n = lib.compose.names(stack);
-local app = lib.compose.roles.app;
+local app = lib.registry.roles.app;
 
 // Pinned to the MP-Tool/komodo-mcp-server upstream release tag (v1.4.1),
 // mirrored to fj.homektb.com/bkenks/komodo-mcp-server. VERIFY this tag exists
@@ -56,7 +56,7 @@ local authLabels = {
       networks: {
         // Unused (no peers) but kept for parity with the pre-jsonnet stack.
         default: { aliases: [n.alias(app)] },
-        [lib.compose.netName('proxy')]: { aliases: [n.alias(app)] },
+        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias(app)] },
       },
       labels: lib.mixins.proxyAdd('komodo-mcp', 'komodo-mcp', port) + authLabels + lib.mixins.komodoSkip,
     },
