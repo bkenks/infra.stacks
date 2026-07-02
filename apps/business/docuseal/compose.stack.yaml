@@ -13,7 +13,7 @@ services:
   app:
     container_name: docuseal_app
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres_db:6109/docuseal
+      DATABASE_URL: postgresql://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres_db:5432/docuseal
       FORCE_SSL: docuseal.homektb.com
       PORT: '3000'
       SECRET_KEY_BASE: ${DOCUSEAL_SECRET_KEY_BASE:?err}

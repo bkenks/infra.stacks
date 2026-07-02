@@ -18,6 +18,13 @@ local stack = 'postgres';
 local n = comp.names(stack);
 local pgEndpoint = reg.endpoints.postgres;
 
+// Host-published port for direct external access (DBeaver, psql from the LAN).
+// Independent of pgEndpoint.private.port (5432) — that's the container's real
+// internal listening port and is what every consumer's DATABASE_URL dials over
+// shared-postgres; it must NOT be tied to whatever host port this happens to
+// publish on.
+local hostPort = 6109;
+
 {
   name: stack,
 
@@ -34,7 +41,7 @@ local pgEndpoint = reg.endpoints.postgres;
         POSTGRES_USER: '${POSTGRES_USER:?err}',
         POSTGRES_PASSWORD: '${POSTGRES_PASS:?err}',
       },
-      ports: [ pgEndpoint.private.port + ':5432' ],
+      ports: [ std.toString(hostPort) + ':5432' ],
       restart: 'always',
       networks:
       comp.serviceNetwork('default', extName) +

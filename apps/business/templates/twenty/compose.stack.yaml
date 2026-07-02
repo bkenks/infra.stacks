@@ -45,7 +45,7 @@ services:
       CALENDAR_PROVIDER_GOOGLE_ENABLED: 'true'
       MESSAGING_PROVIDER_GMAIL_ENABLED: 'true'
       NODE_PORT: '3000'
-      PG_DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres_db:6109/twenty
+      PG_DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres_db:5432/twenty
       REDIS_URL: redis://twenty_redis:6379
       SERVER_URL: https://twenty.homektb.com
       STORAGE_TYPE: local
@@ -98,7 +98,7 @@ services:
       DISABLE_CRON_JOBS_REGISTRATION: 'true'
       DISABLE_DB_MIGRATIONS: 'true'
       MESSAGING_PROVIDER_GMAIL_ENABLED: 'true'
-      PG_DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres_db:6109/twenty
+      PG_DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres_db:5432/twenty
       REDIS_URL: redis://twenty_redis:6379
       SERVER_URL: https://twenty.homektb.com
       STORAGE_TYPE: local

@@ -13,7 +13,7 @@ services:
   app:
     container_name: replaceme_app
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres_db:6109/replaceme
+      DATABASE_URL: postgresql://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres_db:5432/replaceme
       PORT: '8080'
       SOME_SECRET: ${SOME_VAR:?err}
     expose:
