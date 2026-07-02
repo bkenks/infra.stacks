@@ -65,7 +65,7 @@ local opAppSecrets = {
   // 'postgres://' (not 'postgresql://') trips Ruby's uri gem: it isn't a
   // pre-registered hierarchical scheme, so URI.parse rejects the user:pass@
   // registry part with "the scheme postgres does not accept registry part".
-  DATABASE_URL: 'postgresql://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@' + pgHost + ':' + std.toString(pgPort) + '/openproject?pool=20&encoding=unicode&reconnect=true',
+  DATABASE_URL: 'postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@' + pgHost + ':' + std.toString(pgPort) + '/openproject?pool=20&encoding=unicode&reconnect=true',
   SECRET_KEY_BASE: '${OPEN_PRJ_SECRET_KEY:?err}',
   OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__SECRET: '${COLLAB_SERVER_SECRET:?err}',
 };
