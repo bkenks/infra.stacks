@@ -131,7 +131,7 @@
     # --- Stackform project ---
     'stackform-website': { project: 'stackform', folder: '/website', dest: 'stackform_website.env', type: 'dump' },
     # --- Infra project (dump) ---
-    traefik: { project: 'infra', folder: '/traefik', dest: 'node_traefik.env', type: 'dump' },
+    traefik: { project: 'infra', folder: '/traefik', dest: 'traefik.env', type: 'dump' },
     zerobyte: { project: 'infra', folder: '/zerobyte', dest: 'zerobyte.env', type: 'dump' },
     forgejo: { project: 'infra', folder: '/forgejo', dest: 'forgejo.env', type: 'dump' },
     gitea: { project: 'infra', folder: '/gitea', dest: 'gitea.env', type: 'dump' },
@@ -157,7 +157,7 @@
     cloudflared: {
       project: 'infra',
       folder: '/hosts/${AGENT_HOST}/cloudflared',
-      dest: 'node_cloudflared.env',
+      dest: 'cloudflared.env',
       type: 'map',
       keys: { CLOUDFLARE_TUNNEL_TOKEN: 'TUNNEL_TOKEN' },
     },

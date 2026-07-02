@@ -104,7 +104,7 @@ connection: each host already serves its publicly-trusted Let's Encrypt
 (via a `serverName` the wildcard covers, since we dial raw Tailscale IPs) — no
 `insecureSkipVerify`. This means each host must **keep** its ACME `*.homektb.com`
 cert (don't switch hosts to a self-signed cert). Every host already holds the
-`*.homektb.com` wildcard and the `CF_DNS_API_TOKEN` (via `node_traefik.env`), so
+`*.homektb.com` wildcard and the `CF_DNS_API_TOKEN` (via `traefik.env`), so
 **no new cert or secret**.
 
 > **Edge case:** if a service's container is *down* **and** DNS points at that

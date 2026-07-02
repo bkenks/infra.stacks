@@ -1,5 +1,5 @@
 # GENERATED from services.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
-- destination-path: /dev/shm/node_cloudflared.env
+- destination-path: /dev/shm/cloudflared.env
   config:
     polling-interval: "1m"
   template-content: |
