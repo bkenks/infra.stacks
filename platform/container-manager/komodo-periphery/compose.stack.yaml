@@ -24,7 +24,7 @@ services:
     - /var/run/docker.sock:/var/run/docker.sock
     - /proc:/proc
     - /etc/komodo:/etc/komodo
-    - /dev/shm/:/dev/shm/
+    - /dev/shm/:/dev/shm/:ro
     - /srv/docker/bind-mounts:/srv/docker/bind-mounts
 volumes:
   periphery:
