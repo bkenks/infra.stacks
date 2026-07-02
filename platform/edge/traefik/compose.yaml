@@ -1,9 +1,6 @@
 # GENERATED from compose.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
 include:
 - env_file:
-  - path:
-    - /dev/shm/platform.env
-    - /dev/shm/cloudflared.env
-    required: false
+  - ${ANSIBLE_SECRETS_FILE:-/dev/shm/traefik.env}
   path: ./compose.stack.yaml
 name: traefik

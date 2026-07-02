@@ -185,7 +185,9 @@
   # ============================================================
 
   envFiles: {
-    tailscale: '/srv/docker/files/tailscale.env'
+    secretsPath(envFilename): '/dev/shm/' + envFilename,
+    platform(envFilename):: '${ANSIBLE_SECRETS_FILE:-' + self.secretsPath(envFilename) + '}',
+    tailscale: '/srv/docker/files/tailscale.env',
   },
 
   // ── Shared volumes that cross stack boundaries (e.g. backup targets) ──────
