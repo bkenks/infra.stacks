@@ -78,11 +78,11 @@
   #   public  — via Traefik at https://<sub>.<domain>; `domain` pulls from domains.
   endpoints: {
     postgres: {
-      // port 5432 is Postgres's real internal listening port — every consumer's
-      // DATABASE_URL dials THIS over shared-postgres, regardless of whatever
-      // host port the postgres stack itself publishes for external access.
-      // postgres urls DO NOT ALLOW UNDERSCORE, so we must use a dash here
-      private: { host: 'postgres-db', port: 5432, network: $.sharedNetworks.postgres }, 
+      private: {
+        host: 'postgres-db',
+        port: 5432,
+        network: $.sharedNetworks.postgres
+      }, 
     },
     infisical: {
       private: { host: 'infisical_app', port: 8080, network: $.sharedNetworks.infisical },
@@ -142,7 +142,6 @@
     stream: { project: 'apps', folder: '/stream', dest: 'stream.env', type: 'dump' },
     convertx: { project: 'apps', folder: '/convertx', dest: 'convertx.env', type: 'dump' },
     twenty: { project: 'apps', folder: '/twenty', dest: 'twenty.env', type: 'dump' },
-    # --- Frappe project ---
     frappe: { project: 'frappe', folder: '/frappe', dest: 'frappe.env', type: 'dump' },
     # --- Couch-potatoes client project ---
     'couch-potatoes-website': { project: 'couchPotatoes', folder: '/website', dest: 'client_couch-potatoes_website.env', type: 'dump' },
