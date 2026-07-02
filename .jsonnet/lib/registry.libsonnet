@@ -167,6 +167,10 @@
   # AGENT SERVICES (secret catalogue)
   # ============================================================
 
+  envFiles: {
+    tailscale: '/dev/shm/tailscale.env'
+  },
+
   // ── Shared volumes that cross stack boundaries (e.g. backup targets) ──────
   volumes: {},
 }
