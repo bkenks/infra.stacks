@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 # Render a .jsonnet source to YAML next to it, and print the output path.
 #   Usage: .jsonnet/render.sh path/to/<name>.jsonnet
 # Output naming:
@@ -11,7 +11,7 @@
 #                       one file per field name. See services.jsonnet.)
 # Library imports resolve by bare name via the -J jpath below, so a source at any
 # depth does `import 'lib.libsonnet'`.
-set -eu
+set -euo pipefail
 
 src="$1"
 dir=$(dirname "$src")
@@ -33,12 +33,18 @@ if [ "$(basename "$src")" = "services.jsonnet" ]; then
   exit 0
 fi
 
+# Render to a temp file then swap into place — a jsonnet/python failure (caught
+# by `set -e` + `pipefail` above) must never truncate the real $out to a
+# half-written file (same reasoning as the services.jsonnet temp-dir swap).
 out="$dir/$(basename "$src" .jsonnet).yaml"
+tmp=$(mktemp "${out}.XXXXXX")
+trap 'rm -f "$tmp"' EXIT
 
 {
   printf '# GENERATED from %s by .jsonnet/render.sh — DO NOT EDIT.\n' "$(basename "$src")"
   jsonnet -J "$lib" "$src" \
     | python3 -c 'import sys, json, yaml; yaml.safe_dump(json.load(sys.stdin), sys.stdout, sort_keys=False, default_flow_style=False, width=4096)'
-} >"$out"
+} >"$tmp"
 
+mv "$tmp" "$out"
 printf '%s\n' "$out"

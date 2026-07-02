@@ -1,9 +1,13 @@
 pre-commit:
+  # bash (not the default sh/dash) so `set -e` propagates into the `find | while`
+  # subshell in regenerate-jsonnet-deps — a render failure must abort the commit.
+  shell: bash
   jobs:
     # A staged .jsonnet re-renders just that file.
     - name: regenerate-jsonnet
       glob: "**/*.jsonnet"
       run: |
+        set -e
         for file in {staged_files}; do
           out=$(.jsonnet/render.sh "$file")
           git add "$out"
@@ -14,6 +18,7 @@ pre-commit:
     - name: regenerate-jsonnet-deps
       glob: "**/*.libsonnet"
       run: |
+        set -e
         find . -path ./.git -prune -o -type f -name '*.jsonnet' -print | while read -r file; do
           out=$(.jsonnet/render.sh "$file")
           git add "$out"
