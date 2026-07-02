@@ -15,7 +15,7 @@ local n = lib.compose.names(stack);
 local roles = lib.registry.roles;
 local addr = lib.registry.endpoints.postgres.private.host;  // 'postgres_db' — container_name + network alias (registry SoT)
 local pgVersion = '18';
-local pgadminVersion = '9.13';
+// local pgadminVersion = '9.13';
 
 {
   name: stack,
@@ -24,7 +24,6 @@ local pgadminVersion = '9.13';
     [roles.db]: {
       image: 'postgres:' + pgVersion,
       container_name: addr,  // 'postgres_db'
-      profiles: ['full', 'no_pgadmin'],
       volumes: [roles.db + ':/var/lib/postgresql'],
       environment: {
         // Secrets — interpolated from /dev/shm/postgres.env (parent include.env_file)
@@ -49,7 +48,6 @@ local pgadminVersion = '9.13';
     // pgadmin: {
     //   image: 'dpage/pgadmin4:' + pgadminVersion,
     //   container_name: n.container('admin'),  // 'postgres_admin'
-    //   profiles: ['full'],
     //   ports: ['5050:80'],
     //   environment: {
     //     PGADMIN_DEFAULT_EMAIL: 'briankenkel.t@gmail.com',

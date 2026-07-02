@@ -32,9 +32,6 @@ services:
         - postgres_db
     ports:
     - 6109:5432
-    profiles:
-    - full
-    - no_pgadmin
     restart: always
     volumes:
     - db:/var/lib/postgresql
