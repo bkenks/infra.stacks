@@ -37,7 +37,7 @@ local port = 8120;
         r.dockerDir + ':' + r.dockerDir,                            // mirror docker volumes for directory pre-creation
       ],
       env_file: ['./periphery.env'],
-      ports: [std.toString(port) + ':' + std.toString(port)],
+      ports: [port + ':' + port],
       networks: {
         default: {
           aliases: [p.extName]
