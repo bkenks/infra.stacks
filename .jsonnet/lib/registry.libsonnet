@@ -168,7 +168,7 @@
   # ============================================================
 
   envFiles: {
-    tailscale: '/dev/shm/tailscale.env'
+    tailscale: '/srv/docker/files/tailscale.env'
   },
 
   // ── Shared volumes that cross stack boundaries (e.g. backup targets) ──────

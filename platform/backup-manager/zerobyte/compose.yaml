@@ -2,6 +2,6 @@
 include:
 - env_file:
   - /dev/shm/platform.env
-  - /dev/shm/tailscale.env
+  - /srv/docker/files/tailscale.env
   path: ./compose.stack.yaml
 name: zerobyte
