@@ -17,6 +17,7 @@
   # rootDomain is the default zone; pull any other zone from `domains`.
   rootDomain: $.domains.homektb,
   dockerDir: '/srv/docker',
+  dockerVolumes: $.dockerDir + '/bind-mounts',
   # GLOBAL VARIABLES
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
