@@ -1,6 +1,4 @@
 # GENERATED from compose.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
 include:
-- env_file:
-  - /dev/shm/platform.env
-  path: ./compose.stack.yaml
+- path: ./compose.stack.yaml
 name: infisical-agent
