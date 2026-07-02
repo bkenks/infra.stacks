@@ -9,34 +9,41 @@
 // postgres_db:5432. That hostname is the single source in the registry
 // (reg.endpoints.postgres.private.host) — change it there and this follows.
 local lib = import 'lib.libsonnet';
+local comp = lib.compose;
+local reg = lib.registry;
+local sharedNetworks = reg.sharedNetworks;
+local roles = reg.roles;
 
 local stack = 'postgres';
-local n = lib.compose.names(stack);
-local roles = lib.registry.roles;
-local addr = lib.registry.endpoints.postgres.private.host;  // 'postgres_db' — container_name + network alias (registry SoT)
-local pgVersion = '18';
-// local pgadminVersion = '9.13';
+local n = comp.names(stack);
+local pgEndpoint = reg.endpoints.postgres;
 
 {
   name: stack,
 
   services: {
     [roles.db]: {
+      local extName = pgEndpoint.private.host,
+      local pgVersion = '18',
+
       image: 'postgres:' + pgVersion,
-      container_name: addr,  // 'postgres_db'
+      container_name: pgEndpoint.private.host,  // 'postgres_db'
       volumes: [roles.db + ':/var/lib/postgresql'],
       environment: {
         // Secrets — interpolated from /dev/shm/postgres.env (parent include.env_file)
         POSTGRES_USER: '${POSTGRES_USER:?err}',
         POSTGRES_PASSWORD: '${POSTGRES_PASS:?err}',
       },
-      ports: [ '6109:5432' ],
+      ports: [ pgEndpoint.private.port + ':5432' ],
       restart: 'always',
-      networks: {
-        default: { aliases: [addr] },
-        [lib.registry.sharedNetworks.postgres.name]: { aliases: [addr] },   // shared-postgres
-        [lib.registry.sharedNetworks.dbBackups.name]: { aliases: [addr] },  // shared-db-backups
-      },
+      networks:
+      comp.serviceNetwork('default', extName) +
+      comp.serviceNetwork(sharedNetworks.postgres.name, extName) +
+      comp.serviceNetwork(sharedNetworks.dbBackups.name, extName),
+      //   default: { aliases: [extName] },
+      //   [sharedNetworks.postgres.name]: { aliases: [extName] },   // shared-postgres
+      //   [sharedNetworks.dbBackups.name]: { aliases: [extName] },  // shared-db-backups
+      // },
       healthcheck: {
         test: 'pg_isready -U ${POSTGRES_USER} -h localhost -d postgres',
         interval: '5s',
@@ -46,6 +53,9 @@ local pgVersion = '18';
     },
 
     // pgadmin: {
+    //   local pgadminVersion = '9.13',
+    // 
+    // 
     //   image: 'dpage/pgadmin4:' + pgadminVersion,
     //   container_name: n.container('admin'),  // 'postgres_admin'
     //   ports: ['5050:80'],

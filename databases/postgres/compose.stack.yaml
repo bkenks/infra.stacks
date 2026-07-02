@@ -22,14 +22,11 @@ services:
     image: postgres:18
     networks:
       default:
-        aliases:
-        - postgres_db
+        aliases: postgres_db
       shared-db-backups:
-        aliases:
-        - postgres_db
+        aliases: postgres_db
       shared-postgres:
-        aliases:
-        - postgres_db
+        aliases: postgres_db
     ports:
     - 6109:5432
     restart: always

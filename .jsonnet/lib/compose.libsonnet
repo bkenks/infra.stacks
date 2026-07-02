@@ -6,17 +6,21 @@ local reg = import 'registry.libsonnet';
 
 // File-private alias for the shared-networks registry. The real Docker name
 // (with its explicit 'shared-' prefix) lives in each entry's `.name`.
-local nets = reg.sharedNetworks;
+local sharedNetworks = reg.sharedNetworks;
 
 {
   // CONSUMER: join an existing shared network. external:true means it must
   // already exist, so the OWNER stack has to deploy first.
   //   networks: compose.join('proxy')
-  join(key):: { [nets[key].name]: { external: true, name: nets[key].name } },
+  join(key):: { [sharedNetworks[key].name]: { external: true, name: sharedNetworks[key].name } },
 
   // OWNER: create the shared network this stack owns (registry records who).
   //   networks: compose.own('dbBackups')
-  own(key):: { [nets[key].name]: { name: nets[key].name } },
+  own(key):: { [sharedNetworks[key].name]: { name: sharedNetworks[key].name } },
+
+  serviceNetwork(network, alias) :: {
+        [network]: { aliases: alias },
+  },
 
   // ── Cross-container addressing ──────────────────────────────────────────
   // A service other stacks dial publishes a registry endpoint (private/public).
@@ -49,7 +53,7 @@ local nets = reg.sharedNetworks;
   names(stack):: {
     stack:: stack,
     // This stack's PRIVATE network: the auto 'default' net renamed to the stack
-    // name. Drop into `networks:` (merge shared nets with +). Other compose
+    // name. Drop into `networks:` (merge shared sharedNetworks with +). Other compose
     // projects can't attach (not external) — that's the isolation; this is
     // project isolation, NOT docker's `internal: true` (which blocks egress).
     //   networks: n.network
