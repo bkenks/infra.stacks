@@ -9,7 +9,7 @@ networks:
 services:
   tunnel:
     command: tunnel --no-autoupdate run
-    container_name: cloudflared-tunnel
+    container_name: cloudflared_tunnel
     environment:
       TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:?err}
       TZ: America/New_York
@@ -17,5 +17,5 @@ services:
     networks:
       shared-proxy:
         aliases:
-        - cloudflared-tunnel
+        - cloudflared_tunnel
     restart: unless-stopped

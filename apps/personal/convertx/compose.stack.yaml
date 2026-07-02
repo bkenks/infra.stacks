@@ -8,7 +8,7 @@ networks:
     name: shared-proxy
 services:
   app:
-    container_name: convertx-app
+    container_name: convertx_app
     environment:
       JWT_SECRET: ${CONVERTX_JWT_SECRET:?err}
     expose:
@@ -23,10 +23,10 @@ services:
     networks:
       default:
         aliases:
-        - convertx-app
+        - convertx_app
       shared-proxy:
         aliases:
-        - convertx-app
+        - convertx_app
     restart: unless-stopped
     volumes:
     - /srv/docker/bind-mounts/apps/convertx:/app/data

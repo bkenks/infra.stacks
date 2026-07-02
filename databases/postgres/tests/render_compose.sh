@@ -1,17 +1,13 @@
-# Set env vars here
-export POSTGRES_USER=test
-export POSTGRES_PASS=test
-export PG_ADMIN_PASS=test
-
-# Compose Config - append any compose flags as arguments to this script
-echo "\n---\n\nRendering Compose | Args: none | CMD: docker compose config\n\n---\n"
-docker compose config
-
-
-echo "\n---\n\nRendering Compose | Args: --profile full | CMD: docker compose config\n\n---\n"
-docker compose --profile full config
-
-
-
-echo "\n---\n\nRendering Compose | Args: --profile no_pgadmin | CMD: docker compose config\n\n---\n"
-docker compose --profile no_pgadmin config
+#!/usr/bin/env bash
+set -euo pipefail
+# Validate the compose without editing it: run `docker compose config` in a
+# Linux container (has /dev/shm; macOS doesn't) after faking the runtime-only
+# env file postgres needs.
+cd "$(dirname "$0")/.."
+docker run --rm -e COMPOSE_PROJECT_NAME=postgres \
+  -v "$PWD":/s -w /s docker:cli sh -c '
+  printf "POSTGRES_USER=test\nPOSTGRES_PASS=test\nPG_ADMIN_PASS=test\n" > /dev/shm/postgres.env
+  docker compose config
+  docker compose --profile full config
+  docker compose --profile no_pgadmin config
+'

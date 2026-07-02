@@ -8,7 +8,7 @@ networks:
     name: shared-proxy
 services:
   app:
-    container_name: termix-app
+    container_name: termix_app
     depends_on:
       guacd:
         condition: service_started
@@ -36,15 +36,15 @@ services:
     networks:
       default:
         aliases:
-        - termix-app
+        - termix_app
       shared-proxy:
         aliases:
-        - termix-app
+        - termix_app
     restart: on-failure:5
     volumes:
-    - termix-data:/app/data
+    - app:/app/data
   guacd:
-    container_name: termix-guacd
+    container_name: termix_guacd
     expose:
     - '4822'
     healthcheck:
@@ -58,8 +58,8 @@ services:
     networks:
       default:
         aliases:
-        - termix-guacd
+        - termix_guacd
     restart: on-failure:5
 volumes:
-  termix-data:
-    name: termix-data
+  app:
+    name: termix_app

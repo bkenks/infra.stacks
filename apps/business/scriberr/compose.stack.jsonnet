@@ -7,6 +7,11 @@ local stack = 'scriberr';
 local n = lib.compose.names(stack);
 local app = lib.compose.roles.app;
 
+// app owns two volumes, so each resource key is suffixed with its purpose
+// (<service-role>_<purpose>) instead of the bare role — see docker-compose.md.
+local dataVol = app + '_data';
+local whisperxVol = app + '_whisperx-env';
+
 local port = 8080;
 
 {
@@ -19,8 +24,8 @@ local port = 8080;
       image: 'ghcr.io/rishikanthc/scriberr@sha256:9e36448fb5a6003b28cd3d9ac783e8cbef5ed916936c20ec353a55fa380484f4',
       container_name: n.container(app),
       volumes: [
-        n.volume('data') + ':/app/data',
-        n.volume('whisperx-env') + ':/app/whisperx-env',
+        dataVol + ':/app/data',
+        whisperxVol + ':/app/whisperx-env',
       ],
       environment: {
         APP_ENV: 'production',
@@ -39,8 +44,8 @@ local port = 8080;
   },
 
   volumes: {
-    [n.volume('data')]: { name: n.volume('data') },
-    [n.volume('whisperx-env')]: { name: n.volume('whisperx-env') },
+    [dataVol]: { name: n.volume(dataVol) },
+    [whisperxVol]: { name: n.volume(whisperxVol) },
   },
 
   networks: n.network + lib.compose.join('proxy'),

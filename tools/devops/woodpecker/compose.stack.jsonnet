@@ -21,7 +21,7 @@ local grpcPort = 9000;
     server: {
       image: 'docker.io/woodpeckerci/woodpecker-server:' + version,
       container_name: n.container('server'),
-      volumes: [n.volume('server-data') + ':/var/lib/woodpecker'],
+      volumes: ['server' + ':/var/lib/woodpecker'],
       environment: {
         // Public address; must match the OAuth2 app's redirect URI in Forgejo
         // (https://peck.homektb.com/authorize).
@@ -56,7 +56,7 @@ local grpcPort = 9000;
       command: 'agent',
       depends_on: ['server'],
       volumes: [
-        n.volume('agent-config') + ':/etc/woodpecker',
+        'agent' + ':/etc/woodpecker',
         // Intentional privileged access: the agent runs pipeline steps as
         // sibling containers via the host daemon. Keep as-is.
         '/var/run/docker.sock:/var/run/docker.sock',
@@ -76,8 +76,8 @@ local grpcPort = 9000;
   },
 
   volumes: {
-    [n.volume('server-data')]: { name: n.volume('server-data') },
-    [n.volume('agent-config')]: { name: n.volume('agent-config') },
+    server: { name: n.volume('server') },
+    agent: { name: n.volume('agent') },
   },
 
   networks:

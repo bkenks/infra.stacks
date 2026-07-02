@@ -14,7 +14,7 @@ local app = lib.compose.roles.app;
 
 // Only needed if this stack has its own DB on shared-postgres — delete these
 // two locals (and the postgres network join + DATABASE_URL below) otherwise.
-local pgHost = lib.compose.endpoint('postgres').private.host;  // 'postgres-db'
+local pgHost = lib.compose.endpoint('postgres').private.host;  // 'postgres_db'
 local pgPort = lib.compose.endpoint('postgres').private.port;  // 5432
 
 local version = '0.0.0';
@@ -28,9 +28,12 @@ local port = 8080;
       image: 'REPLACE_ME/image:' + version,
       container_name: n.container(app),
 
-      // Explicit named volume, declared under `volumes:` below — avoids
-      // Docker's implicit <project>_<service> naming.
-      volumes: [n.volume('data') + ':/data'],
+      // Explicit named volume, declared under `volumes:` below. Single
+      // volume for this service -> resource key is the bare service role
+      // (matches convention: no redundant descriptor like 'data'). A
+      // service with more than one volume would suffix each key instead:
+      // '<role>_<purpose>' (see apps/business/scriberr for a worked example).
+      volumes: [app + ':/data'],
 
       environment: {
         PORT: std.toString(port),
@@ -61,7 +64,7 @@ local port = 8080;
     },
   },
 
-  volumes: { [n.volume('data')]: { name: n.volume('data') } },
+  volumes: { [app]: { name: n.volume(app) } },
 
   networks:
     n.network

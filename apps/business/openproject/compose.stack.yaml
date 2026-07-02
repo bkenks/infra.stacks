@@ -11,7 +11,7 @@ networks:
     name: shared-proxy
 services:
   autoheal:
-    container_name: openproject-autoheal
+    container_name: openproject_autoheal
     environment:
       AUTOHEAL_CONTAINER_LABEL: autoheal
       AUTOHEAL_INTERVAL: '30'
@@ -21,17 +21,17 @@ services:
     volumes:
     - /var/run/docker.sock:/var/run/docker.sock
   cache:
-    container_name: openproject-cache
+    container_name: openproject_cache
     image: memcached:1.6-alpine
     restart: unless-stopped
   cron:
     command: ./docker/prod/cron
-    container_name: openproject-cron
+    container_name: openproject_cron
     depends_on:
     - cache
     - seeder
     environment:
-      DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres-db:5432/openproject?pool=20&encoding=unicode&reconnect=true
+      DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres_db:5432/openproject?pool=20&encoding=unicode&reconnect=true
       IMAP_ENABLED: 'false'
       OPENPROJECT_ADDITIONAL__HOST__NAMES: openprj.homektb.com,web
       OPENPROJECT_CACHE__MEMCACHE__SERVER: cache:11211
@@ -54,16 +54,16 @@ services:
     networks:
       default:
         aliases:
-        - openproject-cron
+        - openproject_cron
       shared-postgres:
         aliases:
-        - openproject-cron
+        - openproject_cron
     restart: unless-stopped
     volumes:
-    - openproject-assets:/var/openproject/assets
+    - openproject_assets:/var/openproject/assets
     - ./token/enterprise_token.rb:/app/app/models/enterprise_token.rb
   hocuspocus:
-    container_name: openproject-hocuspocus
+    container_name: openproject_hocuspocus
     environment:
       OPENPROJECT_HTTPS: 'true'
       OPENPROJECT_URL: http://web:8080
@@ -81,16 +81,16 @@ services:
     networks:
       default:
         aliases:
-        - openproject-hocuspocus
+        - openproject_hocuspocus
       shared-proxy:
         aliases:
-        - openproject-hocuspocus
+        - openproject_hocuspocus
     restart: unless-stopped
   seeder:
     command: ./docker/prod/seeder
-    container_name: openproject-seeder
+    container_name: openproject_seeder
     environment:
-      DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres-db:5432/openproject?pool=20&encoding=unicode&reconnect=true
+      DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres_db:5432/openproject?pool=20&encoding=unicode&reconnect=true
       IMAP_ENABLED: 'false'
       OPENPROJECT_ADDITIONAL__HOST__NAMES: openprj.homektb.com,web
       OPENPROJECT_CACHE__MEMCACHE__SERVER: cache:11211
@@ -113,22 +113,22 @@ services:
     networks:
       default:
         aliases:
-        - openproject-seeder
+        - openproject_seeder
       shared-postgres:
         aliases:
-        - openproject-seeder
+        - openproject_seeder
     restart: on-failure
     volumes:
-    - openproject-assets:/var/openproject/assets
+    - openproject_assets:/var/openproject/assets
     - ./token/enterprise_token.rb:/app/app/models/enterprise_token.rb
   web:
     command: ./docker/prod/web
-    container_name: openproject-web
+    container_name: openproject_web
     depends_on:
     - cache
     - seeder
     environment:
-      DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres-db:5432/openproject?pool=20&encoding=unicode&reconnect=true
+      DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres_db:5432/openproject?pool=20&encoding=unicode&reconnect=true
       IMAP_ENABLED: 'false'
       OPENPROJECT_ADDITIONAL__HOST__NAMES: openprj.homektb.com,web
       OPENPROJECT_CACHE__MEMCACHE__SERVER: cache:11211
@@ -170,25 +170,25 @@ services:
     networks:
       default:
         aliases:
-        - openproject-web
+        - openproject_web
       shared-postgres:
         aliases:
-        - openproject-web
+        - openproject_web
       shared-proxy:
         aliases:
-        - openproject-web
+        - openproject_web
     restart: unless-stopped
     volumes:
-    - openproject-assets:/var/openproject/assets
+    - openproject_assets:/var/openproject/assets
     - ./token/enterprise_token.rb:/app/app/models/enterprise_token.rb
   worker:
     command: ./docker/prod/worker
-    container_name: openproject-worker
+    container_name: openproject_worker
     depends_on:
     - cache
     - seeder
     environment:
-      DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres-db:5432/openproject?pool=20&encoding=unicode&reconnect=true
+      DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres_db:5432/openproject?pool=20&encoding=unicode&reconnect=true
       IMAP_ENABLED: 'false'
       OPENPROJECT_ADDITIONAL__HOST__NAMES: openprj.homektb.com,web
       OPENPROJECT_CACHE__MEMCACHE__SERVER: cache:11211
@@ -211,14 +211,14 @@ services:
     networks:
       default:
         aliases:
-        - openproject-worker
+        - openproject_worker
       shared-postgres:
         aliases:
-        - openproject-worker
+        - openproject_worker
     restart: unless-stopped
     volumes:
-    - openproject-assets:/var/openproject/assets
+    - openproject_assets:/var/openproject/assets
     - ./token/enterprise_token.rb:/app/app/models/enterprise_token.rb
 volumes:
-  openproject-assets:
-    name: openproject-assets
+  openproject_assets:
+    name: openproject_assets

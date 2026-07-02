@@ -29,7 +29,7 @@ local dbName = 'infisical';
   services: {
     [roles.app]: {
       image: 'docker.io/infisical/infisical:' + appVersion,
-      container_name: n.container(roles.app),  // 'infisical-app' — matches reg.endpoints host
+      container_name: n.container(roles.app),  // 'infisical_app' — matches reg.endpoints host
       depends_on: {
         db: { condition: 'service_healthy' },
         redis: { condition: 'service_healthy' },
@@ -76,7 +76,7 @@ local dbName = 'infisical';
 
     [roles.db]: {
       image: 'docker.io/library/postgres:' + dbVersion,
-      container_name: n.container(roles.db),  // 'infisical-db'
+      container_name: n.container(roles.db),  // 'infisical_db'
       volumes: [roles.db + ':/var/lib/postgresql/data'],
       environment: {
         POSTGRES_USER: dbUser,
@@ -99,7 +99,7 @@ local dbName = 'infisical';
 
     [roles.redis]: {
       image: 'docker.io/library/redis:' + redisVersion,
-      container_name: n.container(roles.redis),  // 'infisical-redis'
+      container_name: n.container(roles.redis),  // 'infisical_redis'
       volumes: [roles.redis + ':/data'],
       environment: {
         ALLOW_EMPTY_PASSWORD: 'yes',
@@ -124,7 +124,7 @@ local dbName = 'infisical';
     + lib.compose.join('proxy'),      // shared-proxy (traefik owns)
 
   volumes: {
-    [roles.db]: { name: n.volume(roles.db) },        // 'infisical-db'
-    [roles.redis]: { name: n.volume(roles.redis) },  // 'infisical-redis'
+    [roles.db]: { name: n.volume(roles.db) },        // 'infisical_db'
+    [roles.redis]: { name: n.volume(roles.redis) },  // 'infisical_redis'
   },
 }

@@ -5,7 +5,7 @@ networks:
     name: komodo
 services:
   periphery:
-    container_name: komodo-periphery
+    container_name: komodo_periphery
     env_file:
     - ./periphery.env
     image: ghcr.io/moghtech/komodo-periphery:2.1.2
@@ -15,17 +15,17 @@ services:
     networks:
       default:
         aliases:
-        - komodo-periphery
+        - komodo_periphery
     ports:
     - 8120:8120
     restart: unless-stopped
     volumes:
-    - komodo-periphery-keys:/config/keys
+    - periphery:/config/keys
     - /var/run/docker.sock:/var/run/docker.sock
     - /proc:/proc
     - /etc/komodo:/etc/komodo
     - /dev/shm/:/dev/shm/
     - /srv/docker/bind-mounts:/srv/docker/bind-mounts
 volumes:
-  komodo-periphery-keys:
-    name: komodo-periphery-keys
+  periphery:
+    name: komodo_periphery

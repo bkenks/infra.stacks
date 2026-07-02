@@ -11,13 +11,13 @@ networks:
     name: shared-proxy
 services:
   app:
-    container_name: n8n-app
+    container_name: n8n_app
     dns:
     - 192.168.1.6
     - 1.1.1.1
     environment:
       DB_POSTGRESDB_DATABASE: n8n
-      DB_POSTGRESDB_HOST: postgres-db
+      DB_POSTGRESDB_HOST: postgres_db
       DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASS:?err}
       DB_POSTGRESDB_PORT: '5432'
       DB_POSTGRESDB_SCHEMA: public
@@ -47,13 +47,13 @@ services:
     networks:
       default:
         aliases:
-        - n8n-app
+        - n8n_app
       shared-postgres:
         aliases:
-        - n8n-app
+        - n8n_app
       shared-proxy:
         aliases:
-        - n8n-app
+        - n8n_app
     restart: unless-stopped
     volumes:
     - /srv/docker/bind-mounts/apps/n8n/data/.n8n:/home/node/.n8n

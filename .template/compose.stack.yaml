@@ -11,9 +11,9 @@ networks:
     name: shared-proxy
 services:
   app:
-    container_name: replaceme-app
+    container_name: replaceme_app
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres-db:5432/replaceme
+      DATABASE_URL: postgresql://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres_db:5432/replaceme
       PORT: '8080'
       SOME_SECRET: ${SOME_VAR:?err}
     expose:
@@ -28,16 +28,16 @@ services:
     networks:
       default:
         aliases:
-        - replaceme-app
+        - replaceme_app
       shared-postgres:
         aliases:
-        - replaceme-app
+        - replaceme_app
       shared-proxy:
         aliases:
-        - replaceme-app
+        - replaceme_app
     restart: on-failure:5
     volumes:
-    - replaceme-data:/data
+    - app:/data
 volumes:
-  replaceme-data:
-    name: replaceme-data
+  app:
+    name: replaceme_app

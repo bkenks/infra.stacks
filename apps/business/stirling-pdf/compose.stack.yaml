@@ -8,7 +8,7 @@ networks:
     name: shared-proxy
 services:
   app:
-    container_name: stirling-pdf-app
+    container_name: stirling-pdf_app
     environment:
       LANGS: en_US
       SECURITY_ENABLELOGIN: 'true'
@@ -24,10 +24,10 @@ services:
     networks:
       default:
         aliases:
-        - stirling-pdf-app
+        - stirling-pdf_app
       shared-proxy:
         aliases:
-        - stirling-pdf-app
+        - stirling-pdf_app
     restart: unless-stopped
     volumes:
     - /srv/docker/bind-mounts/apps/stirling-pdf/configs:/configs

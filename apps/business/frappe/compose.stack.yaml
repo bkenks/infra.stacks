@@ -8,7 +8,7 @@ networks:
     name: shared-proxy
 services:
   backend:
-    container_name: frappe-backend
+    container_name: frappe_backend
     depends_on:
       configurator:
         condition: service_completed_successfully
@@ -21,16 +21,16 @@ services:
     networks:
       default:
         aliases:
-        - frappe-backend
+        - frappe_backend
     platform: linux/amd64
     pull_policy: always
     restart: on-failure:5
     volumes:
-    - frappe-sites:/home/frappe/frappe-bench/sites
+    - frappe_sites:/home/frappe/frappe-bench/sites
   configurator:
     command:
     - ls -1 apps > sites/apps.txt; bench set-config -g db_host $$DB_HOST; bench set-config -gp db_port $$DB_PORT; bench set-config -g redis_cache "redis://$$REDIS_CACHE"; bench set-config -g redis_queue "redis://$$REDIS_QUEUE"; bench set-config -g redis_socketio "redis://$$REDIS_QUEUE"; bench set-config -gp socketio_port $$SOCKETIO_PORT;
-    container_name: frappe-configurator
+    container_name: frappe_configurator
     depends_on:
       db:
         condition: service_healthy
@@ -42,27 +42,27 @@ services:
     - bash
     - -c
     environment:
-      DB_HOST: frappe-db
+      DB_HOST: frappe_db
       DB_PORT: '3306'
-      REDIS_CACHE: frappe-redis-cache:6379
-      REDIS_QUEUE: frappe-redis-queue:6379
+      REDIS_CACHE: frappe_redis-cache:6379
+      REDIS_QUEUE: frappe_redis-queue:6379
       SOCKETIO_PORT: '9000'
     image: ghcr.io/ktbgroup-self-hosted/frappe:version-15
     networks:
       default:
         aliases:
-        - frappe-configurator
+        - frappe_configurator
     platform: linux/amd64
     pull_policy: always
     restart: on-failure:5
     volumes:
-    - frappe-sites:/home/frappe/frappe-bench/sites
+    - frappe_sites:/home/frappe/frappe-bench/sites
   db:
     command:
     - --character-set-server=utf8mb4
     - --collation-server=utf8mb4_unicode_ci
     - --skip-character-set-client-handshake
-    container_name: frappe-db
+    container_name: frappe_db
     environment:
       MARIADB_AUTO_UPGRADE: '1'
       MYSQL_ROOT_PASSWORD: ${FRAPPE_DB_ROOT_PASSWORD:?err}
@@ -82,23 +82,23 @@ services:
     networks:
       default:
         aliases:
-        - frappe-db
+        - frappe_db
     restart: on-failure:5
     volumes:
-    - frappe-db-data:/var/lib/mysql
+    - frappe_db:/var/lib/mysql
   frontend:
     command:
     - nginx-entrypoint.sh
-    container_name: frappe-frontend
+    container_name: frappe_frontend
     depends_on:
     - backend
     - websocket
     environment:
-      BACKEND: frappe-backend:8000
+      BACKEND: frappe_backend:8000
       CLIENT_MAX_BODY_SIZE: 50m
       FRAPPE_SITE_NAME_HEADER: $$host
       PROXY_READ_TIMEOUT: '120'
-      SOCKETIO: frappe-websocket:9000
+      SOCKETIO: frappe_websocket:9000
       UPSTREAM_REAL_IP_ADDRESS: 172.16.0.0/12
       UPSTREAM_REAL_IP_HEADER: X-Forwarded-For
       UPSTREAM_REAL_IP_RECURSIVE: 'on'
@@ -114,22 +114,22 @@ services:
     networks:
       default:
         aliases:
-        - frappe-frontend
+        - frappe_frontend
       shared-proxy:
         aliases:
-        - frappe-frontend
+        - frappe_frontend
     platform: linux/amd64
     pull_policy: always
     restart: on-failure:5
     volumes:
-    - frappe-sites:/home/frappe/frappe-bench/sites
+    - frappe_sites:/home/frappe/frappe-bench/sites
   queue-long:
     command:
     - bench
     - worker
     - --queue
     - long,default,short
-    container_name: frappe-queue-long
+    container_name: frappe_queue-long
     depends_on:
       configurator:
         condition: service_completed_successfully
@@ -137,19 +137,19 @@ services:
     networks:
       default:
         aliases:
-        - frappe-queue-long
+        - frappe_queue-long
     platform: linux/amd64
     pull_policy: always
     restart: on-failure:5
     volumes:
-    - frappe-sites:/home/frappe/frappe-bench/sites
+    - frappe_sites:/home/frappe/frappe-bench/sites
   queue-short:
     command:
     - bench
     - worker
     - --queue
     - short,default
-    container_name: frappe-queue-short
+    container_name: frappe_queue-short
     depends_on:
       configurator:
         condition: service_completed_successfully
@@ -157,39 +157,39 @@ services:
     networks:
       default:
         aliases:
-        - frappe-queue-short
+        - frappe_queue-short
     platform: linux/amd64
     pull_policy: always
     restart: on-failure:5
     volumes:
-    - frappe-sites:/home/frappe/frappe-bench/sites
+    - frappe_sites:/home/frappe/frappe-bench/sites
   redis-cache:
-    container_name: frappe-redis-cache
+    container_name: frappe_redis-cache
     expose:
     - '6379'
     image: docker.io/library/redis:7-alpine
     networks:
       default:
         aliases:
-        - frappe-redis-cache
+        - frappe_redis-cache
     restart: on-failure:5
   redis-queue:
-    container_name: frappe-redis-queue
+    container_name: frappe_redis-queue
     expose:
     - '6379'
     image: docker.io/library/redis:7-alpine
     networks:
       default:
         aliases:
-        - frappe-redis-queue
+        - frappe_redis-queue
     restart: on-failure:5
     volumes:
-    - frappe-redis-queue-data:/data
+    - frappe_redis-queue:/data
   scheduler:
     command:
     - bench
     - schedule
-    container_name: frappe-scheduler
+    container_name: frappe_scheduler
     depends_on:
       configurator:
         condition: service_completed_successfully
@@ -197,17 +197,17 @@ services:
     networks:
       default:
         aliases:
-        - frappe-scheduler
+        - frappe_scheduler
     platform: linux/amd64
     pull_policy: always
     restart: on-failure:5
     volumes:
-    - frappe-sites:/home/frappe/frappe-bench/sites
+    - frappe_sites:/home/frappe/frappe-bench/sites
   websocket:
     command:
     - node
     - /home/frappe/frappe-bench/apps/frappe/socketio.js
-    container_name: frappe-websocket
+    container_name: frappe_websocket
     depends_on:
       configurator:
         condition: service_completed_successfully
@@ -215,16 +215,16 @@ services:
     networks:
       default:
         aliases:
-        - frappe-websocket
+        - frappe_websocket
     platform: linux/amd64
     pull_policy: always
     restart: on-failure:5
     volumes:
-    - frappe-sites:/home/frappe/frappe-bench/sites
+    - frappe_sites:/home/frappe/frappe-bench/sites
 volumes:
-  frappe-db-data:
-    name: frappe-db-data
-  frappe-redis-queue-data:
-    name: frappe-redis-queue-data
-  frappe-sites:
-    name: frappe-sites
+  frappe_db:
+    name: frappe_db
+  frappe_redis-queue:
+    name: frappe_redis-queue
+  frappe_sites:
+    name: frappe_sites

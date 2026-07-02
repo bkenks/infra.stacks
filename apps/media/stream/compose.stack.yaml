@@ -8,7 +8,7 @@ networks:
     name: shared-proxy
 services:
   bazarr:
-    container_name: stream-bazarr
+    container_name: stream_bazarr
     environment:
       PGID: '1000'
       PUID: '1000'
@@ -33,16 +33,16 @@ services:
     networks:
       default:
         aliases:
-        - stream-bazarr
+        - stream_bazarr
       shared-proxy:
         aliases:
-        - stream-bazarr
+        - stream_bazarr
     restart: on-failure:5
     volumes:
     - /srv/docker/bind-mounts/stream/bazarr/config:/config
     - /srv/docker/bind-mounts/stream/shared:/data
   configarr:
-    container_name: stream-configarr
+    container_name: stream_configarr
     depends_on:
       radarr:
         condition: service_healthy
@@ -58,13 +58,13 @@ services:
     networks:
       default:
         aliases:
-        - stream-configarr
+        - stream_configarr
     restart: on-failure:5
     volumes:
     - ./configarr:/app/config:ro
     - /srv/docker/bind-mounts/stream/configarr/repos:/app/repos
   decluttarr:
-    container_name: stream-decluttarr
+    container_name: stream_decluttarr
     depends_on:
       radarr:
         condition: service_healthy
@@ -80,12 +80,12 @@ services:
     networks:
       default:
         aliases:
-        - stream-decluttarr
+        - stream_decluttarr
     restart: on-failure:5
     volumes:
     - ./decluttarr:/app/config:ro
   plex:
-    container_name: stream-plex
+    container_name: stream_plex
     devices:
     - /dev/dri:/dev/dri
     environment:
@@ -108,7 +108,7 @@ services:
     - /srv/docker/bind-mounts/stream/plex/config:/config
     - /srv/docker/bind-mounts/stream/shared/media:/data/media
   prowlarr:
-    container_name: stream-prowlarr
+    container_name: stream_prowlarr
     environment:
       PGID: '1000'
       PUID: '1000'
@@ -133,15 +133,15 @@ services:
     networks:
       default:
         aliases:
-        - stream-prowlarr
+        - stream_prowlarr
       shared-proxy:
         aliases:
-        - stream-prowlarr
+        - stream_prowlarr
     restart: on-failure:5
     volumes:
     - /srv/docker/bind-mounts/stream/prowlarr/config:/config
   radarr:
-    container_name: stream-radarr
+    container_name: stream_radarr
     environment:
       PGID: '1000'
       PUID: '1000'
@@ -166,16 +166,16 @@ services:
     networks:
       default:
         aliases:
-        - stream-radarr
+        - stream_radarr
       shared-proxy:
         aliases:
-        - stream-radarr
+        - stream_radarr
     restart: on-failure:5
     volumes:
     - /srv/docker/bind-mounts/stream/radarr/config:/config
     - /srv/docker/bind-mounts/stream/shared:/data
   sabnzbd:
-    container_name: stream-sabnzbd
+    container_name: stream_sabnzbd
     environment:
       PGID: '1000'
       PUID: '1000'
@@ -200,16 +200,16 @@ services:
     networks:
       default:
         aliases:
-        - stream-sabnzbd
+        - stream_sabnzbd
       shared-proxy:
         aliases:
-        - stream-sabnzbd
+        - stream_sabnzbd
     restart: on-failure:5
     volumes:
     - /srv/docker/bind-mounts/stream/sabnzbd/config:/config
     - /srv/docker/bind-mounts/stream/shared:/data
   seerr:
-    container_name: stream-seerr
+    container_name: stream_seerr
     environment:
       TZ: America/New_York
     expose:
@@ -225,15 +225,15 @@ services:
     networks:
       default:
         aliases:
-        - stream-seerr
+        - stream_seerr
       shared-proxy:
         aliases:
-        - stream-seerr
+        - stream_seerr
     restart: on-failure:5
     volumes:
     - /srv/docker/bind-mounts/stream/seerr/config:/app/config
   sonarr:
-    container_name: stream-sonarr
+    container_name: stream_sonarr
     environment:
       PGID: '1000'
       PUID: '1000'
@@ -258,10 +258,10 @@ services:
     networks:
       default:
         aliases:
-        - stream-sonarr
+        - stream_sonarr
       shared-proxy:
         aliases:
-        - stream-sonarr
+        - stream_sonarr
     restart: on-failure:5
     volumes:
     - /srv/docker/bind-mounts/stream/sonarr/config:/config

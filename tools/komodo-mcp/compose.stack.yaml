@@ -8,7 +8,7 @@ networks:
     name: shared-proxy
 services:
   app:
-    container_name: komodo-mcp-app
+    container_name: komodo-mcp_app
     environment:
       KOMODO_API_KEY: ${KOMODO_API_KEY:?err}
       KOMODO_API_SECRET: ${KOMODO_API_SECRET:?err}
@@ -32,8 +32,8 @@ services:
     networks:
       default:
         aliases:
-        - komodo-mcp-app
+        - komodo-mcp_app
       shared-proxy:
         aliases:
-        - komodo-mcp-app
+        - komodo-mcp_app
     restart: on-failure:5

@@ -1,8 +1,11 @@
-# Set env vars here (the ${VAR:?err} secrets the app + db require)
-export INFISICAL_ENCRYPTION_KEY=test
-export INFISICAL_AUTH_SECRET=test
-export INFISICAL_DB_PASSWORD=test
-
-# Compose Config - append any compose flags as arguments to this script
-echo "\n---\n\nRendering Compose | Args: none | CMD: docker compose config\n\n---\n"
-docker compose config
+#!/usr/bin/env bash
+set -euo pipefail
+# Validate the compose without editing it: run `docker compose config` in a
+# Linux container (has /dev/shm; macOS doesn't) after faking the runtime-only
+# env files infisical needs.
+cd "$(dirname "$0")/.."
+docker run --rm -e COMPOSE_PROJECT_NAME=infisical \
+  -v "$PWD":/s -w /s docker:cli sh -c '
+  printf "INFISICAL_ENCRYPTION_KEY=test\nINFISICAL_AUTH_SECRET=test\nINFISICAL_DB_PASSWORD=test\n" > /dev/shm/platform.env
+  docker compose config "$@"
+' -- "$@"

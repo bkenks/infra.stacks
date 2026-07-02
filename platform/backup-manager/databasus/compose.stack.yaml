@@ -11,10 +11,10 @@ services:
     networks:
       default:
         aliases:
-        - databasus-app
+        - databasus_app
       shared-db-backups:
         aliases:
-        - databasus-app
+        - databasus_app
     ports:
     - 4005:4005
     restart: unless-stopped
@@ -23,4 +23,4 @@ services:
     - app:/databasus-data
 volumes:
   app:
-    name: databasus-app
+    name: databasus_app

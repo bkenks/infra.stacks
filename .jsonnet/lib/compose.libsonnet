@@ -50,10 +50,18 @@ local nets = reg.sharedNetworks;
   //   n.volume('keys')                 // arbitrary role, still fine
   roles:: { app: 'app', db: 'db', redis: 'redis' },
 
-  // Consistent stack-local naming, following the EXT_APP_NM convention
-  // (<stack>-<role>). Pass a role constant (compose.roles.app) or any string
-  // (container('core'), volume('keys'), alias('mongo')). container/volume/alias
-  // are the same machinery — the name just labels intent at the call site.
+  // Consistent stack-local naming, following the KTB naming convention
+  // (<stack>_<role> — underscore separates ownership levels; dashes are only
+  // for multi-word names within one level, e.g. 'komodo-periphery').
+  // Pass a role constant (compose.roles.app) or any string (container('core'),
+  // volume('keys'), alias('mongo')). container/volume/alias are the same
+  // machinery — the name just labels intent at the call site.
+  //
+  // Volumes: pass the SERVICE's role when it owns exactly one volume (the
+  // volume's resource key and container's role must match — see
+  // docker-compose.md's "Resources" section), or '<role>_<purpose>' when a
+  // service owns more than one (e.g. volume(app + '_data')).
+  //
   // Names are generated, never hand-typed.
   names(stack):: {
     stack:: stack,
@@ -64,8 +72,8 @@ local nets = reg.sharedNetworks;
     //   networks: n.network
     //   networks: n.network + compose.own('postgres') + compose.join('dbBackups')
     network:: { default: { name: stack } },
-    container(role):: stack + '-' + role,
-    volume(role):: stack + '-' + role,
-    alias(role):: stack + '-' + role,
+    container(role):: stack + '_' + role,
+    volume(role):: stack + '_' + role,
+    alias(role):: stack + '_' + role,
   },
 }

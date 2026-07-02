@@ -1,11 +1,11 @@
 # GENERATED from compose.stack.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
-name: infisical-agent
+name: infisical
 networks:
   default:
-    name: infisical-agent
+    name: infisical
 services:
   agent:
-    container_name: infisical-agent-agent
+    container_name: infisical_agent
     entrypoint:
     - /bin/sh
     - /agent/entrypoint.sh
@@ -27,7 +27,7 @@ services:
     networks:
       default:
         aliases:
-        - infisical-agent-agent
+        - infisical_agent
     restart: unless-stopped
     volumes:
     - ./files/entrypoint.sh:/agent/entrypoint.sh:ro

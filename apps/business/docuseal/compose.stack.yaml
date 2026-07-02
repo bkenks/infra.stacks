@@ -11,9 +11,9 @@ networks:
     name: shared-proxy
 services:
   app:
-    container_name: docuseal-app
+    container_name: docuseal_app
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres-db:5432/docuseal
+      DATABASE_URL: postgresql://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres_db:5432/docuseal
       FORCE_SSL: docuseal.homektb.com
       PORT: '3000'
       SECRET_KEY_BASE: ${DOCUSEAL_SECRET_KEY_BASE:?err}
@@ -29,16 +29,16 @@ services:
     networks:
       default:
         aliases:
-        - docuseal-app
+        - docuseal_app
       shared-postgres:
         aliases:
-        - docuseal-app
+        - docuseal_app
       shared-proxy:
         aliases:
-        - docuseal-app
+        - docuseal_app
     restart: on-failure:5
     volumes:
-    - docuseal-data:/data/docuseal
+    - docuseal_app:/data/docuseal
 volumes:
-  docuseal-data:
-    name: docuseal-data
+  docuseal_app:
+    name: docuseal_app

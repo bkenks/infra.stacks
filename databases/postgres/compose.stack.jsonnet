@@ -4,16 +4,16 @@
 // shared-db-backups (databasus owns that; postgres exposes itself on it for
 // backups). Renders to compose.stack.yaml — do not edit the YAML.
 //
-// The db service is named `postgres-db` (the <stack>-<role> convention) and
+// The db service is named `postgres_db` (the <stack>_<role> convention) and
 // publishes that as its alias on every network, so consumers dial
-// postgres-db:5432. That hostname is the single source in the registry
+// postgres_db:5432. That hostname is the single source in the registry
 // (reg.endpoints.postgres.private.host) — change it there and this follows.
 local lib = import 'lib.libsonnet';
 
 local stack = 'postgres';
 local n = lib.compose.names(stack);
 local roles = lib.compose.roles;
-local addr = lib.compose.endpoint('postgres').private.host;  // 'postgres-db' — container_name + network alias (registry SoT)
+local addr = lib.compose.endpoint('postgres').private.host;  // 'postgres_db' — container_name + network alias (registry SoT)
 local pgVersion = '18';
 local pgadminVersion = '9.13';
 
@@ -23,7 +23,7 @@ local pgadminVersion = '9.13';
   services: {
     [roles.db]: {
       image: 'postgres:' + pgVersion,
-      container_name: addr,  // 'postgres-db'
+      container_name: addr,  // 'postgres_db'
       profiles: ['full', 'no_pgadmin'],
       volumes: [roles.db + ':/var/lib/postgresql'],
       environment: {
@@ -47,7 +47,7 @@ local pgadminVersion = '9.13';
 
     pgadmin: {
       image: 'dpage/pgadmin4:' + pgadminVersion,
-      container_name: n.container('admin'),  // 'postgres-admin'
+      container_name: n.container('admin'),  // 'postgres_admin'
       profiles: ['full'],
       ports: ['5050:80'],
       environment: {
@@ -66,5 +66,5 @@ local pgadminVersion = '9.13';
     + lib.compose.own('postgres')     // shared-postgres (owned; apps join)
     + lib.compose.join('dbBackups'),  // shared-db-backups (databasus owns)
 
-  volumes: { [roles.db]: {} },
+  volumes: { [roles.db]: { name: n.volume(roles.db) } },
 }

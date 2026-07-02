@@ -26,7 +26,7 @@ local dbName = 'gitea';
       image: 'docker.gitea.com/gitea:' + appVersion,
       container_name: n.container(app),
       depends_on: { [db]: { condition: 'service_healthy' } },
-      volumes: [n.volume(app) + ':/data'],
+      volumes: [app + ':/data'],
       environment: {
         USER_UID: '1000',
         USER_GID: '1000',
@@ -80,7 +80,7 @@ local dbName = 'gitea';
     [db]: {
       image: 'docker.io/library/postgres:' + dbVersion,
       container_name: n.container(db),
-      volumes: [n.volume(db) + ':/var/lib/postgresql/data'],
+      volumes: [db + ':/var/lib/postgresql/data'],
       environment: {
         POSTGRES_USER: dbUser,
         POSTGRES_DB: dbName,
@@ -100,8 +100,8 @@ local dbName = 'gitea';
   },
 
   volumes: {
-    [n.volume(app)]: { name: n.volume(app) },
-    [n.volume(db)]: { name: n.volume(db) },
+    [app]: { name: n.volume(app) },
+    [db]: { name: n.volume(db) },
   },
 
   networks:

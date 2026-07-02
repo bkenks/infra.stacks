@@ -12,7 +12,10 @@ local n = c.names(stack);
 local p = {
   role: 'periphery',
   extName: n.container(self.role),
-  keysVolume: n.volume(self.role) + '-keys'
+  // Single volume for this service: resource key matches the service role
+  // exactly (no extra suffix); only the external name gets the project
+  // prefix — see docker-compose.md naming convention.
+  volumeExtName: n.volume(self.role),
 };
 
 local version = '2.1.2';          // Komodo image tag; keep in sync with komodo/compose.jsonnet
@@ -24,9 +27,9 @@ local port = 8120;
   services: {
     [p.role]: {
       image: 'ghcr.io/moghtech/komodo-periphery:' + version,
-      container_name: p.extName,  // 'komodo-periphery'
+      container_name: p.extName,  // 'komodo_periphery'
       volumes: [
-        p.keysVolume + ':/config/keys',          // auto-generated PKI keys for v2 authentication
+        p.role + ':/config/keys',          // auto-generated PKI keys for v2 authentication
         '/var/run/docker.sock:/var/run/docker.sock',  // manage this host's containers
         '/proc:/proc',                                // see host processes from inside the container
         '/etc/komodo:/etc/komodo',                    // periphery agent root (same path inside and outside)
@@ -38,7 +41,7 @@ local port = 8120;
       networks: {
         default: {
           aliases: [p.extName]
-        },  // 'komodo-periphery' — project-independent name
+        },  // 'komodo_periphery' — project-independent name
       },
       labels: lib.mixins.komodoSkip,
       restart: 'unless-stopped',
@@ -48,8 +51,8 @@ local port = 8120;
 
   volumes: {
     // Distinct from komodo-core's keys volume (see komodo/compose.jsonnet) so PKI never cross-contaminates.
-    [p.keysVolume]: {
-      name: p.keysVolume  // 'komodo-periphery-keys'
+    [p.role]: {
+      name: p.volumeExtName  // 'komodo_periphery'
     },
   },
 
