@@ -19,7 +19,7 @@ local sharedNetworks = reg.sharedNetworks;
   own(key):: { [sharedNetworks[key].name]: { name: sharedNetworks[key].name } },
 
   serviceNetwork(network, alias) :: {
-        [network]: { aliases: alias },
+        [network]: { aliases: [ alias ] },
   },
 
   // ── Cross-container addressing ──────────────────────────────────────────
