@@ -17,7 +17,7 @@ services:
     - 1.1.1.1
     environment:
       DB_POSTGRESDB_DATABASE: n8n
-      DB_POSTGRESDB_HOST: postgres_db
+      DB_POSTGRESDB_HOST: postgres-db
       DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASS:?err}
       DB_POSTGRESDB_PORT: '5432'
       DB_POSTGRESDB_SCHEMA: public
