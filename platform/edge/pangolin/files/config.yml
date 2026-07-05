@@ -16,9 +16,10 @@ domains:
         base_domain: "homektb.com"
 
 server:
-    # secret supplied via the SERVER_SECRET env var (infisical-agent) — do not
-    # hardcode it here.
-    secret: ""
+    # secret supplied via the SERVER_SECRET env var (infisical-agent). Must be
+    # OMITTED here, not blanked — Pangolin's config loader only applies the
+    # env override when the key is absent; `secret: ""` counts as "defined"
+    # and fails validation (>=8 chars) before the env var is ever consulted.
     cors:
         origins: ["https://pangolin.homektb.com"]
         methods: ["GET", "POST", "PUT", "DELETE", "PATCH"]
@@ -32,8 +33,7 @@ email:
     smtp_port: 465
     smtp_user: "resend"
     # smtp_pass supplied via the EMAIL_SMTP_PASS env var (infisical-agent) —
-    # do not hardcode it here.
-    smtp_pass: ""
+    # must be OMITTED here for the same reason as server.secret above.
     no_reply: "pangolin@notify.homektb.com"
 
 flags:

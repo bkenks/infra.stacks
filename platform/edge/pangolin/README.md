@@ -31,7 +31,7 @@ This stack's specifics:
 - `CF_DNS_API_TOKEN` (Traefik's DNS-01 challenge) is **not** stored under `/pangolin` — it's the same shared secret `platform/edge/traefik` uses (Infisical folder `/traefik`, project **infra**, registry key `agentServices.'cloudflare__dns-api-token'`), rendered to `/dev/shm/cloudflare__dns-api-token.env` and included alongside `pangolin.env`. Nothing to duplicate in Infisical — it already exists.
 - Add **both** `pangolin` and `cloudflare__dns-api-token` to this host's `infisical-agent` `AGENT_SERVICES` env var in Komodo so it renders both fragments (`platform/secrets-manager/infisical-agent/templates/{pangolin,cloudflare__dns-api-token}.yaml`).
 
-`files/config.yml` ships with `server.secret` and `email.smtp_pass` blank — Pangolin reads `SERVER_SECRET`/`EMAIL_SMTP_PASS` from the container environment and overrides those fields directly, so nothing templates the YAML file itself.
+`files/config.yml` **omits** `server.secret` and `email.smtp_pass` entirely (not blanked — Pangolin's config loader only applies the `SERVER_SECRET`/`EMAIL_SMTP_PASS` env overrides when the key is *absent*; leaving it as `secret: ""` counts as "defined" and fails validation, `>=8 characters`, before the env var is ever consulted).
 
 ### Storage
 
