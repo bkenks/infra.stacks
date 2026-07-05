@@ -1,6 +1,7 @@
 // zerobyte — parent compose (Komodo deploy entrypoint). Renders to compose.yaml.
 // Interpolation env_files for the child:
-//   /dev/shm/platform.env              -> SECRET__APP_SECRET (Ansible, from vault)
+//   ${ANSIBLE_SECRETS_FILE:-/dev/shm/zerobyte.env} -> SECRET__APP_SECRET (Ansible
+//     bootstrap uses platform.env; steady-state uses the agent-rendered zerobyte.env)
 //   /src/docker/files/tailscale.env -> TAILSCALE_HOSTNAME (per-host, self-refreshing)
 local lib = import 'lib.libsonnet';
 local r = lib.registry;
@@ -11,7 +12,7 @@ local r = lib.registry;
     {
       path: './compose.stack.yaml',
       env_file: [
-        '/dev/shm/platform.env',
+        r.envFiles.platform('zerobyte.env'),
         r.envFiles.tailscale,
       ],
     },

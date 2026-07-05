@@ -150,6 +150,11 @@
     # --- Infra project (dump) ---
     traefik: { project: 'infra', folder: '/traefik', dest: 'traefik.env', type: 'dump' },
     zerobyte: { project: 'infra', folder: '/zerobyte', dest: 'zerobyte.env', type: 'dump' },
+    # Ansible seeds these into the /infisical folder during bootstrap (it has to
+    # match the live ENCRYPTION_KEY/DB password already in use); the agent then
+    # keeps re-rendering infisical.env from there so a tmpfs eviction that isn't a
+    # full host reboot doesn't require a manual Ansible re-run.
+    infisical: { project: 'infra', folder: '/infisical', dest: 'infisical.env', type: 'dump' },
     forgejo: { project: 'infra', folder: '/forgejo', dest: 'forgejo.env', type: 'dump' },
     gitea: { project: 'infra', folder: '/gitea', dest: 'gitea.env', type: 'dump' },
     'komodo-mcp': { project: 'infra', folder: '/komodo-mcp', dest: 'komodo-mcp.env', type: 'dump' },

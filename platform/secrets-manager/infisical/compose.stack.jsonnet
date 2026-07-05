@@ -4,11 +4,12 @@
 // consumer of shared-proxy (traefik owns that; the app exposes itself for the
 // public UI/API). Renders to compose.stack.yaml — do not edit the YAML.
 //
-// This stack is its own bootstrap: it can't pull its secrets from the running
-// Infisical (chicken-and-egg), so its ${INFISICAL_*} secrets are interpolated
-// from /dev/shm/platform.env (Ansible-rendered from the vault), declared as the
-// parent's include.env_file (compose.jsonnet) — NOT from an Infisical agent
-// render. Non-secret identity (names, ports, versions, DB login) is baked here.
+// Its ${INFISICAL_*} secrets are interpolated from the parent's include.env_file
+// (compose.jsonnet): Ansible bootstraps them once to /dev/shm/platform.env for the
+// cold start, before Infisical or its agent exist; afterward the infisical-agent
+// re-renders /dev/shm/infisical.env from the matching registry.agentServices
+// folder, same as every other platform stack. Non-secret identity (names, ports,
+// versions, DB login) is baked here.
 local lib = import 'lib.libsonnet';
 
 local stack = 'infisical';
