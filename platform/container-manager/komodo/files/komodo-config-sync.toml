@@ -194,7 +194,7 @@ config_files = [
 environment = """
 
 AGENT_HOST              = 'bill'                                # e.g. 'littlebuddy' or 'paiki' | This host. Must match folder in Infisical project
-AGENT_SERVICES          = 'traefik frappe'
+AGENT_SERVICES          = 'cloudflare__dns-api-token frappe'
 # INFISICAL_ADDRESS     = 'http://infisical_app:8080'           # Uncomment if Infisical runs on this host
 INFISICAL_CLIENT_ID     = [[INFSCL_AGNT_CLIENT_ID__BILL]]       # Set in Komodo variables (toggle secret on to prevent upload to Repo)
 INFISICAL_CLIENT_SECRET = [[INFSCL_AGNT_CLIENT_SECRET__BILL]]   # Set in Komodo variables (toggle secret on to prevent upload to Repo)
@@ -219,7 +219,7 @@ config_files = [
 environment = """
 
 AGENT_HOST              = 'littlebuddy'                         # e.g. 'littlebuddy' or 'paiki' | This host. Must match folder in Infisical project
-AGENT_SERVICES          = 'postgres docuseal forgejo openproject woodpecker frappe paperless komodo-mcp paperless'
+AGENT_SERVICES          = 'cloudflare__dns-api-token postgres docuseal forgejo openproject woodpecker komodo-mcp paperless'
 INFISICAL_ADDRESS       = 'http://infisical_app:8080'           # Uncomment if Infisical runs on this host
 INFISICAL_CLIENT_ID     = [[LITTLEBUDDY__AGENT_CLIENT_ID]]      # Set in Komodo variables (toggle secret on to prevent upload to Repo)
 INFISICAL_CLIENT_SECRET = [[LITTLEBUDDY__AGENT_CLIENT_SECRET]]  # Set in Komodo variables (toggle secret on to prevent upload to Repo)
@@ -237,7 +237,7 @@ run_directory = "./platform/secrets-manager/infisical-agent"
 environment = """
   # VARIABLE = value
 AGENT_HOST=                     'maboi'
-AGENT_SERVICES=                 'traefik cloudflared couch-potatoes-website stackform-website'
+AGENT_SERVICES=                 'cloudflare__dns-api-token cloudflared couch-potatoes-website stackform-website'
 INFISICAL_CLIENT_ID=            [[MABOI__AGENT_CLIENT_ID]]
 INFISICAL_CLIENT_SECRET=        [[MABOI__AGENT_CLIENT_SECRET]]
 """
@@ -261,7 +261,7 @@ config_files = [
 environment = """
 
 AGENT_HOST              = 'paiki'                         # e.g. 'littlebuddy' or 'paiki' | This host. Must match folder in Infisical project
-AGENT_SERVICES          = 'immich cloudflared traefik stream'                        # e.g. 'postgres woodpecker etc' | Services to render secrets, defined in repo
+AGENT_SERVICES          = 'cloudflare__dns-api-token immich cloudflared stream'                        # e.g. 'postgres woodpecker etc' | Services to render secrets, defined in repo
 # INFISICAL_ADDRESS     = 'http://infisical_app:8080'     # Uncomment if Infisical runs on this host
 INFISICAL_CLIENT_ID     = [[PAIKI__AGENT_CLIENT_ID]]      # Set in Komodo variables (toggle secret on to prevent upload to Repo)
 INFISICAL_CLIENT_SECRET = [[PAIKI__AGENT_CLIENT_SECRET]]  # Set in Komodo variables (toggle secret on to prevent upload to Repo)
