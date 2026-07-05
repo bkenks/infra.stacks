@@ -2,5 +2,6 @@
 include:
 - env_file:
   - /dev/shm/pangolin.env
+  - /dev/shm/cloudflare__dns-api-token.env
   path: ./compose.stack.yaml
 name: pangolin

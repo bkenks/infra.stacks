@@ -19,7 +19,13 @@ http:
         - redirect-to-https
         - badger
 
-    # Next.js router (handles everything except API and WebSocket paths)
+    # Next.js router (handles everything except API and WebSocket paths).
+    # Requests the *.homektb.com wildcard here (once) via Cloudflare DNS-01 —
+    # same "request once, serve everywhere via SNI" trick as this repo's
+    # platform/edge/traefik files/host.yml. Every other router (this stack's
+    # api-router/ws-router, and any router Pangolin itself adds dynamically
+    # for a new Resource under homektb.com) then just needs `tls: true` /
+    # `certResolver: cloudflare` with no domains block of its own.
     next-router:
       rule: "Host(`pangolin.homektb.com`) && !PathPrefix(`/api/v1`)"
       service: next-service
@@ -28,7 +34,11 @@ http:
       middlewares:
         - badger
       tls:
-        certResolver: letsencrypt
+        certResolver: cloudflare
+        domains:
+          - main: homektb.com
+            sans:
+              - "*.homektb.com"
 
     # API router (handles /api/v1 paths)
     api-router:
@@ -39,7 +49,7 @@ http:
       middlewares:
         - badger
       tls:
-        certResolver: letsencrypt
+        certResolver: cloudflare
 
     # WebSocket router
     ws-router:
@@ -50,7 +60,7 @@ http:
       middlewares:
         - badger
       tls:
-        certResolver: letsencrypt
+        certResolver: cloudflare
 
   services:
     next-service:

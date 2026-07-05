@@ -149,7 +149,9 @@
     # --- Stackform project ---
     'stackform-website': { project: 'stackform', folder: '/website', dest: 'stackform_website.env', type: 'dump' },
     # --- Infra project (dump) ---
-    traefik: { project: 'infra', folder: '/traefik', dest: 'traefik.env', type: 'dump' },
+    # Cloudflare DNS-01 ACME token — shared by any stack whose Traefik needs
+    # it, not just platform/edge/traefik (see platform/edge/pangolin).
+    'cloudflare__dns-api-token': { project: 'infra', folder: '/traefik', dest: 'cloudflare__dns-api-token.env', type: 'dump' },
     zerobyte: { project: 'infra', folder: '/zerobyte', dest: 'zerobyte.env', type: 'dump' },
     # Ansible seeds these into the /infisical folder during bootstrap (it has to
     # match the live ENCRYPTION_KEY/DB password already in use); the agent then

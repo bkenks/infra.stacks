@@ -1,5 +1,5 @@
 # GENERATED from services.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
-- destination-path: /dev/shm/traefik.env
+- destination-path: /dev/shm/cloudflare__dns-api-token.env
   config:
     polling-interval: "1m"
   template-content: |

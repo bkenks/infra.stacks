@@ -82,6 +82,8 @@ services:
         condition: service_completed_successfully
       pangolin:
         condition: service_healthy
+    environment:
+      CF_DNS_API_TOKEN: ${CF_DNS_API_TOKEN:?err}
     image: docker.io/library/traefik:v3.6
     network_mode: service:gerbil
     restart: unless-stopped
