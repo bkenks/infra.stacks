@@ -142,6 +142,7 @@
     stream: { project: 'apps', folder: '/stream', dest: 'stream.env', type: 'dump' },
     convertx: { project: 'apps', folder: '/convertx', dest: 'convertx.env', type: 'dump' },
     twenty: { project: 'apps', folder: '/twenty', dest: 'twenty.env', type: 'dump' },
+    pangolin: { project: 'apps', folder: '/pangolin', dest: 'pangolin.env', type: 'dump' },
     frappe: { project: 'frappe', folder: '/frappe', dest: 'frappe.env', type: 'dump' },
     # --- Couch-potatoes client project ---
     'couch-potatoes-website': { project: 'couchPotatoes', folder: '/website', dest: 'client_couch-potatoes_website.env', type: 'dump' },
