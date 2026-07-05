@@ -1,0 +1,733 @@
+[[server]]
+name = "biggy"
+[server.config]
+address = "biggy:8120"
+enabled = true
+
+##
+
+[[server]]
+name = "bill"
+[server.config]
+address = "bill:8120"
+region = "Cincinnati, OH"
+enabled = true
+
+##
+
+[[server]]
+name = "littlebuddy"
+description = "Control Plane"
+[server.config]
+address = "host.docker.internal:8120"
+region = "cincinnati, oh"
+enabled = true
+
+##
+
+[[server]]
+name = "maboi"
+description = "Hetzner VPS CPX11"
+tags = ["vps"]
+[server.config]
+address = "maboi:8120"
+region = "ashland, va"
+enabled = true
+
+##
+
+[[server]]
+name = "paiki"
+[server.config]
+address = "plexyandiknowit:8120"
+region = "cincinnati, oh"
+enabled = true
+
+##
+
+[[server]]
+name = "rick"
+[server.config]
+address = "rick:8120"
+enabled = true
+
+##
+
+[[stack]]
+name = "client_couch-potatoes_prod"
+tags = ["client", "stackform", "offsite"]
+[stack.config]
+server = "maboi"
+linked_repo = "client_couch-potatoes_website"
+run_directory = "./compose"
+file_paths = ["compose.prod.yaml"]
+registry_provider = "ghcr.io"
+registry_account = "bkenks"
+post_deploy.command = """
+  # Add multiple commands on new lines. Supports comments.
+  # bs3 envject PAYLOAD_SECRET \
+  # -- docker compose -f docker-compose.prod.yml --profile seed run --rm seed
+"""
+ignore_services = ["seed"]
+environment = """
+# Uncomment to seed example data
+COMPOSE_PROFILES = seed
+"""
+
+##
+
+[[stack]]
+name = "client_royalty-hvac_website"
+tags = ["client", "stackform", "offsite"]
+[stack.config]
+server = "maboi"
+linked_repo = "client_royalty-hvac_website"
+reclone = true
+run_directory = "./compose"
+
+##
+
+[[stack]]
+name = "cloudflared_littlebuddy"
+[stack.config]
+server = "littlebuddy"
+project_name = "cloudflared"
+linked_repo = "infra.stacks"
+reclone = true
+run_directory = "./platform/edge/cloudflared"
+
+##
+
+[[stack]]
+name = "cloudflared_maboi"
+tags = ["offsite"]
+[stack.config]
+server = "maboi"
+linked_repo = "infra.stacks"
+run_directory = "./node/cloudflared"
+
+##
+
+[[stack]]
+name = "databasus"
+[stack.config]
+server = "littlebuddy"
+links = [
+  "https://databasus.homektb.com"
+]
+project_name = "databasus"
+poll_for_updates = true
+linked_repo = "infra.stacks"
+webhook_enabled = false
+run_directory = "./platform/backup-manager/databasus"
+
+##
+
+[[stack]]
+name = "docker-resource-manager"
+template = true
+[stack.config]
+linked_repo = "infra.stacks"
+run_directory = "./platform/docker-resource-manager"
+
+##
+
+[[stack]]
+name = "docuseal"
+[stack.config]
+server = "littlebuddy"
+linked_repo = "infra.stacks"
+run_directory = "./apps/business/docuseal"
+extra_args = ["--remove-orphans"]
+
+##
+
+[[stack]]
+name = "forgejo"
+[stack.config]
+server = "littlebuddy"
+linked_repo = "infra.stacks"
+run_directory = "./tools/devops/forgejo"
+
+##
+
+[[stack]]
+name = "frappe-production"
+[stack.config]
+server = "bill"
+linked_repo = "infra.stacks"
+run_directory = "./apps/business/frappe"
+ignore_services = ["configurator"]
+
+##
+
+[[stack]]
+name = "immich"
+[stack.config]
+server = "paiki"
+links = ["https://immich.homektb.com"]
+linked_repo = "infra.stacks"
+run_directory = "./apps/media/immich"
+file_paths = ["compose.yaml"]
+environment = """
+  # VARIABLE = value
+"""
+
+##
+
+[[stack]]
+name = "infisical"
+tags = ["infra"]
+[stack.config]
+server = "littlebuddy"
+project_name = "infisical"
+linked_repo = "infra.stacks"
+run_directory = "./platform/secrets-manager/infisical"
+
+##
+
+[[stack]]
+name = "infisical-agent"
+template = true
+[stack.config]
+poll_for_updates = true
+destroy_before_deploy = true
+linked_repo = "infra.stacks"
+webhook_enabled = false
+run_directory = "./platform/secrets-manager/infisical-agent"
+config_files = [
+  { path = "README.md" },
+  { path = "compose.stack.yaml" }
+]
+environment = """
+
+AGENT_HOST              = ''  # e.g. 'littlebuddy' or 'paiki' | This host. Must match folder in Infisical project
+AGENT_SERVICES          = ''  # e.g. 'postgres woodpecker etc' | Services to render secrets, defined in repo
+# INFISICAL_ADDRESS     = 'http://infisical_app:8080' # Uncomment if Infisical runs on this host
+INFISICAL_CLIENT_ID     = ''  # Set in Komodo variables (toggle secret on to prevent upload to Repo)
+INFISICAL_CLIENT_SECRET = ''  # Set in Komodo variables (toggle secret on to prevent upload to Repo)
+"""
+
+##
+
+[[stack]]
+name = "infisical-agent_bill"
+[stack.config]
+server = "bill"
+poll_for_updates = true
+destroy_before_deploy = true
+linked_repo = "infra.stacks"
+webhook_enabled = false
+run_directory = "./platform/secrets-manager/infisical-agent"
+config_files = [
+  { path = "README.md" },
+  { path = "compose.stack.yaml" }
+]
+environment = """
+
+AGENT_HOST              = 'bill'                                # e.g. 'littlebuddy' or 'paiki' | This host. Must match folder in Infisical project
+AGENT_SERVICES          = 'traefik frappe'
+# INFISICAL_ADDRESS     = 'http://infisical_app:8080'           # Uncomment if Infisical runs on this host
+INFISICAL_CLIENT_ID     = [[INFSCL_AGNT_CLIENT_ID__BILL]]       # Set in Komodo variables (toggle secret on to prevent upload to Repo)
+INFISICAL_CLIENT_SECRET = [[INFSCL_AGNT_CLIENT_SECRET__BILL]]   # Set in Komodo variables (toggle secret on to prevent upload to Repo)
+"""
+
+##
+
+[[stack]]
+name = "infisical-agent_littlebuddy"
+[stack.config]
+server = "littlebuddy"
+poll_for_updates = true
+destroy_before_deploy = true
+linked_repo = "infra.stacks"
+webhook_enabled = false
+run_directory = "./platform/secrets-manager/infisical-agent"
+config_files = [
+  { path = "README.md" },
+  { path = "compose.stack.yaml", requires = "Restart" }
+]
+environment = """
+
+AGENT_HOST              = 'littlebuddy'                         # e.g. 'littlebuddy' or 'paiki' | This host. Must match folder in Infisical project
+AGENT_SERVICES          = 'postgres docuseal forgejo openproject woodpecker frappe paperless komodo-mcp paperless'
+INFISICAL_ADDRESS       = 'http://infisical_app:8080'           # Uncomment if Infisical runs on this host
+INFISICAL_CLIENT_ID     = [[LITTLEBUDDY__AGENT_CLIENT_ID]]      # Set in Komodo variables (toggle secret on to prevent upload to Repo)
+INFISICAL_CLIENT_SECRET = [[LITTLEBUDDY__AGENT_CLIENT_SECRET]]  # Set in Komodo variables (toggle secret on to prevent upload to Repo)
+"""
+
+##
+
+[[stack]]
+name = "infisical-agent_maboi"
+tags = ["secret-agent", "offsite"]
+[stack.config]
+server = "maboi"
+linked_repo = "infra.stacks"
+run_directory = "./platform/secrets-manager/infisical-agent"
+environment = """
+  # VARIABLE = value
+AGENT_HOST=                     'maboi'
+AGENT_SERVICES=                 'traefik cloudflared couch-potatoes-website stackform-website'
+INFISICAL_CLIENT_ID=            [[MABOI__AGENT_CLIENT_ID]]
+INFISICAL_CLIENT_SECRET=        [[MABOI__AGENT_CLIENT_SECRET]]
+"""
+
+##
+
+[[stack]]
+name = "infisical-agent_paiki"
+[stack.config]
+server = "paiki"
+poll_for_updates = true
+destroy_before_deploy = true
+linked_repo = "infra.stacks"
+webhook_enabled = false
+run_directory = "./platform/secrets-manager/infisical-agent"
+config_files = [
+  { path = "README.md" },
+  { path = "compose.stack.yaml" }
+]
+environment = """
+
+AGENT_HOST              = 'paiki'                         # e.g. 'littlebuddy' or 'paiki' | This host. Must match folder in Infisical project
+AGENT_SERVICES          = 'immich cloudflared traefik stream'                        # e.g. 'postgres woodpecker etc' | Services to render secrets, defined in repo
+# INFISICAL_ADDRESS     = 'http://infisical_app:8080'     # Uncomment if Infisical runs on this host
+INFISICAL_CLIENT_ID     = [[PAIKI__AGENT_CLIENT_ID]]      # Set in Komodo variables (toggle secret on to prevent upload to Repo)
+INFISICAL_CLIENT_SECRET = [[PAIKI__AGENT_CLIENT_SECRET]]  # Set in Komodo variables (toggle secret on to prevent upload to Repo)
+"""
+
+##
+
+[[stack]]
+name = "komodo-mcp"
+[stack.config]
+server = "littlebuddy"
+linked_repo = "infra.stacks"
+run_directory = "./tools/komodo-mcp"
+
+##
+
+[[stack]]
+name = "openproject"
+[stack.config]
+server = "littlebuddy"
+destroy_before_deploy = true
+linked_repo = "infra.stacks"
+run_directory = "./apps/business/openproject"
+file_paths = ["compose.yaml"]
+ignore_services = ["seeder"]
+
+##
+
+[[stack]]
+name = "paperless"
+[stack.config]
+server = "littlebuddy"
+linked_repo = "infra.stacks"
+run_directory = "./apps/personal/paperless"
+env_file_path = "komodo_vars.env"
+pre_deploy.command = """
+  # Add multiple commands on new lines. Supports comments.
+"""
+environment = """
+  # VARIABLE = value
+DOCKER_VOLUMES=[[SRV_DOCKER_VOL]]
+"""
+
+##
+
+[[stack]]
+name = "postgres"
+[stack.config]
+server = "littlebuddy"
+linked_repo = "infra.stacks"
+webhook_enabled = false
+run_directory = "./databases/postgres"
+
+##
+
+[[stack]]
+name = "scriberr"
+[stack.config]
+server = "littlebuddy"
+links = ["scriberr.homektb.com"]
+linked_repo = "infra.stacks"
+run_directory = "./apps/business/scriberr"
+
+##
+
+[[stack]]
+name = "stackform_website"
+tags = ["stackform", "offsite"]
+[stack.config]
+server = "maboi"
+run_build = true
+linked_repo = "stackform_website"
+run_directory = "./compose"
+
+##
+
+[[stack]]
+name = "stream"
+[stack.config]
+server = "paiki"
+linked_repo = "infra.stacks"
+run_directory = "./apps/media/stream"
+ignore_services = ["configarr"]
+
+##
+
+[[stack]]
+name = "termix_littlebuddy"
+[stack.config]
+server = "littlebuddy"
+linked_repo = "infra.stacks"
+run_directory = "./tools/termix"
+config_files = [{ path = "README.md" }]
+
+##
+
+[[stack]]
+name = "traefik"
+description = """
+Reverse Proxy
+- Project name set to match compose file so it will pull the correct Traefik container deployed by Ansible into Komodo
+- Should be used for managed nodes as well (not just control plane)"""
+template = true
+[stack.config]
+project_name = "traefik"
+linked_repo = "infra.stacks"
+run_directory = "./platform/edge/traefik"
+
+##
+
+[[stack]]
+name = "traefik_bill"
+[stack.config]
+server = "bill"
+linked_repo = "infra.stacks"
+run_directory = "./platform/edge/traefik"
+extra_args = ["--remove-orphans"]
+
+##
+
+[[stack]]
+name = "traefik_littlebuddy"
+[stack.config]
+server = "littlebuddy"
+project_name = "traefik"
+linked_repo = "infra.stacks"
+run_directory = "./platform/edge/traefik"
+
+##
+
+[[stack]]
+name = "traefik_maboi"
+tags = ["offsite"]
+[stack.config]
+server = "maboi"
+linked_repo = "infra.stacks"
+run_directory = "./node/traefik"
+extra_args = ["--force-recreate"]
+environment = """
+AGENT_HOST=   maboi
+"""
+
+##
+
+[[stack]]
+name = "traefik_paiki"
+[stack.config]
+server = "paiki"
+project_name = "traefik"
+linked_repo = "infra.stacks"
+run_directory = "./platform/edge/traefik"
+
+##
+
+[[stack]]
+name = "woodpecker"
+[stack.config]
+server = "littlebuddy"
+linked_repo = "infra.stacks"
+run_directory = "./tools/devops/woodpecker"
+
+##
+
+[[stack]]
+name = "zerobyte"
+[stack.config]
+server = "littlebuddy"
+links = [
+  "https://zerobyte.homektb.com",
+  "http://littlebuddy:4096"
+]
+project_name = "zerobyte"
+linked_repo = "infra.stacks"
+run_directory = "./platform/backup-manager/zerobyte"
+environment = """
+
+"""
+
+##
+
+[[repo]]
+name = "bkenks"
+template = true
+[repo.config]
+git_account = "bkenks"
+on_pull.command = """
+dcvols -r --uid 1000 --gid 1000
+"""
+
+##
+
+[[repo]]
+name = "client_couch-potatoes_website"
+tags = ["stackform", "client"]
+[repo.config]
+server = "littlebuddy"
+git_provider = "fj.homektb.com"
+git_account = "bkenks"
+repo = "stackform-hq/client_couch-potatoes_website"
+
+##
+
+[[repo]]
+name = "client_royalty-hvac_website"
+tags = ["stackform", "client"]
+[repo.config]
+server = "littlebuddy"
+git_provider = "fj.homektb.com"
+git_account = "bkenks"
+repo = "stackform-hq/client_royalty-hvac_website"
+
+##
+
+[[repo]]
+name = "infra"
+template = true
+[repo.config]
+server = "littlebuddy"
+git_account = "bkenks"
+repo = "ktbgroup-self-hosted/stack.infra"
+
+##
+
+[[repo]]
+name = "infra.stacks"
+[repo.config]
+server = "littlebuddy"
+git_provider = "fj.homektb.com"
+git_account = "bkenks"
+repo = "ktbgroup-self-hosted/infra.stacks"
+
+##
+
+[[repo]]
+name = "ktbgroup-self-hosted"
+template = true
+[repo.config]
+git_account = "bkenks"
+repo = "ktbgroup-self-hosted/"
+
+##
+
+[[repo]]
+name = "stackform-hq"
+template = true
+[repo.config]
+git_account = "bkenks"
+repo = "stackform-hq/"
+
+##
+
+[[repo]]
+name = "stackform_website"
+tags = ["stackform"]
+[repo.config]
+server = "littlebuddy"
+git_provider = "fj.homektb.com"
+git_account = "bkenks"
+repo = "stackform-hq/stackform_website"
+
+##
+
+[[procedure]]
+name = "Backup Core Database"
+description = "Triggers the Core database backup at the scheduled time."
+config.schedule = "Every day at 01:00"
+
+[[procedure.config.stage]]
+name = "Stage 1"
+enabled = true
+executions = [
+  { execution.type = "BackupCoreDatabase", execution.params = {}, enabled = true }
+]
+
+##
+
+[[procedure]]
+name = "Global Auto Update"
+description = "Pulls and auto updates Stacks and Deployments using 'poll_for_updates' or 'auto_update'."
+config.schedule = "Every day at 03:00"
+
+[[procedure.config.stage]]
+name = "Stage 1"
+enabled = true
+executions = [
+  { execution.type = "GlobalAutoUpdate", execution.params.skip_auto_update = false, enabled = true }
+]
+
+##
+
+[[procedure]]
+name = "[DANGER] Prune All Volumes"
+
+[[procedure.config.stage]]
+name = "Prune Volumes"
+enabled = true
+executions = [
+  { execution.type = "PruneVolumes", execution.params.server = "biggy", enabled = true },
+  { execution.type = "PruneVolumes", execution.params.server = "bill", enabled = true },
+  { execution.type = "PruneVolumes", execution.params.server = "littlebuddy", enabled = true },
+  { execution.type = "PruneVolumes", execution.params.server = "maboi", enabled = true },
+  { execution.type = "PruneVolumes", execution.params.server = "paiki", enabled = true }
+]
+
+##
+
+[[procedure]]
+name = "[SAFE] Global Cleanup"
+config.webhook_enabled = false
+config.schedule = "Every Sunday at midnight"
+config.schedule_enabled = false
+config.schedule_timezone = "America/New_York"
+
+[[procedure.config.stage]]
+name = "Prune Containers"
+enabled = true
+executions = [
+  { execution.type = "PruneContainers", execution.params.server = "biggy", enabled = true },
+  { execution.type = "PruneContainers", execution.params.server = "bill", enabled = true },
+  { execution.type = "PruneContainers", execution.params.server = "littlebuddy", enabled = true },
+  { execution.type = "PruneContainers", execution.params.server = "maboi", enabled = true },
+  { execution.type = "PruneContainers", execution.params.server = "paiki", enabled = true }
+]
+
+[[procedure.config.stage]]
+name = "Prune Networks"
+enabled = true
+executions = [
+  { execution.type = "PruneNetworks", execution.params.server = "biggy", enabled = true },
+  { execution.type = "PruneNetworks", execution.params.server = "bill", enabled = true },
+  { execution.type = "PruneNetworks", execution.params.server = "littlebuddy", enabled = true },
+  { execution.type = "PruneNetworks", execution.params.server = "maboi", enabled = true },
+  { execution.type = "PruneNetworks", execution.params.server = "paiki", enabled = true }
+]
+
+[[procedure.config.stage]]
+name = "Prune Images"
+enabled = true
+executions = [
+  { execution.type = "PruneImages", execution.params.server = "biggy", enabled = true },
+  { execution.type = "PruneImages", execution.params.server = "bill", enabled = true },
+  { execution.type = "PruneImages", execution.params.server = "littlebuddy", enabled = true },
+  { execution.type = "PruneImages", execution.params.server = "maboi", enabled = true },
+  { execution.type = "PruneImages", execution.params.server = "paiki", enabled = true }
+]
+
+##
+
+[[alerter]]
+name = "discord"
+[alerter.config]
+enabled = true
+endpoint.type = "Discord"
+endpoint.params.url = "[[DISCORD_ALERTER_WEBHOOK]]"
+
+##
+
+[[builder]]
+name = "littlebuddy"
+[builder.config]
+type = "Server"
+params.server_id = "littlebuddy"
+
+##
+
+[[resource_sync]]
+name = "Global TOML Sync"
+[resource_sync.config]
+linked_repo = "infra.stacks"
+webhook_enabled = false
+resource_path = [
+  "./platform/container-manager/komodo/files/komodo-config-sync.toml"
+]
+managed = true
+include_variables = true
+include_user_groups = true
+
+##
+
+[[variable]]
+name = "DISCORD_ALERTER_WEBHOOK"
+value = "https://discord.com/api/webhooks/1517231699514101943/kemGc5oySkAuqZ9n7mP0ALf590VhJ0Ap7Rtq1xv4eMoGNgoOs0zOsioqznwx6FFim08l"
+is_secret = true
+
+##
+
+[[variable]]
+name = "INFSCL_AGNT_CLIENT_ID__BILL"
+value = "'5ea26d35-614a-4ce8-aac2-885f751525dc'"
+is_secret = true
+
+##
+
+[[variable]]
+name = "INFSCL_AGNT_CLIENT_SECRET__BILL"
+value = "'3f6bf6bed9ae91745c1f87dffa66288ba4dcf2227e1c74fe05ab67045050ab04'"
+is_secret = true
+
+##
+
+[[variable]]
+name = "LITTLEBUDDY__AGENT_CLIENT_ID"
+value = "59710a6b-f13a-4951-a4d5-f2ba80915432"
+is_secret = true
+
+##
+
+[[variable]]
+name = "LITTLEBUDDY__AGENT_CLIENT_SECRET"
+value = "3947aac53c4f1e10cd5dfcaee69cbcf7a61b05d359cb50f2cbb92acdb8a0fd49"
+is_secret = true
+
+##
+
+[[variable]]
+name = "MABOI__AGENT_CLIENT_ID"
+value = "9cf4fed0-af19-4ec3-9e3e-9b44e49d3816"
+is_secret = true
+
+##
+
+[[variable]]
+name = "MABOI__AGENT_CLIENT_SECRET"
+value = "e04c22dfc1ab76f4cfad84f4563a6eceafbc27a90d560db8f6c512a00c95a2a0"
+is_secret = true
+
+##
+
+[[variable]]
+name = "PAIKI__AGENT_CLIENT_ID"
+value = "40b87e85-5e57-4a60-b658-afce60415b44"
+is_secret = true
+
+##
+
+[[variable]]
+name = "PAIKI__AGENT_CLIENT_SECRET"
+value = "ade3d4310fee6e9141f3ae4d43cea9e575f179df2e6efce8c36a01ba2e363382"
+is_secret = true
