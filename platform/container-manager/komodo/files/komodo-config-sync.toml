@@ -124,15 +124,6 @@ run_directory = "./platform/backup-manager/databasus"
 ##
 
 [[stack]]
-name = "docker-resource-manager"
-template = true
-[stack.config]
-linked_repo = "infra.stacks"
-run_directory = "./platform/docker-resource-manager"
-
-##
-
-[[stack]]
 name = "docuseal"
 [stack.config]
 server = "littlebuddy"
@@ -187,31 +178,8 @@ run_directory = "./platform/secrets-manager/infisical"
 ##
 
 [[stack]]
-name = "infisical-agent"
-template = true
-[stack.config]
-poll_for_updates = true
-destroy_before_deploy = true
-linked_repo = "infra.stacks"
-webhook_enabled = false
-run_directory = "./platform/secrets-manager/infisical-agent"
-config_files = [
-  { path = "README.md" },
-  { path = "compose.stack.yaml" }
-]
-environment = """
-
-AGENT_HOST              = ''  # e.g. 'littlebuddy' or 'paiki' | This host. Must match folder in Infisical project
-AGENT_SERVICES          = ''  # e.g. 'postgres woodpecker etc' | Services to render secrets, defined in repo
-# INFISICAL_ADDRESS     = 'http://infisical_app:8080' # Uncomment if Infisical runs on this host
-INFISICAL_CLIENT_ID     = ''  # Set in Komodo variables (toggle secret on to prevent upload to Repo)
-INFISICAL_CLIENT_SECRET = ''  # Set in Komodo variables (toggle secret on to prevent upload to Repo)
-"""
-
-##
-
-[[stack]]
 name = "infisical-agent_bill"
+tags = ["secret-agent"]
 [stack.config]
 server = "bill"
 poll_for_updates = true
@@ -236,6 +204,7 @@ INFISICAL_CLIENT_SECRET = [[INFSCL_AGNT_CLIENT_SECRET__BILL]]   # Set in Komodo 
 
 [[stack]]
 name = "infisical-agent_littlebuddy"
+tags = ["secret-agent"]
 [stack.config]
 server = "littlebuddy"
 poll_for_updates = true
@@ -277,6 +246,7 @@ INFISICAL_CLIENT_SECRET=        [[MABOI__AGENT_CLIENT_SECRET]]
 
 [[stack]]
 name = "infisical-agent_paiki"
+tags = ["secret-agent"]
 [stack.config]
 server = "paiki"
 poll_for_updates = true
@@ -300,6 +270,31 @@ INFISICAL_CLIENT_SECRET = [[PAIKI__AGENT_CLIENT_SECRET]]  # Set in Komodo variab
 ##
 
 [[stack]]
+name = "infisical-agent_rick"
+tags = ["secret-agent"]
+[stack.config]
+server = "rick"
+poll_for_updates = true
+destroy_before_deploy = true
+linked_repo = "infra.stacks"
+webhook_enabled = false
+run_directory = "./platform/secrets-manager/infisical-agent"
+config_files = [
+  { path = "README.md" },
+  { path = "compose.stack.yaml" }
+]
+environment = """
+
+AGENT_HOST              = 'rick'                                # e.g. 'littlebuddy' or 'paiki' | This host. Must match folder in Infisical project
+AGENT_SERVICES          = 'pangolin'
+# INFISICAL_ADDRESS     = 'http://infisical_app:8080'           # Uncomment if Infisical runs on this host
+INFISICAL_CLIENT_ID     = [[INFSCL_AGNT_CLIENT_ID__RICK]]       # Set in Komodo variables (toggle secret on to prevent upload to Repo)
+INFISICAL_CLIENT_SECRET = [[INFSCL_AGNT_CLIENT_SECRET__RICK]]   # Set in Komodo variables (toggle secret on to prevent upload to Repo)
+"""
+
+##
+
+[[stack]]
 name = "komodo-mcp"
 [stack.config]
 server = "littlebuddy"
@@ -317,6 +312,15 @@ linked_repo = "infra.stacks"
 run_directory = "./apps/business/openproject"
 file_paths = ["compose.yaml"]
 ignore_services = ["seeder"]
+
+##
+
+[[stack]]
+name = "pangolin"
+[stack.config]
+server = "rick"
+linked_repo = "infra.stacks"
+run_directory = "./platform/edge/pangolin"
 
 ##
 
@@ -379,17 +383,49 @@ ignore_services = ["configarr"]
 ##
 
 [[stack]]
-name = "termix_littlebuddy"
+name = "template__docker-resource-manager"
+template = true
 [stack.config]
-server = "littlebuddy"
 linked_repo = "infra.stacks"
-run_directory = "./tools/termix"
-config_files = [{ path = "README.md" }]
+run_directory = "./platform/docker-resource-manager"
 
 ##
 
 [[stack]]
-name = "traefik"
+name = "template__infisical-agent"
+template = true
+[stack.config]
+poll_for_updates = true
+destroy_before_deploy = true
+linked_repo = "infra.stacks"
+webhook_enabled = false
+run_directory = "./platform/secrets-manager/infisical-agent"
+config_files = [
+  { path = "README.md" },
+  { path = "compose.stack.yaml" }
+]
+environment = """
+
+AGENT_HOST              = ''  # e.g. 'littlebuddy' or 'paiki' | This host. Must match folder in Infisical project
+AGENT_SERVICES          = ''  # e.g. 'postgres woodpecker etc' | Services to render secrets, defined in repo
+# INFISICAL_ADDRESS     = 'http://infisical_app:8080' # Uncomment if Infisical runs on this host
+INFISICAL_CLIENT_ID     = ''  # Set in Komodo variables (toggle secret on to prevent upload to Repo)
+INFISICAL_CLIENT_SECRET = ''  # Set in Komodo variables (toggle secret on to prevent upload to Repo)
+"""
+
+##
+
+[[stack]]
+name = "template__pangolin"
+template = true
+[stack.config]
+linked_repo = "infra.stacks"
+run_directory = "./platform/edge/pangolin"
+
+##
+
+[[stack]]
+name = "template__traefik"
 description = """
 Reverse Proxy
 - Project name set to match compose file so it will pull the correct Traefik container deployed by Ansible into Komodo
@@ -399,6 +435,16 @@ template = true
 project_name = "traefik"
 linked_repo = "infra.stacks"
 run_directory = "./platform/edge/traefik"
+
+##
+
+[[stack]]
+name = "termix_littlebuddy"
+[stack.config]
+server = "littlebuddy"
+linked_repo = "infra.stacks"
+run_directory = "./tools/termix"
+config_files = [{ path = "README.md" }]
 
 ##
 
@@ -686,8 +732,22 @@ is_secret = true
 ##
 
 [[variable]]
+name = "INFSCL_AGNT_CLIENT_ID__RICK"
+value = "'31d9846b-754b-4dfa-95ac-29595880c920'"
+is_secret = true
+
+##
+
+[[variable]]
 name = "INFSCL_AGNT_CLIENT_SECRET__BILL"
 value = "'3f6bf6bed9ae91745c1f87dffa66288ba4dcf2227e1c74fe05ab67045050ab04'"
+is_secret = true
+
+##
+
+[[variable]]
+name = "INFSCL_AGNT_CLIENT_SECRET__RICK"
+value = "'936a79a4814da1c802f917ed9f4c520694e31750470fbdb9647174a52c2e8a68'"
 is_secret = true
 
 ##
