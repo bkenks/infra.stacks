@@ -603,6 +603,7 @@ repo = "stackform-hq/stackform_website"
 [[procedure]]
 name = "Backup Core Database"
 description = "Triggers the Core database backup at the scheduled time."
+config.schedule_enabled = false
 config.schedule = "Every day at 01:00"
 
 [[procedure.config.stage]]
@@ -617,6 +618,7 @@ executions = [
 [[procedure]]
 name = "Global Auto Update"
 description = "Pulls and auto updates Stacks and Deployments using 'poll_for_updates' or 'auto_update'."
+config.schedule_enabled = false
 config.schedule = "Every day at 03:00"
 
 [[procedure.config.stage]]
@@ -629,39 +631,10 @@ executions = [
 ##
 
 [[procedure]]
-name = "[DANGER] Prune All Volumes"
-
-[[procedure.config.stage]]
-name = "Prune Volumes"
-enabled = true
-executions = [
-  { execution.type = "PruneVolumes", execution.params.server = "biggy", enabled = true },
-  { execution.type = "PruneVolumes", execution.params.server = "bill", enabled = true },
-  { execution.type = "PruneVolumes", execution.params.server = "littlebuddy", enabled = true },
-  { execution.type = "PruneVolumes", execution.params.server = "maboi", enabled = true },
-  { execution.type = "PruneVolumes", execution.params.server = "paiki", enabled = true }
-]
-
-##
-
-[[procedure]]
-name = "[Resource Sync] Global TOML Sync"
-config.schedule = "Every day at midnight"
-
-[[procedure.config.stage]]
-name = "Commit Changes"
-enabled = true
-executions = [
-  { execution.type = "CommitSync", execution.params.sync = "Global TOML Sync", enabled = true }
-]
-
-##
-
-[[procedure]]
-name = "[SAFE] Global Cleanup"
+name = "Maintainence"
+description = "Ran every night. Cleans up docker resources, syncs configuration with TOML file, backs up the database, and updates images."
 config.webhook_enabled = false
-config.schedule = "Every Sunday at midnight"
-config.schedule_enabled = false
+config.schedule = "Every day at 11:00 pm"
 config.schedule_timezone = "America/New_York"
 
 [[procedure.config.stage]]
@@ -695,6 +668,43 @@ executions = [
   { execution.type = "PruneImages", execution.params.server = "littlebuddy", enabled = true },
   { execution.type = "PruneImages", execution.params.server = "maboi", enabled = true },
   { execution.type = "PruneImages", execution.params.server = "paiki", enabled = true }
+]
+
+[[procedure.config.stage]]
+name = "Sync TOML"
+enabled = true
+executions = [
+  { execution.type = "CommitSync", execution.params.sync = "Global TOML Sync", enabled = true }
+]
+
+[[procedure.config.stage]]
+name = "Backup DB"
+enabled = true
+executions = [
+  { execution.type = "BackupCoreDatabase", execution.params = {}, enabled = true }
+]
+
+[[procedure.config.stage]]
+name = "Poll For Updates"
+enabled = true
+executions = [
+  { execution.type = "GlobalAutoUpdate", execution.params.skip_auto_update = false, enabled = true }
+]
+
+##
+
+[[procedure]]
+name = "[DANGER] Prune All Volumes"
+
+[[procedure.config.stage]]
+name = "Prune Volumes"
+enabled = true
+executions = [
+  { execution.type = "PruneVolumes", execution.params.server = "biggy", enabled = true },
+  { execution.type = "PruneVolumes", execution.params.server = "bill", enabled = true },
+  { execution.type = "PruneVolumes", execution.params.server = "littlebuddy", enabled = true },
+  { execution.type = "PruneVolumes", execution.params.server = "maboi", enabled = true },
+  { execution.type = "PruneVolumes", execution.params.server = "paiki", enabled = true }
 ]
 
 ##
