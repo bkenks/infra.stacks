@@ -645,6 +645,19 @@ executions = [
 ##
 
 [[procedure]]
+name = "[Resource Sync] Global TOML Sync"
+config.schedule = "Every day at midnight"
+
+[[procedure.config.stage]]
+name = "Commit Changes"
+enabled = true
+executions = [
+  { execution.type = "CommitSync", execution.params.sync = "Global TOML Sync", enabled = true }
+]
+
+##
+
+[[procedure]]
 name = "[SAFE] Global Cleanup"
 config.webhook_enabled = false
 config.schedule = "Every Sunday at midnight"
