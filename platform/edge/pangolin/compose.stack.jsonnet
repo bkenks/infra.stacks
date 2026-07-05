@@ -34,26 +34,41 @@ local pangolinVersion = '1.19.4';
 local gerbilVersion = '1.4.2';
 local traefikVersion = 'v3.6';
 
+// Same community redistribution mirror Pangolin's own installer downloads
+// these from (pulled from the installer binary's strings — not MaxMind
+// directly, so no license key needed). Each tarball extracts into a
+// versioned dir (e.g. GeoLite2-Country_<date>/); the mv globs match that.
+local geoliteMirror = 'https://github.com/GitSquared/node-geolite2-redist/raw/refs/heads/master/redist/';
+local fetchGeolite(name) =
+  'if [ ! -f /mnt/config/GeoLite2-' + name + '.mmdb ]; then ' +
+  'wget -qO /tmp/geolite-' + name + '.tar.gz ' + geoliteMirror + 'GeoLite2-' + name + '.tar.gz && ' +
+  'tar -xzf /tmp/geolite-' + name + '.tar.gz -C /tmp && ' +
+  'mv /tmp/GeoLite2-' + name + '_*/GeoLite2-' + name + '.mmdb /mnt/config/; ' +
+  'fi';
+
+local initScript =
+  'set -e && ' +
+  'mkdir -p /mnt/config/traefik/logs /mnt/config/letsencrypt && ' +
+  'touch /mnt/config/letsencrypt/acme.json && ' +
+  'chmod 600 /mnt/config/letsencrypt/acme.json && ' +
+  fetchGeolite('Country') + ' && ' +
+  fetchGeolite('ASN') + ' && ' +
+  'chmod -R 755 /mnt/config';
+
 {
   name: stack,
 
   services: {
     // init — one-shot: creates the shared config tree with the right
-    // directory structure/permissions before pangolin/gerbil/traefik start.
-    // Does NOT provision file content (config.yml etc. are the files/ bind
-    // mounts below; GeoLite *.mmdb are a manual one-time host copy — see
-    // README.md) — this only owns directories + acme.json's 600 perms.
+    // directory structure/permissions before pangolin/gerbil/traefik start,
+    // and downloads the GeoLite2 mmdb files on first run only (skipped once
+    // they exist on the persistent host dir). Does NOT provision the rest of
+    // the config content — that's the files/ bind mounts below.
     init: {
       image: 'docker.io/library/busybox:1.37.0',
       container_name: 'pangolin_init',
       volumes: [configDir + ':/mnt/config'],
-      command: [
-        'sh', '-c',
-        'mkdir -p /mnt/config/traefik/logs /mnt/config/letsencrypt && ' +
-        'touch /mnt/config/letsencrypt/acme.json && ' +
-        'chmod 600 /mnt/config/letsencrypt/acme.json && ' +
-        'chmod -R 755 /mnt/config',
-      ],
+      command: ['sh', '-c', initScript],
       restart: 'no',
     },
 

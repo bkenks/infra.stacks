@@ -32,9 +32,9 @@ This stack's specifics:
 
 Everything lives under one shared host directory, `/srv/docker/bind-mounts/pangolin/config` (no named volumes — same style as `apps/media/stream`), because Pangolin/Gerbil/Traefik read and write into this tree by upstream design:
 
-- `init` (busybox, one-shot) creates the directory tree and permissions before the real services start (`traefik/logs/`, `letsencrypt/`, `letsencrypt/acme.json` at `600`). It does **not** provision file content.
+- `init` (busybox, one-shot) creates the directory tree and permissions before the real services start (`traefik/logs/`, `letsencrypt/`, `letsencrypt/acme.json` at `600`), and downloads `GeoLite2-Country.mmdb`/`GeoLite2-ASN.mmdb` on first run only (skipped once they already exist on the host). Source is the same community redistribution mirror Pangolin's own installer uses (`github.com/GitSquared/node-geolite2-redist` — not MaxMind directly, so no license key/account needed). It does **not** provision the rest of the config content.
 - Human-maintained config (`files/config.yml`, `files/privateConfig.yml`, `files/traefik_config.yml`, `files/dynamic_config.yml`) is git-tracked in this repo and bind-mounted read-only over the writable host dir.
-- **Manual one-time step:** copy `GeoLite2-Country.mmdb` and `GeoLite2-ASN.mmdb` onto the host at `/srv/docker/bind-mounts/pangolin/config/` yourself (not committed here — MaxMind's license doesn't allow redistributing the DB files, and they're binary blobs anyway). Pangolin's own runtime state (its db, Gerbil's WireGuard key) also lives in this same tree and persists there across redeploys.
+- Pangolin's own runtime state (its db, Gerbil's WireGuard key) also lives in this same tree and persists there across redeploys.
 
 ### Compose Commands
 
