@@ -23,14 +23,26 @@ log:
   maxAge: 3
   compress: true
 
+# TLS certificates: Cloudflare DNS-01 ACME (Let's Encrypt) — same mechanism as
+# this repo's platform/edge/traefik. CF_DNS_API_TOKEN (Zone:DNS:Edit +
+# Zone:Read on the homektb.com zone) is read by the lego cloudflare provider
+# from the container environment (compose.stack.jsonnet) — deliberately not
+# set here, so no secret lands in git. Which (wildcard) cert gets requested is
+# in dynamic_config.yml; once issued, Traefik serves it via SNI so every
+# router — including ones Pangolin itself adds dynamically for new Resources —
+# just needs `tls: { certResolver: cloudflare }`.
 certificatesResolvers:
-  letsencrypt:
+  cloudflare:
     acme:
-      httpChallenge:
-        entryPoint: web
       email: "briankenkel.t@gmail.com"
       storage: "/letsencrypt/acme.json"
-      caServer: "https://acme-v02.api.letsencrypt.org/directory"
+      dnsChallenge:
+        provider: cloudflare
+        # homektb.com resolves to a private (Tailscale) A record internally, so
+        # use public resolvers for the _acme-challenge TXT propagation check.
+        resolvers:
+          - "1.1.1.1:53"
+          - "1.0.0.1:53"
 
 entryPoints:
   web:
@@ -44,7 +56,7 @@ entryPoints:
       advertisedPort: 443
     http:
       tls:
-        certResolver: "letsencrypt"
+        certResolver: "cloudflare"
       encodedCharacters:
         allowEncodedSlash: true
         allowEncodedQuestionMark: true

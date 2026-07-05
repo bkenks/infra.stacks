@@ -139,6 +139,14 @@ local initScript =
         pangolin: { condition: 'service_healthy' },
       },
       command: ['--configFile=/etc/traefik/traefik_config.yml'],
+      environment: {
+        // Secret — CF_DNS_API_TOKEN for the Cloudflare DNS-01 ACME challenge
+        // (lego reads it from the container env). Interpolated from
+        // /dev/shm/cloudflare__dns-api-token.env (parent include.env_file) —
+        // shared with platform/edge/traefik, not duplicated into this
+        // stack's own pangolin.env/Infisical folder.
+        CF_DNS_API_TOKEN: '${CF_DNS_API_TOKEN:?err}',
+      },
       volumes: [
         './files/traefik_config.yml:/etc/traefik/traefik_config.yml:ro',
         './files/dynamic_config.yml:/etc/traefik/dynamic_config.yml:ro',

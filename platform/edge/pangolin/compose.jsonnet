@@ -8,9 +8,12 @@
   include: [
     {
       path: './compose.stack.yaml',
-      // Secrets rendered (RAM) by the infisical-agent on this same host — see
-      // .jsonnet/lib/registry.libsonnet agentServices.pangolin.
-      env_file: ['/dev/shm/pangolin.env'],
+      // Secrets rendered (RAM) by the infisical-agent on this same host:
+      // pangolin.env (SERVER_SECRET/EMAIL_SMTP_PASS — agentServices.pangolin)
+      // and cloudflare__dns-api-token.env, shared with platform/edge/traefik
+      // (CF_DNS_API_TOKEN — agentServices.'cloudflare__dns-api-token'), not
+      // duplicated into pangolin's own Infisical folder.
+      env_file: ['/dev/shm/pangolin.env', '/dev/shm/cloudflare__dns-api-token.env'],
     },
   ],
 }

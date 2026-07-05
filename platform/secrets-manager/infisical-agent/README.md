@@ -26,7 +26,7 @@ it can reach the app directly before Traefik / the public URL exist).
 There are **no per-host config files**. A host declares what to render with one variable:
 
 ```
-AGENT_SERVICES="postgres traefik cloudflared komodo"   # space- or comma-separated
+AGENT_SERVICES="postgres cloudflare__dns-api-token cloudflared komodo"   # space- or comma-separated
 ```
 
 The catalogue lives in **`registry.libsonnet`** (`agentServices`). `services.jsonnet`
@@ -65,7 +65,7 @@ Per-host runtime variables (Komodo per-server variables / Ansible):
 
 ```
 AGENT_HOST=<host>                       # selects ${AGENT_HOST} secret paths
-AGENT_SERVICES="postgres traefik …"     # which services to render
+AGENT_SERVICES="postgres cloudflare__dns-api-token …"     # which services to render
 INFISICAL_ADDRESS=<url>                  # override only on the Infisical host (internal addr)
 INFISICAL_CLIENT_ID=… / INFISICAL_CLIENT_SECRET=…   # machine-identity creds
 ```
