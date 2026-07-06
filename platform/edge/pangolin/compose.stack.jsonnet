@@ -46,14 +46,19 @@ local fetchGeolite(name) =
   'mv /tmp/GeoLite2-' + name + '_*/GeoLite2-' + name + '.mmdb /mnt/config/; ' +
   'fi';
 
+// chmod 600 on acme.json MUST run last — a preceding `chmod -R 755
+// /mnt/config` would clobber it right back to 755 (this bit us once already:
+// Traefik refused ACME with "permissions 755 for /letsencrypt/acme.json are
+// too open, please use 600", which then cascaded into "nonexistent
+// certificate resolver" on every router since the resolver never initialized).
 local initScript =
   'set -e && ' +
   'mkdir -p /mnt/config/traefik/logs /mnt/config/letsencrypt && ' +
   'touch /mnt/config/letsencrypt/acme.json && ' +
-  'chmod 600 /mnt/config/letsencrypt/acme.json && ' +
   fetchGeolite('Country') + ' && ' +
   fetchGeolite('ASN') + ' && ' +
-  'chmod -R 755 /mnt/config';
+  'chmod -R 755 /mnt/config && ' +
+  'chmod 600 /mnt/config/letsencrypt/acme.json';
 
 {
   name: stack,

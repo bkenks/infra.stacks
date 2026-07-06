@@ -38,7 +38,7 @@ services:
     command:
     - sh
     - -c
-    - set -e && mkdir -p /mnt/config/traefik/logs /mnt/config/letsencrypt && touch /mnt/config/letsencrypt/acme.json && chmod 600 /mnt/config/letsencrypt/acme.json && if [ ! -f /mnt/config/GeoLite2-Country.mmdb ]; then wget -qO /tmp/geolite-Country.tar.gz https://github.com/GitSquared/node-geolite2-redist/raw/refs/heads/master/redist/GeoLite2-Country.tar.gz && tar -xzf /tmp/geolite-Country.tar.gz -C /tmp && mv /tmp/GeoLite2-Country_*/GeoLite2-Country.mmdb /mnt/config/; fi && if [ ! -f /mnt/config/GeoLite2-ASN.mmdb ]; then wget -qO /tmp/geolite-ASN.tar.gz https://github.com/GitSquared/node-geolite2-redist/raw/refs/heads/master/redist/GeoLite2-ASN.tar.gz && tar -xzf /tmp/geolite-ASN.tar.gz -C /tmp && mv /tmp/GeoLite2-ASN_*/GeoLite2-ASN.mmdb /mnt/config/; fi && chmod -R 755 /mnt/config
+    - set -e && mkdir -p /mnt/config/traefik/logs /mnt/config/letsencrypt && touch /mnt/config/letsencrypt/acme.json && if [ ! -f /mnt/config/GeoLite2-Country.mmdb ]; then wget -qO /tmp/geolite-Country.tar.gz https://github.com/GitSquared/node-geolite2-redist/raw/refs/heads/master/redist/GeoLite2-Country.tar.gz && tar -xzf /tmp/geolite-Country.tar.gz -C /tmp && mv /tmp/GeoLite2-Country_*/GeoLite2-Country.mmdb /mnt/config/; fi && if [ ! -f /mnt/config/GeoLite2-ASN.mmdb ]; then wget -qO /tmp/geolite-ASN.tar.gz https://github.com/GitSquared/node-geolite2-redist/raw/refs/heads/master/redist/GeoLite2-ASN.tar.gz && tar -xzf /tmp/geolite-ASN.tar.gz -C /tmp && mv /tmp/GeoLite2-ASN_*/GeoLite2-ASN.mmdb /mnt/config/; fi && chmod -R 755 /mnt/config && chmod 600 /mnt/config/letsencrypt/acme.json
     container_name: pangolin_init
     image: docker.io/library/busybox:1.37.0
     restart: 'no'
