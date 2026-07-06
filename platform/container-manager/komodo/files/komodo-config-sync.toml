@@ -232,6 +232,7 @@ name = "infisical-agent_maboi"
 tags = ["secret-agent", "offsite"]
 [stack.config]
 server = "maboi"
+destroy_before_deploy = true
 linked_repo = "infra.stacks"
 run_directory = "./platform/secrets-manager/infisical-agent"
 environment = """
@@ -286,7 +287,7 @@ config_files = [
 environment = """
 
 AGENT_HOST              = 'rick'                                # e.g. 'littlebuddy' or 'paiki' | This host. Must match folder in Infisical project
-AGENT_SERVICES          = 'pangolin'
+AGENT_SERVICES          = 'cloudflare__dns-api-token pangolin'
 # INFISICAL_ADDRESS     = 'http://infisical_app:8080'           # Uncomment if Infisical runs on this host
 INFISICAL_CLIENT_ID     = [[INFSCL_AGNT_CLIENT_ID__RICK]]       # Set in Komodo variables (toggle secret on to prevent upload to Repo)
 INFISICAL_CLIENT_SECRET = [[INFSCL_AGNT_CLIENT_SECRET__RICK]]   # Set in Komodo variables (toggle secret on to prevent upload to Repo)
@@ -321,6 +322,7 @@ name = "pangolin"
 server = "rick"
 linked_repo = "infra.stacks"
 run_directory = "./platform/edge/pangolin"
+ignore_services = ["init"]
 
 ##
 
@@ -450,6 +452,7 @@ config_files = [{ path = "README.md" }]
 
 [[stack]]
 name = "traefik_bill"
+tags = ["proxy"]
 [stack.config]
 server = "bill"
 linked_repo = "infra.stacks"
@@ -460,6 +463,7 @@ extra_args = ["--remove-orphans"]
 
 [[stack]]
 name = "traefik_littlebuddy"
+tags = ["proxy"]
 [stack.config]
 server = "littlebuddy"
 project_name = "traefik"
@@ -470,7 +474,7 @@ run_directory = "./platform/edge/traefik"
 
 [[stack]]
 name = "traefik_maboi"
-tags = ["offsite"]
+tags = ["proxy"]
 [stack.config]
 server = "maboi"
 linked_repo = "infra.stacks"
@@ -484,6 +488,7 @@ AGENT_HOST=   maboi
 
 [[stack]]
 name = "traefik_paiki"
+tags = ["proxy"]
 [stack.config]
 server = "paiki"
 project_name = "traefik"
@@ -706,6 +711,20 @@ executions = [
   { execution.type = "PruneVolumes", execution.params.server = "maboi", enabled = true },
   { execution.type = "PruneVolumes", execution.params.server = "paiki", enabled = true }
 ]
+
+##
+
+[[action]]
+name = "test"
+[action.config]
+file_contents = """
+// Run actions using the pre initialized 'komodo' client.
+const version: Types.GetVersionResponse = await komodo.read('GetVersion', {});
+console.log('🦎 Komodo version:', version.version, '🦎\n');
+
+// Access arguments using the 'ARGS' object.
+console.log(ARGS);
+"""
 
 ##
 
