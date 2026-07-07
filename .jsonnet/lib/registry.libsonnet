@@ -186,13 +186,11 @@
       type: 'map',
       keys: { CLOUDFLARE_TUNNEL_TOKEN: 'TUNNEL_TOKEN' },
     },
-    # newt: ROLE-scoped — the mirror of cloudflared above, but the folder is
-    # parameterized by ${AGENT_ROLE} (the host's role) instead of ${AGENT_HOST}.
-    # A host adopting the traefik-controller role sets AGENT_ROLE=traefik-controller
-    # + opts `newt` into AGENT_SERVICES, and the agent dumps
-    # /roles/traefik-controller/newt. Swap the role, get a different folder — no
-    # per-host secret paths. Secret names match the env vars, so type=dump.
-    newt: { project: 'infra', folder: '/roles/${AGENT_ROLE}/newt', dest: 'newt.env', type: 'dump' },
+    # newt: host-scoped Pangolin site creds, same shape as cloudflared above
+    # (per-host ${AGENT_HOST} folder). A host opts `newt` into its AGENT_SERVICES
+    # and the agent dumps /hosts/${AGENT_HOST}/newt; secret names match the env
+    # vars, so type=dump.
+    newt: { project: 'infra', folder: '/hosts/${AGENT_HOST}/newt', dest: 'newt.env', type: 'dump' },
     # --- Infra project (raw: single secret's raw value to a .key file) ---
     databasus: { project: 'infra', folder: '/databasus', dest: 'databasus_secret.key', type: 'raw', key: 'SECRET_KEY' },
   },
