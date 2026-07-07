@@ -8,9 +8,8 @@
 # with an INLINE template-content — generated from registry.libsonnet by
 # services.jsonnet (the dump/map/raw template bodies are built there, NOT here).
 # So this script does no YAML parsing and no template generation; it just picks
-# the named fragments, substitutes the runtime-only values (${AGENT_HOST} and,
-# for role-scoped services, ${AGENT_ROLE}), and appends them under a
-# `templates:` header.
+# the named fragments, substitutes the one runtime-only value (${AGENT_HOST}),
+# and appends them under a `templates:` header.
 #
 # One long-running service (no compose profiles). How it reaches Infisical is just
 # the INFISICAL_ADDRESS env var — public URL by default; the Infisical host
@@ -25,10 +24,6 @@ set -eu
 : "${AGENT_HOST:?AGENT_HOST is required (host name; drives \${AGENT_HOST} secret-path subs)}"
 : "${AGENT_SERVICES:?AGENT_SERVICES is required (space/comma list of services from templates/)}"
 : "${INFISICAL_ADDRESS:?INFISICAL_ADDRESS is required (public URL by default; per-host override)}"
-# Optional: the host's role, driving \${AGENT_ROLE} secret-path subs (e.g.
-# /roles/${AGENT_ROLE}/newt). Only required when a role-scoped service is opted
-# in — enforced per-fragment in the assembly loop below.
-AGENT_ROLE="${AGENT_ROLE:-}"
 
 templates="/agent/templates"         # pre-rendered per-service config fragments
 config="/tmp/agent.generated.yaml"
@@ -74,17 +69,9 @@ services=$(printf '%s' "$AGENT_SERVICES" | tr ',' ' ')
 for svc in $services; do
   frag="$templates/${svc}.yaml"
   [ -f "$frag" ] || { echo "infisical-agent: unknown service '$svc' (no $frag)" >&2; exit 1; }
-  # Role-scoped fragments (folder /roles/${AGENT_ROLE}/...) need AGENT_ROLE set;
-  # fail loudly rather than dumping an empty-role path like /roles//newt.
-  if [ -z "$AGENT_ROLE" ] && grep -qF '${AGENT_ROLE}' "$frag"; then
-    echo "infisical-agent: service '$svc' is role-scoped but AGENT_ROLE is unset" >&2
-    exit 1
-  fi
-  # The Infisical template engine has no env access, so ${AGENT_HOST}/${AGENT_ROLE}
-  # baked into a fragment's secret path are substituted here (no-op for fragments
-  # without them).
-  sed -e "s|\${AGENT_HOST}|${AGENT_HOST}|g" \
-      -e "s|\${AGENT_ROLE}|${AGENT_ROLE}|g" "$frag" >> "$config"
+  # The Infisical template engine has no env access, so ${AGENT_HOST} baked into a
+  # fragment's secret path is substituted here (no-op for fragments without it).
+  sed "s|\${AGENT_HOST}|${AGENT_HOST}|g" "$frag" >> "$config"
 done
 
 # --- healthcheck plumbing --------------------------------------------------

@@ -43,9 +43,6 @@ local version = '0.43.89';  // docker.io/infisical/cli
       environment: {
         AGENT_HOST: '${AGENT_HOST:?err}',          // per-host: drives ${AGENT_HOST} secret-path subs
         AGENT_SERVICES: '${AGENT_SERVICES:?err}',  // per-host: which templates/ fragments to render
-        // per-ROLE: drives ${AGENT_ROLE} secret-path subs (e.g. /roles/${AGENT_ROLE}/newt).
-        // Optional — only hosts opting into a role-scoped service need it set.
-        AGENT_ROLE: '${AGENT_ROLE:-}',
         // Machine-identity auth — the bootstrap credential. From the deploy env
         // (the Komodo/node path); it can't come from a rendered /dev/shm file
         // (this agent produces those). entrypoint.sh also accepts pre-written
