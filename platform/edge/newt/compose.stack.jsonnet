@@ -42,6 +42,7 @@ local nw = {
       networks: {
         [r.sharedNetworks.proxy.name]: { aliases: [nw.extName] },
       },
+      extra_hosts: ['host.docker.internal:host-gateway'],
     },
   },
 
