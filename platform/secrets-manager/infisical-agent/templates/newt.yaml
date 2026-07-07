@@ -3,7 +3,7 @@
   config:
     polling-interval: "1m"
   template-content: |
-    {{- with listSecrets "86324d9b-3dd7-49d4-b252-69228c5ee0c7" "prod" "/roles/traefik-controller" }}
+    {{- with listSecrets "86324d9b-3dd7-49d4-b252-69228c5ee0c7" "prod" "/hosts/${AGENT_HOST}/newt" }}
     {{- range . }}
     {{ .Key }}={{ .Value }}
     {{- end }}

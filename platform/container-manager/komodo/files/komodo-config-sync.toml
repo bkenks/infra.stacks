@@ -429,10 +429,11 @@ run_directory = "./platform/edge/pangolin"
 [[stack]]
 name = "template__newt"
 description = """
-Pangolin site connector (fosrl/newt) for the traefik-controller role.
-- Role-scoped secret: infra project, Infisical folder /roles/traefik-controller.
-- Instantiate per host that adopts the role (server = "<host>"), like the
-  traefik_<host> stacks below; keep this template server-less."""
+Pangolin site connector (fosrl/newt) — per-host, same shape as cloudflared.
+- Host-scoped secret: infra project, folder /hosts/${AGENT_HOST}/newt.
+- To run on a host: add `newt` to that host's infisical-agent_<host> stack's
+  AGENT_SERVICES, then copy this into a concrete newt_<host> block with
+  server = "<host>" (like cloudflared_<host>). Keep this template server-less."""
 template = true
 [stack.config]
 project_name = "newt"

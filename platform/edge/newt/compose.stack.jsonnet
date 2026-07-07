@@ -8,10 +8,8 @@
 //
 // NEWT_ID/NEWT_SECRET are secrets, interpolated from /dev/shm/newt.env (declared
 // as the interpolation source in the parent compose.yaml's include.env_file).
-// Unlike cloudflared (host-scoped Infisical folder /hosts/${AGENT_HOST}/…), the
-// secret is ROLE-scoped: infra project folder /roles/traefik-controller, so any
-// host that takes on the traefik-controller role gets it — see registry
-// agentServices.newt.
+// Host-scoped exactly like cloudflared: the agent renders them from the per-host
+// Infisical folder /hosts/${AGENT_HOST}/newt — see registry agentServices.newt.
 local lib = import 'lib.libsonnet';
 local r = lib.registry;
 local c = lib.compose;
