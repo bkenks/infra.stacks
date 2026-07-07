@@ -6,19 +6,20 @@ Pangolin **site** connector ([`fosrl/newt`](https://github.com/fosrl/newt)). Dia
 
 ## Role-scoped secret (the point of this stack)
 
-`NEWT_ID` / `NEWT_SECRET` are rendered to `/dev/shm/newt.env` by the Infisical agent from a **role-scoped** folder:
+`NEWT_ID` / `NEWT_SECRET` are rendered to `/dev/shm/newt.env` by the Infisical agent from a **role-scoped** folder. It's the exact mirror of `cloudflared`, except the folder is parameterized by the host's *role* (`${AGENT_ROLE}`) instead of its *host name* (`${AGENT_HOST}`):
 
-| | folder | scope |
+| | folder | parameterized by |
 |---|---|---|
-| `cloudflared` | `/hosts/${AGENT_HOST}/cloudflared` | per **host** |
-| **`newt`** | `/roles/traefik-controller` | per **role** |
+| `cloudflared` | `/hosts/${AGENT_HOST}/cloudflared` | `AGENT_HOST` (per host) |
+| **`newt`** | `/roles/${AGENT_ROLE}/newt` | `AGENT_ROLE` (per role) |
 
-This is the deliberate move away from binding services to hosts: the credentials live under the `traefik-controller` role, so any host that adopts that role (opts the `newt` service into its `AGENT_SERVICES`) pulls the same site credentials — servers can swap the role without re-homing secrets. See `.jsonnet/lib/registry.libsonnet` → `agentServices.newt`.
+Both are resolved at runtime by the Infisical agent's `entrypoint.sh` (a `sed` sub over the fragment), so there is one registry entry and one template — the value of `AGENT_ROLE` selects the folder. This is the deliberate move away from binding services to hosts: a host running the `traefik-controller` role sets `AGENT_ROLE=traefik-controller` and the agent dumps `/roles/traefik-controller/newt`. Swap a server's role and it pulls a different folder — no per-host secret paths. See `.jsonnet/lib/registry.libsonnet` → `agentServices.newt`.
 
 ## Prerequisites
 
-1. **Infisical** — in the `infra` project, create folder `/roles/traefik-controller` (env `prod`) with secrets `NEWT_ID` and `NEWT_SECRET` (from Pangolin → Sites → create site). See `.env.example`.
-2. **Host** — must run the Infisical agent with `newt` in its `AGENT_SERVICES`, and own a `shared-proxy` network (i.e. run `platform/edge/traefik`). Do **not** run this on the dedicated Pangolin VPS (`platform/edge/pangolin` already terminates ingress there).
+1. **Infisical** — in the `infra` project, create folder `/roles/traefik-controller/newt` (env `prod`) with secrets `NEWT_ID` and `NEWT_SECRET` (from Pangolin → Sites → create site). See `.env.example`. (The machine identity of any host in this role must be scoped to read `/roles/traefik-controller/*`.)
+2. **Host's Infisical agent** — the host's `infisical-agent_<host>` Komodo stack must set `AGENT_ROLE=traefik-controller` and include `newt` in its `AGENT_SERVICES`.
+3. **Host** — must own a `shared-proxy` network (i.e. run `platform/edge/traefik`). Do **not** run this on the dedicated Pangolin VPS (`platform/edge/pangolin` already terminates ingress there).
 
 ## Notes
 
