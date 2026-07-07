@@ -143,7 +143,7 @@ run_directory = "./tools/devops/forgejo"
 ##
 
 [[stack]]
-name = "frappe-production"
+name = "frappe"
 [stack.config]
 server = "bill"
 linked_repo = "infra.stacks"
@@ -262,7 +262,7 @@ config_files = [
 environment = """
 
 AGENT_HOST              = 'paiki'                         # e.g. 'littlebuddy' or 'paiki' | This host. Must match folder in Infisical project
-AGENT_SERVICES          = 'cloudflare__dns-api-token immich cloudflared stream'                        # e.g. 'postgres woodpecker etc' | Services to render secrets, defined in repo
+AGENT_SERVICES          = 'cloudflare__dns-api-token newt immich cloudflared stream'                        # e.g. 'postgres woodpecker etc' | Services to render secrets, defined in repo
 # INFISICAL_ADDRESS     = 'http://infisical_app:8080'     # Uncomment if Infisical runs on this host
 INFISICAL_CLIENT_ID     = [[PAIKI__AGENT_CLIENT_ID]]      # Set in Komodo variables (toggle secret on to prevent upload to Repo)
 INFISICAL_CLIENT_SECRET = [[PAIKI__AGENT_CLIENT_SECRET]]  # Set in Komodo variables (toggle secret on to prevent upload to Repo)
@@ -301,6 +301,25 @@ name = "komodo-mcp"
 server = "littlebuddy"
 linked_repo = "infra.stacks"
 run_directory = "./tools/komodo-mcp"
+extra_args = ["--remove-orphans"]
+
+##
+
+[[stack]]
+name = "newt"
+template = true
+[stack.config]
+linked_repo = "infra.stacks"
+run_directory = "./platform/edge/newt"
+
+##
+
+[[stack]]
+name = "newt_paiki"
+[stack.config]
+server = "paiki"
+linked_repo = "infra.stacks"
+run_directory = "./platform/edge/newt"
 
 ##
 
@@ -320,6 +339,7 @@ ignore_services = ["seeder"]
 name = "pangolin"
 [stack.config]
 server = "rick"
+destroy_before_deploy = true
 linked_repo = "infra.stacks"
 run_directory = "./platform/edge/pangolin"
 ignore_services = ["init"]
@@ -427,22 +447,6 @@ run_directory = "./platform/edge/pangolin"
 ##
 
 [[stack]]
-name = "template__newt"
-description = """
-Pangolin site connector (fosrl/newt) — per-host, same shape as cloudflared.
-- Host-scoped secret: infra project, folder /hosts/${AGENT_HOST}/newt.
-- To run on a host: add `newt` to that host's infisical-agent_<host> stack's
-  AGENT_SERVICES, then copy this into a concrete newt_<host> block with
-  server = "<host>" (like cloudflared_<host>). Keep this template server-less."""
-template = true
-[stack.config]
-project_name = "newt"
-linked_repo = "infra.stacks"
-run_directory = "./platform/edge/newt"
-
-##
-
-[[stack]]
 name = "template__traefik"
 description = """
 Reverse Proxy
@@ -494,8 +498,8 @@ tags = ["proxy"]
 [stack.config]
 server = "maboi"
 linked_repo = "infra.stacks"
-run_directory = "./node/traefik"
-extra_args = ["--force-recreate"]
+run_directory = "./platform/edge/traefik"
+extra_args = ["--remove-orphans"]
 environment = """
 AGENT_HOST=   maboi
 """
@@ -710,6 +714,32 @@ name = "Poll For Updates"
 enabled = true
 executions = [
   { execution.type = "GlobalAutoUpdate", execution.params.skip_auto_update = false, enabled = true }
+]
+
+##
+
+[[procedure]]
+name = "Redeploy Infisical Agent"
+
+[[procedure.config.stage]]
+name = "Stage 1"
+enabled = true
+executions = [
+  { execution.type = "BatchDeployStack", execution.params.pattern = "infisical-agent*", enabled = true }
+]
+
+##
+
+[[procedure]]
+name = "Redeploy Traefik"
+
+[[procedure.config.stage]]
+name = "Stage 1"
+enabled = true
+executions = [
+  { execution.type = "BatchDeployStack", execution.params.pattern = """
+# Match stacks by name, id, wildcard, or \regex\.
+traefik*""", enabled = true }
 ]
 
 ##
