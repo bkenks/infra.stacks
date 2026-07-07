@@ -188,6 +188,15 @@ http:
       middlewares: [controller-hop]
       tls: {}
 
+    # ── rick ────────────────────────────────────────
+    pangolin:
+      rule: "Host(`pangolin.homektb.com`)"
+      entryPoints: [websecure]
+      service: host-rick
+      priority: 1
+      middlewares: [controller-hop]
+      tls: {}
+
     # ── NOTE: mazanoke + convertx are not currently deployed in Komodo. Their
     #    app routers are already single-label, so these entries are pointed at
     #    littlebuddy (where the other personal apps run) and stay latent until the
@@ -255,6 +264,13 @@ http:
         serversTransport: host-reencrypt
         servers:
           - url: "https://100.79.7.11:443"
+    host-rick:
+      loadBalancer:
+        passHostHeader: true
+        serversTransport: host-reencrypt
+        servers:
+          - url: "https://100.106.170.93:443"
+    
 
   serversTransports:
     # The controller terminates the public *.homektb.com TLS, then opens a NEW,
