@@ -1,0 +1,22 @@
+# GENERATED from compose.stack.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
+name: newt
+networks:
+  default:
+    name: newt
+  shared-proxy:
+    external: true
+    name: shared-proxy
+services:
+  tunnel:
+    container_name: newt_tunnel
+    environment:
+      NEWT_ID: ${NEWT_ID:?err}
+      NEWT_SECRET: ${NEWT_SECRET:?err}
+      PANGOLIN_ENDPOINT: https://pangolin.homektb.com
+      TZ: America/New_York
+    image: fosrl/newt:1.14.0
+    networks:
+      shared-proxy:
+        aliases:
+        - newt_tunnel
+    restart: unless-stopped

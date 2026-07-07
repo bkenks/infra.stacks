@@ -11,6 +11,7 @@ services:
     - /agent/entrypoint.sh
     environment:
       AGENT_HOST: ${AGENT_HOST:?err}
+      AGENT_ROLE: ${AGENT_ROLE:-}
       AGENT_SERVICES: ${AGENT_SERVICES:?err}
       INFISICAL_ADDRESS: ${INFISICAL_ADDRESS:-https://infisical.homektb.com}
       INFISICAL_CLIENT_ID: ${INFISICAL_CLIENT_ID:?err}
