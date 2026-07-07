@@ -427,6 +427,21 @@ run_directory = "./platform/edge/pangolin"
 ##
 
 [[stack]]
+name = "template__newt"
+description = """
+Pangolin site connector (fosrl/newt) for the traefik-controller role.
+- Role-scoped secret: infra project, Infisical folder /roles/traefik-controller.
+- Instantiate per host that adopts the role (server = "<host>"), like the
+  traefik_<host> stacks below; keep this template server-less."""
+template = true
+[stack.config]
+project_name = "newt"
+linked_repo = "infra.stacks"
+run_directory = "./platform/edge/newt"
+
+##
+
+[[stack]]
 name = "template__traefik"
 description = """
 Reverse Proxy

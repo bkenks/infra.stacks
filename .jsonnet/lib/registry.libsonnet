@@ -186,6 +186,10 @@
       type: 'map',
       keys: { CLOUDFLARE_TUNNEL_TOKEN: 'TUNNEL_TOKEN' },
     },
+    # newt: ROLE-scoped (not host-scoped like cloudflared above) — the
+    # traefik-controller role's Pangolin site creds. Any host adopting the role
+    # opts this in; secret names already match the env vars, so type=dump.
+    newt: { project: 'infra', folder: '/roles/traefik-controller', dest: 'newt.env', type: 'dump' },
     # --- Infra project (raw: single secret's raw value to a .key file) ---
     databasus: { project: 'infra', folder: '/databasus', dest: 'databasus_secret.key', type: 'raw', key: 'SECRET_KEY' },
   },
