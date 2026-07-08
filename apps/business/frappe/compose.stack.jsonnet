@@ -170,7 +170,7 @@ local frappeImageService(role) = {
       // stack serves multiple Hosts (DNS-based multitenancy) — at that point
       // replace this with a manual `traefik.http.routers.frappe.rule` label
       // OR-ing every site's Host() clause (proxyAdd only emits one).
-      labels: lib.mixins.proxyAdd(stack, 'business', frontendPort, lib.registry.domains.stackform),
+      labels: lib.mixins.proxyAdd(stack, 'frappe', frontendPort, lib.registry.domains.ktbcloud),
     },
 
     // --------------------------------------------------------------------

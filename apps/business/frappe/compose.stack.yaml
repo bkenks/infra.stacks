@@ -108,7 +108,7 @@ services:
     labels:
       traefik.enable: 'true'
       traefik.http.routers.frappe.entrypoints: websecure
-      traefik.http.routers.frappe.rule: Host(`business.stackform.app`)
+      traefik.http.routers.frappe.rule: Host(`frappe.ktbcloud.com`)
       traefik.http.routers.frappe.tls: 'true'
       traefik.http.services.frappe.loadbalancer.server.port: '8080'
     networks:
