@@ -187,6 +187,17 @@ http:
       priority: 1
       middlewares: [controller-hop]
       tls: {}
+    # Plex is host-mode on paiki :32400 — NOT behind paiki's Traefik, so it can't
+    # use the host-paiki re-encrypt backend like the media apps above. It routes
+    # straight to the Plex process (see plex-direct service). No loop risk: the
+    # backend is Plex itself, never a host Traefik that could bounce back here.
+    plex:
+      rule: "Host(`plex.homektb.com`)"
+      entryPoints: [websecure]
+      service: plex-direct
+      priority: 1
+      middlewares: [controller-hop]
+      tls: {}
 
     # ── rick ────────────────────────────────────────
     pangolin:
@@ -270,6 +281,15 @@ http:
         serversTransport: host-reencrypt
         servers:
           - url: "https://100.106.170.93:443"
+
+    # Plex — direct to the host-mode Plex process on paiki (plain HTTP :32400).
+    # Unlike the host-* backends this does NOT re-encrypt to a host Traefik, so it
+    # has no serversTransport and no loop path back into this table.
+    plex-direct:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: "http://100.126.19.103:32400"
     
 
   serversTransports:
