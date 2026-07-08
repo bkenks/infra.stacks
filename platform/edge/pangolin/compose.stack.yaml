@@ -5,6 +5,9 @@ networks:
     driver: bridge
     enable_ipv6: true
     name: pangolin
+  shared-edge:
+    external: true
+    name: shared-edge
 services:
   gerbil:
     cap_add:
@@ -23,6 +26,9 @@ services:
     image: docker.io/fosrl/gerbil:1.4.2
     networks:
       default:
+        aliases:
+        - gerbil
+      shared-edge:
         aliases:
         - gerbil
     ports:

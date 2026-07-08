@@ -62,6 +62,30 @@ http:
       tls:
         certResolver: cloudflare
 
+    # Authentik IdP — the ONE public entrypoint on the ktbcloud.com plane.
+    # RAW router: no badger, no SSO/forward-auth middleware. Authentik must be
+    # reachable with its own login (putting badger/SSO in front produces a login
+    # loop, and Authentik is break-glass — never behind itself). Reaches
+    # authentik_server over the shared-edge network (gerbil joins it in
+    # compose.stack.jsonnet; Traefik shares gerbil's netns).
+    #
+    # This router also carries the ktbcloud.com wildcard cert request — the same
+    # "request the wildcard once via DNS-01, serve everywhere via SNI" trick as
+    # next-router does for ktbinternal.com. Every future *.ktbcloud.com Resource
+    # Pangolin adds dynamically then just needs certResolver with no domains
+    # block. (Requires CF_DNS_API_TOKEN widened to the ktbcloud.com zone.)
+    authentik-router:
+      rule: "Host(`auth.ktbcloud.com`)"
+      service: authentik-service
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: cloudflare
+        domains:
+          - main: ktbcloud.com
+            sans:
+              - "*.ktbcloud.com"
+
   services:
     next-service:
       loadBalancer:
@@ -72,6 +96,12 @@ http:
       loadBalancer:
         servers:
           - url: "http://pangolin:3000"  # API/WebSocket server
+
+    authentik-service:
+      loadBalancer:
+        servers:
+          # Resolves over shared-edge; authentik_server publishes :9000 (HTTP).
+          - url: "http://authentik_server:9000"
 
 tcp:
   serversTransports:

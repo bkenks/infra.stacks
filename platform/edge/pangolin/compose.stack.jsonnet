@@ -128,7 +128,13 @@ local initScript =
         '443:443/udp',  // HTTP/3 QUIC
         '80:80',
       ],
-      networks: { default: { aliases: ['gerbil'] } },
+      // Also joins shared-edge so Traefik (network_mode: service:gerbil, i.e.
+      // it shares gerbil's netns) can reach authentik_server:9000 for the raw
+      // auth.ktbcloud.com router in files/dynamic_config.yml. authentik owns
+      // this network; pangolin is a consumer (the external decl is in the
+      // top-level networks block below via compose.join).
+      networks: { default: { aliases: ['gerbil'] } }
+                + lib.compose.serviceNetwork(lib.registry.sharedNetworks.edge.name, 'gerbil'),
     },
 
     // network_mode: service:gerbil means Traefik's ports appear on gerbil —
@@ -163,5 +169,5 @@ local initScript =
 
   networks: {
     default: { name: stack, driver: 'bridge', enable_ipv6: true },
-  },
+  } + lib.compose.join('edge'),  // external shared-edge (owned by authentik)
 }

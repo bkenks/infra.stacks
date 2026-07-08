@@ -14,6 +14,12 @@ app:
 domains:
     domain1:
         base_domain: "ktbinternal.com"
+    # External / public plane. Authentik (auth.ktbcloud.com) and every public
+    # *.ktbcloud.com Resource live under this zone. Registering it here lets
+    # Pangolin create Resources under ktbcloud.com; the wildcard TLS cert for it
+    # is requested once by the raw authentik-router in dynamic_config.yml.
+    domain2:
+        base_domain: "ktbcloud.com"
 
 server:
     # secret supplied via the SERVER_SECRET env var (infisical-agent). Must be
