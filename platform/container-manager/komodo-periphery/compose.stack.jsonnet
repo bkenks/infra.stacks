@@ -3,12 +3,12 @@
 // Source of truth: this file compiles to compose.yaml (do not edit the YAML).
 // Identity (name, image, port, version) is baked in at compile time. Only
 // genuine per-HOST runtime values (DOCKER_VOLUMES) stay as ${...}.
-local lib = import 'lib.libsonnet';
-local r = lib.registry;
-local c = lib.compose;
+local c = import 'compose.libsonnet';
+local reg = import 'registry.libsonnet';
 
 local stack = 'komodo';
-local n = c.names(stack);
+local s = c.stack(stack);
+local n = s.names;
 local p = {
   role: 'periphery',
   extName: n.container(self.role),
@@ -34,7 +34,7 @@ local port = 8120;
         '/proc:/proc',                                // see host processes from inside the container
         '/etc/komodo:/etc/komodo',                    // periphery agent root (same path inside and outside)
         '/dev/shm/:/dev/shm/:ro',
-        r.dockerDir + ':' + r.dockerDir,                            // mirror docker volumes for directory pre-creation
+        reg.server.dir.docker.root + ':' + reg.server.dir.docker.root,                            // mirror docker volumes for directory pre-creation
       ],
       env_file: ['./periphery.env'],
       ports: [port + ':' + port],
@@ -43,7 +43,7 @@ local port = 8120;
           aliases: [p.extName]
         },  // 'komodo_periphery' — project-independent name
       },
-      labels: lib.mixins.komodoSkip,
+      labels: s.komodoSkip,
       restart: 'unless-stopped',
       init: true,
     },
@@ -56,5 +56,5 @@ local port = 8120;
     },
   },
 
-  networks: n.network,  // private net (renamed default) 'komodo-periphery'
+  networks: s.network.default,  // private net (renamed default) 'komodo-periphery'
 }

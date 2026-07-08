@@ -6,13 +6,15 @@
 // plex uses network_mode: host (no networks block at all) with GPU passthrough
 // for hardware transcoding.
 //
-// All storage is host bind mounts under lib.registry.dockerVolumes — no named
+// All storage is host bind mounts under registry.server.dir.docker.root + bindmounts — no named
 // Docker volumes in this stack, so no volume-rename step on first deploy.
-local lib = import 'lib.libsonnet';
+local c = import 'compose.libsonnet';
+local reg = import 'registry.libsonnet';
 
 local stack = 'stream';
-local n = lib.compose.names(stack);
-local dv = lib.registry.dockerVolumes;
+local s = c.stack(stack);
+local n = s.names;
+local dv = reg.server.dir.docker.root + reg.server.dir.docker.bindmounts;
 
 local tz = 'America/New_York';
 local puid = 1000;
@@ -64,10 +66,10 @@ local ports = {
       },
       expose: [std.toString(ports.bazarr)],
       networks: {
-        default: { aliases: [n.alias('bazarr')] },
-        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias('bazarr')] },
+        default: { aliases: [n.container('bazarr')] },
+        [reg.sharedNetworks.proxy.name]: { aliases: [n.container('bazarr')] },
       },
-      labels: lib.mixins.proxyAdd('bazarr', 'bazarr', ports.bazarr),
+      labels: s.proxy.add('bazarr', 'bazarr', ports.bazarr),
     },
 
     // Configarr (config-as-code for Sonarr/Radarr quality) — one-shot job:
@@ -95,7 +97,7 @@ local ports = {
         RADARR_API_KEY: '${RADARR_API_KEY:?err}',
       },
       restart: restart,
-      networks: { default: { aliases: [n.alias('configarr')] } },
+      networks: { default: { aliases: [n.container('configarr')] } },
     },
 
     // Decluttarr (download-queue janitor) — long-running: every `timer`
@@ -121,7 +123,7 @@ local ports = {
         RADARR_API_KEY: '${RADARR_API_KEY:?err}',
       },
       restart: restart,
-      networks: { default: { aliases: [n.alias('decluttarr')] } },
+      networks: { default: { aliases: [n.container('decluttarr')] } },
     },
 
     // Plex — network_mode: host (NOT Traefik-fronted); GPU passthrough
@@ -172,10 +174,10 @@ local ports = {
       },
       expose: [std.toString(ports.prowlarr)],
       networks: {
-        default: { aliases: [n.alias('prowlarr')] },
-        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias('prowlarr')] },
+        default: { aliases: [n.container('prowlarr')] },
+        [reg.sharedNetworks.proxy.name]: { aliases: [n.container('prowlarr')] },
       },
-      labels: lib.mixins.proxyAdd('prowlarr', 'prowlarr', ports.prowlarr),
+      labels: s.proxy.add('prowlarr', 'prowlarr', ports.prowlarr),
     },
 
     radarr: {
@@ -196,10 +198,10 @@ local ports = {
       },
       expose: [std.toString(ports.radarr)],
       networks: {
-        default: { aliases: [n.alias('radarr')] },
-        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias('radarr')] },
+        default: { aliases: [n.container('radarr')] },
+        [reg.sharedNetworks.proxy.name]: { aliases: [n.container('radarr')] },
       },
-      labels: lib.mixins.proxyAdd('radarr', 'radarr', ports.radarr),
+      labels: s.proxy.add('radarr', 'radarr', ports.radarr),
     },
 
     sabnzbd: {
@@ -220,10 +222,10 @@ local ports = {
       },
       expose: [std.toString(ports.sabnzbd)],
       networks: {
-        default: { aliases: [n.alias('sabnzbd')] },
-        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias('sabnzbd')] },
+        default: { aliases: [n.container('sabnzbd')] },
+        [reg.sharedNetworks.proxy.name]: { aliases: [n.container('sabnzbd')] },
       },
-      labels: lib.mixins.proxyAdd('sabnzbd', 'sabnzbd', ports.sabnzbd),
+      labels: s.proxy.add('sabnzbd', 'sabnzbd', ports.sabnzbd),
     },
 
     // Seer (Overseerr's successor — request management). Runs as the fixed
@@ -237,10 +239,10 @@ local ports = {
       restart: restart,
       expose: [std.toString(ports.seerr)],
       networks: {
-        default: { aliases: [n.alias('seerr')] },
-        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias('seerr')] },
+        default: { aliases: [n.container('seerr')] },
+        [reg.sharedNetworks.proxy.name]: { aliases: [n.container('seerr')] },
       },
-      labels: lib.mixins.proxyAdd('seerr', 'seerr', ports.seerr),
+      labels: s.proxy.add('seerr', 'seerr', ports.seerr),
       init: true,
     },
 
@@ -262,14 +264,14 @@ local ports = {
       },
       expose: [std.toString(ports.sonarr)],
       networks: {
-        default: { aliases: [n.alias('sonarr')] },
-        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias('sonarr')] },
+        default: { aliases: [n.container('sonarr')] },
+        [reg.sharedNetworks.proxy.name]: { aliases: [n.container('sonarr')] },
       },
-      labels: lib.mixins.proxyAdd('sonarr', 'sonarr', ports.sonarr),
+      labels: s.proxy.add('sonarr', 'sonarr', ports.sonarr),
     },
   },
 
   networks:
-    n.network
-    + lib.compose.join('proxy'),
+    s.network.default
+    + s.network.join('proxy'),
 }

@@ -4,16 +4,16 @@
 // Names, aliases, versions, and the public domain come from this file or the
 // shared registry. Only per-HOST runtime values stay as ${...} so docker
 // compose interpolates them at deploy time.
-local lib = import 'lib.libsonnet';
-local r = lib.registry;
-local c = lib.compose;
+local c = import 'compose.libsonnet';
+local reg = import 'registry.libsonnet';
 
-// 
+//
 
 local stack = 'komodo';
-local n = c.names(stack);
-local app = lib.registry.roles.app;
-local db = lib.registry.roles.db;
+local s = c.stack(stack);
+local n = s.names;
+local app = reg.roles.app;
+local db = reg.roles.db;
 
 // 
 
@@ -32,13 +32,13 @@ local stackDir = '/bind-mounts/dcm';
       depends_on: [ db ],
       volumes: [
         app + ':/config/keys',  // auto-generated v2 PKI keys
-        r.dockerDir + stackDir + '/komodo/data/backups:/backups',
-        r.dockerDir + stackDir + '/komodo/data/syncs:/syncs',
+        reg.server.dir.docker.root + stackDir + '/komodo/data/backups:/backups',
+        reg.server.dir.docker.root + stackDir + '/komodo/data/syncs:/syncs',
       ],
       env_file: komodoEnv,  // committed non-secret config (KOMODO_* tunables)
       environment: {
         // Public URL behind Traefik; built from the registry's root domain.
-        KOMODO_HOST: 'https://komo.' + r.domains.ktbinternal,
+        KOMODO_HOST: 'https://komo.' + reg.domains.ktbinternal,
         // Secrets — interpolated from /dev/shm/platform.env (parent include.env_file)
         KOMODO_DATABASE_USERNAME: '${KOMO_DB_USERNAME:?err}',
         KOMODO_DATABASE_PASSWORD: '${KOMO_DB_PASSWORD:?err}',
@@ -53,21 +53,21 @@ local stackDir = '/bind-mounts/dcm';
       init: true,
       networks: {
         default: {
-          aliases: [n.alias('core')]
+          aliases: [n.container('core')]
         },
-        [lib.registry.sharedNetworks.proxy.name]: {
-          aliases: [n.alias('core')]
+        [reg.sharedNetworks.proxy.name]: {
+          aliases: [n.container('core')]
         },
       },
-      labels: lib.mixins.komodoSkip + lib.mixins.proxyAdd('komodo', 'komo', 9120),
+      labels: s.komodoSkip + s.proxy.add('komodo', 'komo', 9120),
     },
 
     [db]: {
       image: 'mongo:' + mongoVersion,
       container_name: n.container(db),  // referenced as komodo_db:27017 in core.env
       volumes: [
-        r.dockerDir + stackDir + '/mongo/data:/data/db',
-        r.dockerDir + stackDir + '/mongo/config:/data/configdb',
+        reg.server.dir.docker.root + stackDir + '/mongo/data:/data/db',
+        reg.server.dir.docker.root + stackDir + '/mongo/config:/data/configdb',
       ],
       env_file: komodoEnv,
       environment: {
@@ -80,10 +80,10 @@ local stackDir = '/bind-mounts/dcm';
       restart: 'unless-stopped',
       networks: {
         default: {
-          aliases: [n.alias(db)]
+          aliases: [n.container(db)]
         },
       },
-      labels: lib.mixins.komodoSkip,
+      labels: s.komodoSkip,
     },
   },
 
@@ -98,6 +98,6 @@ local stackDir = '/bind-mounts/dcm';
   },
 
   networks:
-    n.network   // private net (renamed default) 'komodo' — Core <-> mongo-db
-    + lib.compose.join('proxy'),  // join shared-proxy (owned by traefik)
+    s.network.default   // private net (renamed default) 'komodo' — Core <-> mongo-db
+    + s.network.join('proxy'),  // join shared-proxy (owned by traefik)
 }

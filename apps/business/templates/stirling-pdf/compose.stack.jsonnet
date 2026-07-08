@@ -2,16 +2,18 @@
 //
 // Source of truth: this file compiles to compose.stack.yaml — do not edit the
 // YAML. Joins shared-proxy (traefik owns) to be reachable. No DB dependency.
-local lib = import 'lib.libsonnet';
+local c = import 'compose.libsonnet';
+local reg = import 'registry.libsonnet';
 
 local stack = 'stirling-pdf';
-local n = lib.compose.names(stack);
-local app = lib.registry.roles.app;
+local s = c.stack(stack);
+local n = s.names;
+local app = reg.roles.app;
 
 local version = '2.10.1';
 local port = 8080;
 
-local base = lib.registry.dockerVolumes + '/apps/stirling-pdf';
+local base = reg.server.dir.docker.root + reg.server.dir.docker.bindmounts + '/apps/stirling-pdf';
 
 {
   name: stack,
@@ -37,14 +39,14 @@ local base = lib.registry.dockerVolumes + '/apps/stirling-pdf';
       restart: 'unless-stopped',
       expose: [std.toString(port)],
       networks: {
-        default: { aliases: [n.alias(app)] },
-        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias(app)] },
+        default: { aliases: [n.container(app)] },
+        [reg.sharedNetworks.proxy.name]: { aliases: [n.container(app)] },
       },
-      labels: lib.mixins.proxyAdd(stack, stack, port),
+      labels: s.proxy.add(stack, stack, port),
     },
   },
 
   networks:
-    n.network
-    + lib.compose.join('proxy'),
+    s.network.default
+    + s.network.join('proxy'),
 }

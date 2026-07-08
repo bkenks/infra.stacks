@@ -6,12 +6,13 @@
 //
 // Source of truth: this file compiles to compose.stack.yaml — do not edit the
 // YAML. Joins shared-proxy (traefik owns) to be reachable.
-local lib = import 'lib.libsonnet';
-local r = lib.registry;
+local c = import 'compose.libsonnet';
+local reg = import 'registry.libsonnet';
 
 local stack = 'komodo-mcp';
-local n = lib.compose.names(stack);
-local app = lib.registry.roles.app;
+local s = c.stack(stack);
+local n = s.names;
+local app = reg.roles.app;
 
 // Pinned to the MP-Tool/komodo-mcp-server upstream release tag (v1.4.1),
 // VERIFY this tag exists
@@ -31,14 +32,14 @@ local authLabels = {
 
   services: {
     [app]: {
-      image: 'fj' + r.domains.ktbinternal + '/bkenks/komodo-mcp-server:' + version,
+      image: 'fj' + reg.domains.ktbinternal + '/bkenks/komodo-mcp-server:' + version,
       container_name: n.container(app),
       environment: {
         // Streamable HTTP transport (listens on :8000 inside the container).
         MCP_TRANSPORT: 'http',
         // Komodo Core API endpoint (behind this host's Traefik). Non-secret.
-        KOMODO_URL: 'https://komo.' + lib.registry.domains.ktbinternal,
-        MCP_ALLOWED_HOSTS: 'komodo-mcp.' + lib.registry.domains.ktbinternal,
+        KOMODO_URL: 'https://komo.' + reg.domains.ktbinternal,
+        MCP_ALLOWED_HOSTS: 'komodo-mcp.' + reg.domains.ktbinternal,
         // Behind one reverse proxy (this host's Traefik) — trust the first
         // hop so the server resolves the real client IP from X-Forwarded-*.
         MCP_TRUST_PROXY: '1',
@@ -56,14 +57,14 @@ local authLabels = {
       // Letting the image's own tini stay PID 1 fixes both.
       networks: {
         // Unused (no peers) but kept for parity with the pre-jsonnet stack.
-        default: { aliases: [n.alias(app)] },
-        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias(app)] },
+        default: { aliases: [n.container(app)] },
+        [reg.sharedNetworks.proxy.name]: { aliases: [n.container(app)] },
       },
-      labels: lib.mixins.proxyAdd('komodo-mcp', 'komodo-mcp', port) + authLabels + lib.mixins.komodoSkip,
+      labels: s.proxy.add('komodo-mcp', 'komodo-mcp', port) + authLabels + s.komodoSkip,
     },
   },
 
   networks:
-    n.network
-    + lib.compose.join('proxy'),
+    s.network.default
+    + s.network.join('proxy'),
 }

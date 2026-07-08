@@ -15,8 +15,7 @@
 // literal 'pangolin' — pangolin/gerbil/traefik hardcode each other's service
 // names and are deliberately NOT run through lib.compose.names() (see the stack
 // README and compose.stack.jsonnet's naming-deviation note).
-local lib = import 'lib.libsonnet';
-local reg = lib.registry;
+local reg = import 'registry.libsonnet';
 
 local baseDomain = reg.domains.ktbinternal;  // ktbinternal.com
 local host = 'pangolin.' + baseDomain;       // pangolin.ktbinternal.com

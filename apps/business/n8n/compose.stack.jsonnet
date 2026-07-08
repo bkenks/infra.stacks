@@ -3,20 +3,22 @@
 // Source of truth: this file compiles to compose.stack.yaml — do not edit the
 // YAML. Joins shared-proxy (traefik owns) to be reachable and shared-postgres
 // (postgres owns) to reach its DB.
-local lib = import 'lib.libsonnet';
+local c = import 'compose.libsonnet';
+local reg = import 'registry.libsonnet';
 
 local stack = 'n8n';
-local n = lib.compose.names(stack);
-local app = lib.registry.roles.app;
-local pgHost = lib.registry.endpoints.postgres.private.host;  // 'postgres_db'
-local pgPort = lib.registry.endpoints.postgres.private.port;  // 5432
+local s = c.stack(stack);
+local n = s.names;
+local app = reg.roles.app;
+local pgHost = reg.endpoints.postgres.container.host;  // 'postgres_db'
+local pgPort = reg.endpoints.postgres.container.port;  // 5432
 
 local version = '2.20.6';
 local port = 5678;
 local timezone = 'America/New_York';
 
-local dataDir = lib.registry.dockerVolumes + '/apps/n8n/data/.n8n';
-local filesDir = lib.registry.dockerVolumes + '/apps/n8n/data/local-files';
+local dataDir = reg.server.dir.docker.root + reg.server.dir.docker.bindmounts + '/apps/n8n/data/.n8n';
+local filesDir = reg.server.dir.docker.root + reg.server.dir.docker.bindmounts + '/apps/n8n/data/local-files';
 
 {
   name: stack,
@@ -45,8 +47,8 @@ local filesDir = lib.registry.dockerVolumes + '/apps/n8n/data/local-files';
         N8N_PROXY_HOPS: '1',
         N8N_BLOCK_ENV_ACCESS_IN_NODE: 'true',
         N8N_GIT_NODE_DISABLE_BARE_REPOS: 'true',
-        WEBHOOK_URL: 'https://' + stack + '.' + lib.registry.domains.ktbinternal + '/',
-        N8N_HOST: stack + '.' + lib.registry.domains.ktbinternal,
+        WEBHOOK_URL: 'https://' + stack + '.' + reg.domains.ktbinternal + '/',
+        N8N_HOST: stack + '.' + reg.domains.ktbinternal,
         DB_TYPE: 'postgresdb',
         // Bug fix vs old envs/production.env: POSTGRES_HOST_CONTAINER was
         // hardcoded to postgres-${DOCKER_ENVIRONMENT}-db (-> postgres-production-db),
@@ -63,16 +65,16 @@ local filesDir = lib.registry.dockerVolumes + '/apps/n8n/data/local-files';
       dns: ['192.168.1.6', '1.1.1.1'],
       expose: [std.toString(port)],
       networks: {
-        default: { aliases: [n.alias(app)] },
-        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias(app)] },
-        [lib.registry.sharedNetworks.postgres.name]: { aliases: [n.alias(app)] },
+        default: { aliases: [n.container(app)] },
+        [reg.sharedNetworks.proxy.name]: { aliases: [n.container(app)] },
+        [reg.sharedNetworks.postgres.name]: { aliases: [n.container(app)] },
       },
-      labels: lib.mixins.proxyAdd(stack, stack, port),
+      labels: s.proxy.add(stack, stack, port),
     },
   },
 
   networks:
-    n.network
-    + lib.compose.join('proxy')
-    + lib.compose.join('postgres'),
+    s.network.default
+    + s.network.join('proxy')
+    + s.network.join('postgres'),
 }

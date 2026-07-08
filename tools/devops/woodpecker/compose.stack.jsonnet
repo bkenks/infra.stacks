@@ -5,10 +5,12 @@
 // YAML. Only `server` joins shared-proxy (traefik owns) to be reachable.
 // `agent` only talks to `server` internally via gRPC on the
 // stack's own default net, so it doesn't join shared-proxy.
-local lib = import 'lib.libsonnet';
+local c = import 'compose.libsonnet';
+local reg = import 'registry.libsonnet';
 
 local stack = 'woodpecker';
-local n = lib.compose.names(stack);
+local s = c.stack(stack);
+local n = s.names;
 
 local version = 'v3.15.0';
 local httpPort = 8000;
@@ -24,12 +26,12 @@ local grpcPort = 9000;
       volumes: ['server' + ':/var/lib/woodpecker'],
       environment: {
         // Public address; must match the OAuth2 app's redirect URI in Forgejo
-        WOODPECKER_HOST: 'https://peck.' + lib.registry.domains.ktbinternal,
+        WOODPECKER_HOST: 'https://peck.' + reg.domains.ktbinternal,
         // Allow any Forgejo user to log in.
         WOODPECKER_OPEN: 'true',
         // Forge: self-hosted Forgejo (source-of-truth git forge).
         WOODPECKER_FORGEJO: 'true',
-        WOODPECKER_FORGEJO_URL: 'https://fj.' + lib.registry.domains.ktbinternal,
+        WOODPECKER_FORGEJO_URL: 'https://fj.' + reg.domains.ktbinternal,
         // Plugins allowed to run privileged (docker-buildx needs Docker-in-Docker
         // to build images). Match is exact INCLUDING the tag — keep in lockstep
         // with the plugin tag pinned in each pipeline's .woodpecker.yml.
@@ -43,10 +45,10 @@ local grpcPort = 9000;
       restart: 'on-failure:5',
       expose: [std.toString(httpPort), std.toString(grpcPort)],
       networks: {
-        default: { aliases: [n.alias('server')] },
-        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias('server')] },
+        default: { aliases: [n.container('server')] },
+        [reg.sharedNetworks.proxy.name]: { aliases: [n.container('server')] },
       },
-      labels: lib.mixins.proxyAdd('woodpecker', 'peck', httpPort),
+      labels: s.proxy.add('woodpecker', 'peck', httpPort),
     },
 
     agent: {
@@ -69,7 +71,7 @@ local grpcPort = 9000;
       },
       restart: 'on-failure:5',
       networks: {
-        default: { aliases: [n.alias('agent')] },
+        default: { aliases: [n.container('agent')] },
       },
     },
   },
@@ -80,6 +82,6 @@ local grpcPort = 9000;
   },
 
   networks:
-    n.network
-    + lib.compose.join('proxy'),
+    s.network.default
+    + s.network.join('proxy'),
 }

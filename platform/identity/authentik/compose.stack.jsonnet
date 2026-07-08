@@ -10,15 +10,12 @@
 // apps/business/openproject): per-service keys below override command / ports /
 // user / docker.sock / networks. env var names + volume layout verified against
 // https://docs.goauthentik.io/install-config/install/docker-compose/ (compose.yml).
-//
-// Secrets are interpolated from /dev/shm/authentik.env (declared as the parent
-// compose.yaml include.env_file) — see registry agentServices.authentik.
-local lib = import 'lib.libsonnet';
-local r = lib.registry;
-local c = lib.compose;
+local reg = import 'registry.libsonnet';
+local c = import 'compose.libsonnet';
 
 local stack = 'authentik';
-local n = c.names(stack);
+local s = c.stack(stack);
+local n = s.names;
 
 local version = '2026.5.3';        // ghcr.io/goauthentik/server + proxy
 local postgresVersion = '16-alpine';
@@ -129,7 +126,7 @@ local akHealth = {
       healthcheck: akHealth,
       networks: {
         default: { aliases: [serverName] },
-        [r.sharedNetworks.edge.name]: { aliases: [serverName] },
+        [reg.sharedNetworks.edge.name]: { aliases: [serverName] },
       },
     },
 
@@ -152,6 +149,6 @@ local akHealth = {
   },
 
   networks:
-    n.network            // private default net (db/redis/server/worker)
-    + lib.compose.own('edge'),  // create shared-edge (this stack owns it)
+    s.network.default            // private default net (db/redis/server/worker)
+    + s.network.own('edge'),  // create shared-edge (this stack owns it)
 }

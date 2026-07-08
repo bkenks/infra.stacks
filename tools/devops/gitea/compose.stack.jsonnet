@@ -4,12 +4,14 @@
 // Source of truth: this file compiles to compose.stack.yaml — do not edit the
 // YAML. Joins shared-proxy (traefik owns) to be reachable. `db` is this stack's
 // OWN dedicated Postgres — it does NOT join shared-postgres.
-local lib = import 'lib.libsonnet';
+local c = import 'compose.libsonnet';
+local reg = import 'registry.libsonnet';
 
 local stack = 'gitea';
-local n = lib.compose.names(stack);
-local app = lib.registry.roles.app;
-local db = lib.registry.roles.db;
+local s = c.stack(stack);
+local n = s.names;
+local app = reg.roles.app;
+local db = reg.roles.db;
 
 local appVersion = '1.24.4';   // docker.gitea.com/gitea
 local dbVersion = '16-alpine'; // docker.io/library/postgres
@@ -31,7 +33,7 @@ local dbName = 'gitea';
         USER_UID: '1000',
         USER_GID: '1000',
         GITEA__database__DB_TYPE: 'postgres',
-        GITEA__database__HOST: n.alias(db) + ':5432',
+        GITEA__database__HOST: n.container(db) + ':5432',
         GITEA__database__NAME: dbName,
         GITEA__database__USER: dbUser,
         // Secret — interpolated from /dev/shm/gitea.env (parent include.env_file)
@@ -39,7 +41,7 @@ local dbName = 'gitea';
         // SSH: advertised (clone URL) port vs. what the container listens on.
         GITEA__SERVER__SSH_PORT: '2222',
         GITEA__SERVER__SSH_LISTEN_PORT: '22',
-        GITEA__SERVER__SSH_DOMAIN: 'gitea.' + lib.registry.domains.ktbinternal,
+        GITEA__SERVER__SSH_DOMAIN: 'gitea.' + reg.domains.ktbinternal,
 
         // --- Security secrets — DISABLED by default ------------------------------
         // On a FRESH install Gitea auto-generates SECRET_KEY / INTERNAL_TOKEN /
@@ -65,10 +67,10 @@ local dbName = 'gitea';
       },
       expose: [std.toString(port), '22'],
       networks: {
-        default: { aliases: [n.alias(app)] },
-        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias(app)] },
+        default: { aliases: [n.container(app)] },
+        [reg.sharedNetworks.proxy.name]: { aliases: [n.container(app)] },
       },
-      labels: lib.mixins.proxyAdd(stack, stack, port) + {
+      labels: s.proxy.add(stack, stack, port) + {
         // --- SSH (raw TCP) --- proxyAdd only builds HTTP routers, so these are
         // added manually.
         'traefik.tcp.routers.gitea-ssh.rule': 'HostSNI(`*`)',
@@ -94,7 +96,7 @@ local dbName = 'gitea';
         timeout: '10s',
         retries: 10,
       },
-      networks: { default: { aliases: [n.alias(db)] } },
+      networks: { default: { aliases: [n.container(db)] } },
       expose: ['5432'],
     },
   },
@@ -105,6 +107,6 @@ local dbName = 'gitea';
   },
 
   networks:
-    n.network
-    + lib.compose.join('proxy'),
+    s.network.default
+    + s.network.join('proxy'),
 }

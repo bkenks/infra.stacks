@@ -20,7 +20,7 @@ This stack's specifics:
 
 Non-secret config (DB user/name, versions, locale, service endpoints) is baked directly into `compose.stack.jsonnet`'s `environment:` block — no `.env` file for it.
 
-The `export/` and `consume/` bind mounts live under `${lib.registry.dockerVolumes}/apps/paperless/` (baked into `compose.stack.jsonnet` at compile time, resolved from `.jsonnet/lib/registry.libsonnet` → `dockerVolumes`).
+The `export/` and `consume/` bind mounts live under `${lib.registry.server.dir.docker.bindmounts}/apps/paperless/` (baked into `compose.stack.jsonnet` at compile time, resolved from `.jsonnet/lib/registry.libsonnet` → `server.dir.docker.bindmounts`).
 
 ### Volume naming
 

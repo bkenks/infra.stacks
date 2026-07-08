@@ -4,11 +4,13 @@
 //
 // Joins shared-proxy (traefik owns) so `app` is reachable; guacd is internal
 // only, reached by `app` over this stack's own default network.
-local lib = import 'lib.libsonnet';
+local c = import 'compose.libsonnet';
+local reg = import 'registry.libsonnet';
 
 local stack = 'termix';
-local n = lib.compose.names(stack);
-local app = lib.registry.roles.app;
+local s = c.stack(stack);
+local n = s.names;
+local app = reg.roles.app;
 local guacd = 'guacd';
 
 local appVersion = '2.4.1';    // ghcr.io/lukegus/termix
@@ -35,10 +37,10 @@ local guacdPort = 4822;
       },
       expose: [std.toString(port)],
       networks: {
-        default: { aliases: [n.alias(app)] },
-        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias(app)] },
+        default: { aliases: [n.container(app)] },
+        [reg.sharedNetworks.proxy.name]: { aliases: [n.container(app)] },
       },
-      labels: lib.mixins.proxyAdd(stack, stack, port),
+      labels: s.proxy.add(stack, stack, port),
     },
 
     [guacd]: {
@@ -52,11 +54,11 @@ local guacdPort = 4822;
         retries: 10,
       },
       expose: [std.toString(guacdPort)],
-      networks: { default: { aliases: [n.alias(guacd)] } },
+      networks: { default: { aliases: [n.container(guacd)] } },
     },
   },
 
   volumes: { [app]: { name: n.volume(app) } },
 
-  networks: n.network + lib.compose.join('proxy'),
+  networks: s.network.default + s.network.join('proxy'),
 }

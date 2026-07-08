@@ -11,7 +11,6 @@ Source of truth: `compose.jsonnet` + `compose.stack.jsonnet` compile to `compose
 Secrets are NOT stored in this repo. The Infisical agent renders them to the host and this stack pulls them in — how that works → Notion: [Bootstrapping a Host from Scratch — Tier-0 Ordering](https://app.notion.com/p/37931e9a948a8124ad6de974216d93cd).
 
 This stack's specifics:
-- No n8n-specific secrets today. Only the shared Postgres login (`POSTGRES_USER`/`POSTGRES_PASS`, registry: `.jsonnet/lib/registry.libsonnet` → `agentServices.postgres`) is needed.
 - The agent renders that to `/dev/shm/postgres.env` on the **same host**. `compose.jsonnet`'s `include.env_file` pulls it in.
 - n8n's own encryption key (`N8N_ENCRYPTION_KEY`) is not set — n8n auto-generates one on first boot and persists it into the bind-mounted `.n8n` data dir. Leave that behavior as-is; do not add it to Infisical.
 

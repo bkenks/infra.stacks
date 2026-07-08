@@ -9,8 +9,7 @@
 //
 // The dashboard host and CORS origin derive from reg.domains.ktbinternal, so a
 // domain migration follows automatically. Docs: https://docs.pangolin.net/
-local lib = import 'lib.libsonnet';
-local reg = lib.registry;
+local reg = import 'registry.libsonnet';
 
 local baseDomain = reg.domains.ktbinternal;  // ktbinternal.com
 local host = 'pangolin.' + baseDomain;       // pangolin.ktbinternal.com

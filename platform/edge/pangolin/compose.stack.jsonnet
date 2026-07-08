@@ -24,8 +24,8 @@
 // jsonnet-rendered from files/*.jsonnet) is layered on top as read-only bind
 // mounts from this repo so it's git-tracked, while runtime state (keys, certs,
 // GeoLite DBs, logs, Pangolin's own db) stays host-only.
-local lib = import 'lib.libsonnet';
-local dv = lib.registry.dockerVolumes;
+local reg = import 'registry.libsonnet';
+local dv = reg.server.dir.docker.root + reg.server.dir.docker.bindmounts;
 
 local stack = 'pangolin';
 local configDir = dv + '/pangolin/config';

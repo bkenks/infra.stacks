@@ -5,15 +5,11 @@
 // Authentik server OUTBOUND (AUTHENTIK_HOST=https://auth.ktbcloud.com) and
 // serves the forward-auth endpoint on :9000. It publishes 9000 on the host so
 // every mesh host's Traefik can forward-auth to it over Tailscale.
-//
-// AUTHENTIK_TOKEN is a secret, interpolated from /dev/shm/authentik-outpost.env
-// (declared as the parent compose.yaml include.env_file) — see registry
-// agentServices.'authentik-outpost'.
-local lib = import 'lib.libsonnet';
-local c = lib.compose;
+local c = import 'compose.libsonnet';
 
 local stack = 'authentik-outpost';
-local n = c.names(stack);
+local s = c.stack(stack);
+local n = s.names;
 
 local version = '2026.5.3';  // ghcr.io/goauthentik/proxy — pin == server version
 local role = 'proxy';
@@ -41,5 +37,5 @@ local extName = n.container(role);  // authentik-outpost_proxy
     },
   },
 
-  networks: n.network,  // private default net (unused by peers — single service)
+  networks: s.network.default,  // private default net (unused by peers — single service)
 }
