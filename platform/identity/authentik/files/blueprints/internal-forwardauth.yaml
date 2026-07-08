@@ -8,7 +8,7 @@
 # Purpose: a Proxy provider in forward-auth mode + its application + an outpost
 # that binds it, so internal apps behind any mesh Traefik can be gated by
 # Authentik forward-auth (middleware authentik-forwardauth@file, added by the
-# proxyAddAuth mixin). Cookie domain homektb.com covers *.homektb.com in one SSO
+# proxyAddAuth mixin). Cookie domain ktbinternal.com covers *.ktbinternal.com in one SSO
 # session. Mounted read-only at /blueprints/ktb.
 version: 1
 metadata:
@@ -24,9 +24,9 @@ entries:
       name: internal-forwardauth
       mode: forward_single
       # external_host is the app domain Authentik issues the auth cookie for;
-      # per-app hosts are added at wire-up. Cookie domain spans *.homektb.com.
-      external_host: https://auth.homektb.com
-      cookie_domain: homektb.com
+      # per-app hosts are added at wire-up. Cookie domain spans *.ktbinternal.com.
+      external_host: https://auth.ktbcloud.com
+      cookie_domain: ktbinternal.com
       authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
       invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
 

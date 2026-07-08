@@ -53,7 +53,7 @@ Rendered in RAM by the Infisical agent into `/dev/shm/authentik.env` (the parent
 
 - `pangolin-oidc.yaml` — OAuth2/OIDC provider + `pangolin` application.
 - `internal-forwardauth.yaml` — proxy provider (forward-auth) + application +
-  outpost binding, cookie domain `homektb.com`.
+  outpost binding, cookie domain `ktbinternal.com`.
 
 Both carry a top-of-file warning: their exact YAML tags and flow slugs are
 drafts and must be validated against the running Authentik version before use.

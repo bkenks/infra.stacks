@@ -89,7 +89,7 @@
     },
     infisical: {
       private: { host: 'infisical_app', port: 8080, network: $.sharedNetworks.infisical },
-      public: { sub: 'infisical', domain: $.domains.homektb },
+      public: { sub: 'infisical', domain: $.domains.ktbinternal },
     },
   },
   # SERVICE ENDPOINTS

@@ -15,7 +15,7 @@ services:
     environment:
       KOMODO_DATABASE_PASSWORD: ${KOMO_DB_PASSWORD:?err}
       KOMODO_DATABASE_USERNAME: ${KOMO_DB_USERNAME:?err}
-      KOMODO_HOST: https://komo.homektb.com
+      KOMODO_HOST: https://komo.ktbinternal.com
       KOMODO_JWT_SECRET: ${KOMO_JWT_SECRET:?err}
       KOMODO_WEBHOOK_SECRET: ${KOMO_WEBHOOK_SECRET:?err}
     extra_hosts:

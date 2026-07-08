@@ -22,7 +22,7 @@ services:
       ENCRYPTION_KEY: ${INFISICAL_ENCRYPTION_KEY:?err}
       NODE_ENV: production
       REDIS_URL: redis://infisical_redis:6379
-      SITE_URL: https://infisical.homektb.com
+      SITE_URL: https://infisical.ktbinternal.com
       SMTP_FROM_ADDRESS: ${INFISICAL__SMTP_FROM_ADDRESS:-}
       SMTP_FROM_NAME: ${INFISICAL__SMTP_FROM_NAME:-}
       SMTP_HOST: ${INFISICAL__SMTP_HOST:-}

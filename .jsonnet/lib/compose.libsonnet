@@ -34,7 +34,7 @@ local sharedNetworks = reg.sharedNetworks;
 
   // PUBLIC URL via Traefik (any host, https on the wildcard cert). The zone
   // comes from the endpoint's domain (pulled from the domains registry):
-  //   publicUrl('infisical') -> 'https://infisical.homektb.com'
+  //   publicUrl('infisical') -> 'https://infisical.ktbinternal.com'
   publicUrl(key):: 'https://' + reg.endpoints[key].public.sub + '.' + reg.endpoints[key].public.domain,
 
   // Consistent stack-local naming, following the KTB naming convention

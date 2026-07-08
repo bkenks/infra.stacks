@@ -38,7 +38,7 @@ local stackDir = '/bind-mounts/dcm';
       env_file: komodoEnv,  // committed non-secret config (KOMODO_* tunables)
       environment: {
         // Public URL behind Traefik; built from the registry's root domain.
-        KOMODO_HOST: 'https://komo.' + r.domains.homektb,
+        KOMODO_HOST: 'https://komo.' + r.domains.ktbinternal,
         // Secrets — interpolated from /dev/shm/platform.env (parent include.env_file)
         KOMODO_DATABASE_USERNAME: '${KOMO_DB_USERNAME:?err}',
         KOMODO_DATABASE_PASSWORD: '${KOMO_DB_PASSWORD:?err}',

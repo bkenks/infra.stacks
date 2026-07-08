@@ -192,7 +192,7 @@ http:
     # straight to the Plex process (see plex-direct service). No loop risk: the
     # backend is Plex itself, never a host Traefik that could bounce back here.
     plex:
-      rule: "Host(`plex.homektb.com`)"
+      rule: "Host(`plex.ktbinternal.com`)"
       entryPoints: [websecure]
       service: plex-direct
       priority: 1
