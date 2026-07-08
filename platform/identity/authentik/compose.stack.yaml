@@ -1,0 +1,146 @@
+# GENERATED from compose.stack.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
+name: authentik
+networks:
+  default:
+    name: authentik
+  shared-edge:
+    name: shared-edge
+services:
+  authentik_db:
+    container_name: authentik_db
+    environment:
+      POSTGRES_DB: authentik
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?err}
+      POSTGRES_USER: authentik
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_period: 20s
+      test:
+      - CMD-SHELL
+      - pg_isready -U authentik -d authentik
+      timeout: 5s
+    image: postgres:16-alpine
+    networks:
+      default:
+        aliases:
+        - authentik_db
+    restart: unless-stopped
+    volumes:
+    - authentik_database:/var/lib/postgresql/data
+  authentik_redis:
+    command:
+    - --save
+    - '60'
+    - '1'
+    container_name: authentik_redis
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_period: 20s
+      test:
+      - CMD-SHELL
+      - redis-cli ping | grep PONG
+      timeout: 3s
+    image: docker.io/library/redis:7-alpine
+    networks:
+      default:
+        aliases:
+        - authentik_redis
+    restart: unless-stopped
+  authentik_server:
+    command:
+    - server
+    container_name: authentik_server
+    depends_on:
+      authentik_db:
+        condition: service_healthy
+      authentik_redis:
+        condition: service_healthy
+    environment:
+      AUTHENTIK_BOOTSTRAP_EMAIL: ${AUTHENTIK_BOOTSTRAP_EMAIL:?err}
+      AUTHENTIK_BOOTSTRAP_PASSWORD: ${AUTHENTIK_BOOTSTRAP_PASSWORD:?err}
+      AUTHENTIK_BOOTSTRAP_TOKEN: ${AUTHENTIK_BOOTSTRAP_TOKEN:?err}
+      AUTHENTIK_COOKIE_DOMAIN: ktbcloud.com
+      AUTHENTIK_DISABLE_UPDATE_CHECK: 'true'
+      AUTHENTIK_ERROR_REPORTING__ENABLED: 'false'
+      AUTHENTIK_POSTGRESQL__HOST: authentik_db
+      AUTHENTIK_POSTGRESQL__NAME: authentik
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_POSTGRESQL__PASSWORD:?err}
+      AUTHENTIK_POSTGRESQL__SSLMODE: disable
+      AUTHENTIK_POSTGRESQL__USER: authentik
+      AUTHENTIK_REDIS__HOST: authentik_redis
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY:?err}
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_period: 60s
+      test:
+      - CMD
+      - ak
+      - healthcheck
+      timeout: 30s
+    image: ghcr.io/goauthentik/server:2026.5.3
+    networks:
+      default:
+        aliases:
+        - authentik_server
+      shared-edge:
+        aliases:
+        - authentik_server
+    ports:
+    - 9000:9000
+    restart: unless-stopped
+    shm_size: 512mb
+    volumes:
+    - authentik_media:/data
+    - ./files/blueprints:/blueprints/ktb:ro
+  authentik_worker:
+    command:
+    - worker
+    container_name: authentik_worker
+    depends_on:
+      authentik_db:
+        condition: service_healthy
+      authentik_redis:
+        condition: service_healthy
+    environment:
+      AUTHENTIK_BOOTSTRAP_EMAIL: ${AUTHENTIK_BOOTSTRAP_EMAIL:?err}
+      AUTHENTIK_BOOTSTRAP_PASSWORD: ${AUTHENTIK_BOOTSTRAP_PASSWORD:?err}
+      AUTHENTIK_BOOTSTRAP_TOKEN: ${AUTHENTIK_BOOTSTRAP_TOKEN:?err}
+      AUTHENTIK_COOKIE_DOMAIN: ktbcloud.com
+      AUTHENTIK_DISABLE_UPDATE_CHECK: 'true'
+      AUTHENTIK_ERROR_REPORTING__ENABLED: 'false'
+      AUTHENTIK_POSTGRESQL__HOST: authentik_db
+      AUTHENTIK_POSTGRESQL__NAME: authentik
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_POSTGRESQL__PASSWORD:?err}
+      AUTHENTIK_POSTGRESQL__SSLMODE: disable
+      AUTHENTIK_POSTGRESQL__USER: authentik
+      AUTHENTIK_REDIS__HOST: authentik_redis
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY:?err}
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_period: 60s
+      test:
+      - CMD
+      - ak
+      - healthcheck
+      timeout: 30s
+    image: ghcr.io/goauthentik/server:2026.5.3
+    networks:
+      default:
+        aliases:
+        - authentik_worker
+    restart: unless-stopped
+    shm_size: 512mb
+    user: root
+    volumes:
+    - authentik_media:/data
+    - ./files/blueprints:/blueprints/ktb:ro
+    - /var/run/docker.sock:/var/run/docker.sock
+volumes:
+  authentik_database:
+    name: authentik_database
+  authentik_media:
+    name: authentik_media

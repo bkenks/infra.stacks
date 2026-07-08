@@ -405,6 +405,24 @@ ignore_services = ["configarr"]
 ##
 
 [[stack]]
+name = "template__authentik"
+template = true
+[stack.config]
+linked_repo = "infra.stacks"
+run_directory = "./platform/identity/authentik"
+
+##
+
+[[stack]]
+name = "template__authentik-outpost"
+template = true
+[stack.config]
+linked_repo = "infra.stacks"
+run_directory = "./platform/identity/authentik-outpost"
+
+##
+
+[[stack]]
 name = "template__docker-resource-manager"
 template = true
 [stack.config]

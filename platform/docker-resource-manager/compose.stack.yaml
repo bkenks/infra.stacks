@@ -3,6 +3,8 @@ name: docker-resource-manager
 networks:
   shared-db-backups:
     name: shared-db-backups
+  shared-edge:
+    name: shared-edge
   shared-infisical:
     name: shared-infisical
   shared-postgres:
@@ -16,6 +18,7 @@ services:
     image: docker.io/library/busybox:1.37.0
     networks:
       shared-db-backups: {}
+      shared-edge: {}
       shared-infisical: {}
       shared-postgres: {}
       shared-proxy: {}
