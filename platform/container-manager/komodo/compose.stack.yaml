@@ -26,7 +26,7 @@ services:
       komodo.skip: ''
       traefik.enable: 'true'
       traefik.http.routers.komodo.entrypoints: websecure
-      traefik.http.routers.komodo.rule: Host(`komo.homektb.com`)
+      traefik.http.routers.komodo.rule: Host(`komo.ktbinternal.com`)
       traefik.http.routers.komodo.tls: 'true'
       traefik.http.services.komodo.loadbalancer.server.port: '9120'
     networks:

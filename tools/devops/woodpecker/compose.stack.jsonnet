@@ -2,8 +2,8 @@
 // pipeline steps as sibling containers via the host Docker socket).
 //
 // Source of truth: this file compiles to compose.stack.yaml — do not edit the
-// YAML. Only `server` joins shared-proxy (traefik owns) to be reachable at
-// peck.homektb.com; `agent` only talks to `server` internally via gRPC on the
+// YAML. Only `server` joins shared-proxy (traefik owns) to be reachable.
+// `agent` only talks to `server` internally via gRPC on the
 // stack's own default net, so it doesn't join shared-proxy.
 local lib = import 'lib.libsonnet';
 
@@ -24,7 +24,6 @@ local grpcPort = 9000;
       volumes: ['server' + ':/var/lib/woodpecker'],
       environment: {
         // Public address; must match the OAuth2 app's redirect URI in Forgejo
-        // (https://peck.homektb.com/authorize).
         WOODPECKER_HOST: 'https://peck.' + lib.registry.rootDomain,
         // Allow any Forgejo user to log in.
         WOODPECKER_OPEN: 'true',

@@ -45,7 +45,7 @@ services:
     labels:
       traefik.enable: 'true'
       traefik.http.routers.infisical.entrypoints: websecure
-      traefik.http.routers.infisical.rule: Host(`infisical.homektb.com`)
+      traefik.http.routers.infisical.rule: Host(`infisical.ktbinternal.com`)
       traefik.http.routers.infisical.tls: 'true'
       traefik.http.services.infisical.loadbalancer.server.port: '8080'
     networks:

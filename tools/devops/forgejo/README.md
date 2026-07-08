@@ -2,7 +2,7 @@
 
 > 📚 System architecture, the secrets-flow, and the deploy model live in Notion → **[Architecture — How It All Connects](https://app.notion.com/p/37931e9a948a819380e7e9ef7d90cf8c)**. This file covers only this stack: what it runs and its secret/deploy specifics.
 
-[Forgejo](https://forgejo.org/) — self-hosted git forge. Source of truth for our repos; each repo push-mirrors to GitHub. Reached at `fj.homektb.com` via Traefik, forwarding to the container's port `3000`. SSH (`git clone`/`git push` over SSH) is routed on port `22` via a raw-TCP Traefik router (`forgejo-ssh` entrypoint).
+[Forgejo](https://forgejo.org/) — self-hosted git forge. Source of truth for our repos; each repo push-mirrors to GitHub. Reached at `fj.ktbinternal.com` via Traefik, forwarding to the container's port `3000`. SSH (`git clone`/`git push` over SSH) is routed on port `22` via a raw-TCP Traefik router (`forgejo-ssh` entrypoint).
 
 Source of truth: `compose.jsonnet` + `compose.stack.jsonnet` compile to `compose.yaml` + `compose.stack.yaml` — do not edit the YAML directly.
 

@@ -17,7 +17,7 @@ it can reach the app directly before Traefik / the public URL exist).
 | Host | `INFISICAL_ADDRESS` | For |
 |---|---|---|
 | the Infisical host | `http://infisical-app:8080` (internal) | runs Infisical itself; can bootstrap before Traefik exists |
-| every other host | `https://infisical.homektb.com` (public) — the default | reaches Infisical over the public URL |
+| every other host | `https://infisical.ktbinternal.com` (public) — the default | reaches Infisical over the public URL |
 
 `.env` defaults `INFISICAL_ADDRESS` to the public URL; the Infisical host overrides it.
 

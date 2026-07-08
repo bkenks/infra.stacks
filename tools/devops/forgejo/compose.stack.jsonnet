@@ -1,5 +1,5 @@
 // forgejo — self-hosted git forge, source of truth for our repos (push-mirrors
-// to GitHub). Reached at fj.homektb.com via Traefik; SSH (git clone/push) via a
+// to GitHub). Reached via Traefik; SSH (git clone/push) via a
 // raw-TCP Traefik router on port 22.
 //
 // Source of truth: this file compiles to compose.stack.yaml — do not edit the

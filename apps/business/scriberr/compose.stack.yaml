@@ -10,7 +10,7 @@ services:
   app:
     container_name: scriberr_app
     environment:
-      ALLOWED_ORIGINS: https://scriberr.homektb.com
+      ALLOWED_ORIGINS: https://scriberr.ktbinternal.com
       APP_ENV: production
       PGID: '1000'
       PUID: '1000'
@@ -20,7 +20,7 @@ services:
     labels:
       traefik.enable: 'true'
       traefik.http.routers.scriberr.entrypoints: websecure
-      traefik.http.routers.scriberr.rule: Host(`scriberr.homektb.com`)
+      traefik.http.routers.scriberr.rule: Host(`scriberr.ktbinternal.com`)
       traefik.http.routers.scriberr.tls: 'true'
       traefik.http.services.scriberr.loadbalancer.server.port: '8080'
     networks:

@@ -115,7 +115,7 @@ Consequences:
 2. **Set `FRAPPE_DB_ROOT_PASSWORD`** in Infisical for this stack.
 3. **Set the Traefik rule** on `frontend`'s labels in `compose.stack.jsonnet`
    (the `proxyAdd(...)` call) to your first site, e.g.
-   ``Host(`erp.homektb.com`)``. Render + commit + push.
+   ``Host(`erp.ktbinternal.com`)``. Render + commit + push.
 4. **Deploy in Komodo.** Watch `configurator` run to completion (it writes
    `common_site_config.json`), then the rest start.
 5. **Create the first site** (see below).

@@ -1,4 +1,4 @@
-// gitea — self-hosted git forge. Reached at gitea.homektb.com via Traefik; SSH
+// gitea — self-hosted git forge. Reached via Traefik; SSH
 // (git clone/push) via a raw-TCP Traefik router on port 22.
 //
 // Source of truth: this file compiles to compose.stack.yaml — do not edit the

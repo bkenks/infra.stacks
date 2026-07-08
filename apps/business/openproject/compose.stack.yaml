@@ -33,19 +33,19 @@ services:
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres-db:5432/openproject?pool=20&encoding=unicode&reconnect=true
       IMAP_ENABLED: 'false'
-      OPENPROJECT_ADDITIONAL__HOST__NAMES: openprj.homektb.com,web
+      OPENPROJECT_ADDITIONAL__HOST__NAMES: openprj.ktbinternal.com,web
       OPENPROJECT_CACHE__MEMCACHE__SERVER: cache:11211
       OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__SECRET: ${COLLAB_SERVER_SECRET:?err}
-      OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__URL: wss://openprj.homektb.com/hocuspocus
+      OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__URL: wss://openprj.ktbinternal.com/hocuspocus
       OPENPROJECT_DISABLED__MODULES: ''
       OPENPROJECT_EE__HIDE__BANNERS: 'true'
       OPENPROJECT_EE__MANAGER__VISIBLE: 'false'
-      OPENPROJECT_HOST__NAME: openprj.homektb.com
+      OPENPROJECT_HOST__NAME: openprj.ktbinternal.com
       OPENPROJECT_HSTS: 'true'
       OPENPROJECT_HTTPS: 'true'
       OPENPROJECT_RAILS__CACHE__STORE: memcache
       OPENPROJECT_RAILS__RELATIVE__URL__ROOT: ''
-      OPENPROJECT_URL: https://openprj.homektb.com
+      OPENPROJECT_URL: https://openprj.ktbinternal.com
       OPENPROJECT_WELCOME__ON__HOMESCREEN: 'false'
       RAILS_MAX_THREADS: '16'
       RAILS_MIN_THREADS: '4'
@@ -75,7 +75,7 @@ services:
       traefik.enable: 'true'
       traefik.http.routers.openproject-hocuspocus.entrypoints: websecure
       traefik.http.routers.openproject-hocuspocus.priority: '100'
-      traefik.http.routers.openproject-hocuspocus.rule: Host(`openprj.homektb.com`) && PathPrefix(`/hocuspocus`)
+      traefik.http.routers.openproject-hocuspocus.rule: Host(`openprj.ktbinternal.com`) && PathPrefix(`/hocuspocus`)
       traefik.http.routers.openproject-hocuspocus.tls: 'true'
       traefik.http.services.openproject-hocuspocus.loadbalancer.server.port: '1234'
     networks:
@@ -92,19 +92,19 @@ services:
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres-db:5432/openproject?pool=20&encoding=unicode&reconnect=true
       IMAP_ENABLED: 'false'
-      OPENPROJECT_ADDITIONAL__HOST__NAMES: openprj.homektb.com,web
+      OPENPROJECT_ADDITIONAL__HOST__NAMES: openprj.ktbinternal.com,web
       OPENPROJECT_CACHE__MEMCACHE__SERVER: cache:11211
       OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__SECRET: ${COLLAB_SERVER_SECRET:?err}
-      OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__URL: wss://openprj.homektb.com/hocuspocus
+      OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__URL: wss://openprj.ktbinternal.com/hocuspocus
       OPENPROJECT_DISABLED__MODULES: ''
       OPENPROJECT_EE__HIDE__BANNERS: 'true'
       OPENPROJECT_EE__MANAGER__VISIBLE: 'false'
-      OPENPROJECT_HOST__NAME: openprj.homektb.com
+      OPENPROJECT_HOST__NAME: openprj.ktbinternal.com
       OPENPROJECT_HSTS: 'true'
       OPENPROJECT_HTTPS: 'true'
       OPENPROJECT_RAILS__CACHE__STORE: memcache
       OPENPROJECT_RAILS__RELATIVE__URL__ROOT: ''
-      OPENPROJECT_URL: https://openprj.homektb.com
+      OPENPROJECT_URL: https://openprj.ktbinternal.com
       OPENPROJECT_WELCOME__ON__HOMESCREEN: 'false'
       RAILS_MAX_THREADS: '16'
       RAILS_MIN_THREADS: '4'
@@ -130,19 +130,19 @@ services:
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres-db:5432/openproject?pool=20&encoding=unicode&reconnect=true
       IMAP_ENABLED: 'false'
-      OPENPROJECT_ADDITIONAL__HOST__NAMES: openprj.homektb.com,web
+      OPENPROJECT_ADDITIONAL__HOST__NAMES: openprj.ktbinternal.com,web
       OPENPROJECT_CACHE__MEMCACHE__SERVER: cache:11211
       OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__SECRET: ${COLLAB_SERVER_SECRET:?err}
-      OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__URL: wss://openprj.homektb.com/hocuspocus
+      OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__URL: wss://openprj.ktbinternal.com/hocuspocus
       OPENPROJECT_DISABLED__MODULES: ''
       OPENPROJECT_EE__HIDE__BANNERS: 'true'
       OPENPROJECT_EE__MANAGER__VISIBLE: 'false'
-      OPENPROJECT_HOST__NAME: openprj.homektb.com
+      OPENPROJECT_HOST__NAME: openprj.ktbinternal.com
       OPENPROJECT_HSTS: 'true'
       OPENPROJECT_HTTPS: 'true'
       OPENPROJECT_RAILS__CACHE__STORE: memcache
       OPENPROJECT_RAILS__RELATIVE__URL__ROOT: ''
-      OPENPROJECT_URL: https://openprj.homektb.com
+      OPENPROJECT_URL: https://openprj.ktbinternal.com
       OPENPROJECT_WELCOME__ON__HOMESCREEN: 'false'
       RAILS_MAX_THREADS: '16'
       RAILS_MIN_THREADS: '4'
@@ -164,7 +164,7 @@ services:
       autoheal: 'true'
       traefik.enable: 'true'
       traefik.http.routers.openproject.entrypoints: websecure
-      traefik.http.routers.openproject.rule: Host(`openprj.homektb.com`)
+      traefik.http.routers.openproject.rule: Host(`openprj.ktbinternal.com`)
       traefik.http.routers.openproject.tls: 'true'
       traefik.http.services.openproject.loadbalancer.server.port: '8080'
     networks:
@@ -190,19 +190,19 @@ services:
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres-db:5432/openproject?pool=20&encoding=unicode&reconnect=true
       IMAP_ENABLED: 'false'
-      OPENPROJECT_ADDITIONAL__HOST__NAMES: openprj.homektb.com,web
+      OPENPROJECT_ADDITIONAL__HOST__NAMES: openprj.ktbinternal.com,web
       OPENPROJECT_CACHE__MEMCACHE__SERVER: cache:11211
       OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__SECRET: ${COLLAB_SERVER_SECRET:?err}
-      OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__URL: wss://openprj.homektb.com/hocuspocus
+      OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__URL: wss://openprj.ktbinternal.com/hocuspocus
       OPENPROJECT_DISABLED__MODULES: ''
       OPENPROJECT_EE__HIDE__BANNERS: 'true'
       OPENPROJECT_EE__MANAGER__VISIBLE: 'false'
-      OPENPROJECT_HOST__NAME: openprj.homektb.com
+      OPENPROJECT_HOST__NAME: openprj.ktbinternal.com
       OPENPROJECT_HSTS: 'true'
       OPENPROJECT_HTTPS: 'true'
       OPENPROJECT_RAILS__CACHE__STORE: memcache
       OPENPROJECT_RAILS__RELATIVE__URL__ROOT: ''
-      OPENPROJECT_URL: https://openprj.homektb.com
+      OPENPROJECT_URL: https://openprj.ktbinternal.com
       OPENPROJECT_WELCOME__ON__HOMESCREEN: 'false'
       RAILS_MAX_THREADS: '16'
       RAILS_MIN_THREADS: '4'

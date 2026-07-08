@@ -18,7 +18,7 @@ services:
     labels:
       traefik.enable: 'true'
       traefik.http.routers.stirling-pdf.entrypoints: websecure
-      traefik.http.routers.stirling-pdf.rule: Host(`stirling-pdf.homektb.com`)
+      traefik.http.routers.stirling-pdf.rule: Host(`stirling-pdf.ktbinternal.com`)
       traefik.http.routers.stirling-pdf.tls: 'true'
       traefik.http.services.stirling-pdf.loadbalancer.server.port: '8080'
     networks:

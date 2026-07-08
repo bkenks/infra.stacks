@@ -1,19 +1,20 @@
 // komodo-mcp — MP-Tool's Komodo MCP Server: exposes Komodo (servers, stacks,
 // deployments, builds, repos, procedures, terminals, ...) to MCP clients like
-// Claude Code. Streamable-HTTP, reached at komodo-mcp.homektb.com via Traefik,
+// Claude Code. Streamable-HTTP via Traefik,
 // guarded by basic-auth (the MCP endpoint itself has no built-in auth and the
 // configured Komodo key is full read/write).
 //
 // Source of truth: this file compiles to compose.stack.yaml — do not edit the
 // YAML. Joins shared-proxy (traefik owns) to be reachable.
 local lib = import 'lib.libsonnet';
+local r = lib.registry;
 
 local stack = 'komodo-mcp';
 local n = lib.compose.names(stack);
 local app = lib.registry.roles.app;
 
 // Pinned to the MP-Tool/komodo-mcp-server upstream release tag (v1.4.1),
-// mirrored to fj.homektb.com/bkenks/komodo-mcp-server. VERIFY this tag exists
+// VERIFY this tag exists
 // on the mirror before deploying (see stack README).
 local version = '1.4.1';
 local port = 8000;
@@ -30,7 +31,7 @@ local authLabels = {
 
   services: {
     [app]: {
-      image: 'fj.homektb.com/bkenks/komodo-mcp-server:' + version,
+      image: 'fj' + r.rootDomain + '/bkenks/komodo-mcp-server:' + version,
       container_name: n.container(app),
       environment: {
         // Streamable HTTP transport (listens on :8000 inside the container).

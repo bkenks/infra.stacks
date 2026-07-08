@@ -27,21 +27,21 @@ services:
       N8N_BLOCK_ENV_ACCESS_IN_NODE: 'true'
       N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: 'true'
       N8N_GIT_NODE_DISABLE_BARE_REPOS: 'true'
-      N8N_HOST: n8n.homektb.com
+      N8N_HOST: n8n.ktbinternal.com
       N8N_PORT: '5678'
       N8N_PROTOCOL: https
       N8N_PROXY_HOPS: '1'
       N8N_RUNNERS_ENABLED: 'true'
       NODE_ENV: production
       TZ: America/New_York
-      WEBHOOK_URL: https://n8n.homektb.com/
+      WEBHOOK_URL: https://n8n.ktbinternal.com/
     expose:
     - '5678'
     image: docker.n8n.io/n8nio/n8n:2.20.6
     labels:
       traefik.enable: 'true'
       traefik.http.routers.n8n.entrypoints: websecure
-      traefik.http.routers.n8n.rule: Host(`n8n.homektb.com`)
+      traefik.http.routers.n8n.rule: Host(`n8n.ktbinternal.com`)
       traefik.http.routers.n8n.tls: 'true'
       traefik.http.services.n8n.loadbalancer.server.port: '5678'
     networks:

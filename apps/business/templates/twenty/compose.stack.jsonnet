@@ -1,4 +1,4 @@
-// twenty — Twenty CRM (twenty.homektb.com), with a dedicated Redis and a
+// twenty — Twenty CRM with a dedicated Redis and a
 // worker sidecar sharing the server's image + storage volume. Renders to
 // compose.stack.yaml — do not edit the YAML.
 //

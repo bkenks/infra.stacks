@@ -16,7 +16,7 @@ Service keys and `container_name`s (`pangolin`, `gerbil`, `traefik`) are literal
 
 ### Certificates
 
-Traefik gets its certs via Cloudflare DNS-01 ACME — same mechanism as `platform/edge/traefik`, not HTTP-01. `files/dynamic_config.yml`'s `next-router` requests the `*.homektb.com` wildcard once (`tls.domains`); every other router — including ones Pangolin adds dynamically for new Resources — reuses it via SNI with just `certResolver: cloudflare`. See `files/traefik_config.yml`'s `certificatesResolvers.cloudflare` block.
+Traefik gets its certs via Cloudflare DNS-01 ACME — same mechanism as `platform/edge/traefik`, not HTTP-01. `files/dynamic_config.yml`'s `next-router` requests the `*.ktbinternal.com` wildcard once (`tls.domains`); every other router — including ones Pangolin adds dynamically for new Resources — reuses it via SNI with just `certResolver: cloudflare`. See `files/traefik_config.yml`'s `certificatesResolvers.cloudflare` block.
 
 ### Secrets
 

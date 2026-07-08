@@ -32,7 +32,7 @@ local nw = {
       environment: {
         TZ: 'America/New_York',
         // Non-secret control-plane endpoint (Pangolin server, this org).
-        PANGOLIN_ENDPOINT: 'https://pangolin.homektb.com',
+        PANGOLIN_ENDPOINT: 'https://pangolin.' + r.rootDomain,
         // Secrets — interpolated from /dev/shm/newt.env (parent include.env_file),
         // rendered from Infisical infra project folder /roles/traefik-controller.
         NEWT_ID: '${NEWT_ID:?err}',

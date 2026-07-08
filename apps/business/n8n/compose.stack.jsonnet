@@ -60,9 +60,6 @@ local filesDir = lib.registry.dockerVolumes + '/apps/n8n/data/local-files';
         DB_POSTGRESDB_PASSWORD: '${POSTGRES_PASS:?err}',
       },
       restart: 'unless-stopped',
-      // Resolve *.homektb.com against a specific LAN host so LAN-only
-      // services (carbone, etc.) work from inside the container — see
-      // Notion: "Network architecture & the Docker / Tailscale DNS gotcha".
       dns: ['192.168.1.6', '1.1.1.1'],
       expose: [std.toString(port)],
       networks: {

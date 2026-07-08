@@ -3,7 +3,7 @@
 > 📚 System architecture and the secrets-flow live in Notion → **[Architecture — How It All Connects](https://app.notion.com/p/37931e9a948a819380e7e9ef7d90cf8c)**. This file covers only this stack: how to deploy/use it and its quirks.
 
 Termix — a self-hosted web SSH/terminal and server-management UI. Reached at
-**https://termix.homektb.com** (Traefik → container port 8080). Ships
+**https://termix.ktbinternal.com** (Traefik → container port 8080). Ships
 with `guacd` (Apache Guacamole proxy daemon) as a sidecar for remote-desktop
 connections; `guacd` is internal-only (no published ports, reached over the
 stack's `default` network on 4822).
@@ -21,7 +21,7 @@ Infisical agent. The only config is the literal `PORT`, baked directly into
 
 - **app** (`ghcr.io/lukegus/termix`) — the Termix web UI. Persists state in the
   `termix-data` volume (`/app/data`). Exposed via Traefik on
-  `termix.homektb.com`.
+  `termix.ktbinternal.com`.
 - **guacd** (`docker.io/guacamole/guacd`) — Guacamole proxy daemon. Internal
   only; `app` depends on it and talks to it on the `default` network.
 

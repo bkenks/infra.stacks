@@ -2,11 +2,11 @@
 
 > 📚 System architecture, the secrets-flow, and the deploy model live in Notion → **[Architecture — How It All Connects](https://app.notion.com/p/37931e9a948a819380e7e9ef7d90cf8c)**. This file covers only this stack: what it runs and its secret/deploy specifics.
 
-[OpenProject](https://www.openproject.org/) — self-hosted project management. Reached at `openprj.homektb.com`. Runs as several roles off one image (`web`, `worker`, `cron`, `seeder`) plus sidecars: `cache` (memcached), `hocuspocus` (collaborative editing), and `autoheal` (restarts unhealthy containers).
+[OpenProject](https://www.openproject.org/) — self-hosted project management. Reached at `openprj.ktbinternal.com`. Runs as several roles off one image (`web`, `worker`, `cron`, `seeder`) plus sidecars: `cache` (memcached), `hocuspocus` (collaborative editing), and `autoheal` (restarts unhealthy containers).
 
 Source of truth: `compose.jsonnet` + `compose.stack.jsonnet` compile to `compose.yaml` + `compose.stack.yaml` — do not edit the YAML directly.
 
-Exposed via this host's Traefik on the shared `proxy` network — no published host ports. Two routers, both on `openprj.homektb.com`: `web` (`:8080`) is the catch-all that serves the app, and `hocuspocus` (`:1234`) is routed by `PathPrefix(/hocuspocus)` (prefix forwarded intact, higher priority than the catch-all) for the collaborative-editing websocket (`wss://openprj.homektb.com/hocuspocus`). Wildcard `*.homektb.com` TLS is issued per-host, so the routers just set `tls: true`.
+Exposed via this host's Traefik on the shared `proxy` network — no published host ports. Two routers, both on `openprj.ktbinternal.com`: `web` (`:8080`) is the catch-all that serves the app, and `hocuspocus` (`:1234`) is routed by `PathPrefix(/hocuspocus)` (prefix forwarded intact, higher priority than the catch-all) for the collaborative-editing websocket (`wss://openprj.ktbinternal.com/hocuspocus`). Wildcard `*.ktbinternal.com` TLS is issued per-host, so the routers just set `tls: true`.
 
 `cron`/`seeder`/`web`/`worker` share a common base (image, `assets` volume, the `enterprise_token.rb` bind mount, restart policy) — merged into each service in `compose.stack.jsonnet` via a jsonnet `local opApp = {...}` object combined with `+`, instead of a YAML anchor.
 

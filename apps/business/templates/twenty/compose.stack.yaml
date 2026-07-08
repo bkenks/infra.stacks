@@ -38,8 +38,8 @@ services:
         condition: service_healthy
     environment:
       APP_SECRET: ${TWENTY_SECRET:?err}
-      AUTH_GOOGLE_APIS_CALLBACK_URL: https://twenty.homektb.com/auth/google-apis/get-access-token
-      AUTH_GOOGLE_CALLBACK_URL: https://twenty.homektb.com/auth/google/redirect
+      AUTH_GOOGLE_APIS_CALLBACK_URL: https://twenty.ktbinternal.com/auth/google-apis/get-access-token
+      AUTH_GOOGLE_CALLBACK_URL: https://twenty.ktbinternal.com/auth/google/redirect
       AUTH_GOOGLE_CLIENT_ID: ${TWENTY_GOOGLE_CLIENT_ID:?err}
       AUTH_GOOGLE_CLIENT_SECRET: ${TWENTY_GOOGLE_CLIENT_SECRET:?err}
       CALENDAR_PROVIDER_GOOGLE_ENABLED: 'true'
@@ -47,7 +47,7 @@ services:
       NODE_PORT: '3000'
       PG_DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres-db:5432/twenty
       REDIS_URL: redis://twenty_redis:6379
-      SERVER_URL: https://twenty.homektb.com
+      SERVER_URL: https://twenty.ktbinternal.com
       STORAGE_TYPE: local
     expose:
     - '3000'
@@ -64,7 +64,7 @@ services:
     labels:
       traefik.enable: 'true'
       traefik.http.routers.twenty.entrypoints: websecure
-      traefik.http.routers.twenty.rule: Host(`twenty.homektb.com`)
+      traefik.http.routers.twenty.rule: Host(`twenty.ktbinternal.com`)
       traefik.http.routers.twenty.tls: 'true'
       traefik.http.services.twenty.loadbalancer.server.port: '3000'
     networks:
@@ -90,8 +90,8 @@ services:
         condition: service_healthy
     environment:
       APP_SECRET: ${TWENTY_SECRET:?err}
-      AUTH_GOOGLE_APIS_CALLBACK_URL: https://twenty.homektb.com/auth/google-apis/get-access-token
-      AUTH_GOOGLE_CALLBACK_URL: https://twenty.homektb.com/auth/google/redirect
+      AUTH_GOOGLE_APIS_CALLBACK_URL: https://twenty.ktbinternal.com/auth/google-apis/get-access-token
+      AUTH_GOOGLE_CALLBACK_URL: https://twenty.ktbinternal.com/auth/google/redirect
       AUTH_GOOGLE_CLIENT_ID: ${TWENTY_GOOGLE_CLIENT_ID:?err}
       AUTH_GOOGLE_CLIENT_SECRET: ${TWENTY_GOOGLE_CLIENT_SECRET:?err}
       CALENDAR_PROVIDER_GOOGLE_ENABLED: 'true'
@@ -100,7 +100,7 @@ services:
       MESSAGING_PROVIDER_GMAIL_ENABLED: 'true'
       PG_DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres-db:5432/twenty
       REDIS_URL: redis://twenty_redis:6379
-      SERVER_URL: https://twenty.homektb.com
+      SERVER_URL: https://twenty.ktbinternal.com
       STORAGE_TYPE: local
     image: docker.io/twentycrm/twenty:v1.18.1
     networks:
