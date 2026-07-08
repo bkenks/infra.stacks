@@ -11,8 +11,9 @@ container that dials the core Authentik server ([`../authentik`](../authentik/))
 
 ## Deploy target
 
-Runs on **littlebuddy** (alongside the core Authentik stack). It does not need
-inbound access to the control plane — it dials `https://auth.ktbcloud.com`
+Runs on **littlebuddy** (the core Authentik stack runs separately on rick, the
+VPS). It does not need inbound access to the control plane — it dials
+`https://auth.ktbcloud.com`
 outbound and holds a long-lived outpost API token. It publishes `9000` on the
 host so that **every mesh host's Traefik** forward-auths to it over Tailscale
 (`http://<littlebuddy-tailscale-ip>:9000`), keeping one shared SSO session

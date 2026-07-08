@@ -10,7 +10,7 @@ services:
     container_name: authentik_db
     environment:
       POSTGRES_DB: authentik
-      POSTGRES_PASSWORD: ${AUTHENTIK_POSTGRESQL__PASSWORD:?err}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?err}
       POSTGRES_USER: authentik
     healthcheck:
       interval: 30s

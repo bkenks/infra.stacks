@@ -13,10 +13,12 @@ worker + Postgres + Redis); the forward-auth data-plane runs separately as
 
 ## Deploy target
 
-The core identity host — **littlebuddy**. It owns the `shared-edge` network
-(registry `sharedNetworks.edge`); the Pangolin edge stack's Traefik joins that
-network to reach `authentik_server:9000` for OIDC / forward-auth once wired.
-This stack does **not** join `shared-proxy`.
+The core identity host — **rick (the VPS)**. It's the public IdP at
+`auth.ktbcloud.com`. It owns the `shared-edge` network (registry
+`sharedNetworks.edge`); the Pangolin edge stack's Traefik joins that network to
+reach `authentik_server:9000` for OIDC / forward-auth once wired. This stack
+does **not** join `shared-proxy`. (The forward-auth outpost runs separately on
+littlebuddy — see [`../authentik-outpost/`](../authentik-outpost/).)
 
 ## Services
 

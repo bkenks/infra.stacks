@@ -89,7 +89,9 @@ local akHealth = {
       environment: {
         POSTGRES_USER: 'authentik',
         POSTGRES_DB: 'authentik',
-        POSTGRES_PASSWORD: '${AUTHENTIK_POSTGRESQL__PASSWORD:?err}',
+        // Uses its own var (mapped from PG_PASS in the registry authentik map,
+        // same source as the app's AUTHENTIK_POSTGRESQL__PASSWORD).
+        POSTGRES_PASSWORD: '${POSTGRES_PASSWORD:?err}',
       },
       volumes: [dbVol + ':/var/lib/postgresql/data'],
       healthcheck: {
