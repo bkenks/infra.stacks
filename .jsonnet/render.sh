@@ -33,10 +33,22 @@ if [ "$(basename "$src")" = "services.jsonnet" ]; then
   exit 0
 fi
 
+# Output extension: `.yaml` for every source EXCEPT controller.jsonnet, whose
+# rendered file is mounted as controller.yml by name in traefik's compose (and was
+# hand-authored as .yml historically). Special-cased on basename, like
+# services.jsonnet above — keeps the mount + committed filename stable so this
+# refactor is a content-only change. (Traefik's file provider loads .yml/.yaml
+# alike; the mount path is what matters.)
+if [ "$(basename "$src")" = "controller.jsonnet" ]; then
+  ext=yml
+else
+  ext=yaml
+fi
+
 # Render to a temp file then swap into place — a jsonnet/python failure (caught
 # by `set -e` + `pipefail` above) must never truncate the real $out to a
 # half-written file (same reasoning as the services.jsonnet temp-dir swap).
-out="$dir/$(basename "$src" .jsonnet).yaml"
+out="$dir/$(basename "$src" .jsonnet).$ext"
 tmp=$(mktemp "${out}.XXXXXX")
 trap 'rm -f "$tmp"' EXIT
 

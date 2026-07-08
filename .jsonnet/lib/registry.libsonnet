@@ -220,6 +220,89 @@
   # AGENT SERVICES (secret catalogue)
   # ============================================================
 
+  # ============================================================
+  # EDGE HOSTS (Tailscale mesh)
+  # ============================================================
+  # notes: The Tailscale-mesh hosts that run a host-local Traefik on :443. The
+  # central controller table (platform/edge/traefik/files/controller) re-encrypts
+  # to these by RAW 100.x IP — there is NO MagicDNS in this tailnet, so backends
+  # cannot use a hostname (the IP is reachable from the Traefik container via the
+  # host's tailscale0 route). SINGLE SOURCE for the host->IP map: controller.jsonnet
+  # generates one `host-<name>` backend per entry here, and a service's `home`
+  # (see controllerServices) references a KEY here (compile-checked, not a string).
+  # Move a host's IP once and every controller backend that targets it follows.
+  edgeHosts: {
+    littlebuddy: { ip: '100.114.137.104' },
+    paiki: { ip: '100.126.19.103' },
+    maboi: { ip: '100.97.83.95' },
+    bill: { ip: '100.79.7.11' },
+    rick: { ip: '100.106.170.93' },
+  },
+  # EDGE HOSTS (Tailscale mesh)
+  # ============================================================
+
+
+
+  # ============================================================
+  # CONTROLLER SERVICE CATALOG (central mesh routing table)
+  # ============================================================
+  # notes: The "which host runs X, and at what subdomain" knowledge for every
+  # single-label service the central controller routes. This used to live ONLY in
+  # controller.yml's comments + hand-written router entries; it is now DATA, so a
+  # host move or subdomain change here re-renders controller.yml automatically
+  # (change `home`, or `sub`, and re-render — no hand-editing the routing table).
+  #
+  # Each entry becomes ONE priority:1 router (rule Host(`<sub>.<rootDomain>`) ->
+  # the `host-<home>` backend, controller-hop middleware, tls) in controller.yml.
+  # Fields:
+  #   home    key into `edgeHosts` — the host that actually runs the service (its
+  #           Tailscale IP is resolved into the router's backend). Compile-checked.
+  #   sub     public subdomain, when it DIFFERS from the service key. Omit and the
+  #           key IS the subdomain (e.g. immich -> immich.<rootDomain>). Many differ:
+  #           komodo->komo, openproject->openprj, paperless->paper, forgejo->fj,
+  #           woodpecker->peck.
+  #   direct  present ONLY for a service reached directly (bypassing the home host's
+  #           Traefik re-encrypt) — { port, scheme='http' }. Generates a dedicated
+  #           `<key>-direct` backend to <home IP>:<port> with NO serversTransport
+  #           (no re-encrypt, so no loop path back into the table). Plex only.
+  #   latent  true for a catalogued-but-not-yet-deployed stack. Informational only
+  #           (still gets a router, pointed at `home`); preserves the "not deployed"
+  #           knowledge that lived in a controller.yml comment. Flip `home` if it
+  #           ever lands elsewhere.
+  # FQDNs derive from `rootDomain` — NEVER write a literal domain here.
+  controllerServices: {
+    # ── littlebuddy (personal apps + devops) ──
+    infisical: { home: 'littlebuddy' },
+    komodo: { home: 'littlebuddy', sub: 'komo' },
+    'komodo-mcp': { home: 'littlebuddy' },
+    forgejo: { home: 'littlebuddy', sub: 'fj' },
+    woodpecker: { home: 'littlebuddy', sub: 'peck' },
+    termix: { home: 'littlebuddy' },
+    docuseal: { home: 'littlebuddy' },
+    openproject: { home: 'littlebuddy', sub: 'openprj' },
+    paperless: { home: 'littlebuddy', sub: 'paper' },
+    scriberr: { home: 'littlebuddy' },
+    # Not deployed in Komodo yet; latent, pointed at littlebuddy with the other
+    # personal apps. Flip `home` if either lands on another host.
+    mazanoke: { home: 'littlebuddy', latent: true },
+    convertx: { home: 'littlebuddy', latent: true },
+    # ── paiki (media stack) ──
+    immich: { home: 'paiki' },
+    sonarr: { home: 'paiki' },
+    radarr: { home: 'paiki' },
+    prowlarr: { home: 'paiki' },
+    bazarr: { home: 'paiki' },
+    sabnzbd: { home: 'paiki' },
+    seerr: { home: 'paiki' },
+    # Plex is host-mode on paiki :32400 — NOT behind paiki's Traefik, so it routes
+    # straight to the Plex process via a `-direct` backend (see `direct` above).
+    plex: { home: 'paiki', direct: { port: 32400 } },
+    # ── rick ──
+    pangolin: { home: 'rick' },
+  },
+  # CONTROLLER SERVICE CATALOG
+  # ============================================================
+
   envFiles: {
     secretsPath(envFilename): '/dev/shm/' + envFilename,
     platform(envFilename):: '${ANSIBLE_SECRETS_FILE:-' + self.secretsPath(envFilename) + '}',
