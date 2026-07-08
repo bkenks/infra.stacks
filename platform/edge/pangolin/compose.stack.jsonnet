@@ -8,7 +8,7 @@
 // Naming deviation: service keys ('pangolin', 'gerbil', 'traefik') and their
 // container_names are literal, NOT run through lib.compose.names(). Pangolin
 // and Gerbil hardcode each other's hostnames in their own startup flags
-// (gerbil's --remoteConfig/--reachableAt below) and files/dynamic_config.yml's
+// (gerbil's --remoteConfig/--reachableAt below) and files/dynamic_config.jsonnet's
 // backend URLs assume they resolve to exactly 'pangolin'/'gerbil'/'traefik' —
 // renaming breaks service discovery. Traefik's `network_mode: service:gerbil`
 // also requires gerbil's compose key to be literally 'gerbil' (Compose syntax,
@@ -20,10 +20,10 @@
 // style as apps/media/stream's `sharedData` — Pangolin/Gerbil/Traefik
 // read/write into this tree by upstream design, so splitting it into per-
 // service named volumes would fight that. `init` creates the tree with the
-// right permissions before the real services start; the human-maintained
-// YAML config (files/) is layered on top as read-only bind mounts from this
-// repo so it's git-tracked, while runtime state (keys, certs, GeoLite DBs,
-// logs, Pangolin's own db) stays host-only.
+// right permissions before the real services start; the YAML config (files/,
+// jsonnet-rendered from files/*.jsonnet) is layered on top as read-only bind
+// mounts from this repo so it's git-tracked, while runtime state (keys, certs,
+// GeoLite DBs, logs, Pangolin's own db) stays host-only.
 local lib = import 'lib.libsonnet';
 local dv = lib.registry.dockerVolumes;
 
@@ -86,7 +86,11 @@ local initScript =
       mem_reservation: '512m',
       volumes: [
         configDir + ':/app/config',
-        './files/config.yml:/app/config/config.yml:ro',
+        // Left of the colon is the git-tracked jsonnet-rendered source
+        // (files/config.jsonnet -> config.yaml); the container path keeps the
+        // .yml name Pangolin loads. privateConfig.yml is a hand-maintained
+        // empty placeholder (not jsonnet-generated).
+        './files/config.yaml:/app/config/config.yml:ro',
         './files/privateConfig.yml:/app/config/privateConfig.yml:ro',
       ],
       environment: {
@@ -153,8 +157,10 @@ local initScript =
         CF_DNS_API_TOKEN: '${CF_DNS_API_TOKEN:?err}',
       },
       volumes: [
-        './files/traefik_config.yml:/etc/traefik/traefik_config.yml:ro',
-        './files/dynamic_config.yml:/etc/traefik/dynamic_config.yml:ro',
+        // jsonnet-rendered sources (files/*.jsonnet -> *.yaml); container paths
+        // keep the .yml names traefik's --configFile / file provider point at.
+        './files/traefik_config.yaml:/etc/traefik/traefik_config.yml:ro',
+        './files/dynamic_config.yaml:/etc/traefik/dynamic_config.yml:ro',
         configDir + '/letsencrypt:/letsencrypt',
         configDir + '/traefik/logs:/var/log/traefik',
       ],

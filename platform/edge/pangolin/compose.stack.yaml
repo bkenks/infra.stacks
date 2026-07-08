@@ -71,7 +71,7 @@ services:
     restart: unless-stopped
     volumes:
     - /srv/docker/bind-mounts/pangolin/config:/app/config
-    - ./files/config.yml:/app/config/config.yml:ro
+    - ./files/config.yaml:/app/config/config.yml:ro
     - ./files/privateConfig.yml:/app/config/privateConfig.yml:ro
   traefik:
     command:
@@ -88,7 +88,7 @@ services:
     network_mode: service:gerbil
     restart: unless-stopped
     volumes:
-    - ./files/traefik_config.yml:/etc/traefik/traefik_config.yml:ro
-    - ./files/dynamic_config.yml:/etc/traefik/dynamic_config.yml:ro
+    - ./files/traefik_config.yaml:/etc/traefik/traefik_config.yml:ro
+    - ./files/dynamic_config.yaml:/etc/traefik/dynamic_config.yml:ro
     - /srv/docker/bind-mounts/pangolin/config/letsencrypt:/letsencrypt
     - /srv/docker/bind-mounts/pangolin/config/traefik/logs:/var/log/traefik
