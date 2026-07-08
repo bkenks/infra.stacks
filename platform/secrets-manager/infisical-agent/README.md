@@ -37,7 +37,7 @@ static `infisical:`/`auth:` header, then for each name in `AGENT_SERVICES` simpl
 **concatenates** that service's fragment under a `templates:` key. It does **no**
 YAML parsing and **no** template generation — all of that is baked at build time
 by jsonnet. The fragments are committed; the pre-commit hook re-renders them
-whenever `registry.libsonnet`/`services.jsonnet` changes (`.jsonnet/render.sh`).
+whenever `registry.libsonnet`/`services.jsonnet` changes (`.jsonnet/render.py`).
 
 Each registry entry has a `type` that decides the inline template `services.jsonnet` bakes:
 
@@ -55,7 +55,7 @@ The Infisical template engine has no env access, so host-specific secret paths (
 
 1. Add **one entry** to `agentServices` in `.jsonnet/lib/registry.libsonnet` (`project`, `folder`, `dest`, `type`; plus `keys` for `map` or `key` for `raw`).
 2. If the Infisical secret names already match the consumer's env vars → `type=dump`. Otherwise use `type=map` (renames) or `type=raw` (single raw value).
-3. Commit — the pre-commit hook re-renders `templates/<svc>.yaml` (or run `.jsonnet/render.sh platform/secrets-manager/infisical-agent/services.jsonnet`).
+3. Commit — the pre-commit hook re-renders `templates/<svc>.yaml` (or run `.jsonnet/render.py platform/secrets-manager/infisical-agent/services.jsonnet`).
 4. Store the secrets in Infisical under the entry's `folder`; scope each consuming host's machine identity to read it.
 5. Append the service name to that host's `AGENT_SERVICES`.
 
