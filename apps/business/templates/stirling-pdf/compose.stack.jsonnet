@@ -1,7 +1,4 @@
-// stirling-pdf — self-hosted PDF toolkit (stirling-pdf.<domains.ktbinternal>).
-//
-// Source of truth: this file compiles to compose.stack.yaml — do not edit the
-// YAML. Joins shared-proxy (traefik owns) to be reachable. No DB dependency.
+// Compiles to compose.stack.yaml — do not edit the YAML.
 local c = import 'compose.libsonnet';
 local reg = import 'registry.libsonnet';
 
@@ -30,11 +27,9 @@ local base = reg.server.dir.docker.root + reg.server.dir.docker.bindmounts + '/a
       ],
       environment: {
         SECURITY_ENABLELOGIN: 'true',
-        // UI language(s) offered in the language picker.
         LANGS: 'en_US',
-        // To seed admin credentials instead of the admin/stirling default, set
-        // SECURITY_INITIALLOGIN_USERNAME / SECURITY_INITIALLOGIN_PASSWORD (treat
-        // the password as a secret -> Infisical -> ${VAR:?err} here).
+        // Default login is admin/stirling. To change it, set
+        // SECURITY_INITIALLOGIN_USERNAME / SECURITY_INITIALLOGIN_PASSWORD.
       },
       restart: 'unless-stopped',
       expose: [std.toString(port)],

@@ -1,24 +1,12 @@
-// dynamic_config.jsonnet — SOURCE for dynamic_config.yaml (Traefik dynamic
-// config: routers/services/middlewares for this edge host).
-//
-// Renders (via .jsonnet/render.py) to dynamic_config.yaml, mounted read-only
-// into the traefik container at /etc/traefik/dynamic_config.yml (see
-// compose.stack.jsonnet — the container path keeps the .yml name that traefik's
-// file provider points at; only the git-tracked source basename is .yaml). DO
-// NOT edit dynamic_config.yaml — edit this source and re-render.
-//
-// ⚠️ safe_dump strips YAML comments, so dynamic_config.yaml carries only the
-// render.py DO-NOT-EDIT header — all operational knowledge lives HERE.
-//
-// The Host() rules and the wildcard cert derive from reg.domains.ktbinternal, so
-// a domain migration follows automatically. The backend hostnames stay the
-// literal 'pangolin' — pangolin/gerbil/traefik hardcode each other's service
-// names and are deliberately NOT run through lib.compose.names() (see the stack
-// README and compose.stack.jsonnet's naming-deviation note).
+// Renders to dynamic_config.yaml, mounted read-only into traefik at
+// /etc/traefik/dynamic_config.yml. Edit this source, not the yaml — safe_dump strips
+// comments, so the yaml carries only a DO-NOT-EDIT header and all operational knowledge
+// lives HERE. Backend hostnames stay literal 'pangolin' — see compose.stack.jsonnet's
+// naming-deviation note.
 local reg = import 'registry.libsonnet';
 
-local baseDomain = reg.domains.ktbinternal;  // ktbinternal.com
-local host = 'pangolin.' + baseDomain;       // pangolin.ktbinternal.com
+local baseDomain = reg.domains.ktbinternal;
+local host = 'pangolin.' + baseDomain;
 
 // Cloudflare DNS-01 resolver, shared by every https router below.
 local cf = { certResolver: 'cloudflare' };
@@ -41,7 +29,6 @@ local cf = { certResolver: 'cloudflare' };
     },
 
     routers: {
-      // HTTP -> HTTPS redirect router.
       'main-app-router-redirect': {
         rule: 'Host(`' + host + '`)',
         service: 'next-service',
@@ -49,13 +36,9 @@ local cf = { certResolver: 'cloudflare' };
         middlewares: ['redirect-to-https', 'badger'],
       },
 
-      // Next.js router (handles everything except API and WebSocket paths).
-      // Requests the *.<baseDomain> wildcard here (once) via Cloudflare DNS-01 —
-      // same "request once, serve everywhere via SNI" trick as this repo's
-      // platform/edge/traefik files/host.yml. Every other router (this stack's
-      // api-router/ws-router, and any router Pangolin itself adds dynamically
-      // for a new Resource under <baseDomain>) then just needs certResolver:
-      // cloudflare with no domains block of its own.
+      // Requests the *.<baseDomain> wildcard here (once) via Cloudflare DNS-01 — same
+      // "request once, serve everywhere via SNI" trick as platform/edge/traefik files/host.yml.
+      // Every other router then just needs certResolver: cloudflare with no domains block.
       'next-router': {
         rule: 'Host(`' + host + '`) && !PathPrefix(`/api/v1`)',
         service: 'next-service',
@@ -68,7 +51,6 @@ local cf = { certResolver: 'cloudflare' };
         },
       },
 
-      // API router (handles /api/v1 paths).
       'api-router': {
         rule: 'Host(`' + host + '`) && PathPrefix(`/api/v1`)',
         service: 'api-service',
@@ -77,7 +59,6 @@ local cf = { certResolver: 'cloudflare' };
         tls: cf,
       },
 
-      // WebSocket router.
       'ws-router': {
         rule: 'Host(`' + host + '`)',
         service: 'api-service',

@@ -1,29 +1,20 @@
-// pangolin — VPS edge: Pangolin (control plane), Gerbil (WireGuard tunnel
-// server, owns the public 80/443/51820/21820 ports), Traefik (HTTP routing +
-// Let's Encrypt for THIS edge host only). Renders to compose.stack.yaml.
+// pangolin — VPS edge: Pangolin (control plane), Gerbil (WireGuard, owns public
+// 80/443/51820/21820), Traefik (HTTP routing + ACME) for this edge host only.
 //
-// NOT the per-host platform/edge/traefik stack — that one must not be deployed
-// on the same host as this one (both want 80/443; Gerbil owns them here).
+// NOT the per-host platform/edge/traefik stack — don't deploy both on the same host
+// (port conflict; Gerbil owns 80/443 here).
 //
-// Naming deviation: service keys ('pangolin', 'gerbil', 'traefik') and their
-// container_names are literal, NOT run through lib.compose.names(). Pangolin
-// and Gerbil hardcode each other's hostnames in their own startup flags
-// (gerbil's --remoteConfig/--reachableAt below) and files/dynamic_config.jsonnet's
-// backend URLs assume they resolve to exactly 'pangolin'/'gerbil'/'traefik' —
-// renaming breaks service discovery. Traefik's `network_mode: service:gerbil`
-// also requires gerbil's compose key to be literally 'gerbil' (Compose syntax,
-// not just DNS). This is the one stack in the repo that deviates from the
-// <stack>_<role> convention, and it's intentional — see README.md.
+// Naming deviation: service keys/container_names are literal ('pangolin', 'gerbil',
+// 'traefik'), not run through lib.compose.names() — Pangolin/Gerbil hardcode each
+// other's hostnames in their startup flags, and dynamic_config.jsonnet's backend URLs
+// assume these exact names; renaming breaks service discovery. Traefik's
+// `network_mode: service:gerbil` also requires gerbil's compose key to be literally
+// 'gerbil'. Intentional — see README.md.
 //
-// Storage: everything lives under one shared host directory (dv path below),
-// same "all bind mounts, no named volumes, one shared dir across services"
-// style as apps/media/stream's `sharedData` — Pangolin/Gerbil/Traefik
-// read/write into this tree by upstream design, so splitting it into per-
-// service named volumes would fight that. `init` creates the tree with the
-// right permissions before the real services start; the YAML config (files/,
-// jsonnet-rendered from files/*.jsonnet) is layered on top as read-only bind
-// mounts from this repo so it's git-tracked, while runtime state (keys, certs,
-// GeoLite DBs, logs, Pangolin's own db) stays host-only.
+// Storage: one shared host dir (bind mounts, not named volumes — Pangolin/Gerbil/
+// Traefik expect to read/write this tree by upstream design). `init` creates the
+// tree/perms first; files/*.jsonnet-rendered config layers on as read-only bind
+// mounts (git-tracked); runtime state (keys, certs, GeoLite DBs, logs, db) stays host-only.
 local reg = import 'registry.libsonnet';
 local dv = reg.server.dir.docker.root + reg.server.dir.docker.bindmounts;
 
@@ -34,10 +25,8 @@ local pangolinVersion = '1.19.4';
 local gerbilVersion = '1.4.2';
 local traefikVersion = 'v3.6';
 
-// Same community redistribution mirror Pangolin's own installer downloads
-// these from (pulled from the installer binary's strings — not MaxMind
-// directly, so no license key needed). Each tarball extracts into a
-// versioned dir (e.g. GeoLite2-Country_<date>/); the mv globs match that.
+// Same mirror Pangolin's installer uses (no MaxMind license key needed). Tarball
+// extracts to a versioned dir (GeoLite2-<name>_<date>/) — the mv glob below matches that.
 local geoliteMirror = 'https://github.com/GitSquared/node-geolite2-redist/raw/refs/heads/master/redist/';
 local fetchGeolite(name) =
   'if [ ! -f /mnt/config/GeoLite2-' + name + '.mmdb ]; then ' +
@@ -46,11 +35,8 @@ local fetchGeolite(name) =
   'mv /tmp/GeoLite2-' + name + '_*/GeoLite2-' + name + '.mmdb /mnt/config/; ' +
   'fi';
 
-// chmod 600 on acme.json MUST run last — a preceding `chmod -R 755
-// /mnt/config` would clobber it right back to 755 (this bit us once already:
-// Traefik refused ACME with "permissions 755 for /letsencrypt/acme.json are
-// too open, please use 600", which then cascaded into "nonexistent
-// certificate resolver" on every router since the resolver never initialized).
+// chmod 600 on acme.json MUST run last — a preceding `chmod -R 755 /mnt/config`
+// would clobber it back to 755, breaking Traefik ACME.
 local initScript =
   'set -e && ' +
   'mkdir -p /mnt/config/traefik/logs /mnt/config/letsencrypt && ' +
@@ -64,11 +50,8 @@ local initScript =
   name: stack,
 
   services: {
-    // init — one-shot: creates the shared config tree with the right
-    // directory structure/permissions before pangolin/gerbil/traefik start,
-    // and downloads the GeoLite2 mmdb files on first run only (skipped once
-    // they exist on the persistent host dir). Does NOT provision the rest of
-    // the config content — that's the files/ bind mounts below.
+    // One-shot: creates config tree/perms + GeoLite mmdbs (skipped after first run).
+    // Doesn't provision files/ content — that's the bind mounts below.
     init: {
       image: 'docker.io/library/busybox:1.37.0',
       container_name: 'pangolin_init',
@@ -86,18 +69,13 @@ local initScript =
       mem_reservation: '512m',
       volumes: [
         configDir + ':/app/config',
-        // Left of the colon is the git-tracked jsonnet-rendered source
-        // (files/config.jsonnet -> config.yaml); the container path keeps the
-        // .yml name Pangolin loads. privateConfig.yml is a hand-maintained
-        // empty placeholder (not jsonnet-generated).
+        // files/config.jsonnet -> config.yaml (git-tracked); container path keeps the
+        // .yml name Pangolin expects. privateConfig.yml is hand-maintained (not jsonnet-generated).
         './files/config.yaml:/app/config/config.yml:ro',
         './files/privateConfig.yml:/app/config/privateConfig.yml:ro',
       ],
       environment: {
-        // Secrets — interpolated from /dev/shm/pangolin.env (parent
-        // include.env_file). Pangolin reads these as direct env-var
-        // overrides for server.secret / email.smtp_pass (docs.pangolin.net
-        // config-file) — config.yml ships with both blank.
+        // Overrides server.secret / email.smtp_pass (config.yml ships both blank).
         SERVER_SECRET: '${SERVER_SECRET:?err}',
         EMAIL_SMTP_PASS: '${EMAIL_SMTP_PASS:?err}',
       },
@@ -135,9 +113,8 @@ local initScript =
       networks: { default: { aliases: ['gerbil'] } },
     },
 
-    // network_mode: service:gerbil means Traefik's ports appear on gerbil —
-    // it can't also declare its own `networks:` (Compose disallows combining
-    // network_mode with networks on the same service).
+    // network_mode: service:gerbil — Traefik can't also declare networks: (Compose
+    // disallows combining the two on the same service).
     traefik: {
       image: 'docker.io/library/traefik:' + traefikVersion,
       container_name: 'traefik',
@@ -149,16 +126,12 @@ local initScript =
       },
       command: ['--configFile=/etc/traefik/traefik_config.yml'],
       environment: {
-        // Secret — CF_DNS_API_TOKEN for the Cloudflare DNS-01 ACME challenge
-        // (lego reads it from the container env). Interpolated from
-        // /dev/shm/cloudflare__dns-api-token.env (parent include.env_file) —
-        // shared with platform/edge/traefik, not duplicated into this
-        // stack's own pangolin.env/Infisical folder.
+        // CF_DNS_API_TOKEN for DNS-01 ACME (lego reads from env); shared with
+        // platform/edge/traefik, not duplicated into this stack's own env.
         CF_DNS_API_TOKEN: '${CF_DNS_API_TOKEN:?err}',
       },
       volumes: [
-        // jsonnet-rendered sources (files/*.jsonnet -> *.yaml); container paths
-        // keep the .yml names traefik's --configFile / file provider point at.
+        // files/*.jsonnet -> *.yaml; container paths keep the .yml names traefik expects.
         './files/traefik_config.yaml:/etc/traefik/traefik_config.yml:ro',
         './files/dynamic_config.yaml:/etc/traefik/dynamic_config.yml:ro',
         configDir + '/letsencrypt:/letsencrypt',

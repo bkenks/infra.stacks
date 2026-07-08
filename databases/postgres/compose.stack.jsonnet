@@ -1,13 +1,6 @@
-// postgres — shared Postgres server (+ pgadmin).
-//
-// Owner of shared-postgres (apps join it to reach the DB) and a consumer of
-// shared-db-backups (databasus owns that; postgres exposes itself on it for
-// backups). Renders to compose.stack.yaml — do not edit the YAML.
-//
-// The db service is named `postgres_db` (the <stack>_<role> convention) and
-// publishes that as its alias on every network, so consumers dial
-// postgres_db:5432. That hostname is the single source in the registry
-// (reg.endpoints.postgres.container.host) — change it there and this follows.
+// Owns shared-postgres; also sits on shared-db-backups (databasus owns) for backups.
+// Renders to compose.stack.yaml — do not edit the YAML.
+// db hostname is single-sourced at reg.endpoints.postgres.container.host — change there, not here.
 local c = import 'compose.libsonnet';
 local reg = import 'registry.libsonnet';
 local sharedNetworks = reg.sharedNetworks;
@@ -18,11 +11,8 @@ local s = c.stack(stack);
 local n = s.names;
 local pgEndpoint = reg.endpoints.postgres;
 
-// Host-published port for direct external access (DBeaver, psql from the LAN).
-// Independent of pgEndpoint.container.port (5432) — that's the container's real
-// internal listening port and is what every consumer's DATABASE_URL dials over
-// shared-postgres; it must NOT be tied to whatever host port this happens to
-// publish on.
+// Host port for direct external access only — independent of pgEndpoint.container.port
+// (the internal port every consumer's DATABASE_URL actually dials).
 local hostPort = 6109;
 
 {
@@ -47,10 +37,6 @@ local hostPort = 6109;
       s.network.attach('default', extName) +
       s.network.attach(sharedNetworks.postgres.name, extName) +
       s.network.attach(sharedNetworks.dbBackups.name, extName),
-      //   default: { aliases: [extName] },
-      //   [sharedNetworks.postgres.name]: { aliases: [extName] },   // shared-postgres
-      //   [sharedNetworks.dbBackups.name]: { aliases: [extName] },  // shared-db-backups
-      // },
       healthcheck: {
         test: 'pg_isready -U ${POSTGRES_USER} -h localhost -d postgres',
         interval: '5s',

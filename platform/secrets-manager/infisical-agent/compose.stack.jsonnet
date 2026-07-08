@@ -6,7 +6,7 @@ local stack = 'infisical';
 local s = c.stack(stack);
 local n = s.names;
 
-local version = '0.43.89';  // docker.io/infisical/cli
+local version = '0.43.89';
 
 {
   name: stack,
@@ -14,7 +14,7 @@ local version = '0.43.89';  // docker.io/infisical/cli
   services: {
     agent: {
       image: 'docker.io/infisical/cli:' + version,
-      container_name: n.container('agent'),  // 'infisical_agent'
+      container_name: n.container('agent'),
       entrypoint: ['/bin/sh', '/agent/entrypoint.sh'],
       volumes: [
         './files/entrypoint.sh:/agent/entrypoint.sh:ro',
@@ -24,9 +24,8 @@ local version = '0.43.89';  // docker.io/infisical/cli
       environment: {
         AGENT_HOST: '${AGENT_HOST:?err}',          // per-host: drives ${AGENT_HOST} secret-path subs
         AGENT_SERVICES: '${AGENT_SERVICES:?err}',  // per-host: which templates/ fragments to render
-        // Machine-identity auth — the bootstrap credential. From the deploy env
-        // (the Komodo/node path); it can't come from a rendered /dev/shm file
-        // (this agent produces those). entrypoint.sh also accepts pre-written
+        // Bootstrap credential, from the deploy env — can't come from a rendered /dev/shm
+        // file since this agent produces those. entrypoint.sh also accepts pre-written
         // /dev/shm files as a fallback for the Ansible/control-plane path.
         INFISICAL_CLIENT_ID: '${INFISICAL_CLIENT_ID:?err}',
         INFISICAL_CLIENT_SECRET: '${INFISICAL_CLIENT_SECRET:?err}',
@@ -37,14 +36,13 @@ local version = '0.43.89';  // docker.io/infisical/cli
         default: { aliases: [n.container('agent')] },  // egress to reach the public Infisical URL
       },
       restart: 'unless-stopped',
-      // The agent stays "running" even when a template/auth permanently fails, so
-      // liveness never flips it. entrypoint.sh stamps /tmp/agent.last_err with the
-      // epoch of every ERR/FTL/PNC line; flag unhealthy only while an error was
-      // logged within the last 180s. A window (not a plain grep) because the agent
-      // is SILENT on success — a still-broken agent re-logs within the window and
-      // stays unhealthy; once errors stop the stamp ages out and it recovers on
-      // its own, no restart. '$$' escapes '$' past compose interpolation so the
-      // arithmetic runs in the container shell, not at compose-parse time.
+      // The agent stays "running" even when a template/auth permanently fails, so liveness
+      // never flips it. entrypoint.sh stamps /tmp/agent.last_err with the epoch of every
+      // ERR/FTL/PNC line; unhealthy only while an error logged within the last 180s — a
+      // window, not a plain grep, because the agent is SILENT on success (a still-broken
+      // agent keeps re-logging and stays unhealthy; once errors stop, it self-recovers).
+      // '$$' escapes '$' past compose interpolation so the arithmetic runs in the container
+      // shell, not at compose-parse time.
       healthcheck: {
         test: ['CMD-SHELL', '[ ! -f /tmp/agent.last_err ] || [ $$(( $$(date +%s) - $$(cat /tmp/agent.last_err) )) -ge 180 ]'],
         interval: '30s',
@@ -55,5 +53,5 @@ local version = '0.43.89';  // docker.io/infisical/cli
     },
   },
 
-  networks: s.network.default,  // private net (renamed default) 'infisical' — shared name with infisical-core's own default net, same tradeoff as komodo-periphery/komodo
+  networks: s.network.default,  // shared name with infisical-core's own default net, same tradeoff as komodo-periphery/komodo
 }

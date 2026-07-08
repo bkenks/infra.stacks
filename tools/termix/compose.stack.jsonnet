@@ -1,9 +1,6 @@
-// termix — self-hosted web SSH/terminal + server-management UI, with guacd
-// (Apache Guacamole proxy daemon) as an internal-only sidecar for remote-desktop
-// connections. Renders to compose.stack.yaml — do not edit the YAML.
-//
-// Joins shared-proxy (traefik owns) so `app` is reachable; guacd is internal
-// only, reached by `app` over this stack's own default network.
+// termix: web SSH/terminal + server-management UI; guacd (Guacamole proxy) is an internal-only
+// sidecar for remote-desktop, reached by `app` over the stack's default net.
+// Renders to compose.stack.yaml — do not edit the YAML.
 local c = import 'compose.libsonnet';
 local reg = import 'registry.libsonnet';
 

@@ -1,7 +1,4 @@
-// compose.libsonnet
-//
 // Helpers for building docker-compose fragments that reference the registry.
-// Import via the umbrella (lib.compose.*) or directly.
 local r = import 'registry.libsonnet';
 local sharedNetworks = r.sharedNetworks;
 
@@ -37,8 +34,7 @@ local sharedNetworks = r.sharedNetworks;
 
     proxy: {
       add(router, sub, port, domain=r.domains.ktbinternal)::
-        // Resolve a registry key ('stackform' -> 'stackform.app'); pass through if
-        // it's already a literal zone (the domains.ktbinternal default included).
+        // domain may be a registry key ('stackform') or a literal zone; resolve if the former.
         local zone = if std.objectHas(r.domains, domain) then r.domains[domain] else domain;
         {
           'traefik.enable': 'true',

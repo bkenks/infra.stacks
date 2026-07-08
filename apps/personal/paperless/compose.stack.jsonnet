@@ -1,16 +1,8 @@
-// paperless — Paperless-ngx document management, with its
-// own dedicated Postgres + Redis (broker) + Gotenberg + Apache Tika for
-// office-document consumption.
+// Compiles to compose.stack.yaml — do not edit the YAML. `db` is this stack's
+// own dedicated Postgres — does NOT join shared-postgres.
 //
-// Source of truth: this file compiles to compose.stack.yaml — do not edit the
-// YAML. Only `webserver` is Traefik-facing; it joins shared-proxy (traefik
-// owns). `db` is this stack's OWN dedicated Postgres — it does NOT join
-// shared-postgres.
-//
-// Volume names follow the standard KTB convention (n.volume(...)) — this was
-// previously pinned to the pre-jsonnet layout (`paperless-production_*`) to
-// avoid a rename; that pin is now dropped as part of the naming-convention
-// pass, so existing volumes must be migrated/renamed on next deploy.
+// Volume names follow the standard n.volume() convention — migrate/rename
+// existing volumes on next deploy.
 local c = import 'compose.libsonnet';
 local reg = import 'registry.libsonnet';
 
@@ -23,24 +15,19 @@ local gotenberg = 'gotenberg';
 local tika = 'tika';
 local webserver = 'webserver';
 
-local brokerVersion = '8';           // docker.io/library/redis
-local dbVersion = '18';              // docker.io/library/postgres
-local gotenbergVersion = '8.25';     // docker.io/gotenberg/gotenberg
-local tikaVersion = 'latest';        // docker.io/apache/tika
-local paperlessVersion = 'latest';   // ghcr.io/paperless-ngx/paperless-ngx
+local brokerVersion = '8';
+local dbVersion = '18';
+local gotenbergVersion = '8.25';
+local tikaVersion = 'latest';
+local paperlessVersion = 'latest';
 
 local webPort = 8000;
 local dbUser = 'paperless';
 local dbName = 'paperless';
 
-// Two extra bind mounts (not named volumes) on webserver, under the shared
-// host bind-mount root.
 local exportMount = reg.server.dir.docker.root + reg.server.dir.docker.bindmounts + '/apps/paperless/export';
 local consumeMount = reg.server.dir.docker.root + reg.server.dir.docker.bindmounts + '/apps/paperless/consume';
 
-// Volume resource keys. broker/db each own exactly one volume, so the key is
-// just the service's own role (broker/db); webserver owns two, so its keys
-// get a '_<purpose>' suffix.
 local dataVol = webserver + '_data';
 local mediaVol = webserver + '_media';
 
@@ -73,7 +60,6 @@ local mediaVol = webserver + '_media';
       environment: {
         POSTGRES_USER: dbUser,
         POSTGRES_DB: dbName,
-        // Secret — interpolated from /dev/shm/paperless.env (parent include.env_file)
         POSTGRES_PASSWORD: '${PAPERLESS_PG_PASS:?err}',
       },
       restart: 'on-failure:5',
@@ -90,8 +76,7 @@ local mediaVol = webserver + '_media';
     [gotenberg]: {
       image: 'docker.io/gotenberg/gotenberg:' + gotenbergVersion,
       container_name: n.container(gotenberg),
-      // The gotenberg chromium route converts .eml files. Disallow external
-      // content like tracking pixels or javascript.
+      // Chromium route converts .eml files; disallow tracking pixels/javascript.
       command: ['gotenberg', '--chromium-disable-javascript=true', '--chromium-allow-list=file:///tmp/.*'],
       restart: 'on-failure:5',
       networks: { default: { aliases: [n.container(gotenberg)] } },
@@ -122,25 +107,20 @@ local mediaVol = webserver + '_media';
         consumeMount + ':/usr/src/paperless/consume',
       ],
       environment: {
-        // --- Document processing ---
         PAPERLESS_TIKA_ENABLED: '1',
         PAPERLESS_OCR_LANGUAGE: 'eng',
 
-        // --- Locale ---
         PAPERLESS_URL: 'https://paper.' + reg.domains.ktbinternal,
         PAPERLESS_TIME_ZONE: 'America/New_York',
         PAPERLESS_DATE_ORDER: 'MDY',
 
-        // --- Service endpoints (reached on this stack's private network) ---
         PAPERLESS_REDIS: 'redis://' + n.container(broker) + ':6379',
         PAPERLESS_TIKA_GOTENBERG_ENDPOINT: 'http://' + n.container(gotenberg) + ':3000',
         PAPERLESS_TIKA_ENDPOINT: 'http://' + n.container(tika) + ':9998',
 
-        // --- Database ---
         PAPERLESS_DBHOST: n.container(db),
         PAPERLESS_DBUSER: dbUser,
         PAPERLESS_DBNAME: dbName,
-        // Secrets — interpolated from /dev/shm/paperless.env (parent include.env_file)
         PAPERLESS_DBPASS: '${PAPERLESS_PG_PASS:?err}',
         PAPERLESS_SECRET_KEY: '${PAPERLESS_SECRET_KEY:?err}',
       },
@@ -155,7 +135,6 @@ local mediaVol = webserver + '_media';
         default: { aliases: [n.container(webserver)] },
         [reg.sharedNetworks.proxy.name]: { aliases: [n.container(webserver)] },
       },
-      // Exposed to Traefik on shared-proxy — no published host port.
       labels: s.proxy.add(stack, 'paper', webPort),
       expose: [std.toString(webPort)],
     },

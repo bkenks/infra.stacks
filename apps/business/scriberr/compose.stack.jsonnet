@@ -1,6 +1,4 @@
-// scriberr — self-hosted audio transcription (WhisperX), business use. Renders
-// to compose.stack.yaml — do not edit the YAML. Joins shared-proxy (traefik
-// owns) to be reachable.
+// Compiles to compose.stack.yaml — do not edit the YAML.
 local c = import 'compose.libsonnet';
 local reg = import 'registry.libsonnet';
 
