@@ -1,6 +1,13 @@
-# install uv
-curl -LsSf https://astral.sh/uv/install.sh | sh
-# or: brew install uv
+# Usage
 
-# uv can fetch/manage Python versions itself
-uv python install 3.13
+## Prereqs
+
+### install uv
+
+```shell
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+```shell
+brew install uv
+```
