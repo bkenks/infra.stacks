@@ -89,8 +89,8 @@ Dashboard: `https://traefik.ktbinternal.com`.
 This same stack also acts as the **one central router** in front of all the
 other hosts, so `*.ktbinternal.com` points at a single host and routing to the right
 host is done here — not in DNS. **Every host runs in controller mode:** the
-central routing table (`files/controller/controller.yml`) is mounted on every
-host at `/etc/traefik/dynamic/controller.yml`. There is no role flag — whichever
+central routing table (`files/controller/controller.yaml`) is mounted on every
+host at `/etc/traefik/dynamic/controller.yaml`. There is no role flag — whichever
 host `*.ktbinternal.com` DNS points at *is* the active router.
 
 **How it works.** The table's routers are **`priority: 1`** (lowest), so on any
@@ -116,7 +116,7 @@ cert (don't switch hosts to a self-signed cert). Every host already holds the
 (and/or the cloudflared wildcard ingress) at it. That's it — no redeploy, no flag,
 since every host already carries the table.
 
-**The service → host map** lives in `files/controller/controller.yml` — one router
+**The service → host map** lives in `files/controller/controller.yaml` — one router
 entry per single-label service (`rule:` = its public name, `service:` = the host
 backend that runs it). This is the only place the "which host" knowledge lives
 (it replaces per-service DNS records). Add a line when a service is added; change

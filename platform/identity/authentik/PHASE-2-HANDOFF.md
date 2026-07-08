@@ -43,8 +43,8 @@ Under `platform/identity/`:
 10. **Cut services over by tier** (native-OIDC first, forward-auth last). Tiers: native-OIDC = openproject/immich/paperless/forgejo/gitea/komodo/frappe; forward-auth/raw = the *arr stack, convertx, seerr, docuseal, infisical, twenty; raw = Plex; tailnet-only = postgres/databasus/zerobyte/komodo-mcp.
 
 ## Follow-ups / debt (separate track, not blocking Phase 2)
-- **Open PRs to merge:** #23 (lefthook `.claude/` prune), #25 (`controller.yml` → generated from registry catalog — validated structurally identical). #22 domain migration already merged.
-- **Edge configs → jsonnet-generated** (single-source-of-truth push): controller.yml DONE (#25). TODO same treatment for `traefik/files/host.yml`, `traefik/files/traefik.yml`, `pangolin/files/{config,dynamic_config,traefik_config,privateConfig}.yml`. See memory `infra-stacks-domain-single-source`.
+- **Open PRs to merge:** #23 (lefthook `.claude/` prune), #25 (`controller.yaml` → generated from registry catalog — validated structurally identical). #22 domain migration already merged.
+- **Edge configs → jsonnet-generated** (single-source-of-truth push): controller.yaml DONE (#25). TODO same treatment for `traefik/files/host.yml`, `traefik/files/traefik.yml`, `pangolin/files/{config,dynamic_config,traefik_config,privateConfig}.yml`. See memory `infra-stacks-domain-single-source`.
 - Authentik bundled Postgres needs a pg_dump/backup job (outside databasus's shared-postgres coverage).
 
 ## Key doc URLs
