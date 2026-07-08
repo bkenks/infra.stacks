@@ -49,6 +49,15 @@ http:
       rule: Host(`fj.ktbinternal.com`)
       service: host-littlebuddy
       tls: {}
+    frappe:
+      entryPoints:
+      - websecure
+      middlewares:
+      - controller-hop
+      priority: 1
+      rule: Host(`frappe.ktbinternal.com`)
+      service: host-bill
+      tls: {}
     immich:
       entryPoints:
       - websecure

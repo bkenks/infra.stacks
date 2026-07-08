@@ -266,6 +266,7 @@
   #           ever lands elsewhere.
   # FQDNs derive from `rootDomain` — NEVER write a literal domain here.
   controllerServices: {
+    frappe: { home: 'bill' },
     # ── littlebuddy (personal apps + devops) ──
     infisical: { home: 'littlebuddy' },
     komodo: { home: 'littlebuddy', sub: 'komo' },
