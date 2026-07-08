@@ -156,7 +156,7 @@ Then, since Traefik needs to know about every site this bench serves:
    ```
    Host(`business.stackform.app`) || Host(`client-a.com`)
    ```
-2. Render (`.jsonnet/render.sh apps/business/frappe/compose.stack.jsonnet`),
+2. Render (`.jsonnet/render.py apps/business/frappe/compose.stack.jsonnet`),
    commit, push.
 3. Redeploy in Komodo — only `frontend`'s label changes; DB/workers keep running.
 4. Point `client-a.com` DNS at this host.

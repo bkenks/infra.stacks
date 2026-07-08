@@ -1,6 +1,6 @@
 // services.jsonnet — generates templates/<svc>.yaml, one self-contained
 // Infisical-agent config fragment per service (multi-file output via
-// `jsonnet -S -m`; see .jsonnet/render.sh).
+// `jsonnet -S -m`; see .jsonnet/render.py).
 //
 // Source of truth is the registry's `agentServices` (+ `projects` for UUIDs).
 // Edit there, NOT the generated templates/ — those files are GENERATED.
@@ -40,7 +40,7 @@ local indentBody(s) = std.join('\n', ['    ' + l for l in bodyLines(s)]);
 // One complete `templates:` list entry (rendered as raw YAML, not via
 // manifestYamlDoc, so the Go-template bytes are exact and auditable).
 local fragment(s) =
-  '# GENERATED from services.jsonnet by .jsonnet/render.sh — DO NOT EDIT.\n' +
+  '# GENERATED from services.jsonnet by .jsonnet/render.py — DO NOT EDIT.\n' +
   '- destination-path: /dev/shm/' + s.dest + '\n' +
   '  config:\n' +
   '    polling-interval: "1m"\n' +

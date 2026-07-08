@@ -71,8 +71,8 @@ Copy patterns from real, validated stacks rather than guessing:
 
 5. **Render the jsonnet to YAML:**
    ```bash
-   .jsonnet/render.sh compose.jsonnet
-   .jsonnet/render.sh compose.stack.jsonnet
+   .jsonnet/render.py compose.jsonnet
+   .jsonnet/render.py compose.stack.jsonnet
    ```
    This writes `compose.yaml` and `compose.stack.yaml` — generated,
    do-not-edit files. Re-run after every jsonnet change.

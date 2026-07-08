@@ -9,7 +9,7 @@ pre-commit:
       run: |
         set -e
         for file in {staged_files}; do
-          out=$(.jsonnet/render.sh "$file")
+          out=$(.jsonnet/render.py "$file")
           git add "$out"
         done
     # A staged .libsonnet (e.g. registry.libsonnet) can affect ANY .jsonnet, so
@@ -20,6 +20,6 @@ pre-commit:
       run: |
         set -e
         find . -path ./.git -prune -o -path ./.claude -prune -o -type f -name '*.jsonnet' -print | while read -r file; do
-          out=$(.jsonnet/render.sh "$file")
+          out=$(.jsonnet/render.py "$file")
           git add "$out"
         done
