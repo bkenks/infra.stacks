@@ -1,4 +1,4 @@
-// stirling-pdf — self-hosted PDF toolkit (stirling-pdf.<rootDomain>).
+// stirling-pdf — self-hosted PDF toolkit (stirling-pdf.<domains.ktbinternal>).
 //
 // Source of truth: this file compiles to compose.stack.yaml — do not edit the
 // YAML. Joins shared-proxy (traefik owns) to be reachable. No DB dependency.

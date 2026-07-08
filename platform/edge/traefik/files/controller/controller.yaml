@@ -1,0 +1,248 @@
+# GENERATED from controller.jsonnet by .jsonnet/render.py — DO NOT EDIT.
+http:
+  middlewares:
+    controller-hop:
+      headers:
+        customRequestHeaders:
+          X-Controller-Hop: '1'
+  routers:
+    bazarr:
+      entryPoints:
+      - websecure
+      middlewares:
+      - controller-hop
+      priority: 1
+      rule: Host(`bazarr.ktbinternal.com`)
+      service: host-paiki
+      tls: {}
+    controller-loop-sink:
+      entryPoints:
+      - websecure
+      priority: 2
+      rule: Header(`X-Controller-Hop`, `1`)
+      service: controller-loop-sink
+      tls: {}
+    convertx:
+      entryPoints:
+      - websecure
+      middlewares:
+      - controller-hop
+      priority: 1
+      rule: Host(`convertx.ktbinternal.com`)
+      service: host-littlebuddy
+      tls: {}
+    docuseal:
+      entryPoints:
+      - websecure
+      middlewares:
+      - controller-hop
+      priority: 1
+      rule: Host(`docuseal.ktbinternal.com`)
+      service: host-littlebuddy
+      tls: {}
+    forgejo:
+      entryPoints:
+      - websecure
+      middlewares:
+      - controller-hop
+      priority: 1
+      rule: Host(`fj.ktbinternal.com`)
+      service: host-littlebuddy
+      tls: {}
+    immich:
+      entryPoints:
+      - websecure
+      middlewares:
+      - controller-hop
+      priority: 1
+      rule: Host(`immich.ktbinternal.com`)
+      service: host-paiki
+      tls: {}
+    infisical:
+      entryPoints:
+      - websecure
+      middlewares:
+      - controller-hop
+      priority: 1
+      rule: Host(`infisical.ktbinternal.com`)
+      service: host-littlebuddy
+      tls: {}
+    komodo:
+      entryPoints:
+      - websecure
+      middlewares:
+      - controller-hop
+      priority: 1
+      rule: Host(`komo.ktbinternal.com`)
+      service: host-littlebuddy
+      tls: {}
+    komodo-mcp:
+      entryPoints:
+      - websecure
+      middlewares:
+      - controller-hop
+      priority: 1
+      rule: Host(`komodo-mcp.ktbinternal.com`)
+      service: host-littlebuddy
+      tls: {}
+    mazanoke:
+      entryPoints:
+      - websecure
+      middlewares:
+      - controller-hop
+      priority: 1
+      rule: Host(`mazanoke.ktbinternal.com`)
+      service: host-littlebuddy
+      tls: {}
+    openproject:
+      entryPoints:
+      - websecure
+      middlewares:
+      - controller-hop
+      priority: 1
+      rule: Host(`openprj.ktbinternal.com`)
+      service: host-littlebuddy
+      tls: {}
+    pangolin:
+      entryPoints:
+      - websecure
+      middlewares:
+      - controller-hop
+      priority: 1
+      rule: Host(`pangolin.ktbinternal.com`)
+      service: host-rick
+      tls: {}
+    paperless:
+      entryPoints:
+      - websecure
+      middlewares:
+      - controller-hop
+      priority: 1
+      rule: Host(`paper.ktbinternal.com`)
+      service: host-littlebuddy
+      tls: {}
+    plex:
+      entryPoints:
+      - websecure
+      middlewares:
+      - controller-hop
+      priority: 1
+      rule: Host(`plex.ktbinternal.com`)
+      service: plex-direct
+      tls: {}
+    prowlarr:
+      entryPoints:
+      - websecure
+      middlewares:
+      - controller-hop
+      priority: 1
+      rule: Host(`prowlarr.ktbinternal.com`)
+      service: host-paiki
+      tls: {}
+    radarr:
+      entryPoints:
+      - websecure
+      middlewares:
+      - controller-hop
+      priority: 1
+      rule: Host(`radarr.ktbinternal.com`)
+      service: host-paiki
+      tls: {}
+    sabnzbd:
+      entryPoints:
+      - websecure
+      middlewares:
+      - controller-hop
+      priority: 1
+      rule: Host(`sabnzbd.ktbinternal.com`)
+      service: host-paiki
+      tls: {}
+    scriberr:
+      entryPoints:
+      - websecure
+      middlewares:
+      - controller-hop
+      priority: 1
+      rule: Host(`scriberr.ktbinternal.com`)
+      service: host-littlebuddy
+      tls: {}
+    seerr:
+      entryPoints:
+      - websecure
+      middlewares:
+      - controller-hop
+      priority: 1
+      rule: Host(`seerr.ktbinternal.com`)
+      service: host-paiki
+      tls: {}
+    sonarr:
+      entryPoints:
+      - websecure
+      middlewares:
+      - controller-hop
+      priority: 1
+      rule: Host(`sonarr.ktbinternal.com`)
+      service: host-paiki
+      tls: {}
+    termix:
+      entryPoints:
+      - websecure
+      middlewares:
+      - controller-hop
+      priority: 1
+      rule: Host(`termix.ktbinternal.com`)
+      service: host-littlebuddy
+      tls: {}
+    woodpecker:
+      entryPoints:
+      - websecure
+      middlewares:
+      - controller-hop
+      priority: 1
+      rule: Host(`peck.ktbinternal.com`)
+      service: host-littlebuddy
+      tls: {}
+  serversTransports:
+    host-reencrypt:
+      serverName: node.ktbinternal.com
+  services:
+    controller-loop-sink:
+      loadBalancer:
+        passHostHeader: false
+        servers:
+        - url: http://127.0.0.1:1
+    host-bill:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+        - url: https://100.79.7.11:443
+        serversTransport: host-reencrypt
+    host-littlebuddy:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+        - url: https://100.114.137.104:443
+        serversTransport: host-reencrypt
+    host-maboi:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+        - url: https://100.97.83.95:443
+        serversTransport: host-reencrypt
+    host-paiki:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+        - url: https://100.126.19.103:443
+        serversTransport: host-reencrypt
+    host-rick:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+        - url: https://100.106.170.93:443
+        serversTransport: host-reencrypt
+    plex-direct:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+        - url: http://100.126.19.103:32400

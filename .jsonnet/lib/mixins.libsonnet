@@ -15,10 +15,10 @@ local reg = import 'registry.libsonnet';
   //   router: unique router/service id     sub: subdomain (sub.<domain>)
   //   port:   container port to load-balance to
   //   domain: a domains-registry KEY (e.g. 'stackform') that resolves to its
-  //           zone, OR a literal zone string. Defaults to rootDomain (homektb).
-  proxyAdd(router, sub, port, domain=reg.rootDomain)::
+  //           zone, OR a literal zone string. Defaults to domains.ktbinternal (homektb).
+  proxyAdd(router, sub, port, domain=reg.domains.ktbinternal)::
     // Resolve a registry key ('stackform' -> 'stackform.app'); pass through if
-    // it's already a literal zone (the rootDomain default included).
+    // it's already a literal zone (the domains.ktbinternal default included).
     local zone = if std.objectHas(reg.domains, domain) then reg.domains[domain] else domain;
     {
       'traefik.enable': 'true',
@@ -32,7 +32,7 @@ local reg = import 'registry.libsonnet';
   // router behind SSO. The `authentik-forwardauth@file` middleware is defined in
   // Traefik's file provider (points at the authentik-outpost); it's referenced
   // here but wired at Phase 2, not by this scaffolding.
-  proxyAddAuth(router, sub, port, domain=reg.rootDomain)::
+  proxyAddAuth(router, sub, port, domain=reg.domains.ktbinternal)::
     self.proxyAdd(router, sub, port, domain) + {
       ['traefik.http.routers.' + router + '.middlewares']: 'authentik-forwardauth@file',
     },

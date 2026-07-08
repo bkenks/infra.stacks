@@ -18,11 +18,11 @@
 //   - Per-service routers are priority:1 (lowest). On ANY host, a service that
 //     runs locally is still served by its own docker-label router (default
 //     priority, which is higher), so only REMOTE services fall through here.
-//   - A host that *.<rootDomain> DNS isn't pointed at never receives these Host()
+//   - A host that *.<reg.domains.ktbinternal> DNS isn't pointed at never receives these Host()
 //     requests, so the table sits dormant there — harmless. Whichever host DNS
 //     points at becomes the active central router.
 //   - The table is identical on every host, so promotion is just repointing the
-//     *.<rootDomain> wildcard DNS at another host. No redeploy, no role flag.
+//     *.<reg.domains.ktbinternal> wildcard DNS at another host. No redeploy, no role flag.
 //   - The host running each service still serves it locally via its docker
 //     labels, unchanged — this only adds the central front door.
 //
@@ -39,12 +39,11 @@
 local lib = import 'lib.libsonnet';
 local reg = lib.registry;
 
-local rootDomain = reg.rootDomain;
 local hosts = reg.edgeHosts;
 local catalog = reg.controllerServices;
 
-// sub.<rootDomain> — sub defaults to the service key when not overridden.
-local fqdn(svc, cfg) = (if std.objectHas(cfg, 'sub') then cfg.sub else svc) + '.' + rootDomain;
+// sub.<reg.domains.ktbinternal> — sub defaults to the service key when not overridden.
+local fqdn(svc, cfg) = (if std.objectHas(cfg, 'sub') then cfg.sub else svc) + '.' + reg.domains.ktbinternal;
 
 // Backend id for a service: its dedicated `<svc>-direct` backend when `direct` is
 // set (Plex), else the shared `host-<home>` re-encrypt backend.
@@ -148,27 +147,27 @@ local directSvcs = [svc for svc in std.objectFields(catalog) if std.objectHas(ca
     },
 
     serversTransports: {
-      // The controller terminates the public *.<rootDomain> TLS, then opens a NEW,
+      // The controller terminates the public *.<reg.domains.ktbinternal> TLS, then opens a NEW,
       // VERIFIED TLS connection to the target host's Traefik :443. Each host serves
-      // its own publicly-trusted Let's Encrypt *.<rootDomain> wildcard there, so the
+      // its own publicly-trusted Let's Encrypt *.<reg.domains.ktbinternal> wildcard there, so the
       // connection is validated against the system CA roots (LE ships in the Traefik
       // image's trust store) — no insecureSkipVerify, no MITM window on the
       // cross-host hop even within Tailscale.
       //
       // We connect by raw Tailscale IP (no MagicDNS), so the default SNI would be
       // the IP and wouldn't match the cert. `serverName` pins the TLS SNI/validation
-      // name to a name the wildcard covers; the upstream presents *.<rootDomain> for
+      // name to a name the wildcard covers; the upstream presents *.<reg.domains.ktbinternal> for
       // it and verification passes. (It need not resolve in DNS — it's only the
       // SNI.) The HTTP Host header is still the real service name via passHostHeader,
       // which is what the upstream routes on; SNI only selects/validates the cert.
       //
-      // serverName follows rootDomain (node.<rootDomain>) so the domain migration
-      // carries it automatically — the wildcard covers node.<rootDomain> by
-      // definition. REQUIRES each host to keep its ACME *.<rootDomain> cert (they all
+      // serverName follows reg.domains.ktbinternal (node.<reg.domains.ktbinternal>) so the domain migration
+      // carries it automatically — the wildcard covers node.<reg.domains.ktbinternal> by
+      // definition. REQUIRES each host to keep its ACME *.<reg.domains.ktbinternal> cert (they all
       // request it). Do NOT switch hosts to Traefik's default self-signed cert, or
       // this verification will fail by design.
       'host-reencrypt': {
-        serverName: 'node.' + rootDomain,
+        serverName: 'node.' + reg.domains.ktbinternal,
       },
     },
   },

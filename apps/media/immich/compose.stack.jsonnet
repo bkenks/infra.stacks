@@ -1,4 +1,4 @@
-// immich — self-hosted photo & video management (immich.<rootDomain>).
+// immich — self-hosted photo & video management (immich.<domains.ktbinternal>).
 //
 // Source of truth: this file compiles to compose.stack.yaml — do not edit the
 // YAML. Immich requires its own dedicated Postgres (vectorchord/pgvecto

@@ -1,4 +1,4 @@
-// openproject — self-hosted project management (openprj.<rootDomain>). One image
+// openproject — self-hosted project management (openprj.<domains.ktbinternal>). One image
 // (cron/seeder/web/worker) plus sidecars: cache (memcached), hocuspocus
 // (collaborative editing), autoheal (restarts unhealthy containers).
 //
@@ -14,7 +14,7 @@ local pgPort = lib.registry.endpoints.postgres.private.port;  // 5432
 
 // Public host: subdomain is 'openprj', NOT the stack name 'openproject'.
 local sub = 'openprj';
-local domain = sub + '.' + lib.registry.rootDomain;
+local domain = sub + '.' + lib.registry.domains.ktbinternal;
 
 local appVersion = '17-slim';       // openproject/openproject — cron, seeder, web, worker
 local hocuspocusVersion = '17.5.1'; // openproject/hocuspocus

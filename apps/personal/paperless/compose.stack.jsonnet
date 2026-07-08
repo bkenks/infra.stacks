@@ -125,7 +125,7 @@ local mediaVol = webserver + '_media';
         PAPERLESS_OCR_LANGUAGE: 'eng',
 
         // --- Locale ---
-        PAPERLESS_URL: 'https://paper.' + lib.registry.rootDomain,
+        PAPERLESS_URL: 'https://paper.' + lib.registry.domains.ktbinternal,
         PAPERLESS_TIME_ZONE: 'America/New_York',
         PAPERLESS_DATE_ORDER: 'MDY',
 

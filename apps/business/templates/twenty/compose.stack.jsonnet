@@ -22,7 +22,7 @@ local imageVersion = 'v1.18.1';  // twentycrm/twenty
 local redisVersion = '8.6.1';    // redis
 
 local serverPort = 3000;
-local serverUrl = 'https://' + stack + '.' + lib.registry.rootDomain;
+local serverUrl = 'https://' + stack + '.' + lib.registry.domains.ktbinternal;
 
 // Env shared by server + worker (both run the same Twenty image against the
 // same DB/Redis/secrets); worker layers on its own DISABLE_* overrides below.

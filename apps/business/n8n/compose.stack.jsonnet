@@ -1,4 +1,4 @@
-// n8n — workflow automation (n8n.<rootDomain>).
+// n8n — workflow automation (n8n.<domains.ktbinternal>).
 //
 // Source of truth: this file compiles to compose.stack.yaml — do not edit the
 // YAML. Joins shared-proxy (traefik owns) to be reachable and shared-postgres
@@ -45,8 +45,8 @@ local filesDir = lib.registry.dockerVolumes + '/apps/n8n/data/local-files';
         N8N_PROXY_HOPS: '1',
         N8N_BLOCK_ENV_ACCESS_IN_NODE: 'true',
         N8N_GIT_NODE_DISABLE_BARE_REPOS: 'true',
-        WEBHOOK_URL: 'https://' + stack + '.' + lib.registry.rootDomain + '/',
-        N8N_HOST: stack + '.' + lib.registry.rootDomain,
+        WEBHOOK_URL: 'https://' + stack + '.' + lib.registry.domains.ktbinternal + '/',
+        N8N_HOST: stack + '.' + lib.registry.domains.ktbinternal,
         DB_TYPE: 'postgresdb',
         // Bug fix vs old envs/production.env: POSTGRES_HOST_CONTAINER was
         // hardcoded to postgres-${DOCKER_ENVIRONMENT}-db (-> postgres-production-db),

@@ -31,7 +31,7 @@ local port = 8080;
         APP_ENV: 'production',
         PUID: '1000',
         PGID: '1000',
-        ALLOWED_ORIGINS: 'https://' + stack + '.' + lib.registry.rootDomain,
+        ALLOWED_ORIGINS: 'https://' + stack + '.' + lib.registry.domains.ktbinternal,
       },
       restart: 'unless-stopped',
       expose: [std.toString(port)],

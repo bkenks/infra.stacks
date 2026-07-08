@@ -39,7 +39,7 @@ local dbName = 'gitea';
         // SSH: advertised (clone URL) port vs. what the container listens on.
         GITEA__SERVER__SSH_PORT: '2222',
         GITEA__SERVER__SSH_LISTEN_PORT: '22',
-        GITEA__SERVER__SSH_DOMAIN: 'gitea.' + lib.registry.rootDomain,
+        GITEA__SERVER__SSH_DOMAIN: 'gitea.' + lib.registry.domains.ktbinternal,
 
         // --- Security secrets — DISABLED by default ------------------------------
         // On a FRESH install Gitea auto-generates SECRET_KEY / INTERNAL_TOKEN /

@@ -6,16 +6,11 @@
 // Reference these by KEY (e.g. reg.sharedNetworks.proxy), never by raw string:
 // a typo'd key fails at COMPILE time; a typo'd YAML string fails SILENTLY at
 // runtime (wrong/empty network — the class of bug this registry kills).
-//
-// `$` below means "the root of THIS object" — it lets one section point at
-// another (e.g. an endpoint references the sharedNetworks entry it lives on).
 {
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # GLOBAL VARIABLES
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # notes: Literal independent variables used accross all containers.
-  # rootDomain is the default zone; pull any other zone from `domains`.
-  rootDomain: $.domains.ktbinternal,
   dockerDir: '/srv/docker',
   dockerVolumes: $.dockerDir + '/bind-mounts',
   # GLOBAL VARIABLES

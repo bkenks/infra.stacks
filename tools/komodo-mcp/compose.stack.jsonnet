@@ -31,14 +31,14 @@ local authLabels = {
 
   services: {
     [app]: {
-      image: 'fj' + r.rootDomain + '/bkenks/komodo-mcp-server:' + version,
+      image: 'fj' + r.domains.ktbinternal + '/bkenks/komodo-mcp-server:' + version,
       container_name: n.container(app),
       environment: {
         // Streamable HTTP transport (listens on :8000 inside the container).
         MCP_TRANSPORT: 'http',
         // Komodo Core API endpoint (behind this host's Traefik). Non-secret.
-        KOMODO_URL: 'https://komo.' + lib.registry.rootDomain,
-        MCP_ALLOWED_HOSTS: 'komodo-mcp.' + lib.registry.rootDomain,
+        KOMODO_URL: 'https://komo.' + lib.registry.domains.ktbinternal,
+        MCP_ALLOWED_HOSTS: 'komodo-mcp.' + lib.registry.domains.ktbinternal,
         // Behind one reverse proxy (this host's Traefik) — trust the first
         // hop so the server resolves the real client IP from X-Forwarded-*.
         MCP_TRUST_PROXY: '1',

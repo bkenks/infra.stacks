@@ -1,4 +1,4 @@
-// convertx — file conversion tool (convertx.<rootDomain>).
+// convertx — file conversion tool (convertx.<domains.ktbinternal>).
 //
 // Source of truth: this file compiles to compose.stack.yaml — do not edit the
 // YAML. Joins shared-proxy (traefik owns) to be reachable.

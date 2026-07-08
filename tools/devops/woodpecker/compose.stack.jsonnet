@@ -24,12 +24,12 @@ local grpcPort = 9000;
       volumes: ['server' + ':/var/lib/woodpecker'],
       environment: {
         // Public address; must match the OAuth2 app's redirect URI in Forgejo
-        WOODPECKER_HOST: 'https://peck.' + lib.registry.rootDomain,
+        WOODPECKER_HOST: 'https://peck.' + lib.registry.domains.ktbinternal,
         // Allow any Forgejo user to log in.
         WOODPECKER_OPEN: 'true',
         // Forge: self-hosted Forgejo (source-of-truth git forge).
         WOODPECKER_FORGEJO: 'true',
-        WOODPECKER_FORGEJO_URL: 'https://fj.' + lib.registry.rootDomain,
+        WOODPECKER_FORGEJO_URL: 'https://fj.' + lib.registry.domains.ktbinternal,
         // Plugins allowed to run privileged (docker-buildx needs Docker-in-Docker
         // to build images). Match is exact INCLUDING the tag — keep in lockstep
         // with the plugin tag pinned in each pipeline's .woodpecker.yml.
