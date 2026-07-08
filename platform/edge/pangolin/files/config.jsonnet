@@ -1,18 +1,10 @@
-// config.jsonnet — SOURCE for config.yaml (the Pangolin app config).
-//
-// Renders (via .jsonnet/render.py) to config.yaml, mounted read-only into the
-// pangolin container at /app/config/config.yml (see compose.stack.jsonnet). DO
-// NOT edit config.yaml — edit this source and re-render.
-//
-// ⚠️ safe_dump strips YAML comments, so config.yaml carries only the render.py
-// DO-NOT-EDIT header — all operational knowledge lives HERE.
-//
-// The dashboard host and CORS origin derive from reg.domains.ktbinternal, so a
-// domain migration follows automatically. Docs: https://docs.pangolin.net/
+// Renders to config.yaml, mounted read-only into pangolin at /app/config/config.yml.
+// Edit this source, not the yaml — safe_dump strips comments, so the yaml carries only
+// a DO-NOT-EDIT header and all operational knowledge lives HERE.
 local reg = import 'registry.libsonnet';
 
-local baseDomain = reg.domains.ktbinternal;  // ktbinternal.com
-local host = 'pangolin.' + baseDomain;       // pangolin.ktbinternal.com
+local baseDomain = reg.domains.ktbinternal;
+local host = 'pangolin.' + baseDomain;
 
 {
   gerbil: {
@@ -35,11 +27,9 @@ local host = 'pangolin.' + baseDomain;       // pangolin.ktbinternal.com
   },
 
   server: {
-    // server.secret is supplied via the SERVER_SECRET env var (infisical-agent).
-    // It must be OMITTED here, not blanked — Pangolin's config loader only
-    // applies the env override when the key is ABSENT; `secret: ''` counts as
-    // "defined" and fails validation (>=8 chars) before the env var is ever
-    // consulted. So: do not add a `secret` field to this object.
+    // server.secret comes from SERVER_SECRET env (infisical-agent) — must be OMITTED
+    // here, not blanked. Pangolin only applies the env override when the key is ABSENT;
+    // `secret: ''` counts as "defined" and fails validation before the env var is read.
     cors: {
       origins: ['https://' + host],
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
@@ -54,8 +44,7 @@ local host = 'pangolin.' + baseDomain;       // pangolin.ktbinternal.com
     smtp_host: 'smtp.resend.com',
     smtp_port: 465,
     smtp_user: 'resend',
-    // smtp_pass is supplied via the EMAIL_SMTP_PASS env var (infisical-agent) —
-    // OMITTED here for the same reason as server.secret above.
+    // smtp_pass: EMAIL_SMTP_PASS env (infisical-agent) — omitted for the same reason as server.secret.
     no_reply: 'pangolin@notify.' + baseDomain,
   },
 

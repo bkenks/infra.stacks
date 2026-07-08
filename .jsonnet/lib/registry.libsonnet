@@ -1,11 +1,6 @@
-// registry.libsonnet
-//
-// SINGLE SOURCE OF TRUTH for every name that crosses stack boundaries.
-// Change a value here once and every stack that references it follows.
-//
-// Reference these by KEY (e.g. reg.sharedNetworks.proxy), never by raw string:
-// a typo'd key fails at COMPILE time; a typo'd YAML string fails SILENTLY at
-// runtime (wrong/empty network — the class of bug this registry kills).
+// Single source of truth for names that cross stack boundaries.
+// Reference by KEY (reg.sharedNetworks.proxy), never raw string — a typo'd key fails at
+// compile time; a typo'd string fails silently at runtime (wrong/empty network).
 {
   server: {
     dir: {
@@ -24,11 +19,6 @@
   },
 
 
-  # ============================================================
-  # DOMAINS
-  # ============================================================
-  # notes: Public DNS zones we serve. `public` endpoints + Traefik pull from here
-  # so a zone string is written exactly once.
   domains: {
     homektb: 'homektb.com',
     stackform: 'stackform.app',
@@ -36,9 +26,6 @@
     ktbinternal: 'ktbinternal.com',
     ktbcloud: 'ktbcloud.com',
   },
-  # DOMAINS
-  # ============================================================
-
 
   roles: { app: 'app', db: 'db', redis: 'redis' },
 
@@ -54,14 +41,9 @@
     tailscale: '/srv/docker/files/tailscale.env',
   },
 
-  # ============================================================
-  # SERVICE ENDPOINTS
-  # ============================================================
-  # notes: Service to service communication endpoints. NOT the same as an endpoint
-  # for Users to use.
-  #   container — container-to-container on a shared net; `network` REFERENCES the
-  #             sharedNetworks entry (so the dependency is real + compile-checked).
-  #   public  — via Traefik at https://<sub>.<domain>; `domain` pulls from domains.
+  # Service-to-service endpoints (not user-facing). `container`: internal, on a shared net
+  # (`network` references sharedNetworks so the dependency compile-checks). `public`: via
+  # Traefik at https://<sub>.<domain>.
   endpoints: {
     postgres: {
       container: {
@@ -82,9 +64,6 @@
       },
     },
   },
-  # SERVICE ENDPOINTS
-  # ============================================================
-
 
   infisical: {
     projects: {
@@ -95,27 +74,13 @@
       infra: '86324d9b-3dd7-49d4-b252-69228c5ee0c7',
     },
     services: {
-      # ============================================================
-      # SERVICES (secret catalogue)
-      # ============================================================
-      # notes: The catalogue of every stack the Infisical agent can render. SINGLE
-      # SOURCE — services.jsonnet generates one agent-config fragment per service into
-      # templates/<svc>.yaml (mounted into the agent); a host opts a service in via
-      # AGENT_SERVICES. Fields:
-      #   project  key into `projects` (resolved to the UUID in the fragment)
-      #   folder   Infisical secret path (may contain ${AGENT_HOST}, substituted at runtime)
-      #   dest     output file under /dev/shm/ — MUST equal what the consumer reads
-      #            (a stack's parent compose.yaml include.env_file, or a bind mount)
-      #   type     dump = whole folder -> KEY=VALUE (Infisical secret names already
-      #                   equal the consumer's env-var names)
-      #            map  = explicit renames/duplications via the `keys` map
-      #                   ({ OUTPUT_ENV_VAR: 'infisical-secret-name', ... })
-      #            raw  = a single secret's raw value, NO KEY= prefix, via `key`
-      #                   (for non-KEY=VALUE files, e.g. a *.key bind mount)
-      #   env      Infisical environment slug; defaults to 'prod' when omitted
-      # The per-service templates/ fragments are fully generated from this (with the
-      # inline Go template baked in by services.jsonnet); entrypoint.sh only selects
-      # and concatenates them — it builds no templates itself.
+      # Catalogue of every stack the Infisical agent can render; services.jsonnet generates
+      # one templates/<svc>.yaml fragment per entry, a host opts in via AGENT_SERVICES. Fields:
+      #   dest: output file under /dev/shm/ — MUST equal what the consumer reads.
+      #   type: dump = whole folder, secret names already match env-var names.
+      #         map  = explicit renames via `keys` ({ OUTPUT_ENV_VAR: 'infisical-secret-name' }).
+      #         raw  = single secret's raw value (no KEY= prefix) via `key`.
+      #   env:  Infisical environment slug; defaults to 'prod' when omitted.
       postgres: { project: 'apps', folder: '/postgres', dest: 'postgres.env', type: 'dump' },
       paperless: { project: 'apps', folder: '/paperless', dest: 'paperless.env', type: 'dump' },
       docuseal: { project: 'apps', folder: '/docuseal', dest: 'docuseal.env', type: 'dump' },
@@ -177,33 +142,12 @@
   },
 
 
-  # ============================================================
-  # CONTROLLER SERVICE CATALOG (central mesh routing table)
-  # ============================================================
-  # notes: The "which host runs X, and at what subdomain" knowledge for every
-  # single-label service the central controller routes. This used to live ONLY in
-  # controller.yaml's comments + hand-written router entries; it is now DATA, so a
-  # host move or subdomain change here re-renders controller.yaml automatically
-  # (change `home`, or `sub`, and re-render — no hand-editing the routing table).
-  #
-  # Each entry becomes ONE priority:1 router (rule Host(`<sub>.<rootDomain>`) ->
-  # the `host-<home>` backend, controller-hop middleware, tls) in controller.yaml.
-  # Fields:
-  #   home    key into `edgeHosts` — the host that actually runs the service (its
-  #           Tailscale IP is resolved into the router's backend). Compile-checked.
-  #   sub     public subdomain, when it DIFFERS from the service key. Omit and the
-  #           key IS the subdomain (e.g. immich -> immich.<rootDomain>). Many differ:
-  #           komodo->komo, openproject->openprj, paperless->paper, forgejo->fj,
-  #           woodpecker->peck.
-  #   direct  present ONLY for a service reached directly (bypassing the home host's
-  #           Traefik re-encrypt) — { port, scheme='http' }. Generates a dedicated
-  #           `<key>-direct` backend to <home IP>:<port> with NO serversTransport
-  #           (no re-encrypt, so no loop path back into the table). Plex only.
-  #   latent  true for a catalogued-but-not-yet-deployed stack. Informational only
-  #           (still gets a router, pointed at `home`); preserves the "not deployed"
-  #           knowledge that lived in a controller.yaml comment. Flip `home` if it
-  #           ever lands elsewhere.
-  # FQDNs derive from `rootDomain` — NEVER write a literal domain here.
+  # "Which host runs X, at what subdomain" for every service the central controller routes —
+  # DATA, so controller.jsonnet re-renders controller.yaml automatically on a host move or
+  # subdomain change. Fields: home = key into server.hosts (compile-checked); sub = subdomain
+  # when it differs from the key (else the key IS the subdomain); direct = { port } for a
+  # service reached directly, bypassing Traefik re-encrypt (Plex only); latent = true for
+  # catalogued-but-not-yet-deployed (still gets a router; informational only).
   controllerServices: {
     frappe: { home: 'bill' },
     # ── littlebuddy (personal apps + devops) ──
@@ -233,6 +177,4 @@
     # ── rick ──
     pangolin: { home: 'rick' },
   },
-  # CONTROLLER SERVICE CATALOG
-  # ============================================================
 }

@@ -1,6 +1,4 @@
-// databasus — parent compose (Komodo deploy entrypoint). Renders to compose.yaml.
-// Includes the rendered child compose.stack.yaml. No interpolation env_file:
-// databasus's only secret is the raw key file bind-mounted from /dev/shm.
+// No env_file: databasus's only secret is a raw key file bind-mounted from /dev/shm, not an env var.
 {
   name: 'databasus',
   include: [

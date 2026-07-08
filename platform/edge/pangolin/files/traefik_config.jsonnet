@@ -1,23 +1,10 @@
-// traefik_config.jsonnet — SOURCE for traefik_config.yaml (Traefik static
-// config: entrypoints, providers, ACME resolver, plugins).
+// Renders to traefik_config.yaml, mounted read-only into traefik at
+// /etc/traefik/traefik_config.yml. Edit this source, not the yaml — safe_dump strips
+// comments, so the yaml carries only a DO-NOT-EDIT header and all operational knowledge
+// lives HERE.
 //
-// Renders (via .jsonnet/render.py) to traefik_config.yaml, mounted read-only
-// into the traefik container at /etc/traefik/traefik_config.yml (see
-// compose.stack.jsonnet — the container path keeps the .yml name that traefik's
-// --configFile flag points at; only the git-tracked source basename is .yaml).
-// DO NOT edit traefik_config.yaml — edit this source and re-render.
-//
-// ⚠️ safe_dump strips YAML comments, so traefik_config.yaml carries only the
-// render.py DO-NOT-EDIT header — all operational knowledge lives HERE.
-//
-// TLS certificates: Cloudflare DNS-01 ACME (Let's Encrypt) — same mechanism as
-// this repo's platform/edge/traefik. CF_DNS_API_TOKEN (Zone:DNS:Edit +
-// Zone:Read on the ktbinternal.com zone) is read by the lego cloudflare provider
-// from the container environment (compose.stack.jsonnet) — deliberately not set
-// here, so no secret lands in git. Which (wildcard) cert gets requested is in
-// dynamic_config.jsonnet; once issued, Traefik serves it via SNI so every
-// router — including ones Pangolin itself adds dynamically for new Resources —
-// just needs tls: { certResolver: cloudflare }.
+// CF_DNS_API_TOKEN is read by the lego cloudflare provider from the container env
+// (compose.stack.jsonnet) — deliberately not set here, so no secret lands in git.
 {
   api: {
     insecure: true,

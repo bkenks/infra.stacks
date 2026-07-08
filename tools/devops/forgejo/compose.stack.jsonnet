@@ -1,10 +1,5 @@
-// forgejo — self-hosted git forge, source of truth for our repos (push-mirrors
-// to GitHub). Reached via Traefik; SSH (git clone/push) via a
-// raw-TCP Traefik router on port 22.
-//
-// Source of truth: this file compiles to compose.stack.yaml — do not edit the
-// YAML. Joins shared-proxy (traefik owns) to be reachable. `db` is this stack's
-// OWN dedicated Postgres — it does NOT join shared-postgres.
+// forgejo: source-of-truth git forge (push-mirrors to GitHub). SSH via raw-TCP Traefik router on :22.
+// Renders to compose.stack.yaml — do not edit the YAML. `db` is dedicated Postgres, NOT shared-postgres.
 local c = import 'compose.libsonnet';
 local reg = import 'registry.libsonnet';
 
@@ -27,8 +22,7 @@ local dbName = 'forgejo';
 
   services: {
     [server]: {
-      // Temporarily pulling from a clone since codeberg.org/forgejo/forgejo was
-      // having problems — keep this fork image, do NOT revert to upstream.
+      // Pinned to a fork image (codeberg upstream had issues) — do NOT revert to upstream.
       image: 'forgejoclone/forgejo:15',
       container_name: n.container(server),
       volumes: [
@@ -53,8 +47,7 @@ local dbName = 'forgejo';
         [reg.sharedNetworks.proxy.name]: { aliases: [n.container(server)] },
       },
       labels: s.proxy.add(stack, 'fj', port) + {
-        // --- SSH (raw TCP) --- proxyAdd only builds HTTP routers, so these are
-        // added manually.
+        // SSH (raw TCP): proxyAdd only builds HTTP routers; added manually.
         'traefik.tcp.routers.forgejo-ssh.rule': 'HostSNI(`*`)',
         'traefik.tcp.routers.forgejo-ssh.entrypoints': 'forgejo-ssh',
         'traefik.tcp.services.forgejo-ssh.loadbalancer.server.port': '22',

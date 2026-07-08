@@ -1,15 +1,10 @@
-// authentik — self-hosted SSO / identity provider (auth.ktbcloud.com).
+// Four services on this stack's PRIVATE net (db, redis, server, worker); the server ALSO
+// joins shared-edge (owned here) so pangolin's Traefik can reach authentik_server:9000 for
+// OIDC/forward-auth once wired. Does NOT join shared-proxy — nothing here is fronted by a
+// per-host Traefik.
 //
-// Source of truth: this file compiles to compose.stack.yaml — do not edit the
-// YAML. Four services on this stack's PRIVATE net (db, redis, server, worker);
-// the server ALSO joins shared-edge (owned here) so the pangolin edge stack's
-// Traefik can reach authentik_server:9000 for OIDC/forward-auth once wired.
-// It does NOT join shared-proxy — nothing here is fronted by a per-host Traefik.
-//
-// server + worker share one image and one env base (opApp-style merge, mirroring
-// apps/business/openproject): per-service keys below override command / ports /
-// user / docker.sock / networks. env var names + volume layout verified against
-// https://docs.goauthentik.io/install-config/install/docker-compose/ (compose.yml).
+// server + worker share one image/env base (opApp-style merge); env var names + volume
+// layout verified against https://docs.goauthentik.io/install-config/install/docker-compose/.
 local reg = import 'registry.libsonnet';
 local c = import 'compose.libsonnet';
 
@@ -22,8 +17,8 @@ local postgresVersion = '16-alpine';
 local redisVersion = '7-alpine';
 
 // Container names double as the in-stack DNS the app dials (AUTHENTIK_*__HOST).
-local dbName = n.container('db');        // authentik_db
-local redisName = n.container('redis');  // authentik_redis
+local dbName = n.container('db');
+local redisName = n.container('redis');
 local serverName = n.container('server');
 local workerName = n.container('worker');
 
@@ -58,7 +53,6 @@ local akEnv = {
   AUTHENTIK_COOKIE_DOMAIN: 'ktbcloud.com',
 };
 
-// Secrets — interpolated from /dev/shm/authentik.env (parent include.env_file).
 local akSecrets = {
   AUTHENTIK_SECRET_KEY: '${AUTHENTIK_SECRET_KEY:?err}',
   AUTHENTIK_POSTGRESQL__PASSWORD: '${AUTHENTIK_POSTGRESQL__PASSWORD:?err}',
@@ -86,8 +80,7 @@ local akHealth = {
       environment: {
         POSTGRES_USER: 'authentik',
         POSTGRES_DB: 'authentik',
-        // Uses its own var (mapped from PG_PASS in the registry authentik map,
-        // same source as the app's AUTHENTIK_POSTGRESQL__PASSWORD).
+        // Own var name, but same source as the app's AUTHENTIK_POSTGRESQL__PASSWORD.
         POSTGRES_PASSWORD: '${POSTGRES_PASSWORD:?err}',
       },
       volumes: [dbVol + ':/var/lib/postgresql/data'],
@@ -116,8 +109,8 @@ local akHealth = {
       networks: { default: { aliases: [redisName] } },
     },
 
-    // HTTP/OIDC front. Joins shared-edge so the pangolin Traefik can reach it at
-    // authentik_server:9000 once forward-auth / OIDC routes are wired (Phase 2).
+    // Joins shared-edge so pangolin's Traefik can reach it once forward-auth/OIDC
+    // routes are wired (Phase 2).
     [serverName]: akApp + {
       container_name: serverName,
       command: ['server'],
@@ -149,6 +142,6 @@ local akHealth = {
   },
 
   networks:
-    s.network.default            // private default net (db/redis/server/worker)
-    + s.network.own('edge'),  // create shared-edge (this stack owns it)
+    s.network.default
+    + s.network.own('edge'),
 }

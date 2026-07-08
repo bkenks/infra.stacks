@@ -1,9 +1,5 @@
-// gitea — self-hosted git forge. Reached via Traefik; SSH
-// (git clone/push) via a raw-TCP Traefik router on port 22.
-//
-// Source of truth: this file compiles to compose.stack.yaml — do not edit the
-// YAML. Joins shared-proxy (traefik owns) to be reachable. `db` is this stack's
-// OWN dedicated Postgres — it does NOT join shared-postgres.
+// gitea: self-hosted git forge. SSH via raw-TCP Traefik router on :22.
+// Renders to compose.stack.yaml — do not edit the YAML. `db` is dedicated Postgres, NOT shared-postgres.
 local c = import 'compose.libsonnet';
 local reg = import 'registry.libsonnet';
 
@@ -43,17 +39,9 @@ local dbName = 'gitea';
         GITEA__SERVER__SSH_LISTEN_PORT: '22',
         GITEA__SERVER__SSH_DOMAIN: 'gitea.' + reg.domains.ktbinternal,
 
-        // --- Security secrets — DISABLED by default ------------------------------
-        // On a FRESH install Gitea auto-generates SECRET_KEY / INTERNAL_TOKEN /
-        // JWT_SECRET and persists them in app.ini (in the gitea-data volume), so we
-        // don't supply them. Leave these commented for normal deploys.
-        //
-        // RE-ENABLE ONLY WHEN RESTORING an existing gitea: uncomment these AND the
-        // matching lines in infisical/files/agent-config.yaml, and store the
-        // ORIGINAL values (the ones from the old app.ini) in Infisical under
-        // /gitea. This pins the SECRET_KEY so previously-encrypted data (2FA,
-        // stored mirror/login creds) stays decryptable. A mismatched value here
-        // would BREAK that data — so only set values you know are correct.
+        // DISABLED by default: fresh installs auto-generate these in app.ini.
+        // RESTORE ONLY: uncomment these + matching lines in infisical/files/agent-config.yaml,
+        // using the ORIGINAL app.ini values — a mismatch breaks decryption of existing 2FA/creds.
         // GITEA__security__SECRET_KEY: '${GITEA_SECRET_KEY:?err}',
         // GITEA__security__INTERNAL_TOKEN: '${GITEA_INTERNAL_TOKEN:?err}',
         // GITEA__oauth2__JWT_SECRET: '${GITEA_JWT_SECRET:?err}',
@@ -71,8 +59,7 @@ local dbName = 'gitea';
         [reg.sharedNetworks.proxy.name]: { aliases: [n.container(app)] },
       },
       labels: s.proxy.add(stack, stack, port) + {
-        // --- SSH (raw TCP) --- proxyAdd only builds HTTP routers, so these are
-        // added manually.
+        // SSH (raw TCP): proxyAdd only builds HTTP routers; added manually.
         'traefik.tcp.routers.gitea-ssh.rule': 'HostSNI(`*`)',
         'traefik.tcp.routers.gitea-ssh.entrypoints': 'gitea-ssh',
         'traefik.tcp.services.gitea-ssh.loadbalancer.server.port': '22',

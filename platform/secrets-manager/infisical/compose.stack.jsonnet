@@ -6,11 +6,11 @@ local s = c.stack(stack);
 local n = s.names;
 local roles = reg.roles;
 
-local appVersion = 'v0.160.9';   // docker.io/infisical/infisical
-local dbVersion = '16-alpine';   // docker.io/library/postgres
-local redisVersion = '7-alpine'; // docker.io/library/redis
+local appVersion = 'v0.160.9';
+local dbVersion = '16-alpine';
+local redisVersion = '7-alpine';
 
-local appPort = 8080;            // app HTTP port (matches reg.endpoints.infisical.container.port)
+local appPort = 8080;  // matches reg.endpoints.infisical.container.port
 local dbUser = 'infisical';
 local dbName = 'infisical';
 
@@ -20,16 +20,15 @@ local dbName = 'infisical';
   services: {
     [roles.app]: {
       image: 'docker.io/infisical/infisical:' + appVersion,
-      container_name: n.container(roles.app),  // 'infisical_app' — matches reg.endpoints host
+      container_name: n.container(roles.app),  // matches reg.endpoints host
       depends_on: {
         db: { condition: 'service_healthy' },
         redis: { condition: 'service_healthy' },
       },
       environment: {
-        // --- Site ---
         SITE_URL: c.url('infisical').public,
 
-        // --- SMTP (optional; leave blank to disable email) ---
+        // Optional; blank disables email.
         SMTP_HOST: '${INFISICAL__SMTP_HOST:-}',
         SMTP_PORT: '${INFISICAL__SMTP_PORT:-}',
         SMTP_FROM_ADDRESS: '${INFISICAL__SMTP_FROM_ADDRESS:-}',
@@ -37,11 +36,9 @@ local dbName = 'infisical';
 
         NODE_ENV: 'production',
 
-        // --- Redis ---
         REDIS_URL: 'redis://' + n.container(roles.redis) + ':6379',
 
-        // Secrets — interpolated from /dev/shm/platform.env (parent include.env_file;
-        // Ansible-rendered, so infisical can read its own secrets despite being the server).
+        // Ansible-rendered into platform.env, so infisical can read its own secrets despite being the server.
         ENCRYPTION_KEY: '${INFISICAL_ENCRYPTION_KEY:?err}',
         AUTH_SECRET: '${INFISICAL_AUTH_SECRET:?err}',
         DB_CONNECTION_URI: 'postgres://' + dbUser + ':${INFISICAL_DB_PASSWORD:?err}@' + n.container(roles.db) + ':5432/' + dbName,
@@ -50,8 +47,8 @@ local dbName = 'infisical';
       },
       networks: {
         default: { aliases: [n.container(roles.app)] },
-        [reg.sharedNetworks.infisical.name]: { aliases: [n.container(roles.app)] },  // shared-infisical (owned)
-        [reg.sharedNetworks.proxy.name]: { aliases: [n.container(roles.app)] },      // shared-proxy (joined)
+        [reg.sharedNetworks.infisical.name]: { aliases: [n.container(roles.app)] },  // owned
+        [reg.sharedNetworks.proxy.name]: { aliases: [n.container(roles.app)] },      // joined
       },
       restart: 'unless-stopped',
       healthcheck: {
@@ -67,12 +64,12 @@ local dbName = 'infisical';
 
     [roles.db]: {
       image: 'docker.io/library/postgres:' + dbVersion,
-      container_name: n.container(roles.db),  // 'infisical_db'
+      container_name: n.container(roles.db),
       volumes: [roles.db + ':/var/lib/postgresql/data'],
       environment: {
         POSTGRES_USER: dbUser,
         POSTGRES_DB: dbName,
-        // Secret — interpolated from the deploy env (same source as the app's INFISICAL_DB_PASSWORD)
+        // Same source as the app's INFISICAL_DB_PASSWORD.
         POSTGRES_PASSWORD: '${INFISICAL_DB_PASSWORD:?err}',
       },
       networks: {
@@ -90,7 +87,7 @@ local dbName = 'infisical';
 
     [roles.redis]: {
       image: 'docker.io/library/redis:' + redisVersion,
-      container_name: n.container(roles.redis),  // 'infisical_redis'
+      container_name: n.container(roles.redis),
       volumes: [roles.redis + ':/data'],
       environment: {
         ALLOW_EMPTY_PASSWORD: 'yes',
@@ -110,12 +107,12 @@ local dbName = 'infisical';
   },
 
   networks:
-    s.network.default        // private net (renamed default) 'infisical' — app <-> db <-> redis
+    s.network.default
     + s.network.own('infisical')    // shared-infisical (owned; apps join)
     + s.network.join('proxy'),      // shared-proxy (traefik owns)
 
   volumes: {
-    [roles.db]: { name: n.volume(roles.db) },        // 'infisical_db'
-    [roles.redis]: { name: n.volume(roles.redis) },  // 'infisical_redis'
+    [roles.db]: { name: n.volume(roles.db) },
+    [roles.redis]: { name: n.volume(roles.redis) },
   },
 }

@@ -1,9 +1,5 @@
-// databasus — database backup manager.
-//
-// Source of truth: this file compiles to compose.yaml (do not edit the YAML).
-// All identity (name, port, version, derived app name) is static and baked in
-// at compile time — no .env needed at deploy. Only the Infisical-rendered
-// secret arrives at runtime (bind-mounted from /dev/shm).
+// Static config baked in at compile time — no .env at deploy; only the Infisical secret
+// arrives at runtime (bind-mounted from /dev/shm).
 local c = import 'compose.libsonnet';
 local reg = import 'registry.libsonnet';
 
@@ -22,7 +18,7 @@ local version = 'sha256:f748c20cecb3cf3162d80ebfddd4f192b5e4ee640d600c9daf726310
     [roles.app]: {
       image: 'databasus/databasus@' + version,
       volumes: [
-        // Secret rendered by the Infisical agent (SECRET_KEY -> this path).
+        // Rendered by Infisical agent (SECRET_KEY).
         '/dev/shm/' + stack + '_secret.key:/databasus-data/secret.key:ro',
         roles.app + ':/databasus-data',
       ],
@@ -36,10 +32,10 @@ local version = 'sha256:f748c20cecb3cf3162d80ebfddd4f192b5e4ee640d600c9daf726310
   },
 
   networks:
-    s.network.default      // private net (renamed default), named 'databasus'
+    s.network.default
     + s.network.own('dbBackups'),  // databasus OWNS shared-db-backups; the DBs join it
 
   volumes: {
-    [roles.app]: { name: n.volume(roles.app) },  // 'databasus_app'
+    [roles.app]: { name: n.volume(roles.app) },
   },
 }

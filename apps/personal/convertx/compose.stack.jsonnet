@@ -1,7 +1,4 @@
-// convertx — file conversion tool (convertx.<domains.ktbinternal>).
-//
-// Source of truth: this file compiles to compose.stack.yaml — do not edit the
-// YAML. Joins shared-proxy (traefik owns) to be reachable.
+// Compiles to compose.stack.yaml — do not edit the YAML.
 local c = import 'compose.libsonnet';
 local reg = import 'registry.libsonnet';
 
@@ -17,13 +14,11 @@ local port = 3000;
 
   services: {
     [app]: {
-      // Upstream publishes no version tags today — stays unpinned/`latest`
-      // until the project ships one.
+      // Upstream publishes no version tags — unpinned/`latest`.
       image: 'ghcr.io/c4illin/convertx',
       container_name: n.container(app),
       volumes: [reg.server.dir.docker.root + reg.server.dir.docker.bindmounts + '/apps/convertx:/app/data'],
       environment: {
-        // Secret — interpolated from /dev/shm/convertx.env (parent include.env_file)
         JWT_SECRET: '${CONVERTX_JWT_SECRET:?err}',
       },
       restart: 'unless-stopped',

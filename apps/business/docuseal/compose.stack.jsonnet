@@ -1,8 +1,4 @@
-// docuseal — self-hosted document signing (docuseal.<domains.ktbinternal>).
-//
-// Source of truth: this file compiles to compose.stack.yaml — do not edit the
-// YAML. Joins shared-proxy (traefik owns) to be reachable and shared-postgres
-// (postgres owns) to reach its DB.
+// Compiles to compose.stack.yaml — do not edit the YAML.
 local c = import 'compose.libsonnet';
 local reg = import 'registry.libsonnet';
 
@@ -26,12 +22,8 @@ local port = 3000;
       volumes: [n.volume(app) + ':/data/docuseal'],
       environment: {
         PORT: std.toString(port),
-        // Canonical host. Doubles as the SSL switch (forces HTTPS redirects) and
-        // the host DocuSeal uses to build absolute signing-link URLs in emails.
-        // Traefik terminates TLS and forwards X-Forwarded-Proto.
+        // Also the SSL switch: forces HTTPS redirects + absolute signing-link URLs.
         FORCE_SSL: stack + '.' + reg.domains.ktbinternal,
-        // Secrets — interpolated from /dev/shm/docuseal.env + /dev/shm/postgres.env
-        // (parent include.env_file)
         DATABASE_URL: 'postgresql://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@' + pgHost + ':' + std.toString(pgPort) + '/docuseal',
         SECRET_KEY_BASE: '${DOCUSEAL_SECRET_KEY_BASE:?err}',
       },

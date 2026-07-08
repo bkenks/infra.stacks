@@ -1,14 +1,9 @@
-// immich — self-hosted photo & video management (immich.<domains.ktbinternal>).
+// Compiles to compose.stack.yaml — do not edit the YAML. Immich needs its own
+// Postgres (vectorchord/pgvecto extensions) — does NOT join shared-postgres.
 //
-// Source of truth: this file compiles to compose.stack.yaml — do not edit the
-// YAML. Immich requires its own dedicated Postgres (vectorchord/pgvecto
-// extensions) — it does NOT join shared-postgres. Only immich-server (the
-// `server` role below) is Traefik-facing, joining shared-proxy.
-//
-// Storage: database + ML model cache are bind mounts under
-// registry.server.dir.docker.bindmounts (local NVMe — Postgres must NOT live on NFS); the
-// photo/video library is a separate NFS export mounted at the literal host
-// path /mnt/immich-library (not under server.dir.docker.bindmounts).
+// Postgres + ML model cache live on local NVMe bind mounts (Postgres must NOT
+// live on NFS); the photo/video library is a separate NFS export at the
+// literal host path /mnt/immich-library.
 local c = import 'compose.libsonnet';
 local reg = import 'registry.libsonnet';
 
@@ -40,9 +35,8 @@ local tz = 'America/New_York';
         POSTGRES_DB: 'immich',
         POSTGRES_USER: 'immich',
         POSTGRES_INITDB_ARGS: '--data-checksums',
-        // Secret — interpolated from /dev/shm/immich.env (parent include.env_file).
-        // Was broken pre-jsonnet: ${IMMICH_DB_PASSWORD} inside env_file: doesn't
-        // interpolate. Fixed here by putting it directly in `environment:`.
+        // env_file interpolation of ${IMMICH_DB_PASSWORD} doesn't work — must be
+        // set directly here.
         POSTGRES_PASSWORD: '${IMMICH_DB_PASSWORD:?err}',
       },
       restart: 'unless-stopped',
@@ -72,14 +66,12 @@ local tz = 'America/New_York';
       volumes: ['/mnt/immich-library:/data'],
       environment: {
         TZ: tz,
-        // Was broken pre-jsonnet: ${COMPOSE_PROJECT_NAME}-redis inside env_file:
-        // doesn't interpolate. Fixed here with the actual container name.
+        // Same env_file interpolation issue — use the actual container name.
         REDIS_HOSTNAME: n.container(redis),
         DB_HOSTNAME: n.container(db),
         DB_USERNAME: 'immich',
         DB_DATABASE_NAME: 'immich',
-        // Secret — interpolated from /dev/shm/immich.env (parent include.env_file).
-        // Same non-interpolation bug as above, fixed the same way.
+        // Same env_file interpolation bug as POSTGRES_PASSWORD above.
         DB_PASSWORD: '${IMMICH_DB_PASSWORD:?err}',
       },
       restart: 'unless-stopped',

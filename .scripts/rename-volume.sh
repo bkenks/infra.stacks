@@ -29,7 +29,6 @@ done
 [[ -n "$OLD" && -n "$NEW" ]] || usage 1
 [[ "$OLD" != "$NEW" ]] || { echo "oldname and newname are the same" >&2; exit 1; }
 
-# docker wrapper — local or over ssh
 d() { if [[ -n "$HOST" ]]; then ssh "$HOST" docker "$@"; else docker "$@"; fi; }
 
 d volume inspect "$OLD" >/dev/null 2>&1 || { echo "source volume '$OLD' does not exist" >&2; exit 1; }
@@ -41,9 +40,8 @@ if d volume inspect "$NEW" >/dev/null 2>&1; then
   TARGET_EXISTS=1
 fi
 
-# Only a RUNNING source container is a problem for the copy — it can mutate data
-# mid-read. Stopped containers are safe to copy from (the removal step below handles
-# the fact that they still pin the volume). Override the live-copy block with -f.
+# Only a RUNNING source is unsafe (can mutate data mid-read); stopped containers
+# are safe to copy from. Override with -f.
 RUN_OLD=$(d ps --filter "volume=$OLD" --format '{{.Names}}' || true)
 if [[ -n "$RUN_OLD" && "$FORCE" -ne 1 ]]; then
   echo "running container(s) reference source '$OLD' — stop them first (or -f to copy live):" >&2
@@ -51,8 +49,7 @@ if [[ -n "$RUN_OLD" && "$FORCE" -ne 1 ]]; then
   exit 1
 fi
 
-# If merging into an existing target, copying underneath a running container can
-# race. Warn; block unless --force.
+# Merging into a running target can race; warn and block unless --force.
 if [[ "$TARGET_EXISTS" -eq 1 ]]; then
   TGT_INUSE=$(d ps --filter "volume=$NEW" --format '{{.Names}}' || true)
   if [[ -n "$TGT_INUSE" ]]; then

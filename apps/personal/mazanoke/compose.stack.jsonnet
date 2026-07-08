@@ -1,8 +1,4 @@
-// mazanoke — image compression tool (mazanoke.<domains.ktbinternal>).
-//
-// Source of truth: this file compiles to compose.stack.yaml — do not edit the
-// YAML. Joins shared-proxy (traefik owns) to be reachable. Fully stateless —
-// no volumes, no secrets, no DB.
+// Compiles to compose.stack.yaml — do not edit the YAML.
 local c = import 'compose.libsonnet';
 local reg = import 'registry.libsonnet';
 

@@ -1,8 +1,4 @@
-// n8n — workflow automation (n8n.<domains.ktbinternal>).
-//
-// Source of truth: this file compiles to compose.stack.yaml — do not edit the
-// YAML. Joins shared-proxy (traefik owns) to be reachable and shared-postgres
-// (postgres owns) to reach its DB.
+// Compiles to compose.stack.yaml — do not edit the YAML.
 local c = import 'compose.libsonnet';
 local reg = import 'registry.libsonnet';
 
@@ -27,11 +23,9 @@ local filesDir = reg.server.dir.docker.root + reg.server.dir.docker.bindmounts +
     [app]: {
       image: 'docker.n8n.io/n8nio/n8n:' + version,
       container_name: n.container(app),
-      // Run as the image's default user (node, UID 1000). Do NOT add
-      // user: "0:0" — that makes n8n write to /root/.n8n inside the
-      // container's ephemeral writable layer instead of the bind-mounted
-      // /home/node/.n8n, and every redeploy wipes the data. Host dir is
-      // owned by UID 1000.
+      // Do NOT set user: "0:0" — n8n would write to /root/.n8n in the
+      // container's writable layer instead of this bind mount, wiping data
+      // on every redeploy. Host dir is owned by UID 1000 (image default).
       volumes: [
         dataDir + ':/home/node/.n8n',
         filesDir + ':/files',
@@ -50,14 +44,10 @@ local filesDir = reg.server.dir.docker.root + reg.server.dir.docker.bindmounts +
         WEBHOOK_URL: 'https://' + stack + '.' + reg.domains.ktbinternal + '/',
         N8N_HOST: stack + '.' + reg.domains.ktbinternal,
         DB_TYPE: 'postgresdb',
-        // Bug fix vs old envs/production.env: POSTGRES_HOST_CONTAINER was
-        // hardcoded to postgres-${DOCKER_ENVIRONMENT}-db (-> postgres-production-db),
-        // which is NOT the real shared-postgres alias. Use the registry endpoint.
         DB_POSTGRESDB_HOST: pgHost,
         DB_POSTGRESDB_PORT: std.toString(pgPort),
         DB_POSTGRESDB_DATABASE: stack,
         DB_POSTGRESDB_SCHEMA: 'public',
-        // Secrets — interpolated from /dev/shm/postgres.env (parent include.env_file)
         DB_POSTGRESDB_USER: '${POSTGRES_USER:?err}',
         DB_POSTGRESDB_PASSWORD: '${POSTGRES_PASS:?err}',
       },
