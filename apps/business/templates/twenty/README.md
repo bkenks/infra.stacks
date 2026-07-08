@@ -30,7 +30,7 @@ Non-secret config (ports, hostnames, Redis/Postgres wiring, Google callback URLs
 ### Bug fixes vs. the old (pre-jsonnet) config
 
 - The old `networks: { postgres: { name: shared-postgres } }` was missing `external: true` — `lib.compose.join('postgres')` sets this correctly now.
-- The old `POSTGRES_HOST_CONTAINER=postgres` pointed at a container alias that doesn't match the shared-postgres owner's real name. Now derived from the registry: `lib.compose.endpoint('postgres').private.host` → `postgres-db`.
+- The old `POSTGRES_HOST_CONTAINER=postgres` pointed at a container alias that doesn't match the shared-postgres owner's real name. Now derived from the registry: `lib.compose.endpoint('postgres').container.host` → `postgres-db`.
 
 ### Traefik
 

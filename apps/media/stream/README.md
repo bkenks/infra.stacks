@@ -40,7 +40,7 @@ Non-secret config (PUID/PGID/TZ per service, restart counts, image tags/digests,
 
 ## Bind mounts
 
-No named Docker volumes in this stack — everything is a host bind mount under `lib.registry.dockerVolumes` (`/srv/docker/bind-mounts`), baked into `compose.stack.jsonnet` at compile time. **No volume-rename step is needed** for this migration.
+No named Docker volumes in this stack — everything is a host bind mount under `lib.registry.server.dir.docker.bindmounts` (`/srv/docker/bind-mounts`), baked into `compose.stack.jsonnet` at compile time. **No volume-rename step is needed** for this migration.
 
 Expected host layout under `${DOCKER_VOLUMES}/stream/`:
 

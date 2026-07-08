@@ -7,12 +7,12 @@
 // TUNNEL_TOKEN is a secret, interpolated from /dev/shm/platform.env
 // (rendered by Ansible for bootstrapped core platform services; declared as the
 // interpolation source in the parent compose.yaml's include.env_file).
-local lib = import 'lib.libsonnet';
-local r = lib.registry;
-local c = lib.compose;
+local c = import 'compose.libsonnet';
+local reg = import 'registry.libsonnet';
 
 local stack = 'cloudflared';
-local n = c.names(stack);
+local s = c.stack(stack);
+local n = s.names;
 local cf = {
   version: '2026.5.2',
   role: 'tunnel',
@@ -34,12 +34,12 @@ local cf = {
       },
       restart: 'unless-stopped',
       networks: {
-        [r.sharedNetworks.proxy.name]: { aliases: [cf.extName] },
+        [reg.sharedNetworks.proxy.name]: { aliases: [cf.extName] },
       },
     },
   },
 
   networks:
-    n.network   // private default net (unused here — no peers)
-    + lib.compose.join('proxy'),  // join shared-proxy (owned by traefik)
+    s.network.default   // private default net (unused here — no peers)
+    + s.network.join('proxy'),  // join shared-proxy (owned by traefik)
 }

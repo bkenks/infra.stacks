@@ -2,65 +2,73 @@
 //
 // Helpers for building docker-compose fragments that reference the registry.
 // Import via the umbrella (lib.compose.*) or directly.
-local reg = import 'registry.libsonnet';
-
-// File-private alias for the shared-networks registry. The real Docker name
-// (with its explicit 'shared-' prefix) lives in each entry's `.name`.
-local sharedNetworks = reg.sharedNetworks;
+local r = import 'registry.libsonnet';
+local sharedNetworks = r.sharedNetworks;
 
 {
-  // CONSUMER: join an existing shared network. external:true means it must
-  // already exist, so the OWNER stack has to deploy first.
-  //   networks: compose.join('proxy')
-  join(key):: { [sharedNetworks[key].name]: { external: true, name: sharedNetworks[key].name } },
+  stack(name):: {
 
-  // OWNER: create the shared network this stack owns (registry records who).
-  //   networks: compose.own('dbBackups')
-  own(key):: { [sharedNetworks[key].name]: { name: sharedNetworks[key].name } },
+    names: {
+      stack:: name, // Project Name
+      container(role):: name + '_' + role,
+      volume(role):: name + '_' + role,
+    },
 
-  serviceNetwork(network, alias) :: {
-        [network]: { aliases: [ alias ] },
+    network: {
+
+      join(key):: {
+        [sharedNetworks[key].name]: {
+          external: true,
+          name: sharedNetworks[key].name
+          }
+        },
+
+      own(key):: {
+        [sharedNetworks[key].name]: {
+          name: sharedNetworks[key].name
+          }
+        },
+
+      attach(network, alias) :: { [network]: { aliases: [ alias ] } },
+
+      default:: { default: { name: name } },
+      
+    },
+
+    proxy: {
+      add(router, sub, port, domain=r.domains.ktbinternal)::
+        // Resolve a registry key ('stackform' -> 'stackform.app'); pass through if
+        // it's already a literal zone (the domains.ktbinternal default included).
+        local zone = if std.objectHas(r.domains, domain) then r.domains[domain] else domain;
+        {
+          'traefik.enable': 'true',
+          ['traefik.http.routers.' + router + '.rule']: 'Host(`' + sub + '.' + zone + '`)',
+          ['traefik.http.routers.' + router + '.entrypoints']: 'websecure',
+          ['traefik.http.routers.' + router + '.tls']: 'true',
+          ['traefik.http.services.' + router + '.loadbalancer.server.port']: std.toString(port),
+        },
+      addAuth(router, sub, port, domain=r.domains.ktbinternal)::
+        self.add(router, sub, port, domain) + {
+          ['traefik.http.routers.' + router + '.middlewares']: 'authentik-forwardauth@file',
+        },
+    },
+
+    // Marks a container so Komodo's StopAllContainers leaves it running.
+    komodoSkip:: { 'komodo.skip': '' },
   },
 
-  // ── Cross-container addressing ──────────────────────────────────────────
-  // A service other stacks dial publishes a registry endpoint (private/public).
-  // The OWNER names itself from it; CONSUMERS read it. So the address lives once.
+  url(key, scheme='http'): {
 
-  // PRIVATE container-to-container URL (same host, shared network):
-  //   privateUrl('infisical') -> 'http://infisical-app:8080'
-  privateUrl(key, scheme='http')::
-    local e = reg.endpoints[key].private;
-    scheme + '://' + e.host + ':' + std.toString(e.port),
+    container::
+      local e = r.endpoints[key].container;
+      scheme + '://' + e.host + ':' + std.toString(e.port),
 
-  // PUBLIC URL via Traefik (any host, https on the wildcard cert). The zone
-  // comes from the endpoint's domain (pulled from the domains registry):
-  //   publicUrl('infisical') -> 'https://infisical.ktbinternal.com'
-  publicUrl(key):: 'https://' + reg.endpoints[key].public.sub + '.' + reg.endpoints[key].public.domain,
+    public:: 'https://' + r.endpoints[key].public.sub + '.' + r.endpoints[key].public.domain,
 
-  // Consistent stack-local naming, following the KTB naming convention
-  // (<stack>_<role> — underscore separates ownership levels; dashes are only
-  // for multi-word names within one level, e.g. 'komodo-periphery').
-  // Pass a role constant (registry.roles.app) or any string (container('core'),
-  // volume('keys'), alias('mongo')). container/volume/alias are the same
-  // machinery — the name just labels intent at the call site.
-  //
-  // Volumes: pass the SERVICE's role when it owns exactly one volume (the
-  // volume's resource key and container's role must match — see
-  // docker-compose.md's "Resources" section), or '<role>_<purpose>' when a
-  // service owns more than one (e.g. volume(app + '_data')).
-  //
-  // Names are generated, never hand-typed.
-  names(stack):: {
-    stack:: stack,
-    // This stack's PRIVATE network: the auto 'default' net renamed to the stack
-    // name. Drop into `networks:` (merge shared sharedNetworks with +). Other compose
-    // projects can't attach (not external) — that's the isolation; this is
-    // project isolation, NOT docker's `internal: true` (which blocks egress).
-    //   networks: n.network
-    //   networks: n.network + compose.own('postgres') + compose.join('dbBackups')
-    network:: { default: { name: stack } },
-    container(role):: stack + '_' + role,
-    volume(role):: stack + '_' + role,
-    alias(role):: stack + '_' + role,
   },
+
+  envPath: {
+    secret(envFilename): '/dev/shm/' + envFilename,
+    platform(envFilename):: '${ANSIBLE_SECRETS_FILE:-' + self.secret(envFilename) + '}',
+  }
 }

@@ -5,11 +5,13 @@
 // Source of truth: this file compiles to compose.stack.yaml — do not edit the
 // YAML. Joins shared-proxy (traefik owns) to be reachable. `db` is this stack's
 // OWN dedicated Postgres — it does NOT join shared-postgres.
-local lib = import 'lib.libsonnet';
+local c = import 'compose.libsonnet';
+local reg = import 'registry.libsonnet';
 
 local stack = 'forgejo';
-local n = lib.compose.names(stack);
-local db = lib.registry.roles.db;
+local s = c.stack(stack);
+local n = s.names;
+local db = reg.roles.db;
 
 // role name in compose is 'server' (matches the old stack + Forgejo's own docs).
 local server = 'server';
@@ -36,7 +38,7 @@ local dbName = 'forgejo';
       environment: {
         FORGEJO____APP_NAME: 'Forgejo',
         FORGEJO__database__DB_TYPE: 'postgres',
-        FORGEJO__database__HOST: n.alias(db) + ':5432',
+        FORGEJO__database__HOST: n.container(db) + ':5432',
         FORGEJO__database__NAME: dbName,
         FORGEJO__database__USER: dbUser,
         // Secret — interpolated from /dev/shm/forgejo.env (parent include.env_file)
@@ -47,10 +49,10 @@ local dbName = 'forgejo';
       restart: 'on-failure:5',
       expose: [std.toString(port), '22'],
       networks: {
-        default: { aliases: [n.alias(server)] },
-        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias(server)] },
+        default: { aliases: [n.container(server)] },
+        [reg.sharedNetworks.proxy.name]: { aliases: [n.container(server)] },
       },
-      labels: lib.mixins.proxyAdd(stack, 'fj', port) + {
+      labels: s.proxy.add(stack, 'fj', port) + {
         // --- SSH (raw TCP) --- proxyAdd only builds HTTP routers, so these are
         // added manually.
         'traefik.tcp.routers.forgejo-ssh.rule': 'HostSNI(`*`)',
@@ -70,7 +72,7 @@ local dbName = 'forgejo';
         POSTGRES_PASSWORD: '${DB_PASSWORD:?err}',
       },
       restart: 'on-failure:5',
-      networks: { default: { aliases: [n.alias(db)] } },
+      networks: { default: { aliases: [n.container(db)] } },
       expose: ['5432'],
     },
   },
@@ -81,6 +83,6 @@ local dbName = 'forgejo';
   },
 
   networks:
-    n.network
-    + lib.compose.join('proxy'),
+    s.network.default
+    + s.network.join('proxy'),
 }

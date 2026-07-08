@@ -2,7 +2,7 @@
 // Infisical-agent config fragment per service (multi-file output via
 // `jsonnet -S -m`; see .jsonnet/render.py).
 //
-// Source of truth is the registry's `agentServices` (+ `projects` for UUIDs).
+// Source of truth is the registry
 // Edit there, NOT the generated templates/ — those files are GENERATED.
 //
 // Each fragment is a complete `templates:` list ENTRY with an INLINE
@@ -18,7 +18,7 @@ local reg = import 'registry.libsonnet';
 
 // The Go-template body (list of lines, unindented) for one service, by type.
 local bodyLines(s) =
-  local project = reg.projects[s.project];
+  local project = reg.infisical.projects[s.project];
   local env = std.get(s, 'env', 'prod');
   local folder = s.folder;
   if s.type == 'dump' then [
@@ -48,6 +48,6 @@ local fragment(s) =
   indentBody(s) + '\n';
 
 {
-  [name + '.yaml']: fragment(reg.agentServices[name])
-  for name in std.objectFields(reg.agentServices)
+  [name + '.yaml']: fragment(reg.infisical.services[name])
+  for name in std.objectFields(reg.infisical.services)
 }

@@ -24,7 +24,7 @@ This stack's specifics:
 
 Non-secret config (host names, cache backend, thread counts, image versions, etc.) is baked directly into `compose.stack.jsonnet`'s `environment:` blocks — no `.env` file for it.
 
-OpenProject connects to the shared Postgres on the external `shared-postgres` network (`postgres-db:5432`, database `openproject`). The old (pre-jsonnet) stack hardcoded the DB host as `postgres`, which was a latent bug — it's now `lib.compose.endpoint('postgres').private.host` (`postgres-db`), the correct shared-postgres address.
+OpenProject connects to the shared Postgres on the external `shared-postgres` network (`postgres-db:5432`, database `openproject`). The old (pre-jsonnet) stack hardcoded the DB host as `postgres`, which was a latent bug — it's now `lib.compose.endpoint('postgres').container.host` (`postgres-db`), the correct shared-postgres address.
 
 ### Volume rename on first deploy
 

@@ -1,26 +1,16 @@
-// infisical — self-hosted secrets manager (app + Postgres + Redis).
-//
-// Owner of shared-infisical (apps join it to reach the secrets API) and a
-// consumer of shared-proxy (traefik owns that; the app exposes itself for the
-// public UI/API). Renders to compose.stack.yaml — do not edit the YAML.
-//
-// Its ${INFISICAL_*} secrets are interpolated from the parent's include.env_file
-// (compose.jsonnet): Ansible bootstraps them once to /dev/shm/platform.env for the
-// cold start, before Infisical or its agent exist; afterward the infisical-agent
-// re-renders /dev/shm/infisical.env from the matching registry.agentServices
-// folder, same as every other platform stack. Non-secret identity (names, ports,
-// versions, DB login) is baked here.
-local lib = import 'lib.libsonnet';
+local c = import 'compose.libsonnet';
+local reg = import 'registry.libsonnet';
 
 local stack = 'infisical';
-local n = lib.compose.names(stack);
-local roles = lib.registry.roles;
+local s = c.stack(stack);
+local n = s.names;
+local roles = reg.roles;
 
 local appVersion = 'v0.160.9';   // docker.io/infisical/infisical
 local dbVersion = '16-alpine';   // docker.io/library/postgres
 local redisVersion = '7-alpine'; // docker.io/library/redis
 
-local appPort = 8080;            // app HTTP port (matches reg.endpoints.infisical.private.port)
+local appPort = 8080;            // app HTTP port (matches reg.endpoints.infisical.container.port)
 local dbUser = 'infisical';
 local dbName = 'infisical';
 
@@ -37,7 +27,7 @@ local dbName = 'infisical';
       },
       environment: {
         // --- Site ---
-        SITE_URL: lib.compose.publicUrl('infisical'),
+        SITE_URL: c.url('infisical').public,
 
         // --- SMTP (optional; leave blank to disable email) ---
         SMTP_HOST: '${INFISICAL__SMTP_HOST:-}',
@@ -48,20 +38,20 @@ local dbName = 'infisical';
         NODE_ENV: 'production',
 
         // --- Redis ---
-        REDIS_URL: 'redis://' + n.alias(roles.redis) + ':6379',
+        REDIS_URL: 'redis://' + n.container(roles.redis) + ':6379',
 
         // Secrets — interpolated from /dev/shm/platform.env (parent include.env_file;
         // Ansible-rendered, so infisical can read its own secrets despite being the server).
         ENCRYPTION_KEY: '${INFISICAL_ENCRYPTION_KEY:?err}',
         AUTH_SECRET: '${INFISICAL_AUTH_SECRET:?err}',
-        DB_CONNECTION_URI: 'postgres://' + dbUser + ':${INFISICAL_DB_PASSWORD:?err}@' + n.alias(roles.db) + ':5432/' + dbName,
+        DB_CONNECTION_URI: 'postgres://' + dbUser + ':${INFISICAL_DB_PASSWORD:?err}@' + n.container(roles.db) + ':5432/' + dbName,
         SMTP_USERNAME: '${INFISICAL__SMTP_USERNAME:-}',
         SMTP_PASSWORD: '${INFISICAL_SMTP_PASSWORD:-}',
       },
       networks: {
-        default: { aliases: [n.alias(roles.app)] },
-        [lib.registry.sharedNetworks.infisical.name]: { aliases: [n.alias(roles.app)] },  // shared-infisical (owned)
-        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias(roles.app)] },      // shared-proxy (joined)
+        default: { aliases: [n.container(roles.app)] },
+        [reg.sharedNetworks.infisical.name]: { aliases: [n.container(roles.app)] },  // shared-infisical (owned)
+        [reg.sharedNetworks.proxy.name]: { aliases: [n.container(roles.app)] },      // shared-proxy (joined)
       },
       restart: 'unless-stopped',
       healthcheck: {
@@ -71,7 +61,7 @@ local dbName = 'infisical';
         retries: 3,
         start_period: '40s',
       },
-      labels: lib.mixins.proxyAdd('infisical', 'infisical', appPort),
+      labels: s.proxy.add('infisical', 'infisical', appPort),
       expose: [std.toString(appPort)],
     },
 
@@ -86,7 +76,7 @@ local dbName = 'infisical';
         POSTGRES_PASSWORD: '${INFISICAL_DB_PASSWORD:?err}',
       },
       networks: {
-        default: { aliases: [n.alias(roles.db)] },
+        default: { aliases: [n.container(roles.db)] },
       },
       restart: 'unless-stopped',
       healthcheck: {
@@ -106,7 +96,7 @@ local dbName = 'infisical';
         ALLOW_EMPTY_PASSWORD: 'yes',
       },
       networks: {
-        default: { aliases: [n.alias(roles.redis)] },
+        default: { aliases: [n.container(roles.redis)] },
       },
       restart: 'unless-stopped',
       healthcheck: {
@@ -120,9 +110,9 @@ local dbName = 'infisical';
   },
 
   networks:
-    n.network        // private net (renamed default) 'infisical' — app <-> db <-> redis
-    + lib.compose.own('infisical')    // shared-infisical (owned; apps join)
-    + lib.compose.join('proxy'),      // shared-proxy (traefik owns)
+    s.network.default        // private net (renamed default) 'infisical' — app <-> db <-> redis
+    + s.network.own('infisical')    // shared-infisical (owned; apps join)
+    + s.network.join('proxy'),      // shared-proxy (traefik owns)
 
   volumes: {
     [roles.db]: { name: n.volume(roles.db) },        // 'infisical_db'

@@ -11,12 +11,14 @@
 // previously pinned to the pre-jsonnet layout (`paperless-production_*`) to
 // avoid a rename; that pin is now dropped as part of the naming-convention
 // pass, so existing volumes must be migrated/renamed on next deploy.
-local lib = import 'lib.libsonnet';
+local c = import 'compose.libsonnet';
+local reg = import 'registry.libsonnet';
 
 local stack = 'paperless';
-local n = lib.compose.names(stack);
+local s = c.stack(stack);
+local n = s.names;
 local broker = 'broker';
-local db = lib.registry.roles.db;
+local db = reg.roles.db;
 local gotenberg = 'gotenberg';
 local tika = 'tika';
 local webserver = 'webserver';
@@ -33,8 +35,8 @@ local dbName = 'paperless';
 
 // Two extra bind mounts (not named volumes) on webserver, under the shared
 // host bind-mount root.
-local exportMount = lib.registry.dockerVolumes + '/apps/paperless/export';
-local consumeMount = lib.registry.dockerVolumes + '/apps/paperless/consume';
+local exportMount = reg.server.dir.docker.root + reg.server.dir.docker.bindmounts + '/apps/paperless/export';
+local consumeMount = reg.server.dir.docker.root + reg.server.dir.docker.bindmounts + '/apps/paperless/consume';
 
 // Volume resource keys. broker/db each own exactly one volume, so the key is
 // just the service's own role (broker/db); webserver owns two, so its keys
@@ -60,7 +62,7 @@ local mediaVol = webserver + '_media';
         timeout: '5s',
         retries: 5,
       },
-      networks: { default: { aliases: [n.alias(broker)] } },
+      networks: { default: { aliases: [n.container(broker)] } },
       expose: ['6379'],
     },
 
@@ -81,7 +83,7 @@ local mediaVol = webserver + '_media';
         timeout: '10s',
         retries: 10,
       },
-      networks: { default: { aliases: [n.alias(db)] } },
+      networks: { default: { aliases: [n.container(db)] } },
       expose: ['5432'],
     },
 
@@ -92,7 +94,7 @@ local mediaVol = webserver + '_media';
       // content like tracking pixels or javascript.
       command: ['gotenberg', '--chromium-disable-javascript=true', '--chromium-allow-list=file:///tmp/.*'],
       restart: 'on-failure:5',
-      networks: { default: { aliases: [n.alias(gotenberg)] } },
+      networks: { default: { aliases: [n.container(gotenberg)] } },
       expose: ['3000'],
     },
 
@@ -100,7 +102,7 @@ local mediaVol = webserver + '_media';
       image: 'docker.io/apache/tika:' + tikaVersion,
       container_name: n.container(tika),
       restart: 'on-failure:5',
-      networks: { default: { aliases: [n.alias(tika)] } },
+      networks: { default: { aliases: [n.container(tika)] } },
       expose: ['9998'],
     },
 
@@ -125,17 +127,17 @@ local mediaVol = webserver + '_media';
         PAPERLESS_OCR_LANGUAGE: 'eng',
 
         // --- Locale ---
-        PAPERLESS_URL: 'https://paper.' + lib.registry.domains.ktbinternal,
+        PAPERLESS_URL: 'https://paper.' + reg.domains.ktbinternal,
         PAPERLESS_TIME_ZONE: 'America/New_York',
         PAPERLESS_DATE_ORDER: 'MDY',
 
         // --- Service endpoints (reached on this stack's private network) ---
-        PAPERLESS_REDIS: 'redis://' + n.alias(broker) + ':6379',
-        PAPERLESS_TIKA_GOTENBERG_ENDPOINT: 'http://' + n.alias(gotenberg) + ':3000',
-        PAPERLESS_TIKA_ENDPOINT: 'http://' + n.alias(tika) + ':9998',
+        PAPERLESS_REDIS: 'redis://' + n.container(broker) + ':6379',
+        PAPERLESS_TIKA_GOTENBERG_ENDPOINT: 'http://' + n.container(gotenberg) + ':3000',
+        PAPERLESS_TIKA_ENDPOINT: 'http://' + n.container(tika) + ':9998',
 
         // --- Database ---
-        PAPERLESS_DBHOST: n.alias(db),
+        PAPERLESS_DBHOST: n.container(db),
         PAPERLESS_DBUSER: dbUser,
         PAPERLESS_DBNAME: dbName,
         // Secrets — interpolated from /dev/shm/paperless.env (parent include.env_file)
@@ -150,11 +152,11 @@ local mediaVol = webserver + '_media';
         retries: 5,
       },
       networks: {
-        default: { aliases: [n.alias(webserver)] },
-        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias(webserver)] },
+        default: { aliases: [n.container(webserver)] },
+        [reg.sharedNetworks.proxy.name]: { aliases: [n.container(webserver)] },
       },
       // Exposed to Traefik on shared-proxy — no published host port.
-      labels: lib.mixins.proxyAdd(stack, 'paper', webPort),
+      labels: s.proxy.add(stack, 'paper', webPort),
       expose: [std.toString(webPort)],
     },
   },
@@ -167,6 +169,6 @@ local mediaVol = webserver + '_media';
   },
 
   networks:
-    n.network
-    + lib.compose.join('proxy'),
+    s.network.default
+    + s.network.join('proxy'),
 }

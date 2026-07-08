@@ -6,11 +6,13 @@
 // time. Only genuine per-HOST values (the tailscale hostname) and the Infisical
 // secret stay as ${...} for docker compose to interpolate at deploy — the parent
 // compose.jsonnet declares the env_files that supply them.
-local lib = import 'lib.libsonnet';
+local c = import 'compose.libsonnet';
+local reg = import 'registry.libsonnet';
 
 local stack = 'zerobyte';
-local n = lib.compose.names(stack);
-local roles = lib.registry.roles;
+local s = c.stack(stack);
+local n = s.names;
+local roles = reg.roles;
 
 local port = 4096;
 local version = 'v0.40';
@@ -35,7 +37,7 @@ local version = 'v0.40';
       },
       ports: [std.toString(port) + ':' + std.toString(port)],  // '4096:4096' — core infra, no proxy
       networks: {
-        default: { aliases: [n.alias(roles.app)] },
+        default: { aliases: [n.container(roles.app)] },
       },
       restart: 'unless-stopped',
       cap_add: ['SYS_ADMIN'],
@@ -43,7 +45,7 @@ local version = 'v0.40';
     },
   },
 
-  networks: n.network,  // private net (renamed default) 'zerobyte'
+  networks: s.network.default,  // private net (renamed default) 'zerobyte'
 
   volumes: {
     [roles.app]: { name: n.volume(roles.app) },  // 'zerobyte_app'

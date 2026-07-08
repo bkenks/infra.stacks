@@ -4,11 +4,13 @@
 // YAML. Only `frontend` joins shared-proxy (traefik owns) to be reachable; the
 // rest talk to each other on the private frappe network. Runs its own MariaDB
 // `db` service — no shared-postgres join.
-local lib = import 'lib.libsonnet';
+local c = import 'compose.libsonnet';
+local reg = import 'registry.libsonnet';
 
 local stack = 'frappe';
-local n = lib.compose.names(stack);
-local roles = lib.registry.roles;
+local s = c.stack(stack);
+local n = s.names;
+local roles = reg.roles;
 
 // Roles. `db` is the common constant (typo-safe); the rest are plain strings —
 // frappe has two redis instances (cache/queue) so there's no single `roles.redis`.
@@ -64,7 +66,7 @@ local frappeImageService(role) = {
   restart: restart,
   platform: 'linux/amd64',
   pull_policy: 'always',
-  networks: { default: { aliases: [n.alias(role)] } },
+  networks: { default: { aliases: [n.container(role)] } },
 };
 
 {
@@ -99,10 +101,10 @@ local frappeImageService(role) = {
         [redisQueue]: { condition: 'service_started' },
       },
       environment: {
-        DB_HOST: n.alias(db),
+        DB_HOST: n.container(db),
         DB_PORT: std.toString(dbPort),
-        REDIS_CACHE: n.alias(redisCache) + ':6379',
-        REDIS_QUEUE: n.alias(redisQueue) + ':6379',
+        REDIS_CACHE: n.container(redisCache) + ':6379',
+        REDIS_QUEUE: n.container(redisQueue) + ':6379',
         SOCKETIO_PORT: std.toString(socketioPort),
       },
       command: [configuratorScript],
@@ -136,7 +138,7 @@ local frappeImageService(role) = {
         start_period: '15s',
       },
       expose: ['3306'],
-      networks: { default: { aliases: [n.alias(db)] } },
+      networks: { default: { aliases: [n.container(db)] } },
     },
 
     // --------------------------------------------------------------------
@@ -145,8 +147,8 @@ local frappeImageService(role) = {
     [frontend]: frappeImageService(frontend) + {
       depends_on: [backend, websocket],
       environment: {
-        BACKEND: n.alias(backend) + ':8000',
-        SOCKETIO: n.alias(websocket) + ':9000',
+        BACKEND: n.container(backend) + ':8000',
+        SOCKETIO: n.container(websocket) + ':9000',
         // Compose interpolates environment values, so the literal $host MUST be
         // escaped as $$host (else it resolves empty and ALL routing breaks).
         FRAPPE_SITE_NAME_HEADER: '$$host',
@@ -162,15 +164,15 @@ local frappeImageService(role) = {
       command: ['nginx-entrypoint.sh'],
       expose: [std.toString(frontendPort)],
       networks: {
-        default: { aliases: [n.alias(frontend)] },
-        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias(frontend)] },
+        default: { aliases: [n.container(frontend)] },
+        [reg.sharedNetworks.proxy.name]: { aliases: [n.container(frontend)] },
       },
       // Single-site rule today (business.stackform.app), so proxyAdd's
       // single-Host() assumption fits. Onboarding a second tenant means this
       // stack serves multiple Hosts (DNS-based multitenancy) — at that point
       // replace this with a manual `traefik.http.routers.frappe.rule` label
       // OR-ing every site's Host() clause (proxyAdd only emits one).
-      labels: lib.mixins.proxyAdd(stack, 'frappe', frontendPort, lib.registry.domains.ktbinternal),
+      labels: s.proxy.add(stack, 'frappe', frontendPort, reg.domains.ktbinternal),
     },
 
     // --------------------------------------------------------------------
@@ -197,7 +199,7 @@ local frappeImageService(role) = {
       container_name: n.container(redisCache),
       restart: restart,
       expose: ['6379'],
-      networks: { default: { aliases: [n.alias(redisCache)] } },
+      networks: { default: { aliases: [n.container(redisCache)] } },
     },
 
     // --------------------------------------------------------------------
@@ -210,7 +212,7 @@ local frappeImageService(role) = {
       volumes: [n.volume(redisQueue) + ':/data'],
       restart: restart,
       expose: ['6379'],
-      networks: { default: { aliases: [n.alias(redisQueue)] } },
+      networks: { default: { aliases: [n.container(redisQueue)] } },
     },
 
     // --------------------------------------------------------------------
@@ -245,6 +247,6 @@ local frappeImageService(role) = {
   },
 
   networks:
-    n.network
-    + lib.compose.join('proxy'),
+    s.network.default
+    + s.network.join('proxy'),
 }

@@ -5,11 +5,12 @@
 // create them) and runs `true`. The networks persist after the container stops,
 // so OWNER/CONSUMER stacks that reference them never race on a missing network.
 // Deployed FIRST (see infra.ansible) so the shared nets exist before any other stack.
-local lib = import 'lib.libsonnet';
-local reg = lib.registry;
+local c = import 'compose.libsonnet';
+local reg = import 'registry.libsonnet';
 
 local stack = 'docker-resource-manager';
-local n = lib.compose.names(stack);
+local s = c.stack(stack);
+local n = s.names;
 
 local version = '1.37.0';
 
@@ -31,5 +32,5 @@ local netKeys = std.objectFields(reg.sharedNetworks);
   },
 
   // OWN every shared network defined in the registry.
-  networks: std.foldl(function(acc, k) acc + lib.compose.own(k), netKeys, {}),
+  networks: std.foldl(function(acc, k) acc + s.network.own(k), netKeys, {}),
 }

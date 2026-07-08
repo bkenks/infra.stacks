@@ -36,10 +36,9 @@
 // The service->host map and the host->IP map are DATA now (registry.libsonnet:
 // controllerServices + edgeHosts). Add a service / move a host there and re-render.
 
-local lib = import 'lib.libsonnet';
-local reg = lib.registry;
+local reg = import 'registry.libsonnet';
 
-local hosts = reg.edgeHosts;
+local hosts = reg.server.hosts;
 local catalog = reg.controllerServices;
 
 // sub.<reg.domains.ktbinternal> — sub defaults to the service key when not overridden.

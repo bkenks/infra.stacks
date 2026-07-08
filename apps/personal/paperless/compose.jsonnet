@@ -1,6 +1,3 @@
-// paperless — parent compose (Komodo deploy entrypoint). Renders to compose.yaml.
-// Interpolation env_file: /dev/shm/paperless.env (rendered by the Infisical
-// agent; registry agentServices dest `paperless.env`).
 {
   name: 'paperless',
   include: [

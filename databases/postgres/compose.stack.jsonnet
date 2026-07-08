@@ -7,19 +7,19 @@
 // The db service is named `postgres_db` (the <stack>_<role> convention) and
 // publishes that as its alias on every network, so consumers dial
 // postgres_db:5432. That hostname is the single source in the registry
-// (reg.endpoints.postgres.private.host) — change it there and this follows.
-local lib = import 'lib.libsonnet';
-local comp = lib.compose;
-local reg = lib.registry;
+// (reg.endpoints.postgres.container.host) — change it there and this follows.
+local c = import 'compose.libsonnet';
+local reg = import 'registry.libsonnet';
 local sharedNetworks = reg.sharedNetworks;
 local roles = reg.roles;
 
 local stack = 'postgres';
-local n = comp.names(stack);
+local s = c.stack(stack);
+local n = s.names;
 local pgEndpoint = reg.endpoints.postgres;
 
 // Host-published port for direct external access (DBeaver, psql from the LAN).
-// Independent of pgEndpoint.private.port (5432) — that's the container's real
+// Independent of pgEndpoint.container.port (5432) — that's the container's real
 // internal listening port and is what every consumer's DATABASE_URL dials over
 // shared-postgres; it must NOT be tied to whatever host port this happens to
 // publish on.
@@ -30,11 +30,11 @@ local hostPort = 6109;
 
   services: {
     [roles.db]: {
-      local extName = pgEndpoint.private.host,
+      local extName = pgEndpoint.container.host,
       local pgVersion = '18',
 
       image: 'postgres:' + pgVersion,
-      container_name: pgEndpoint.private.host,  // 'postgres_db'
+      container_name: pgEndpoint.container.host,  // 'postgres_db'
       volumes: [roles.db + ':/var/lib/postgresql'],
       environment: {
         // Secrets — interpolated from /dev/shm/postgres.env (parent include.env_file)
@@ -44,9 +44,9 @@ local hostPort = 6109;
       ports: [ std.toString(hostPort) + ':5432' ],
       restart: 'always',
       networks:
-      comp.serviceNetwork('default', extName) +
-      comp.serviceNetwork(sharedNetworks.postgres.name, extName) +
-      comp.serviceNetwork(sharedNetworks.dbBackups.name, extName),
+      s.network.attach('default', extName) +
+      s.network.attach(sharedNetworks.postgres.name, extName) +
+      s.network.attach(sharedNetworks.dbBackups.name, extName),
       //   default: { aliases: [extName] },
       //   [sharedNetworks.postgres.name]: { aliases: [extName] },   // shared-postgres
       //   [sharedNetworks.dbBackups.name]: { aliases: [extName] },  // shared-db-backups
@@ -78,9 +78,9 @@ local hostPort = 6109;
   },
 
   networks:
-    n.network       // default net -> 'postgres' (private; db + pgadmin)
-    + lib.compose.own('postgres')     // shared-postgres (owned; apps join)
-    + lib.compose.join('dbBackups'),  // shared-db-backups (databasus owns)
+    s.network.default       // default net -> 'postgres' (private; db + pgadmin)
+    + s.network.own('postgres')     // shared-postgres (owned; apps join)
+    + s.network.join('dbBackups'),  // shared-db-backups (databasus owns)
 
   volumes: { [roles.db]: { name: n.volume(roles.db) } },
 }
