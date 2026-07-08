@@ -62,6 +62,7 @@
     postgres: { name: 'shared-postgres', owner: 'postgres' },
     dbBackups: { name: 'shared-db-backups', owner: 'databasus' },
     infisical: { name: 'shared-infisical', owner: 'infisical' },
+    edge: { name: 'shared-edge', owner: 'authentik' },
   },
   # SHARED DOCKER NETWORKS
   # ============================================================
@@ -191,6 +192,26 @@
     # and the agent dumps /hosts/${AGENT_HOST}/newt; secret names match the env
     # vars, so type=dump.
     newt: { project: 'infra', folder: '/hosts/${AGENT_HOST}/newt', dest: 'newt.env', type: 'dump' },
+    # authentik: renames PG_PASS -> both AUTHENTIK_POSTGRESQL__PASSWORD and
+    # POSTGRES_PASSWORD (one secret feeds the app's DSN and the db's own
+    # POSTGRES_PASSWORD); bootstrap creds keep their short Infisical names.
+    authentik: {
+      project: 'infra',
+      folder: '/authentik',
+      dest: 'authentik.env',
+      type: 'map',
+      keys: {
+        AUTHENTIK_SECRET_KEY: 'AUTHENTIK_SECRET_KEY',
+        AUTHENTIK_POSTGRESQL__PASSWORD: 'PG_PASS',
+        POSTGRES_PASSWORD: 'PG_PASS',
+        AUTHENTIK_BOOTSTRAP_PASSWORD: 'BOOTSTRAP_PASSWORD',
+        AUTHENTIK_BOOTSTRAP_TOKEN: 'BOOTSTRAP_TOKEN',
+        AUTHENTIK_BOOTSTRAP_EMAIL: 'BOOTSTRAP_EMAIL',
+      },
+    },
+    # authentik-outpost: single outpost API token; secret name already equals
+    # the env var (AUTHENTIK_TOKEN), so type=dump.
+    'authentik-outpost': { project: 'infra', folder: '/authentik-outpost', dest: 'authentik-outpost.env', type: 'dump' },
     # --- Infra project (raw: single secret's raw value to a .key file) ---
     databasus: { project: 'infra', folder: '/databasus', dest: 'databasus_secret.key', type: 'raw', key: 'SECRET_KEY' },
   },

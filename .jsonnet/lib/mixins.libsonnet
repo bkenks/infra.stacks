@@ -28,6 +28,15 @@ local reg = import 'registry.libsonnet';
       ['traefik.http.services.' + router + '.loadbalancer.server.port']: std.toString(port),
     },
 
+  // Same as proxyAdd, plus the Authentik forward-auth middleware — gates the
+  // router behind SSO. The `authentik-forwardauth@file` middleware is defined in
+  // Traefik's file provider (points at the authentik-outpost); it's referenced
+  // here but wired at Phase 2, not by this scaffolding.
+  proxyAddAuth(router, sub, port, domain=reg.rootDomain)::
+    self.proxyAdd(router, sub, port, domain) + {
+      ['traefik.http.routers.' + router + '.middlewares']: 'authentik-forwardauth@file',
+    },
+
   // Marks a container so Komodo's StopAllContainers leaves it running.
   komodoSkip:: { 'komodo.skip': '' },
 }

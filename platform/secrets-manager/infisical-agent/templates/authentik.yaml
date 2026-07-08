@@ -1,0 +1,12 @@
+# GENERATED from services.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
+- destination-path: /dev/shm/authentik.env
+  config:
+    polling-interval: "1m"
+  template-content: |
+    AUTHENTIK_BOOTSTRAP_EMAIL={{ with getSecretByName "86324d9b-3dd7-49d4-b252-69228c5ee0c7" "prod" "/authentik" "BOOTSTRAP_EMAIL" }}{{ .Value }}{{ end }}
+    AUTHENTIK_BOOTSTRAP_PASSWORD={{ with getSecretByName "86324d9b-3dd7-49d4-b252-69228c5ee0c7" "prod" "/authentik" "BOOTSTRAP_PASSWORD" }}{{ .Value }}{{ end }}
+    AUTHENTIK_BOOTSTRAP_TOKEN={{ with getSecretByName "86324d9b-3dd7-49d4-b252-69228c5ee0c7" "prod" "/authentik" "BOOTSTRAP_TOKEN" }}{{ .Value }}{{ end }}
+    AUTHENTIK_POSTGRESQL__PASSWORD={{ with getSecretByName "86324d9b-3dd7-49d4-b252-69228c5ee0c7" "prod" "/authentik" "PG_PASS" }}{{ .Value }}{{ end }}
+    AUTHENTIK_SECRET_KEY={{ with getSecretByName "86324d9b-3dd7-49d4-b252-69228c5ee0c7" "prod" "/authentik" "AUTHENTIK_SECRET_KEY" }}{{ .Value }}{{ end }}
+    POSTGRES_PASSWORD={{ with getSecretByName "86324d9b-3dd7-49d4-b252-69228c5ee0c7" "prod" "/authentik" "PG_PASS" }}{{ .Value }}{{ end }}
+
