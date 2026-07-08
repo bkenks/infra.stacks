@@ -1,11 +1,11 @@
-// controller.jsonnet — SOURCE for controller.yml (the central routing table).
+// controller.jsonnet — SOURCE for controller.yaml (the central routing table).
 //
-// Renders (via .jsonnet/render.sh, special-cased to .yml) to controller.yml,
-// which is mounted READ-ONLY on EVERY host at /etc/traefik/dynamic/controller.yml
-// (see platform/edge/traefik/compose.stack.jsonnet). DO NOT edit controller.yml —
+// Renders (via .jsonnet/render.sh, special-cased to .yml) to controller.yaml,
+// which is mounted READ-ONLY on EVERY host at /etc/traefik/dynamic/controller.yaml
+// (see platform/edge/traefik/compose.stack.jsonnet). DO NOT edit controller.yaml —
 // edit this source (and the catalog it reads) and re-render.
 //
-// ⚠️ safe_dump strips YAML comments, so the rendered controller.yml carries only
+// ⚠️ safe_dump strips YAML comments, so the rendered controller.yaml carries only
 // the render.sh "GENERATED … DO NOT EDIT" header — ALL the operational knowledge
 // (loop-guard mechanism, the 2026-06-29 incident, the priority/portability story)
 // now lives HERE, in these jsonnet comments. Read this file, not the YAML.

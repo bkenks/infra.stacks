@@ -243,12 +243,12 @@
   # ============================================================
   # notes: The "which host runs X, and at what subdomain" knowledge for every
   # single-label service the central controller routes. This used to live ONLY in
-  # controller.yml's comments + hand-written router entries; it is now DATA, so a
-  # host move or subdomain change here re-renders controller.yml automatically
+  # controller.yaml's comments + hand-written router entries; it is now DATA, so a
+  # host move or subdomain change here re-renders controller.yaml automatically
   # (change `home`, or `sub`, and re-render — no hand-editing the routing table).
   #
   # Each entry becomes ONE priority:1 router (rule Host(`<sub>.<rootDomain>`) ->
-  # the `host-<home>` backend, controller-hop middleware, tls) in controller.yml.
+  # the `host-<home>` backend, controller-hop middleware, tls) in controller.yaml.
   # Fields:
   #   home    key into `edgeHosts` — the host that actually runs the service (its
   #           Tailscale IP is resolved into the router's backend). Compile-checked.
@@ -262,7 +262,7 @@
   #           (no re-encrypt, so no loop path back into the table). Plex only.
   #   latent  true for a catalogued-but-not-yet-deployed stack. Informational only
   #           (still gets a router, pointed at `home`); preserves the "not deployed"
-  #           knowledge that lived in a controller.yml comment. Flip `home` if it
+  #           knowledge that lived in a controller.yaml comment. Flip `home` if it
   #           ever lands elsewhere.
   # FQDNs derive from `rootDomain` — NEVER write a literal domain here.
   controllerServices: {

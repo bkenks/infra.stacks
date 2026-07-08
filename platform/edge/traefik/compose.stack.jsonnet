@@ -45,7 +45,7 @@ local proxyNetwork = 'proxy';
         '/var/run/docker.sock:/var/run/docker.sock:ro',  // discover labelled containers
         './files/traefik.yml:/etc/traefik/traefik.yml:ro',
         './files/host.yml:/etc/traefik/dynamic/host.yml:ro',           // shared dynamic config
-        './files/controller/controller.yml:/etc/traefik/dynamic/controller.yml:ro',  // central routing table
+        './files/controller/controller.yaml:/etc/traefik/dynamic/controller.yaml:ro',  // central routing table
         roles.app + ':/letsencrypt',  // persist acme.json across redeploys (volume keyed below)
       ],
       networks: {
