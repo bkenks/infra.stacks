@@ -13,7 +13,7 @@ services:
       db:
         condition: service_healthy
     environment:
-      GITEA__SERVER__SSH_DOMAIN: gitea.homektb.com
+      GITEA__SERVER__SSH_DOMAIN: gitea.ktbinternal.com
       GITEA__SERVER__SSH_LISTEN_PORT: '22'
       GITEA__SERVER__SSH_PORT: '2222'
       GITEA__database__DB_TYPE: postgres
@@ -40,7 +40,7 @@ services:
     labels:
       traefik.enable: 'true'
       traefik.http.routers.gitea.entrypoints: websecure
-      traefik.http.routers.gitea.rule: Host(`gitea.homektb.com`)
+      traefik.http.routers.gitea.rule: Host(`gitea.ktbinternal.com`)
       traefik.http.routers.gitea.tls: 'true'
       traefik.http.services.gitea.loadbalancer.server.port: '3000'
       traefik.tcp.routers.gitea-ssh.entrypoints: gitea-ssh

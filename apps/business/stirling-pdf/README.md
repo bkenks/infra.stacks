@@ -2,7 +2,7 @@
 
 > 📚 System architecture, the secrets-flow, and the deploy model live in Notion → **[Architecture — How It All Connects](https://app.notion.com/p/37931e9a948a819380e7e9ef7d90cf8c)**. This file covers only this stack: what it runs and its secret/deploy specifics.
 
-[Stirling PDF](https://www.stirlingpdf.com/) — self-hosted PDF toolkit. Reached at `stirling-pdf.homektb.com` via Traefik, forwarding to the container's port `8080`.
+[Stirling PDF](https://www.stirlingpdf.com/) — self-hosted PDF toolkit. Reached at `stirling-pdf.ktbinternal.com` via Traefik, forwarding to the container's port `8080`.
 
 Source of truth: `compose.jsonnet` + `compose.stack.jsonnet` compile to `compose.yaml` + `compose.stack.yaml` — do not edit the YAML directly.
 
@@ -18,11 +18,11 @@ Non-secret config (language picker, etc.) is baked directly into `compose.stack.
 
 ### Hostname (new pick)
 
-The old stack had no pre-existing hostname — it was reached via a bare published port (`20290`). This migration picks `stirling-pdf.homektb.com` as the new Traefik hostname; there was no prior convention to preserve here.
+The old stack had no pre-existing hostname — it was reached via a bare published port (`20290`). This migration picks `stirling-pdf.ktbinternal.com` as the new Traefik hostname; there was no prior convention to preserve here.
 
 ### Reachability change
 
-This stack previously published directly to the host (`20290:8080`, i.e. `<host>:20290`). The jsonnet version drops the host port publish in favor of `expose:` + Traefik — it's now reached at `https://stirling-pdf.homektb.com` only. Any bookmark/reference to the old `host:20290` URL needs to move to the new hostname.
+This stack previously published directly to the host (`20290:8080`, i.e. `<host>:20290`). The jsonnet version drops the host port publish in favor of `expose:` + Traefik — it's now reached at `https://stirling-pdf.ktbinternal.com` only. Any bookmark/reference to the old `host:20290` URL needs to move to the new hostname.
 
 ### Staging dropped
 

@@ -1,4 +1,4 @@
-// paperless — Paperless-ngx document management (paper.homektb.com), with its
+// paperless — Paperless-ngx document management, with its
 // own dedicated Postgres + Redis (broker) + Gotenberg + Apache Tika for
 // office-document consumption.
 //

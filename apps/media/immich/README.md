@@ -2,7 +2,7 @@
 
 > 📚 System architecture, the secrets-flow, and the deploy model live in Notion → **[Architecture — How It All Connects](https://app.notion.com/p/37931e9a948a819380e7e9ef7d90cf8c)**. This file covers only this stack: what it runs and its secret/deploy specifics.
 
-[Immich](https://immich.app/) — self-hosted photo & video management. Reached at `immich.homektb.com` via Traefik, forwarding to `immich-server`'s port `2283`.
+[Immich](https://immich.app/) — self-hosted photo & video management. Reached at `immich.ktbinternal.com` via Traefik, forwarding to `immich-server`'s port `2283`.
 
 Runs on **paiki** (the media host). Four services: `database` (Immich's own dedicated Postgres, `vectorchord`/`pgvecto` extensions — does NOT join `shared-postgres`, it's explicitly incompatible), `immich-machine-learning`, `immich-server` (the only Traefik-facing service), and `redis` (valkey image).
 

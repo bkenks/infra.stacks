@@ -113,7 +113,7 @@ name = "databasus"
 [stack.config]
 server = "littlebuddy"
 links = [
-  "https://databasus.homektb.com"
+  "https://databasus.ktbinternal.com"
 ]
 project_name = "databasus"
 poll_for_updates = true
@@ -156,7 +156,7 @@ ignore_services = ["configurator"]
 name = "immich"
 [stack.config]
 server = "paiki"
-links = ["https://immich.homektb.com"]
+links = ["https://immich.ktbinternal.com"]
 linked_repo = "infra.stacks"
 run_directory = "./apps/media/immich"
 file_paths = ["compose.yaml"]
@@ -377,7 +377,7 @@ run_directory = "./databases/postgres"
 name = "scriberr"
 [stack.config]
 server = "littlebuddy"
-links = ["scriberr.homektb.com"]
+links = ["scriberr.ktbinternal.com"]
 linked_repo = "infra.stacks"
 run_directory = "./apps/business/scriberr"
 
@@ -531,7 +531,7 @@ name = "zerobyte"
 [stack.config]
 server = "littlebuddy"
 links = [
-  "https://zerobyte.homektb.com",
+  "https://zerobyte.ktbinternal.com",
   "http://littlebuddy:4096"
 ]
 project_name = "zerobyte"
@@ -559,7 +559,7 @@ name = "client_couch-potatoes_website"
 tags = ["stackform", "client"]
 [repo.config]
 server = "littlebuddy"
-git_provider = "fj.homektb.com"
+git_provider = "fj.ktbinternal.com"
 git_account = "bkenks"
 repo = "stackform-hq/client_couch-potatoes_website"
 
@@ -570,7 +570,7 @@ name = "client_royalty-hvac_website"
 tags = ["stackform", "client"]
 [repo.config]
 server = "littlebuddy"
-git_provider = "fj.homektb.com"
+git_provider = "fj.ktbinternal.com"
 git_account = "bkenks"
 repo = "stackform-hq/client_royalty-hvac_website"
 
@@ -590,7 +590,7 @@ repo = "ktbgroup-self-hosted/stack.infra"
 name = "infra.stacks"
 [repo.config]
 server = "littlebuddy"
-git_provider = "fj.homektb.com"
+git_provider = "fj.ktbinternal.com"
 git_account = "bkenks"
 repo = "ktbgroup-self-hosted/infra.stacks"
 
@@ -619,7 +619,7 @@ name = "stackform_website"
 tags = ["stackform"]
 [repo.config]
 server = "littlebuddy"
-git_provider = "fj.homektb.com"
+git_provider = "fj.ktbinternal.com"
 git_account = "bkenks"
 repo = "stackform-hq/stackform_website"
 

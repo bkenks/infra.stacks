@@ -14,7 +14,7 @@ services:
     container_name: docuseal_app
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres-db:5432/docuseal
-      FORCE_SSL: docuseal.homektb.com
+      FORCE_SSL: docuseal.ktbinternal.com
       PORT: '3000'
       SECRET_KEY_BASE: ${DOCUSEAL_SECRET_KEY_BASE:?err}
     expose:
@@ -23,7 +23,7 @@ services:
     labels:
       traefik.enable: 'true'
       traefik.http.routers.docuseal.entrypoints: websecure
-      traefik.http.routers.docuseal.rule: Host(`docuseal.homektb.com`)
+      traefik.http.routers.docuseal.rule: Host(`docuseal.ktbinternal.com`)
       traefik.http.routers.docuseal.tls: 'true'
       traefik.http.services.docuseal.loadbalancer.server.port: '3000'
     networks:

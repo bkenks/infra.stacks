@@ -2,7 +2,7 @@
 
 > 📚 System architecture, the secrets-flow, and the deploy model live in Notion → **[Architecture — How It All Connects](https://app.notion.com/p/37931e9a948a819380e7e9ef7d90cf8c)**. This file covers only this stack: what it runs and its secret/deploy specifics.
 
-[Scriberr](https://github.com/rishikanthc/scriberr) — self-hosted audio transcription powered by WhisperX, for business use. Reached at `scriberr.homektb.com` via Traefik, forwarding to the container's port `8080`.
+[Scriberr](https://github.com/rishikanthc/scriberr) — self-hosted audio transcription powered by WhisperX, for business use. Reached at `scriberr.ktbinternal.com` via Traefik, forwarding to the container's port `8080`.
 
 Source of truth: `compose.jsonnet` + `compose.stack.jsonnet` compile to `compose.yaml` + `compose.stack.yaml` — do not edit the YAML directly.
 
@@ -18,7 +18,7 @@ The image is pinned **by digest** (`ghcr.io/rishikanthc/scriberr@sha256:9e36448f
 
 ### Traefik
 
-Previously published directly on host port `8083:8080` with no Traefik integration. This migration adds Traefik: the container now only `expose`s `8080` internally, reachable via `https://scriberr.homektb.com`.
+Previously published directly on host port `8083:8080` with no Traefik integration. This migration adds Traefik: the container now only `expose`s `8080` internally, reachable via `https://scriberr.ktbinternal.com`.
 
 ### Volume rename on first deploy
 

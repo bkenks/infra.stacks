@@ -8,17 +8,17 @@ Source of truth: `compose.jsonnet` + `compose.stack.jsonnet` compile to `compose
 
 ## Services
 
-All HTTP services are fronted by Traefik on the wildcard `*.homektb.com` cert, except Plex which keeps host networking.
+All HTTP services are fronted by Traefik on the wildcard `*.ktbinternal.com` cert, except Plex which keeps host networking.
 
 | Service    | Reached at              | Internal port | Notes                                                                    |
 |------------|--------------------------|----------------|---------------------------------------------------------------------------|
 | Plex       | host net `:32400`        | 32400          | Media server — `network_mode: host`, **not** behind Traefik; GPU passthrough (`/dev/dri`) for hardware transcoding |
-| Seer       | `seerr.homektb.com`      | 5055           | Request management (Overseerr's successor); runs as `node`, `init: true`, no container healthcheck (image ships no curl/wget/bash) |
-| Prowlarr   | `prowlarr.homektb.com`   | 9696           | Indexer aggregator                                                       |
-| Radarr     | `radarr.homektb.com`     | 7878           | Movies                                                                    |
-| Sonarr     | `sonarr.homektb.com`     | 8989           | TV                                                                        |
-| Bazarr     | `bazarr.homektb.com`     | 6767           | Subtitles                                                                 |
-| SABnzbd    | `sabnzbd.homektb.com`    | 8080           | Usenet download client                                                   |
+| Seer       | `seerr.ktbinternal.com`      | 5055           | Request management (Overseerr's successor); runs as `node`, `init: true`, no container healthcheck (image ships no curl/wget/bash) |
+| Prowlarr   | `prowlarr.ktbinternal.com`   | 9696           | Indexer aggregator                                                       |
+| Radarr     | `radarr.ktbinternal.com`     | 7878           | Movies                                                                    |
+| Sonarr     | `sonarr.ktbinternal.com`     | 8989           | TV                                                                        |
+| Bazarr     | `bazarr.ktbinternal.com`     | 6767           | Subtitles                                                                 |
+| SABnzbd    | `sabnzbd.ktbinternal.com`    | 8080           | Usenet download client                                                   |
 | Configarr  | — (no UI)                | —              | One-shot job: syncs TRaSH quality config (code) → Sonarr/Radarr, then exits |
 | Decluttarr | — (no UI)                | —              | Long-running: clears failed/stalled/orphaned downloads from the queues   |
 
@@ -91,7 +91,7 @@ The steps below are for a **fresh** install of each app. Once set up, Prowlarr p
 
 ### 1. SABnzbd
 
-Access SABnzbd at `sabnzbd.homektb.com`.
+Access SABnzbd at `sabnzbd.ktbinternal.com`.
 
 1. Configure the fields according to what your Usenet provider gives you.
 2. Click Test Server to make sure you entered the fields correctly, click Next, click Go to SABnzbd, click the top-right gear icon, click General.
@@ -103,7 +103,7 @@ Access SABnzbd at `sabnzbd.homektb.com`.
 
 ### 2. *ARRs
 
-Access each *arr at its `<service>.homektb.com` hostname.
+Access each *arr at its `<service>.ktbinternal.com` hostname.
 
 #### Prowlarr
 
@@ -131,20 +131,20 @@ Access each *arr at its `<service>.homektb.com` hostname.
 
 #### Bazarr
 
-Access Bazarr at `bazarr.homektb.com`.
+Access Bazarr at `bazarr.ktbinternal.com`.
 
 - **General** — Settings → General → Authentication: Form, set Username/Password, Save.
 - **Languages** — Settings → Languages → pick language(s), Add New Profile, name it `Main`, add languages, Save.
 - **Providers** — Settings → Providers → `+` → add each provider (OpenSubtitles.com recommended) with its credentials, Save.
-- **Sonarr/Radarr link** — Settings → Sonarr → enable, Address = internal service name (or `sonarr.homektb.com` / port 443 with SSL if using the public hostname), paste the Sonarr API Key, Test, Save. Repeat under Settings → Radarr.
+- **Sonarr/Radarr link** — Settings → Sonarr → enable, Address = internal service name (or `sonarr.ktbinternal.com` / port 443 with SSL if using the public hostname), paste the Sonarr API Key, Test, Save. Repeat under Settings → Radarr.
 
 #### Other *arr apps (Sonarr, Radarr)
 
-Access each at its `<service>.homektb.com` hostname.
+Access each at its `<service>.ktbinternal.com` hostname.
 
 - **Language** (Sonarr/Radarr) — Settings → Profiles → Language Profiles → add languages as needed, name `Main`, Save.
 - **Quality** (Sonarr/Radarr) — Settings → Quality → Hide Advanced → cap max size per quality tier as desired (e.g. ~4.7 GB/hr for 1080p). Radarr also needs a Preferred value. Save.
-- **SABnzbd download client** — add SABnzbd, Host = `sabnzbd` (internal DNS) or `sabnzbd.homektb.com`, Port 8080, API Key from SABnzbd's General settings, same Username/Password as SABnzbd, Category = `library`, Save.
+- **SABnzbd download client** — add SABnzbd, Host = `sabnzbd` (internal DNS) or `sabnzbd.ktbinternal.com`, Port 8080, API Key from SABnzbd's General settings, same Username/Password as SABnzbd, Category = `library`, Save.
 - **General** — Settings → UI → adjust Calendar/Dates formats if desired. Settings → General → Authentication: Form, set Username/Password, Save (restart if prompted).
 
 #### Configarr (quality profiles + custom formats as code)
@@ -174,9 +174,9 @@ Edit [`configarr/config.yml`](./configarr/config.yml), commit, redeploy. Ships w
 
 ### 4. Seer
 
-> Migrated from Overseerr — an existing config/database carries over automatically on first boot. The steps below are for a **fresh** install. UI is reached at `seerr.homektb.com`.
+> Migrated from Overseerr — an existing config/database carries over automatically on first boot. The steps below are for a **fresh** install. UI is reached at `seerr.ktbinternal.com`.
 
-1. Access Seer at `seerr.homektb.com`.
+1. Access Seer at `seerr.ktbinternal.com`.
 2. Sign in with Plex.
 3. Click the refresh icon, wait, select the Plex server entry (prioritize [secure] then [local]). Save changes, select Movies and Series, Continue.
    - **Radarr** — Add Radarr Server, tick Default server, name it `Radarr`, Hostname/IP = `radarr` (internal DNS). Paste the Radarr API Key (Radarr → Settings → General → Security). Test, select quality profile + root folder, Enable Scan, Add Server.

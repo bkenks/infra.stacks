@@ -12,21 +12,21 @@ services:
     environment:
       KOMODO_API_KEY: ${KOMODO_API_KEY:?err}
       KOMODO_API_SECRET: ${KOMODO_API_SECRET:?err}
-      KOMODO_URL: https://komo.homektb.com
-      MCP_ALLOWED_HOSTS: komodo-mcp.homektb.com
+      KOMODO_URL: https://komo.ktbinternal.com
+      MCP_ALLOWED_HOSTS: komodo-mcp.ktbinternal.com
       MCP_TRANSPORT: http
       MCP_TRUST_PROXY: '1'
       TZ: America/Chicago
     expose:
     - '8000'
-    image: fj.homektb.com/bkenks/komodo-mcp-server:1.4.1
+    image: fjktbinternal.com/bkenks/komodo-mcp-server:1.4.1
     labels:
       komodo.skip: ''
       traefik.enable: 'true'
       traefik.http.middlewares.komodo-mcp-auth.basicauth.users: ${KOMODO_MCP_BASICAUTH_USERS:?err}
       traefik.http.routers.komodo-mcp.entrypoints: websecure
       traefik.http.routers.komodo-mcp.middlewares: komodo-mcp-auth
-      traefik.http.routers.komodo-mcp.rule: Host(`komodo-mcp.homektb.com`)
+      traefik.http.routers.komodo-mcp.rule: Host(`komodo-mcp.ktbinternal.com`)
       traefik.http.routers.komodo-mcp.tls: 'true'
       traefik.http.services.komodo-mcp.loadbalancer.server.port: '8000'
     networks:

@@ -22,7 +22,7 @@ services:
       ENCRYPTION_KEY: ${INFISICAL_ENCRYPTION_KEY:?err}
       NODE_ENV: production
       REDIS_URL: redis://infisical_redis:6379
-      SITE_URL: https://infisical.homektb.com
+      SITE_URL: https://infisical.ktbinternal.com
       SMTP_FROM_ADDRESS: ${INFISICAL__SMTP_FROM_ADDRESS:-}
       SMTP_FROM_NAME: ${INFISICAL__SMTP_FROM_NAME:-}
       SMTP_HOST: ${INFISICAL__SMTP_HOST:-}
@@ -45,7 +45,7 @@ services:
     labels:
       traefik.enable: 'true'
       traefik.http.routers.infisical.entrypoints: websecure
-      traefik.http.routers.infisical.rule: Host(`infisical.homektb.com`)
+      traefik.http.routers.infisical.rule: Host(`infisical.ktbinternal.com`)
       traefik.http.routers.infisical.tls: 'true'
       traefik.http.services.infisical.loadbalancer.server.port: '8080'
     networks:

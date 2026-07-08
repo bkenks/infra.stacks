@@ -2,7 +2,7 @@
 
 > 📚 System architecture, the secrets-flow, and the deploy model live in Notion → **[Architecture — How It All Connects](https://app.notion.com/p/37931e9a948a819380e7e9ef7d90cf8c)**. This file covers only this stack: what it runs and its secret/deploy specifics.
 
-[Gitea](https://about.gitea.com/) — self-hosted git forge. Reached at `gitea.homektb.com` via Traefik, forwarding to the container's port `3000`. SSH (`git clone`/`git push` over SSH) is routed on port `22` via a raw-TCP Traefik router (`gitea-ssh` entrypoint); Gitea advertises port `2222` in clone URLs (`GITEA__SERVER__SSH_PORT`) while the container itself listens on `22` (`GITEA__SERVER__SSH_LISTEN_PORT`).
+[Gitea](https://about.gitea.com/) — self-hosted git forge. Reached at `gitea.ktbinternal.com` via Traefik, forwarding to the container's port `3000`. SSH (`git clone`/`git push` over SSH) is routed on port `22` via a raw-TCP Traefik router (`gitea-ssh` entrypoint); Gitea advertises port `2222` in clone URLs (`GITEA__SERVER__SSH_PORT`) while the container itself listens on `22` (`GITEA__SERVER__SSH_LISTEN_PORT`).
 
 Source of truth: `compose.jsonnet` + `compose.stack.jsonnet` compile to `compose.yaml` + `compose.stack.yaml` — do not edit the YAML directly.
 

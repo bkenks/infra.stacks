@@ -17,7 +17,7 @@ services:
     labels:
       traefik.enable: 'true'
       traefik.http.routers.convertx.entrypoints: websecure
-      traefik.http.routers.convertx.rule: Host(`convertx.homektb.com`)
+      traefik.http.routers.convertx.rule: Host(`convertx.ktbinternal.com`)
       traefik.http.routers.convertx.tls: 'true'
       traefik.http.services.convertx.loadbalancer.server.port: '3000'
     networks:

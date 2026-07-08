@@ -2,7 +2,7 @@
 
 > 📚 System architecture, the secrets-flow, and the deploy model live in Notion → **[Architecture — How It All Connects](https://app.notion.com/p/37931e9a948a819380e7e9ef7d90cf8c)**. This file covers only this stack: what it runs and its secret/deploy specifics.
 
-[n8n](https://n8n.io/) — workflow automation. Reached at `n8n.homektb.com` via Traefik, forwarding to the container's port `5678`.
+[n8n](https://n8n.io/) — workflow automation. Reached at `n8n.ktbinternal.com` via Traefik, forwarding to the container's port `5678`.
 
 Source of truth: `compose.jsonnet` + `compose.stack.jsonnet` compile to `compose.yaml` + `compose.stack.yaml` — do not edit the YAML directly.
 
@@ -23,7 +23,7 @@ n8n connects to the shared Postgres on the external `shared-postgres` network (`
 
 ### DNS override
 
-The `app` service keeps an explicit `dns: [192.168.1.6, 1.1.1.1]` block. This resolves `*.homektb.com` against a specific LAN host so LAN-only services (e.g. Carbone) are reachable from inside the container — see Notion: "Network architecture & the Docker / Tailscale DNS gotcha". Do not remove this without confirming LAN-only integrations still resolve.
+The `app` service keeps an explicit `dns: [192.168.1.6, 1.1.1.1]` block. This resolves `*.ktbinternal.com` against a specific LAN host so LAN-only services (e.g. Carbone) are reachable from inside the container — see Notion: "Network architecture & the Docker / Tailscale DNS gotcha". Do not remove this without confirming LAN-only integrations still resolve.
 
 ### Do NOT set `user: "0:0"`
 
@@ -31,7 +31,7 @@ The container must run as the image's default user (`node`, UID 1000). Setting `
 
 ### Reachability change
 
-This stack previously published directly to the host (`5678:5678`, i.e. `<host>:5678`). The jsonnet version drops the host port publish in favor of `expose:` + Traefik — it's now reached at `https://n8n.homektb.com` only. Any bookmark/reference to the old `host:5678` URL needs to move to the new hostname.
+This stack previously published directly to the host (`5678:5678`, i.e. `<host>:5678`). The jsonnet version drops the host port publish in favor of `expose:` + Traefik — it's now reached at `https://n8n.ktbinternal.com` only. Any bookmark/reference to the old `host:5678` URL needs to move to the new hostname.
 
 ### Staging dropped
 

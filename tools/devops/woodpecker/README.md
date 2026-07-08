@@ -2,9 +2,9 @@
 
 > 📚 System architecture, the secrets-flow, and the deploy model live in Notion → **[Architecture — How It All Connects](https://app.notion.com/p/37931e9a948a819380e7e9ef7d90cf8c)**. This file covers only this stack: what it runs and its secret/deploy specifics.
 
-[Woodpecker CI](https://woodpecker-ci.org/) — a `server` + `agent` pair. The server hosts the UI/API at `peck.homektb.com` (Traefik, port 8000) and exposes gRPC on port 9000 for the agent. The agent runs pipeline steps as sibling containers via the host's Docker socket. State is SQLite in the `woodpecker-server-data` volume (no external DB).
+[Woodpecker CI](https://woodpecker-ci.org/) — a `server` + `agent` pair. The server hosts the UI/API at `peck.ktbinternal.com` (Traefik, port 8000) and exposes gRPC on port 9000 for the agent. The agent runs pipeline steps as sibling containers via the host's Docker socket. State is SQLite in the `woodpecker-server-data` volume (no external DB).
 
-Forge: self-hosted **Forgejo** at `https://fj.homektb.com` (`WOODPECKER_FORGEJO*`).
+Forge: self-hosted **Forgejo** at `https://fj.ktbinternal.com` (`WOODPECKER_FORGEJO*`).
 
 Source of truth: `compose.jsonnet` + `compose.stack.jsonnet` compile to `compose.yaml` + `compose.stack.yaml` — do not edit the YAML directly.
 
@@ -24,9 +24,9 @@ Non-secret config (host, forge URL, privileged-plugin allowlist) is baked direct
 
 ### One-time setup (before first deploy)
 
-1. **Register the OAuth2 app in Forgejo** at `https://fj.homektb.com/user/settings/applications` (or `/admin/applications` for a system-wide app). Redirect URI must be exactly: `https://peck.homektb.com/authorize`. Copy the generated client ID + secret into Infisical `/woodpecker`.
+1. **Register the OAuth2 app in Forgejo** at `https://fj.ktbinternal.com/user/settings/applications` (or `/admin/applications` for a system-wide app). Redirect URI must be exactly: `https://peck.ktbinternal.com/authorize`. Copy the generated client ID + secret into Infisical `/woodpecker`.
 2. **Generate the agent secret:** `openssl rand -hex 32` → Infisical `/woodpecker/WOODPECKER_AGENT_SECRET`.
-3. **DNS:** point `peck.homektb.com` at the host, covered by the `*.homektb.com` wildcard cert.
+3. **DNS:** point `peck.ktbinternal.com` at the host, covered by the `*.ktbinternal.com` wildcard cert.
 
 ### Docker socket bind mount
 

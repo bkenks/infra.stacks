@@ -112,12 +112,6 @@ local hocuspocusLabels = lib.mixins.proxyAdd(stack + '-hocuspocus', sub, hocuspo
         [lib.registry.sharedNetworks.postgres.name]: { aliases: [n.alias('cron')] },
       },
     },
-
-    // Collaborative-editing websocket. Exposed via Traefik on the SAME domain at
-    // /hocuspocus — the prefix is forwarded INTACT (hocuspocus listens there), so
-    // no stripPrefix. Higher router priority than `web` so /hocuspocus wins over
-    // the catch-all. Browsers connect via OPENPROJECT_..._HOCUSPOCUS__URL
-    // (wss://openprj.homektb.com/hocuspocus, see opAppEnv above).
     hocuspocus: {
       image: 'openproject/hocuspocus:' + hocuspocusVersion,
       container_name: n.container('hocuspocus'),
@@ -161,9 +155,6 @@ local hocuspocusLabels = lib.mixins.proxyAdd(stack + '-hocuspocus', sub, hocuspo
         start_period: '60s',
       },
       environment: opAppEnv + opAppSecrets,
-      // No published host port — Traefik fronts it on shared-proxy;
-      // *.homektb.com wildcard TLS is already issued per-host. autoheal=true is
-      // consumed by the autoheal sidecar.
       labels: webLabels,
       expose: [std.toString(webPort)],
       networks: {

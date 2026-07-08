@@ -12,7 +12,7 @@ services:
     environment:
       AGENT_HOST: ${AGENT_HOST:?err}
       AGENT_SERVICES: ${AGENT_SERVICES:?err}
-      INFISICAL_ADDRESS: ${INFISICAL_ADDRESS:-https://infisical.homektb.com}
+      INFISICAL_ADDRESS: ${INFISICAL_ADDRESS:-https://infisical.ktbinternal.com}
       INFISICAL_CLIENT_ID: ${INFISICAL_CLIENT_ID:?err}
       INFISICAL_CLIENT_SECRET: ${INFISICAL_CLIENT_SECRET:?err}
     healthcheck:

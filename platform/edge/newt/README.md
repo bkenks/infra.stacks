@@ -2,7 +2,7 @@
 
 > 📚 The edge/ingress model (per-host Traefik, wildcard TLS, the secrets-flow) lives in Notion → **[Architecture — How It All Connects](https://app.notion.com/p/37931e9a948a819380e7e9ef7d90cf8c)**. This file covers only `platform/edge/newt`: how to run it and its quirks.
 
-Pangolin **site** connector ([`fosrl/newt`](https://github.com/fosrl/newt)). Dials out to the Pangolin control server (`PANGOLIN_ENDPOINT=https://pangolin.homektb.com`), registers this host as a site, and forwards inbound tunnel traffic to the host's Traefik. It joins the host's `shared-proxy` bridge so tunnel targets can reach Traefik by name (`https://traefik:443`) — the same shape as [`cloudflared`](../cloudflared/README.md), just a different upstream.
+Pangolin **site** connector ([`fosrl/newt`](https://github.com/fosrl/newt)). Dials out to the Pangolin control server (`PANGOLIN_ENDPOINT=https://pangolin.ktbinternal.com`), registers this host as a site, and forwards inbound tunnel traffic to the host's Traefik. It joins the host's `shared-proxy` bridge so tunnel targets can reach Traefik by name (`https://traefik:443`) — the same shape as [`cloudflared`](../cloudflared/README.md), just a different upstream.
 
 ## Host-scoped secret
 

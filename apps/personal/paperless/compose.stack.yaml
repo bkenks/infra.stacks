@@ -100,7 +100,7 @@ services:
       PAPERLESS_TIKA_ENDPOINT: http://paperless_tika:9998
       PAPERLESS_TIKA_GOTENBERG_ENDPOINT: http://paperless_gotenberg:3000
       PAPERLESS_TIME_ZONE: America/New_York
-      PAPERLESS_URL: https://paper.homektb.com
+      PAPERLESS_URL: https://paper.ktbinternal.com
     expose:
     - '8000'
     healthcheck:
@@ -119,7 +119,7 @@ services:
     labels:
       traefik.enable: 'true'
       traefik.http.routers.paperless.entrypoints: websecure
-      traefik.http.routers.paperless.rule: Host(`paper.homektb.com`)
+      traefik.http.routers.paperless.rule: Host(`paper.ktbinternal.com`)
       traefik.http.routers.paperless.tls: 'true'
       traefik.http.services.paperless.loadbalancer.server.port: '8000'
     networks:

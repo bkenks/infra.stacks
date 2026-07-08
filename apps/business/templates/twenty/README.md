@@ -2,7 +2,7 @@
 
 > 📚 System architecture, the secrets-flow, and the deploy model live in Notion → **[Architecture — How It All Connects](https://app.notion.com/p/37931e9a948a819380e7e9ef7d90cf8c)**. This file covers only this stack: what it runs and its secret/deploy specifics.
 
-[Twenty](https://twenty.com/) — open-source CRM. Reached at `twenty.homektb.com` via Traefik, forwarding to the `server` container's port `3000`. Ships with a dedicated `redis` (cache/queue) and a `worker` sidecar that runs the same image as `server` but processes background jobs instead of serving HTTP.
+[Twenty](https://twenty.com/) — open-source CRM. Reached at `twenty.ktbinternal.com` via Traefik, forwarding to the `server` container's port `3000`. Ships with a dedicated `redis` (cache/queue) and a `worker` sidecar that runs the same image as `server` but processes background jobs instead of serving HTTP.
 
 Source of truth: `compose.jsonnet` + `compose.stack.jsonnet` compile to `compose.yaml` + `compose.stack.yaml` — do not edit the YAML directly.
 
@@ -34,7 +34,7 @@ Non-secret config (ports, hostnames, Redis/Postgres wiring, Google callback URLs
 
 ### Traefik
 
-Previously published directly on host port `3030:3000` with no Traefik integration. This migration adds Traefik on `server` only (`worker` has no exposed port and no Traefik labels): `expose: 3000`, reachable via `https://twenty.homektb.com`.
+Previously published directly on host port `3030:3000` with no Traefik integration. This migration adds Traefik on `server` only (`worker` has no exposed port and no Traefik labels): `expose: 3000`, reachable via `https://twenty.ktbinternal.com`.
 
 ### Volume rename on first deploy
 

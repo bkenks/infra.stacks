@@ -15,7 +15,7 @@
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   # notes: Literal independent variables used accross all containers.
   # rootDomain is the default zone; pull any other zone from `domains`.
-  rootDomain: $.domains.homektb,
+  rootDomain: $.domains.ktbinternal,
   dockerDir: '/srv/docker',
   dockerVolumes: $.dockerDir + '/bind-mounts',
   # GLOBAL VARIABLES
@@ -32,6 +32,8 @@
     homektb: 'homektb.com',
     stackform: 'stackform.app',
     couchpotatoes: 'couchpotatoes.store',
+    ktbinternal: 'ktbinternal.com',
+    ktbcloud: 'ktbcloud.com',
   },
   # DOMAINS
   # ============================================================
@@ -87,7 +89,7 @@
     },
     infisical: {
       private: { host: 'infisical_app', port: 8080, network: $.sharedNetworks.infisical },
-      public: { sub: 'infisical', domain: $.domains.homektb },
+      public: { sub: 'infisical', domain: $.domains.ktbinternal },
     },
   },
   # SERVICE ENDPOINTS

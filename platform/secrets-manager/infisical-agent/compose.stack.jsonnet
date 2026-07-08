@@ -10,8 +10,7 @@
 // credential comes from the host/deploy env, not from a rendered file.
 //
 // REACH TO INFISICAL — public, cross-host. A docker network can't span hosts and
-// this agent runs on every host, so it dials the server over the PUBLIC URL
-// (https://infisical.homektb.com via Traefik) and does NOT join shared-infisical.
+// this agent runs on every host, so it dials the server over the PUBLIC URL and does NOT join shared-infisical.
 // INFISICAL_ADDRESS keeps a per-host override escape hatch (e.g. the Infisical
 // host could point it at the internal http://infisical-app:8080) but defaults to
 // the public URL so one config works on every host. See entrypoint.sh.

@@ -37,7 +37,7 @@ local dbName = 'infisical';
       },
       environment: {
         // --- Site ---
-        SITE_URL: lib.compose.publicUrl('infisical'),  // https://infisical.homektb.com
+        SITE_URL: lib.compose.publicUrl('infisical'),
 
         // --- SMTP (optional; leave blank to disable email) ---
         SMTP_HOST: '${INFISICAL__SMTP_HOST:-}',

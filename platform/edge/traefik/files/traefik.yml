@@ -23,7 +23,7 @@ entryPoints:
   websecure:
     address: ":443"
   # Forgejo git-over-SSH. Bound to host :22 so the port-less clone URL
-  # (ssh://git@fj.homektb.com/...) reaches Forgejo. Admin sshd was moved
+  # (ssh://git@fj.ktbinternal.com/...) reaches Forgejo. Admin sshd was moved
   # off 22 to 3204 (see infra.ansible) to free this port — redeploy this stack
   # only AFTER that cutover, or the :22 bind conflicts with sshd.
   forgejo-ssh:
@@ -36,14 +36,14 @@ providers:
     network: shared-proxy
   # Shared dynamic config. compose mounts files/host.yml here as host.yml (see
   # ../compose/stack.yml) — IDENTICAL on every host. It carries the dashboard
-  # router and the ACME cert domains for ALL zones (homektb.com + stackform.app +
+  # router and the ACME cert domains for ALL zones (ktbinternal.com + stackform.app +
   # couchpotatoes.store), so any host can terminate TLS for any service.
   file:
     directory: /etc/traefik/dynamic
     watch: true
 
 # TLS certificates: Cloudflare DNS-01 ACME (Let's Encrypt). The scoped
-# CF_DNS_API_TOKEN (Zone:DNS:Edit + Zone:Read on ALL zones — homektb.com +
+# CF_DNS_API_TOKEN (Zone:DNS:Edit + Zone:Read on ALL zones — ktbinternal.com +
 # stackform.app + couchpotatoes.store, since every host requests every wildcard)
 # is read by the lego cloudflare provider from the container environment —
 # deliberately NOT set here, so no secret lands in git. Which (wildcard) certs get
@@ -59,7 +59,7 @@ certificatesResolvers:
       # caServer: https://acme-staging-v02.api.letsencrypt.org/directory
       dnsChallenge:
         provider: cloudflare
-        # homektb.com resolves to a private (Tailscale) A record internally, so
+        # ktbinternal.com resolves to a private (Tailscale) A record internally, so
         # use public resolvers for the _acme-challenge TXT propagation check.
         resolvers:
           - "1.1.1.1:53"

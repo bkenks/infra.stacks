@@ -29,7 +29,7 @@ entries:
       # Redirect URIs are validated against Pangolin's callback at wire-up.
       redirect_uris:
         - matching_mode: strict
-          url: https://pangolin.homektb.com/api/v1/auth/idp/oidc/callback
+          url: https://pangolin.ktbinternal.com/api/v1/auth/idp/oidc/callback
       property_mappings:
         - !Find [authentik_providers_oauth2.scopemapping, [scope_name, openid]]
         - !Find [authentik_providers_oauth2.scopemapping, [scope_name, email]]
@@ -44,5 +44,5 @@ entries:
       name: Pangolin
       slug: pangolin
       provider: !KeyOf provider-pangolin
-      meta_launch_url: https://pangolin.homektb.com
+      meta_launch_url: https://pangolin.ktbinternal.com
       policy_engine_mode: any

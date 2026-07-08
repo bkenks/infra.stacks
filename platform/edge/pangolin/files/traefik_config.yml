@@ -25,7 +25,7 @@ log:
 
 # TLS certificates: Cloudflare DNS-01 ACME (Let's Encrypt) — same mechanism as
 # this repo's platform/edge/traefik. CF_DNS_API_TOKEN (Zone:DNS:Edit +
-# Zone:Read on the homektb.com zone) is read by the lego cloudflare provider
+# Zone:Read on the ktbinternal.com zone) is read by the lego cloudflare provider
 # from the container environment (compose.stack.jsonnet) — deliberately not
 # set here, so no secret lands in git. Which (wildcard) cert gets requested is
 # in dynamic_config.yml; once issued, Traefik serves it via SNI so every
@@ -38,7 +38,7 @@ certificatesResolvers:
       storage: "/letsencrypt/acme.json"
       dnsChallenge:
         provider: cloudflare
-        # homektb.com resolves to a private (Tailscale) A record internally, so
+        # ktbinternal.com resolves to a private (Tailscale) A record internally, so
         # use public resolvers for the _acme-challenge TXT propagation check.
         resolvers:
           - "1.1.1.1:53"

@@ -1,6 +1,6 @@
 {
     "jsonnet.languageServer.jpath": [
-        "/Users/briankenkel/ghq/fj.lilbud.homektb.com/ktbgroup-self-hosted/infra.stacks/.jsonnet/lib"
+        "/Users/briankenkel/ghq/fj.ktbinternal.com/ktbgroup-self-hosted/infra.stacks/.jsonnet/lib"
     ],
     "jsonnet.languageServer.lint": true,
     "editor.defaultFormatter": null
