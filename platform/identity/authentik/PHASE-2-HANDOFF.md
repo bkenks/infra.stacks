@@ -23,7 +23,7 @@
 Under `platform/identity/`:
 - `authentik/` — `authentik_db` postgres:16-alpine, `authentik_redis` redis:7-alpine, `authentik_server`+`authentik_worker` ghcr.io/goauthentik/server:2026.5.3; joins private net + `shared-edge`; `AUTHENTIK_COOKIE_DOMAIN=ktbcloud.com`. Plus `.env.example`, `files/blueprints/{pangolin-oidc,internal-forwardauth}.yaml` (DRAFTS).
 - `authentik-outpost/` — `ghcr.io/goauthentik/proxy:2026.5.3`, `AUTHENTIK_HOST=https://auth.ktbcloud.com`, publishes `:9000`, target littlebuddy.
-- `registry.libsonnet`: `sharedNetworks.edge` (`shared-edge`, owner authentik); `agentServices.authentik` (map, project infra, folder `/authentik`); `agentServices.authentik-outpost` (dump, folder `/authentik-outpost`).
+- `registry.libsonnet`: `sharedNetworks.edge` (`shared-edge`, owner authentik); `infisical.services.authentik` (map, project infra, folder `/authentik`); `infisical.services.authentik-outpost` (dump, folder `/authentik-outpost`).
 - `mixins.libsonnet`: `proxyAddAuth(router,sub,port,domain)` = proxyAdd + `authentik-forwardauth@file` middleware label.
 - `komodo-config-sync.toml`: seeds for `template__authentik` + `template__authentik-outpost`. `docker-resource-manager` auto-creates `shared-edge`.
 

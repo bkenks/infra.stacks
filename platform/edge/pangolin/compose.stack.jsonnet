@@ -5,7 +5,7 @@
 // (port conflict; Gerbil owns 80/443 here).
 //
 // Naming deviation: service keys/container_names are literal ('pangolin', 'gerbil',
-// 'traefik'), not run through lib.compose.names() — Pangolin/Gerbil hardcode each
+// 'traefik'), not run through the naming helper — Pangolin/Gerbil hardcode each
 // other's hostnames in their startup flags, and dynamic_config.jsonnet's backend URLs
 // assume these exact names; renaming breaks service discovery. Traefik's
 // `network_mode: service:gerbil` also requires gerbil's compose key to be literally
@@ -15,10 +15,12 @@
 // Traefik expect to read/write this tree by upstream design). `init` creates the
 // tree/perms first; files/*.jsonnet-rendered config layers on as read-only bind
 // mounts (git-tracked); runtime state (keys, certs, GeoLite DBs, logs, db) stays host-only.
+local c = import 'compose.libsonnet';
 local reg = import 'registry.libsonnet';
 local dv = reg.server.dir.docker.root + reg.server.dir.docker.bindmounts;
 
 local stack = 'pangolin';
+local s = c.stack(stack);
 local configDir = dv + '/pangolin/config';
 
 local pangolinVersion = '1.19.4';
@@ -110,7 +112,13 @@ local initScript =
         '443:443/udp',  // HTTP/3 QUIC
         '80:80',
       ],
-      networks: { default: { aliases: ['gerbil'] } },
+      // Also joins shared-edge so Traefik (network_mode: service:gerbil, i.e.
+      // it shares gerbil's netns) can reach authentik_server:9000 for the raw
+      // auth.ktbcloud.com router in files/dynamic_config.yml. authentik owns
+      // this network; pangolin is a consumer (the external decl is in the
+      // top-level networks block below via network.join).
+      networks: { default: { aliases: ['gerbil'] } }
+                + s.network.attach(reg.sharedNetworks.edge.name, 'gerbil'),
     },
 
     // network_mode: service:gerbil — Traefik can't also declare networks: (Compose
@@ -142,5 +150,5 @@ local initScript =
 
   networks: {
     default: { name: stack, driver: 'bridge', enable_ipv6: true },
-  },
+  } + s.network.join('edge'),  // external shared-edge (owned by authentik)
 }

@@ -66,6 +66,22 @@ local cf = { certResolver: 'cloudflare' };
         middlewares: ['badger'],
         tls: cf,
       },
+
+      // Authentik IdP — the one public entrypoint on the ktbcloud.com plane. RAW
+      // router: no badger/SSO (Authentik is break-glass; self-fronting loops).
+      // Reaches authentik_server over shared-edge (gerbil joins it in
+      // compose.stack.jsonnet; Traefik shares gerbil's netns). Also carries the
+      // ktbcloud.com wildcard cert request (request once, serve all via SNI).
+      'authentik-router': {
+        rule: 'Host(`auth.' + reg.domains.ktbcloud + '`)',
+        service: 'authentik-service',
+        entryPoints: ['websecure'],
+        tls: cf {
+          domains: [
+            { main: reg.domains.ktbcloud, sans: ['*.' + reg.domains.ktbcloud] },
+          ],
+        },
+      },
     },
 
     services: {
@@ -74,6 +90,9 @@ local cf = { certResolver: 'cloudflare' };
       },
       'api-service': {
         loadBalancer: { servers: [{ url: 'http://pangolin:3000' }] },  // API/WebSocket server
+      },
+      'authentik-service': {
+        loadBalancer: { servers: [{ url: 'http://authentik_server:9000' }] },  // over shared-edge
       },
     },
   },

@@ -24,6 +24,11 @@ local host = 'pangolin.' + baseDomain;
     domain1: {
       base_domain: baseDomain,
     },
+    // Public plane (Authentik + *.ktbcloud.com Resources); wildcard cert is
+    // requested once by authentik-router in dynamic_config.jsonnet.
+    domain2: {
+      base_domain: reg.domains.ktbcloud,
+    },
   },
 
   server: {

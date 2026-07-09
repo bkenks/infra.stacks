@@ -7,6 +7,8 @@ app:
 domains:
   domain1:
     base_domain: ktbinternal.com
+  domain2:
+    base_domain: ktbcloud.com
 email:
   no_reply: pangolin@notify.ktbinternal.com
   smtp_host: smtp.resend.com
