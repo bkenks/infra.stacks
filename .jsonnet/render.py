@@ -51,13 +51,6 @@ def run_jsonnet(src: Path, lib: Path) -> "dict":
     doc = json.loads(proc.stdout)
     if not isinstance(doc, dict) or not doc:
         die(f"{src}: must evaluate to a non-empty object keyed by output filename")
-
-    # TRANSITIONAL: an unconverted entrypoint still evaluates to a compose document, whose
-    # top-level keys (name, services, volumes) never end in .yaml. Map it onto the new
-    # contract via the old name-derived output. Delete this branch once every entrypoint
-    # is converted.
-    if not all(k.endswith((".yaml", ".yml")) for k in doc):
-        return {f"{src.name[: -len('.jsonnet')]}.yaml": doc}
     return doc
 
 
