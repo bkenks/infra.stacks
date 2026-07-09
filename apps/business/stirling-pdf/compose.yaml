@@ -1,4 +1,0 @@
-# GENERATED from compose.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
-include:
-- path: ./compose.stack.yaml
-name: stirling-pdf

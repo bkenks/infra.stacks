@@ -1,42 +1,32 @@
-// twenty — Twenty CRM with a dedicated Redis and a
-// worker sidecar sharing the server's image + storage volume. Renders to
-// compose.stack.yaml — do not edit the YAML.
-//
-// Only `server` joins shared-proxy (traefik owns) to be reachable. `server` and
-// `worker` both join shared-postgres (postgres owns) to reach Twenty's DB;
-// `redis` stays on this stack's own private network only (the old dedicated
-// `twenty` network is dropped in favor of the standard per-stack default net).
-local lib = import 'lib.libsonnet';
+// Compiles to compose.stack.yaml — do not edit the YAML.
+local c = import 'compose.libsonnet';
+local reg = import 'registry.libsonnet';
 
 local stack = 'twenty';
-local n = lib.compose.names(stack);
-local redis = lib.registry.roles.redis;
+local s = c.stack(stack);
+local n = s.names;
+local redis = reg.roles.redis;
 local server = 'server';
 local worker = 'worker';
 
-local pgHost = lib.registry.endpoints.postgres.private.host;  // 'postgres_db'
-local pgPort = lib.registry.endpoints.postgres.private.port;  // 5432
+local pgHost = reg.endpoints.postgres.container.host;  // 'postgres_db'
+local pgPort = reg.endpoints.postgres.container.port;  // 5432
 local dbName = 'twenty';
 
-local imageVersion = 'v1.18.1';  // twentycrm/twenty
-local redisVersion = '8.6.1';    // redis
+local imageVersion = 'v1.18.1';
+local redisVersion = '8.6.1';
 
 local serverPort = 3000;
-local serverUrl = 'https://' + stack + '.' + lib.registry.rootDomain;
+local serverUrl = 'https://' + stack + '.' + reg.domains.ktbinternal;
 
-// Env shared by server + worker (both run the same Twenty image against the
-// same DB/Redis/secrets); worker layers on its own DISABLE_* overrides below.
 local commonEnv = {
-  // --- Database — interpolated from /dev/shm/postgres.env (parent include.env_file) ---
   PG_DATABASE_URL: 'postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@' + pgHost + ':' + std.toString(pgPort) + '/' + dbName,
 
-  // --- Secrets — interpolated from /dev/shm/twenty.env (parent include.env_file) ---
   APP_SECRET: '${TWENTY_SECRET:?err}',
   AUTH_GOOGLE_CLIENT_ID: '${TWENTY_GOOGLE_CLIENT_ID:?err}',
   AUTH_GOOGLE_CLIENT_SECRET: '${TWENTY_GOOGLE_CLIENT_SECRET:?err}',
 
-  // --- Twenty ---
-  REDIS_URL: 'redis://' + n.alias(redis) + ':6379',
+  REDIS_URL: 'redis://' + n.container(redis) + ':6379',
   SERVER_URL: serverUrl,
   AUTH_GOOGLE_CALLBACK_URL: serverUrl + '/auth/google/redirect',
   AUTH_GOOGLE_APIS_CALLBACK_URL: serverUrl + '/auth/google-apis/get-access-token',
@@ -60,7 +50,7 @@ local commonEnv = {
         timeout: '5s',
         retries: 10,
       },
-      networks: { default: { aliases: [n.alias(redis)] } },
+      networks: { default: { aliases: [n.container(redis)] } },
       expose: ['6379'],
     },
 
@@ -79,11 +69,11 @@ local commonEnv = {
       },
       expose: [std.toString(serverPort)],
       networks: {
-        default: { aliases: [n.alias(server)] },
-        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias(server)] },
-        [lib.registry.sharedNetworks.postgres.name]: { aliases: [n.alias(server)] },
+        default: { aliases: [n.container(server)] },
+        [reg.sharedNetworks.proxy.name]: { aliases: [n.container(server)] },
+        [reg.sharedNetworks.postgres.name]: { aliases: [n.container(server)] },
       },
-      labels: lib.mixins.proxyAdd(stack, stack, serverPort),
+      labels: s.proxy.add(stack, stack, serverPort),
     },
 
     [worker]: {
@@ -100,8 +90,8 @@ local commonEnv = {
       command: ['yarn', 'worker:prod'],
       restart: 'unless-stopped',
       networks: {
-        default: { aliases: [n.alias(worker)] },
-        [lib.registry.sharedNetworks.postgres.name]: { aliases: [n.alias(worker)] },
+        default: { aliases: [n.container(worker)] },
+        [reg.sharedNetworks.postgres.name]: { aliases: [n.container(worker)] },
       },
     },
   },
@@ -111,7 +101,7 @@ local commonEnv = {
   },
 
   networks:
-    n.network
-    + lib.compose.join('proxy')
-    + lib.compose.join('postgres'),
+    s.network.default
+    + s.network.join('proxy')
+    + s.network.join('postgres'),
 }

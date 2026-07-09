@@ -1,18 +1,13 @@
-// stream — Plex + the *arr suite + download client (self-hosted media stack).
-//
-// Source of truth: this file compiles to compose.stack.yaml — do not edit the
-// YAML. bazarr/prowlarr/radarr/sabnzbd/seerr/sonarr join shared-proxy (traefik
-// owns) to be reachable; configarr/decluttarr stay on `default` only (no UI);
-// plex uses network_mode: host (no networks block at all) with GPU passthrough
-// for hardware transcoding.
-//
-// All storage is host bind mounts under lib.registry.dockerVolumes — no named
-// Docker volumes in this stack, so no volume-rename step on first deploy.
-local lib = import 'lib.libsonnet';
+// Compiles to compose.stack.yaml — do not edit the YAML. All storage is host
+// bind mounts — no named Docker volumes in this stack, so no volume-rename
+// step on first deploy.
+local c = import 'compose.libsonnet';
+local reg = import 'registry.libsonnet';
 
 local stack = 'stream';
-local n = lib.compose.names(stack);
-local dv = lib.registry.dockerVolumes;
+local s = c.stack(stack);
+local n = s.names;
+local dv = reg.server.dir.docker.root + reg.server.dir.docker.bindmounts;
 
 local tz = 'America/New_York';
 local puid = 1000;
@@ -20,16 +15,16 @@ local pgid = 1000;
 local maxRestart = 5;
 local restart = 'on-failure:' + std.toString(maxRestart);
 
-// Shared TRaSH-layout data mount (downloads + library on one device, so the
-// *arr apps hardlink imports instead of copying). Do NOT add nested submounts.
+// Shared TRaSH-layout data mount so the *arr apps hardlink imports instead of
+// copying (downloads + library on one device). Do NOT add nested submounts.
 local sharedData = dv + '/stream/shared';
 
 local versions = {
-  bazarr: '1.5.4',           // lscr.io/linuxserver/bazarr
-  configarr: '1.28.0',       // ghcr.io/raydak-labs/configarr
-  decluttarr: 'v2.1.0',      // ghcr.io/manimatter/decluttarr
-  plex: '1.43.2',            // lscr.io/linuxserver/plex
-  seerr: 'v3.0.1',           // ghcr.io/seerr-team/seerr
+  bazarr: '1.5.4',
+  configarr: '1.28.0',
+  decluttarr: 'v2.1.0',
+  plex: '1.43.2',
+  seerr: 'v3.0.1',
 };
 
 local ports = {
@@ -64,16 +59,14 @@ local ports = {
       },
       expose: [std.toString(ports.bazarr)],
       networks: {
-        default: { aliases: [n.alias('bazarr')] },
-        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias('bazarr')] },
+        default: { aliases: [n.container('bazarr')] },
+        [reg.sharedNetworks.proxy.name]: { aliases: [n.container('bazarr')] },
       },
-      labels: lib.mixins.proxyAdd('bazarr', 'bazarr', ports.bazarr),
+      labels: s.proxy.add('bazarr', 'bazarr', ports.bazarr),
     },
 
-    // Configarr (config-as-code for Sonarr/Radarr quality) — one-shot job:
-    // syncs ./configarr/config.yml (TRaSH quality profiles + custom formats)
-    // into Sonarr & Radarr on each deploy, then exits 0. No web UI / no
-    // Traefik — only needs `default` to reach sonarr:8989 / radarr:7878.
+    // One-shot: syncs ./configarr/config.yml into Sonarr/Radarr on each
+    // deploy, then exits 0.
     configarr: {
       image: 'ghcr.io/raydak-labs/configarr:' + versions.configarr,
       container_name: n.container('configarr'),
@@ -89,20 +82,16 @@ local ports = {
         PUID: std.toString(puid),
         PGID: std.toString(pgid),
         TZ: tz,
-        // Secrets — interpolated from /dev/shm/stream.env (parent include.env_file).
         // Read via `!env` in ./configarr/config.yml.
         SONARR_API_KEY: '${SONARR_API_KEY:?err}',
         RADARR_API_KEY: '${RADARR_API_KEY:?err}',
       },
       restart: restart,
-      networks: { default: { aliases: [n.alias('configarr')] } },
+      networks: { default: { aliases: [n.container('configarr')] } },
     },
 
-    // Decluttarr (download-queue janitor) — long-running: every `timer`
-    // minutes it scans the Sonarr/Radarr queues and removes failed / stalled /
-    // slow / orphaned downloads, blocklists them, and triggers a fresh search.
-    // Config-as-code in ./decluttarr/config.yaml (mounted read-only). No web
-    // UI / no Traefik — only needs `default` to reach sonarr:8989 / radarr:7878.
+    // Long-running: every `timer` minutes scans the Sonarr/Radarr queues,
+    // removes failed/stalled/slow/orphaned downloads, and triggers a re-search.
     decluttarr: {
       image: 'ghcr.io/manimatter/decluttarr:' + versions.decluttarr,
       container_name: n.container('decluttarr'),
@@ -115,18 +104,17 @@ local ports = {
         PUID: std.toString(puid),
         PGID: std.toString(pgid),
         TZ: tz,
-        // Secrets — interpolated from /dev/shm/stream.env (parent include.env_file).
         // Read via `!ENV` in ./decluttarr/config.yaml.
         SONARR_API_KEY: '${SONARR_API_KEY:?err}',
         RADARR_API_KEY: '${RADARR_API_KEY:?err}',
       },
       restart: restart,
-      networks: { default: { aliases: [n.alias('decluttarr')] } },
+      networks: { default: { aliases: [n.container('decluttarr')] } },
     },
 
-    // Plex — network_mode: host (NOT Traefik-fronted); GPU passthrough
-    // (Intel iGPU) for hardware transcoding (VAAPI/Quick Sync). Runs as root
-    // (PUID/PGID 0), so no group_add for render is needed.
+    // network_mode: host (NOT Traefik-fronted); GPU passthrough (Intel iGPU)
+    // for hardware transcoding. Runs as root (PUID/PGID 0), so no group_add
+    // for render is needed.
     plex: {
       image: 'lscr.io/linuxserver/plex:' + versions.plex,
       container_name: n.container('plex'),
@@ -138,12 +126,8 @@ local ports = {
         PUID: '0',
         PGID: '0',
         TZ: tz,
-        // linuxserver/plex update channel ("docker" = pinned-by-image, no
-        // in-container update).
+        // "docker" = pinned-by-image, no in-container update.
         VERSION: 'docker',
-        // Only needed for the very first server claim (plex.tv/claim) — set
-        // it via the host/Komodo env for a one-time claim, not committed here.
-        // PLEX_CLAIM: '${PLEX_CLAIM:-}',
       },
       devices: ['/dev/dri:/dev/dri'],
       network_mode: 'host',
@@ -172,10 +156,10 @@ local ports = {
       },
       expose: [std.toString(ports.prowlarr)],
       networks: {
-        default: { aliases: [n.alias('prowlarr')] },
-        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias('prowlarr')] },
+        default: { aliases: [n.container('prowlarr')] },
+        [reg.sharedNetworks.proxy.name]: { aliases: [n.container('prowlarr')] },
       },
-      labels: lib.mixins.proxyAdd('prowlarr', 'prowlarr', ports.prowlarr),
+      labels: s.proxy.add('prowlarr', 'prowlarr', ports.prowlarr),
     },
 
     radarr: {
@@ -196,10 +180,10 @@ local ports = {
       },
       expose: [std.toString(ports.radarr)],
       networks: {
-        default: { aliases: [n.alias('radarr')] },
-        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias('radarr')] },
+        default: { aliases: [n.container('radarr')] },
+        [reg.sharedNetworks.proxy.name]: { aliases: [n.container('radarr')] },
       },
-      labels: lib.mixins.proxyAdd('radarr', 'radarr', ports.radarr),
+      labels: s.proxy.add('radarr', 'radarr', ports.radarr),
     },
 
     sabnzbd: {
@@ -220,15 +204,14 @@ local ports = {
       },
       expose: [std.toString(ports.sabnzbd)],
       networks: {
-        default: { aliases: [n.alias('sabnzbd')] },
-        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias('sabnzbd')] },
+        default: { aliases: [n.container('sabnzbd')] },
+        [reg.sharedNetworks.proxy.name]: { aliases: [n.container('sabnzbd')] },
       },
-      labels: lib.mixins.proxyAdd('sabnzbd', 'sabnzbd', ports.sabnzbd),
+      labels: s.proxy.add('sabnzbd', 'sabnzbd', ports.sabnzbd),
     },
 
-    // Seer (Overseerr's successor — request management). Runs as the fixed
-    // non-root `node` user (UID 1000, ignores PUID/PGID) — needs `init: true`.
-    // No container healthcheck: the image ships no curl/wget/bash.
+    // Runs as the fixed non-root `node` user (UID 1000) — PUID/PGID have no
+    // effect; needs `init: true`. No healthcheck: image ships no curl/wget/bash.
     seerr: {
       image: 'ghcr.io/seerr-team/seerr:' + versions.seerr,
       container_name: n.container('seerr'),
@@ -237,10 +220,10 @@ local ports = {
       restart: restart,
       expose: [std.toString(ports.seerr)],
       networks: {
-        default: { aliases: [n.alias('seerr')] },
-        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias('seerr')] },
+        default: { aliases: [n.container('seerr')] },
+        [reg.sharedNetworks.proxy.name]: { aliases: [n.container('seerr')] },
       },
-      labels: lib.mixins.proxyAdd('seerr', 'seerr', ports.seerr),
+      labels: s.proxy.add('seerr', 'seerr', ports.seerr),
       init: true,
     },
 
@@ -262,14 +245,14 @@ local ports = {
       },
       expose: [std.toString(ports.sonarr)],
       networks: {
-        default: { aliases: [n.alias('sonarr')] },
-        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias('sonarr')] },
+        default: { aliases: [n.container('sonarr')] },
+        [reg.sharedNetworks.proxy.name]: { aliases: [n.container('sonarr')] },
       },
-      labels: lib.mixins.proxyAdd('sonarr', 'sonarr', ports.sonarr),
+      labels: s.proxy.add('sonarr', 'sonarr', ports.sonarr),
     },
   },
 
   networks:
-    n.network
-    + lib.compose.join('proxy'),
+    s.network.default
+    + s.network.join('proxy'),
 }

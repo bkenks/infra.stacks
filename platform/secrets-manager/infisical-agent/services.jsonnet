@@ -1,24 +1,19 @@
-// services.jsonnet — generates templates/<svc>.yaml, one self-contained
-// Infisical-agent config fragment per service (multi-file output via
-// `jsonnet -S -m`; see .jsonnet/render.sh).
+// Generates templates/<svc>.yaml, one self-contained Infisical-agent config fragment per
+// service (multi-file output via `jsonnet -S -m`; see .jsonnet/render.py). Source of truth
+// is the registry — edit there, NOT the generated templates/.
 //
-// Source of truth is the registry's `agentServices` (+ `projects` for UUIDs).
-// Edit there, NOT the generated templates/ — those files are GENERATED.
-//
-// Each fragment is a complete `templates:` list ENTRY with an INLINE
-// `template-content`, so entrypoint.sh no longer builds Go templates in shell:
-// it just `cat`s the fragments named in AGENT_SERVICES under a `templates:`
-// header (and substitutes ${AGENT_HOST}, the one runtime-only value, on the way
-// in — the agent's template engine has no env access).
+// Each fragment is a complete `templates:` list entry with INLINE template-content, so
+// entrypoint.sh just `cat`s the fragments under one `templates:` header (substituting
+// ${AGENT_HOST} — the one runtime-only value — since the agent's template engine has no
+// env access).
 //
 //   type=dump  whole Infisical folder -> KEY=VALUE (secret names == env names)
 //   type=map   explicit OUTPUT=FROM renames/duplications (registry `keys`)
 //   type=raw   a single secret's raw value, no KEY= prefix (registry `key`)
 local reg = import 'registry.libsonnet';
 
-// The Go-template body (list of lines, unindented) for one service, by type.
 local bodyLines(s) =
-  local project = reg.projects[s.project];
+  local project = reg.infisical.projects[s.project];
   local env = std.get(s, 'env', 'prod');
   local folder = s.folder;
   if s.type == 'dump' then [
@@ -34,13 +29,12 @@ local bodyLines(s) =
     '{{- with getSecretByName "' + project + '" "' + env + '" "' + folder + '" "' + s.key + '" -}}{{ .Value }}{{- end -}}',
   ];
 
-// Indent each body line by 4 spaces for the YAML `template-content: |` scalar.
+// 4-space indent required by the YAML `template-content: |` block scalar.
 local indentBody(s) = std.join('\n', ['    ' + l for l in bodyLines(s)]);
 
-// One complete `templates:` list entry (rendered as raw YAML, not via
-// manifestYamlDoc, so the Go-template bytes are exact and auditable).
+// Built as a raw string, not via manifestYamlDoc, so the Go-template bytes stay exact.
 local fragment(s) =
-  '# GENERATED from services.jsonnet by .jsonnet/render.sh — DO NOT EDIT.\n' +
+  '# GENERATED from services.jsonnet by .jsonnet/render.py — DO NOT EDIT.\n' +
   '- destination-path: /dev/shm/' + s.dest + '\n' +
   '  config:\n' +
   '    polling-interval: "1m"\n' +
@@ -48,6 +42,6 @@ local fragment(s) =
   indentBody(s) + '\n';
 
 {
-  [name + '.yaml']: fragment(reg.agentServices[name])
-  for name in std.objectFields(reg.agentServices)
+  [name + '.yaml']: fragment(reg.infisical.services[name])
+  for name in std.objectFields(reg.infisical.services)
 }

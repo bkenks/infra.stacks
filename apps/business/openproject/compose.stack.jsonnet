@@ -1,31 +1,25 @@
-// openproject — self-hosted project management (openprj.<rootDomain>). One image
-// (cron/seeder/web/worker) plus sidecars: cache (memcached), hocuspocus
-// (collaborative editing), autoheal (restarts unhealthy containers).
-//
-// Source of truth: this file compiles to compose.stack.yaml — do not edit the
-// YAML. Joins shared-proxy (traefik owns) so web/hocuspocus are reachable and
-// shared-postgres (postgres owns) so cron/seeder/web/worker reach their DB.
-local lib = import 'lib.libsonnet';
+// Compiles to compose.stack.yaml — do not edit the YAML.
+local c = import 'compose.libsonnet';
+local reg = import 'registry.libsonnet';
 
 local stack = 'openproject';
-local n = lib.compose.names(stack);
-local pgHost = lib.registry.endpoints.postgres.private.host;  // 'postgres_db'
-local pgPort = lib.registry.endpoints.postgres.private.port;  // 5432
+local s = c.stack(stack);
+local n = s.names;
+local pgHost = reg.endpoints.postgres.container.host;  // 'postgres_db'
+local pgPort = reg.endpoints.postgres.container.port;  // 5432
 
-// Public host: subdomain is 'openprj', NOT the stack name 'openproject'.
+// Public subdomain 'openprj' differs from the stack name 'openproject'.
 local sub = 'openprj';
-local domain = sub + '.' + lib.registry.rootDomain;
+local domain = sub + '.' + reg.domains.ktbinternal;
 
-local appVersion = '17-slim';       // openproject/openproject — cron, seeder, web, worker
-local hocuspocusVersion = '17.5.1'; // openproject/hocuspocus
-local autohealVersion = '1.2.0';    // willfarrell/autoheal
+local appVersion = '17-slim';
+local hocuspocusVersion = '17.5.1';
+local autohealVersion = '1.2.0';
 local memcachedVersion = '1.6-alpine';
 
 local webPort = 8080;
 local hocuspocusPort = 1234;
 
-// Shared base merged (via `+`) into cron/seeder/web/worker; per-service keys
-// below override/extend these. enterprise_token.rb bind mount lands on all four.
 local opApp = {
   image: 'openproject/openproject:' + appVersion,
   volumes: [
@@ -35,7 +29,6 @@ local opApp = {
   restart: 'unless-stopped',
 };
 
-// Literal (non-secret) config, common to cron/seeder/web/worker.
 local opAppEnv = {
   OPENPROJECT_HTTPS: 'true',
   OPENPROJECT_HSTS: 'true',
@@ -47,7 +40,6 @@ local opAppEnv = {
   // `web` allows hocuspocus' internal callback (http://web:8080) to pass the host check.
   OPENPROJECT_ADDITIONAL__HOST__NAMES: domain + ',web',
   OPENPROJECT_URL: 'https://' + domain,
-  // "wss" for secure websocket since the collab server is proxied behind TLS.
   OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__URL: 'wss://' + domain + '/hocuspocus',
   OPENPROJECT_RAILS__CACHE__STORE: 'memcache',
   OPENPROJECT_CACHE__MEMCACHE__SERVER: 'cache:11211',
@@ -57,24 +49,19 @@ local opAppEnv = {
   OPENPROJECT_DISABLED__MODULES: '',
 };
 
-// Secrets — interpolated from /dev/shm/openproject.env + /dev/shm/postgres.env
-// (parent include.env_file). Common to cron/seeder/web/worker.
 local opAppSecrets = {
-  // BUG FIX vs the old stack: host was hardcoded 'postgres', which only resolved
-  // by luck/alias collision — use the shared-postgres registry endpoint host.
-  // 'postgres://' (not 'postgresql://') trips Ruby's uri gem: it isn't a
-  // pre-registered hierarchical scheme, so URI.parse rejects the user:pass@
-  // registry part with "the scheme postgres does not accept registry part".
+  // Must be 'postgres://' not 'postgresql://': Ruby's uri gem doesn't
+  // pre-register the latter as hierarchical and rejects the user:pass@ part.
   DATABASE_URL: 'postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@' + pgHost + ':' + std.toString(pgPort) + '/openproject?pool=20&encoding=unicode&reconnect=true',
   SECRET_KEY_BASE: '${OPEN_PRJ_SECRET_KEY:?err}',
   OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__SECRET: '${COLLAB_SERVER_SECRET:?err}',
 };
 
-local webLabels = lib.mixins.proxyAdd(stack, sub, webPort) + { autoheal: 'true' };
+local webLabels = s.proxy.add(stack, sub, webPort) + { autoheal: 'true' };
 
 // proxyAdd only builds a plain Host() rule; hocuspocus needs the same host PLUS
 // a PathPrefix match at higher priority so it wins over the `web` catch-all.
-local hocuspocusLabels = lib.mixins.proxyAdd(stack + '-hocuspocus', sub, hocuspocusPort) + {
+local hocuspocusLabels = s.proxy.add(stack + '-hocuspocus', sub, hocuspocusPort) + {
   ['traefik.http.routers.' + stack + '-hocuspocus.rule']: 'Host(`' + domain + '`) && PathPrefix(`/hocuspocus`)',
   ['traefik.http.routers.' + stack + '-hocuspocus.priority']: '100',
 };
@@ -83,7 +70,6 @@ local hocuspocusLabels = lib.mixins.proxyAdd(stack + '-hocuspocus', sub, hocuspo
   name: stack,
 
   services: {
-    // No explicit `networks:` (implicit default only) — matches old behavior.
     autoheal: {
       image: 'willfarrell/autoheal:' + autohealVersion,
       container_name: n.container('autoheal'),
@@ -108,17 +94,16 @@ local hocuspocusLabels = lib.mixins.proxyAdd(stack + '-hocuspocus', sub, hocuspo
       command: './docker/prod/cron',
       environment: opAppEnv + opAppSecrets,
       networks: {
-        default: { aliases: [n.alias('cron')] },
-        [lib.registry.sharedNetworks.postgres.name]: { aliases: [n.alias('cron')] },
+        default: { aliases: [n.container('cron')] },
+        [reg.sharedNetworks.postgres.name]: { aliases: [n.container('cron')] },
       },
     },
     hocuspocus: {
       image: 'openproject/hocuspocus:' + hocuspocusVersion,
       container_name: n.container('hocuspocus'),
       restart: 'unless-stopped',
-      // Calls BACK into OpenProject to authenticate editing sessions. Reach `web`
-      // internally over the `default` net (http, not the TLS hairpin); `web` must
-      // be in OPENPROJECT_ADDITIONAL__HOST__NAMES so the host check passes.
+      // Calls back into `web` over the internal `default` net (http, not the
+      // TLS hairpin); `web` must be in OPENPROJECT_ADDITIONAL__HOST__NAMES.
       environment: {
         OPENPROJECT_URL: 'http://web:8080',
         OPENPROJECT_HTTPS: 'true',
@@ -126,8 +111,8 @@ local hocuspocusLabels = lib.mixins.proxyAdd(stack + '-hocuspocus', sub, hocuspo
       },
       expose: [std.toString(hocuspocusPort)],
       networks: {
-        default: { aliases: [n.alias('hocuspocus')] },
-        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias('hocuspocus')] },
+        default: { aliases: [n.container('hocuspocus')] },
+        [reg.sharedNetworks.proxy.name]: { aliases: [n.container('hocuspocus')] },
       },
       labels: hocuspocusLabels,
     },
@@ -138,8 +123,8 @@ local hocuspocusLabels = lib.mixins.proxyAdd(stack + '-hocuspocus', sub, hocuspo
       restart: 'on-failure',
       environment: opAppEnv + opAppSecrets,
       networks: {
-        default: { aliases: [n.alias('seeder')] },
-        [lib.registry.sharedNetworks.postgres.name]: { aliases: [n.alias('seeder')] },
+        default: { aliases: [n.container('seeder')] },
+        [reg.sharedNetworks.postgres.name]: { aliases: [n.container('seeder')] },
       },
     },
 
@@ -158,9 +143,9 @@ local hocuspocusLabels = lib.mixins.proxyAdd(stack + '-hocuspocus', sub, hocuspo
       labels: webLabels,
       expose: [std.toString(webPort)],
       networks: {
-        default: { aliases: [n.alias('web')] },
-        [lib.registry.sharedNetworks.postgres.name]: { aliases: [n.alias('web')] },
-        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias('web')] },
+        default: { aliases: [n.container('web')] },
+        [reg.sharedNetworks.postgres.name]: { aliases: [n.container('web')] },
+        [reg.sharedNetworks.proxy.name]: { aliases: [n.container('web')] },
       },
     },
 
@@ -170,8 +155,8 @@ local hocuspocusLabels = lib.mixins.proxyAdd(stack + '-hocuspocus', sub, hocuspo
       command: './docker/prod/worker',
       environment: opAppEnv + opAppSecrets,
       networks: {
-        default: { aliases: [n.alias('worker')] },
-        [lib.registry.sharedNetworks.postgres.name]: { aliases: [n.alias('worker')] },
+        default: { aliases: [n.container('worker')] },
+        [reg.sharedNetworks.postgres.name]: { aliases: [n.container('worker')] },
       },
     },
   },
@@ -179,7 +164,7 @@ local hocuspocusLabels = lib.mixins.proxyAdd(stack + '-hocuspocus', sub, hocuspo
   volumes: { [n.volume('assets')]: { name: n.volume('assets') } },
 
   networks:
-    n.network
-    + lib.compose.join('proxy')
-    + lib.compose.join('postgres'),
+    s.network.default
+    + s.network.join('proxy')
+    + s.network.join('postgres'),
 }

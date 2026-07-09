@@ -1,14 +1,3 @@
-############ If you are using DOCKER all-in-one image, create Dockerfile like:         ################
-############ FROM openproject/openproject:16                                           ################
-############ COPY ./enterprise_token.rb app/models/enterprise_token.rb                 ################
-
-############ If you are runing a manual installation:                                  ################
-############ REPLACE app/models/enterprise_token.rb in the source code with this file! ################
-############ also be sure to RESTART OpenProject after replacing the file.             ################
-
-############ If using some other set up (eg docker-compose), read the comments on      ################
-############ https://gist.github.com/markasoftware/f5b2e55a2c2e3abb1f9eefcdf0bfff45    ################
-
 # OpenProject is an open source project management software.
 # Copyright (C) the OpenProject GmbH
 #
@@ -37,10 +26,8 @@
 #++
 class EnterpriseToken < ApplicationRecord
   class << self
-    # On the backend, features are checked only using `allows_to?`, which we can hardcode to return `true`.
-    # On the frontend, however, it instead checks if particular strings are included in the `available_features`
-    # Unfortunately there is no canonical variable with all the features, so we have to hardcode.
-    # Use `rg --pcre2 -INo "(?<=allows_to\?[^:*]:|allowsTo\(')[a-z_]*" | sort -u` to generate this list:
+    # Frontend checks these strings directly (not just allows_to?); regenerate via:
+    # rg --pcre2 -INo "(?<=allows_to\?[^:*]:|allowsTo\(')[a-z_]*" | sort -u
     TRUE_FEATURES = %i[
       allowed_action
       baseline_comparison
@@ -71,9 +58,7 @@ class EnterpriseToken < ApplicationRecord
       work_package_subject_generation
     ].freeze
 
-    # Not all the methods here are ever actually called outside the enterprise_token.rb file itself
-    # in upstream openproject, but I'll include all of them that can be reasonably implemented here,
-    # just in case openproject changes in the future to start using the extra methods.
+    # Includes methods upstream doesn't currently call, in case that changes.
     def current
       self.new
     end

@@ -1,4 +1,4 @@
-# GENERATED from compose.stack.jsonnet by .jsonnet/render.sh — DO NOT EDIT.
+# GENERATED from compose.stack.jsonnet by .jsonnet/render.py — DO NOT EDIT.
 name: traefik
 networks:
   shared-proxy:
@@ -35,7 +35,7 @@ services:
     - /var/run/docker.sock:/var/run/docker.sock:ro
     - ./files/traefik.yml:/etc/traefik/traefik.yml:ro
     - ./files/host.yml:/etc/traefik/dynamic/host.yml:ro
-    - ./files/controller/controller.yml:/etc/traefik/dynamic/controller.yml:ro
+    - ./files/controller/controller.yaml:/etc/traefik/dynamic/controller.yaml:ro
     - app:/letsencrypt
 volumes:
   app:

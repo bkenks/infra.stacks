@@ -1,22 +1,19 @@
-// immich — self-hosted photo & video management (immich.<rootDomain>).
+// Compiles to compose.stack.yaml — do not edit the YAML. Immich needs its own
+// Postgres (vectorchord/pgvecto extensions) — does NOT join shared-postgres.
 //
-// Source of truth: this file compiles to compose.stack.yaml — do not edit the
-// YAML. Immich requires its own dedicated Postgres (vectorchord/pgvecto
-// extensions) — it does NOT join shared-postgres. Only immich-server (the
-// `server` role below) is Traefik-facing, joining shared-proxy.
-//
-// Storage: database + ML model cache are bind mounts under
-// registry.dockerVolumes (local NVMe — Postgres must NOT live on NFS); the
-// photo/video library is a separate NFS export mounted at the literal host
-// path /mnt/immich-library (not under dockerVolumes).
-local lib = import 'lib.libsonnet';
+// Postgres + ML model cache live on local NVMe bind mounts (Postgres must NOT
+// live on NFS); the photo/video library is a separate NFS export at the
+// literal host path /mnt/immich-library.
+local c = import 'compose.libsonnet';
+local reg = import 'registry.libsonnet';
 
 local stack = 'immich';
-local n = lib.compose.names(stack);
+local s = c.stack(stack);
+local n = s.names;
 local db = 'database';
 local ml = 'machine-learning';
 local app = 'server';
-local redis = lib.registry.roles.redis;
+local redis = reg.roles.redis;
 
 local dbVersion = 'ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:bcf63357191b76a916ae5eb93464d65c07511da41e3bf7a8416db519b40b1c23';
 local mlVersion = 'ghcr.io/immich-app/immich-machine-learning:v2.7.5';
@@ -33,33 +30,32 @@ local tz = 'America/New_York';
     [db]: {
       image: dbVersion,
       container_name: n.container(db),
-      volumes: [lib.registry.dockerVolumes + '/apps/immich/postgres:/var/lib/postgresql/data'],
+      volumes: [reg.server.dir.docker.root + reg.server.dir.docker.bindmounts + '/apps/immich/postgres:/var/lib/postgresql/data'],
       environment: {
         POSTGRES_DB: 'immich',
         POSTGRES_USER: 'immich',
         POSTGRES_INITDB_ARGS: '--data-checksums',
-        // Secret — interpolated from /dev/shm/immich.env (parent include.env_file).
-        // Was broken pre-jsonnet: ${IMMICH_DB_PASSWORD} inside env_file: doesn't
-        // interpolate. Fixed here by putting it directly in `environment:`.
+        // env_file interpolation of ${IMMICH_DB_PASSWORD} doesn't work — must be
+        // set directly here.
         POSTGRES_PASSWORD: '${IMMICH_DB_PASSWORD:?err}',
       },
       restart: 'unless-stopped',
       shm_size: '128mb',
       networks: {
-        default: { aliases: [n.alias(db)] },
+        default: { aliases: [n.container(db)] },
       },
     },
 
     [ml]: {
       image: mlVersion,
       container_name: n.container(ml),
-      volumes: [lib.registry.dockerVolumes + '/apps/immich/model-cache:/cache'],
+      volumes: [reg.server.dir.docker.root + reg.server.dir.docker.bindmounts + '/apps/immich/model-cache:/cache'],
       environment: {
         TZ: tz,
       },
       restart: 'unless-stopped',
       networks: {
-        default: { aliases: [n.alias(ml)] },
+        default: { aliases: [n.container(ml)] },
       },
     },
 
@@ -70,23 +66,21 @@ local tz = 'America/New_York';
       volumes: ['/mnt/immich-library:/data'],
       environment: {
         TZ: tz,
-        // Was broken pre-jsonnet: ${COMPOSE_PROJECT_NAME}-redis inside env_file:
-        // doesn't interpolate. Fixed here with the actual container name.
+        // Same env_file interpolation issue — use the actual container name.
         REDIS_HOSTNAME: n.container(redis),
         DB_HOSTNAME: n.container(db),
         DB_USERNAME: 'immich',
         DB_DATABASE_NAME: 'immich',
-        // Secret — interpolated from /dev/shm/immich.env (parent include.env_file).
-        // Same non-interpolation bug as above, fixed the same way.
+        // Same env_file interpolation bug as POSTGRES_PASSWORD above.
         DB_PASSWORD: '${IMMICH_DB_PASSWORD:?err}',
       },
       restart: 'unless-stopped',
       expose: [std.toString(port)],
       networks: {
-        default: { aliases: [n.alias(app)] },
-        [lib.registry.sharedNetworks.proxy.name]: { aliases: [n.alias(app)] },
+        default: { aliases: [n.container(app)] },
+        [reg.sharedNetworks.proxy.name]: { aliases: [n.container(app)] },
       },
-      labels: lib.mixins.proxyAdd('immich', 'immich', port),
+      labels: s.proxy.add('immich', 'immich', port),
     },
 
     [redis]: {
@@ -94,12 +88,12 @@ local tz = 'America/New_York';
       container_name: n.container(redis),
       restart: 'unless-stopped',
       networks: {
-        default: { aliases: [n.alias(redis)] },
+        default: { aliases: [n.container(redis)] },
       },
     },
   },
 
   networks:
-    n.network
-    + lib.compose.join('proxy'),
+    s.network.default
+    + s.network.join('proxy'),
 }

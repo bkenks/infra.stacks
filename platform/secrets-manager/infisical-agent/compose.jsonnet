@@ -1,7 +1,5 @@
-// infisical-agent — parent compose (Komodo deploy entrypoint). Renders to
-// compose.yaml. Interpolation env_file: /dev/shm/platform.env supplies the
-// machine-identity secrets INFISICAL_CLIENT_ID/SECRET. AGENT_HOST/AGENT_SERVICES/
-// INFISICAL_ADDRESS are per-host, from Komodo's stack Environment.
+// /dev/shm/platform.env supplies the machine-identity secrets INFISICAL_CLIENT_ID/SECRET.
+// AGENT_HOST/AGENT_SERVICES/INFISICAL_ADDRESS are per-host, from Komodo's stack Environment.
 {
   name: 'infisical-agent',
   include: [
