@@ -64,5 +64,5 @@ local manifest = {
 };
 
 c.render(stack, manifest, [
-  c.envPath.platform('cloudflare__dns-api-token.env'),
+  c.envPath.platform('cloudflare__dns-api-token'),
 ])

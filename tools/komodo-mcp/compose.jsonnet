@@ -55,4 +55,4 @@ local manifest = {
     + s.network.join('proxy'),
 };
 
-c.render(stack, manifest, [c.envPath.secret('komodo-mcp.env')])
+c.render(stack, manifest, [c.envPath.secret('komodo-mcp')])

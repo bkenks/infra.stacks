@@ -48,6 +48,6 @@ local manifest = {
 };
 
 c.render(stack, manifest, [
-  c.envPath.platform('zerobyte.env'),
+  c.envPath.platform('zerobyte'),
   reg.envFiles.tailscale,
 ])

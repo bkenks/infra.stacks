@@ -35,4 +35,4 @@ local manifest = {
   networks: s.network.default,
 };
 
-c.render(stack, manifest, [c.envPath.secret('authentik-outpost.env')])
+c.render(stack, manifest, [c.envPath.secret('authentik-outpost')])

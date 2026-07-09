@@ -146,4 +146,4 @@ local manifest = {
     + s.network.own('edge'),
 };
 
-c.render(stack, manifest, [c.envPath.secret('authentik.env')])
+c.render(stack, manifest, [c.envPath.secret('authentik')])

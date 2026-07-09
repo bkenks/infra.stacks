@@ -37,4 +37,4 @@ local manifest = {
     + s.network.join('proxy'),  // owned by traefik
 };
 
-c.render(stack, manifest, [c.envPath.secret('newt.env')])
+c.render(stack, manifest, [c.envPath.secret('newt')])

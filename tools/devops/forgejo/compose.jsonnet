@@ -80,4 +80,4 @@ local manifest = {
     + s.network.join('proxy'),
 };
 
-c.render(stack, manifest, [c.envPath.secret('forgejo.env')])
+c.render(stack, manifest, [c.envPath.secret('forgejo')])

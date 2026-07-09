@@ -36,4 +36,4 @@ local manifest = {
     + s.network.join('proxy'),  // owned by traefik
 };
 
-c.render(stack, manifest, [c.envPath.platform('cloudflared.env')])
+c.render(stack, manifest, [c.envPath.platform('cloudflared')])

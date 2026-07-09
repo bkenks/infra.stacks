@@ -154,6 +154,6 @@ local manifest = {
 };
 
 c.render(stack, manifest, [
-  c.envPath.secret('pangolin.env'),
-  c.envPath.secret('cloudflare__dns-api-token.env'),
+  c.envPath.secret('pangolin'),
+  c.envPath.secret('cloudflare__dns-api-token'),
 ])

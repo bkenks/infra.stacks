@@ -117,4 +117,4 @@ local manifest = {
   },
 };
 
-c.render(stack, manifest, [c.envPath.platform('infisical.env')])
+c.render(stack, manifest, [c.envPath.platform('infisical')])

@@ -69,4 +69,4 @@ local manifest = {
     + s.network.join('postgres'),
 };
 
-c.render(stack, manifest, [c.envPath.secret('postgres.env')])
+c.render(stack, manifest, [c.envPath.secret('postgres')])

@@ -70,4 +70,4 @@ local manifest = {
   volumes: { [roles.db]: { name: n.volume(roles.db) } },
 };
 
-c.render(stack, manifest, [c.envPath.secret('postgres.env')])
+c.render(stack, manifest, [c.envPath.secret('postgres')])

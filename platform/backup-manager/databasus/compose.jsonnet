@@ -19,8 +19,9 @@ local manifest = {
     [roles.app]: {
       image: 'databasus/databasus@' + version,
       volumes: [
-        // Rendered by Infisical agent (SECRET_KEY).
-        '/dev/shm/' + stack + '_secret.key:/databasus-data/secret.key:ro',
+        // Rendered by Infisical agent (SECRET_KEY). Not an env_file, so it takes the
+        // registry path directly rather than going through c.envPath.
+        reg.infisical.services[stack].path + ':/databasus-data/secret.key:ro',
         roles.app + ':/databasus-data',
       ],
       ports: [std.toString(port) + ':' + std.toString(port)],

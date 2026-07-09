@@ -35,7 +35,7 @@ local indentBody(s) = std.join('\n', ['    ' + l for l in bodyLines(s)]);
 // render.py prepends the GENERATED header to every output; do not add one here.
 // Ends on a blank line, separating the fragments entrypoint.sh cats together.
 local fragment(s) =
-  '- destination-path: /dev/shm/' + s.dest + '\n' +
+  '- destination-path: ' + s.path + '\n' +
   '  config:\n' +
   '    polling-interval: "1m"\n' +
   '  template-content: |\n' +

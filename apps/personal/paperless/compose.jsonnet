@@ -152,4 +152,4 @@ local manifest = {
     + s.network.join('proxy'),
 };
 
-c.render(stack, manifest, [c.envPath.secret('paperless.env')])
+c.render(stack, manifest, [c.envPath.secret('paperless')])
