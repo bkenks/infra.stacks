@@ -7,7 +7,7 @@ One service, no profiles — the only per-host difference is `INFISICAL_ADDRESS`
 
 ## What it renders
 
-A host declares services with one variable: `AGENT_SERVICES="postgres cloudflare__dns-api-token cloudflared komodo"` (space/comma-separated). The catalogue is `registry.libsonnet` (`agentServices`); `services.jsonnet` bakes one self-contained fragment per service into `templates/<svc>.yaml` at build time. `entrypoint.sh` just concatenates the named fragments under `templates:` at startup — no runtime YAML parsing or template generation (pre-commit hook re-renders templates when `registry.libsonnet`/`services.jsonnet` changes).
+A host declares services with one variable: `AGENT_SERVICES="postgres cloudflare__dns-api-token cloudflared komodo"` (space/comma-separated). The catalogue is `registry.libsonnet` (`agentServices`); `templates/services.jsonnet` bakes one self-contained fragment per service into `templates/<svc>.yaml` at build time. `entrypoint.sh` just concatenates the named fragments under `templates:` at startup — no runtime YAML parsing or template generation (pre-commit hook re-renders templates when `registry.libsonnet`/`templates/services.jsonnet` changes).
 
 Registry entry `type`:
 
@@ -23,7 +23,7 @@ QUIRK: the Infisical template engine has no env access, so host-scoped paths (e.
 
 1. Add one entry to `agentServices` in `.jsonnet/lib/registry.libsonnet` (`project`, `folder`, `dest`, `type`; plus `keys` for `map` or `key` for `raw`).
 2. `type=dump` if Infisical secret names already match the consumer's env vars, else `map` or `raw`.
-3. Commit — pre-commit re-renders `templates/<svc>.yaml` (or run `.jsonnet/render.py platform/secrets-manager/infisical-agent/services.jsonnet`).
+3. Commit — pre-commit re-renders `templates/<svc>.yaml` (or run `.jsonnet/render.py platform/secrets-manager/infisical-agent/templates/services.jsonnet`).
 4. Store the secrets in Infisical under the entry's folder; scope the consuming host's machine identity to read it.
 5. Append the service name to that host's `AGENT_SERVICES`.
 

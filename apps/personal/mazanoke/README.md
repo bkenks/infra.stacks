@@ -2,7 +2,7 @@
 
 [Mazanoke](https://github.com/civilblur/mazanoke) — self-hosted image compression tool. Reached at `mazanoke.ktbinternal.com` via Traefik → port 80.
 
-Source of truth: `compose.jsonnet` / `compose.stack.jsonnet` — don't edit the generated YAML.
+Source of truth: `compose.jsonnet` — don't edit the generated YAML (renders both `compose.yaml` and `compose.stack.yaml`).
 
 ## Deploy
 

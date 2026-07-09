@@ -2,7 +2,7 @@
 
 [n8n](https://n8n.io/) — workflow automation. Reached at `n8n.ktbinternal.com` via Traefik → port 5678.
 
-Source of truth: `compose.jsonnet` / `compose.stack.jsonnet` — don't edit the generated YAML.
+Source of truth: `compose.jsonnet` — don't edit the generated YAML (renders both `compose.yaml` and `compose.stack.yaml`).
 
 ## Deploy
 
