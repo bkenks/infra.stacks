@@ -66,5 +66,19 @@ local sharedNetworks = r.sharedNetworks;
   envPath: {
     secret(envFilename): '/dev/shm/' + envFilename,
     platform(envFilename):: '${ANSIBLE_SECRETS_FILE:-' + self.secret(envFilename) + '}',
-  }
+  },
+
+  // The two files every stack emits. compose.yaml is what Docker loads: the project name
+  // and an include of the manifest. env_file paths are per-stack data — the registry does
+  // not know them — and the key is omitted entirely for a stack with no secrets.
+  render(name, manifest, envFiles=[]):: {
+    'compose.yaml': {
+      name: name,
+      include: [
+        { path: './compose.stack.yaml' }
+        + (if std.length(envFiles) > 0 then { env_file: envFiles } else {}),
+      ],
+    },
+    'compose.stack.yaml': manifest,
+  },
 }

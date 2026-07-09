@@ -3,14 +3,16 @@ pre-commit:
   # subshell in regenerate-jsonnet-deps — a render failure must abort the commit.
   shell: bash
   jobs:
-    # A staged .jsonnet re-renders just that file.
+    # A staged .jsonnet re-renders just that file. render.py prints one path per output —
+    # several per entrypoint now — and prints swept files too, so `git add -A` is required
+    # to stage a deletion as readily as a write. `pipefail` is what carries render.py's
+    # exit code through the pipe; without it a jsonnet error stops aborting the commit.
     - name: regenerate-jsonnet
       glob: "**/*.jsonnet"
       run: |
-        set -e
+        set -eo pipefail
         for file in {staged_files}; do
-          out=$(.jsonnet/render.py "$file")
-          git add "$out"
+          .jsonnet/render.py "$file" | while read -r out; do git add -A -- "$out"; done
         done
     # A staged .libsonnet (e.g. registry.libsonnet) can affect ANY .jsonnet, so
     # re-render them all — otherwise a registry-only edit leaves the committed
@@ -18,8 +20,7 @@ pre-commit:
     - name: regenerate-jsonnet-deps
       glob: "**/*.libsonnet"
       run: |
-        set -e
+        set -eo pipefail
         find . -path ./.git -prune -o -path ./.claude -prune -o -type f -name '*.jsonnet' -print | while read -r file; do
-          out=$(.jsonnet/render.py "$file")
-          git add "$out"
+          .jsonnet/render.py "$file" | while read -r out; do git add -A -- "$out"; done
         done

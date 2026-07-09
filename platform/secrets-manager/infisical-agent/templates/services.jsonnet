@@ -1,6 +1,5 @@
-// Generates templates/<svc>.yaml, one self-contained Infisical-agent config fragment per
-// service (multi-file output via `jsonnet -S -m`; see .jsonnet/render.py). Source of truth
-// is the registry — edit there, NOT the generated templates/.
+// Generates <svc>.yaml beside this file, one self-contained Infisical-agent config fragment
+// per service. Source of truth is the registry — edit there, NOT the generated fragments.
 //
 // Each fragment is a complete `templates:` list entry with INLINE template-content, so
 // entrypoint.sh just `cat`s the fragments under one `templates:` header (substituting
@@ -33,13 +32,14 @@ local bodyLines(s) =
 local indentBody(s) = std.join('\n', ['    ' + l for l in bodyLines(s)]);
 
 // Built as a raw string, not via manifestYamlDoc, so the Go-template bytes stay exact.
+// render.py prepends the GENERATED header to every output; do not add one here.
+// Ends on a blank line, separating the fragments entrypoint.sh cats together.
 local fragment(s) =
-  '# GENERATED from services.jsonnet by .jsonnet/render.py — DO NOT EDIT.\n' +
   '- destination-path: /dev/shm/' + s.dest + '\n' +
   '  config:\n' +
   '    polling-interval: "1m"\n' +
   '  template-content: |\n' +
-  indentBody(s) + '\n';
+  indentBody(s) + '\n\n';
 
 {
   [name + '.yaml']: fragment(reg.infisical.services[name])
