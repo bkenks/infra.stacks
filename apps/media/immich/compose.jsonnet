@@ -6,6 +6,7 @@
 // literal host path /mnt/immich-library.
 local c = import 'compose.libsonnet';
 local reg = import 'registry.libsonnet';
+local secrets = reg.infisical.services;
 
 local stack = 'immich';
 local s = c.stack(stack);
@@ -98,4 +99,4 @@ local manifest = {
     + s.network.join('proxy'),
 };
 
-c.render(stack, manifest, [c.envPath.secret('immich')])
+c.render(stack, manifest, [secrets.immich.path])

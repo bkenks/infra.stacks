@@ -1,5 +1,6 @@
 local c = import 'compose.libsonnet';
 local reg = import 'registry.libsonnet';
+local secrets = reg.infisical.services;
 
 local stack = 'newt';
 local s = c.stack(stack);
@@ -37,4 +38,4 @@ local manifest = {
     + s.network.join('proxy'),  // owned by traefik
 };
 
-c.render(stack, manifest, [c.envPath.secret('newt')])
+c.render(stack, manifest, [secrets.newt.path])

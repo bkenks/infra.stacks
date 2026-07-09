@@ -3,6 +3,7 @@
 // step on first deploy.
 local c = import 'compose.libsonnet';
 local reg = import 'registry.libsonnet';
+local secrets = reg.infisical.services;
 
 local stack = 'stream';
 local s = c.stack(stack);
@@ -257,4 +258,4 @@ local manifest = {
     + s.network.join('proxy'),
 };
 
-c.render(stack, manifest, [c.envPath.secret('stream')])
+c.render(stack, manifest, [secrets.stream.path])

@@ -4,6 +4,8 @@
 // Dials the core Authentik server OUTBOUND and serves the forward-auth endpoint on :9000,
 // published on the host so every mesh host's Traefik can forward-auth to it over Tailscale.
 local c = import 'compose.libsonnet';
+local reg = import 'registry.libsonnet';
+local secrets = reg.infisical.services;
 
 local stack = 'authentik-outpost';
 local s = c.stack(stack);
@@ -35,4 +37,4 @@ local manifest = {
   networks: s.network.default,
 };
 
-c.render(stack, manifest, [c.envPath.secret('authentik-outpost')])
+c.render(stack, manifest, [secrets['authentik-outpost'].path])

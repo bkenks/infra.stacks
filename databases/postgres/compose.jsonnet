@@ -2,6 +2,7 @@
 // db hostname is single-sourced at reg.endpoints.postgres.container.host — change there, not here.
 local c = import 'compose.libsonnet';
 local reg = import 'registry.libsonnet';
+local secrets = reg.infisical.services;
 local sharedNetworks = reg.sharedNetworks;
 local roles = reg.roles;
 
@@ -70,4 +71,4 @@ local manifest = {
   volumes: { [roles.db]: { name: n.volume(roles.db) } },
 };
 
-c.render(stack, manifest, [c.envPath.secret('postgres')])
+c.render(stack, manifest, [secrets.postgres.path])

@@ -3,6 +3,7 @@
 // a raw key file bind-mounted from /dev/shm, not an env var.
 local c = import 'compose.libsonnet';
 local reg = import 'registry.libsonnet';
+local secrets = reg.infisical.services;
 
 local stack = 'databasus';
 local s = c.stack(stack);
@@ -19,9 +20,9 @@ local manifest = {
     [roles.app]: {
       image: 'databasus/databasus@' + version,
       volumes: [
-        // Rendered by Infisical agent (SECRET_KEY). Not an env_file, so it takes the
-        // registry path directly rather than going through c.envPath.
-        reg.infisical.services[stack].path + ':/databasus-data/secret.key:ro',
+        // Rendered by Infisical agent (SECRET_KEY) — a raw key file, not an env_file,
+        // so it is bind-mounted rather than passed to include.env_file.
+        secrets[stack].path + ':/databasus-data/secret.key:ro',
         roles.app + ':/databasus-data',
       ],
       ports: [std.toString(port) + ':' + std.toString(port)],

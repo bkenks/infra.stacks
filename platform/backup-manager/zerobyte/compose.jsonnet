@@ -4,6 +4,7 @@
 // SECRET__APP_SECRET; tailscale.env -> TAILSCALE_HOSTNAME (per-host, self-refreshing).
 local c = import 'compose.libsonnet';
 local reg = import 'registry.libsonnet';
+local secrets = reg.infisical.services;
 
 local stack = 'zerobyte';
 local s = c.stack(stack);
@@ -48,6 +49,6 @@ local manifest = {
 };
 
 c.render(stack, manifest, [
-  c.envPath.platform('zerobyte'),
+  secrets.zerobyte.platformPath,
   reg.envFiles.tailscale,
 ])

@@ -2,6 +2,7 @@
 // basic-auth — the MCP endpoint has no auth of its own and the configured key is full read/write.
 local c = import 'compose.libsonnet';
 local reg = import 'registry.libsonnet';
+local secrets = reg.infisical.services;
 
 local stack = 'komodo-mcp';
 local s = c.stack(stack);
@@ -55,4 +56,4 @@ local manifest = {
     + s.network.join('proxy'),
 };
 
-c.render(stack, manifest, [c.envPath.secret('komodo-mcp')])
+c.render(stack, manifest, [secrets['komodo-mcp'].path])

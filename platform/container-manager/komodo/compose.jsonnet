@@ -2,6 +2,7 @@
 // the committed ./core.env (non-secret tunables). DOCKER_VOLUMES comes from Komodo's stack Environment.
 local c = import 'compose.libsonnet';
 local reg = import 'registry.libsonnet';
+local secrets = reg.infisical.services;
 
 local stack = 'komodo';
 local s = c.stack(stack);
@@ -92,4 +93,4 @@ local manifest = {
     + s.network.join('proxy'),  // shared-proxy is owned by traefik
 };
 
-c.render(stack, manifest, [c.envPath.platform('komodo')])
+c.render(stack, manifest, [secrets.komodo.platformPath])

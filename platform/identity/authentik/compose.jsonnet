@@ -6,6 +6,7 @@
 // server + worker share one image/env base (opApp-style merge); env var names + volume
 // layout verified against https://docs.goauthentik.io/install-config/install/docker-compose/.
 local reg = import 'registry.libsonnet';
+local secrets = reg.infisical.services;
 local c = import 'compose.libsonnet';
 
 local stack = 'authentik';
@@ -146,4 +147,4 @@ local manifest = {
     + s.network.own('edge'),
 };
 
-c.render(stack, manifest, [c.envPath.secret('authentik')])
+c.render(stack, manifest, [secrets.authentik.path])

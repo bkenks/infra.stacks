@@ -2,6 +2,7 @@
 // `db` is dedicated Postgres, NOT shared-postgres.
 local c = import 'compose.libsonnet';
 local reg = import 'registry.libsonnet';
+local secrets = reg.infisical.services;
 
 local stack = 'gitea';
 local s = c.stack(stack);
@@ -98,4 +99,4 @@ local manifest = {
     + s.network.join('proxy'),
 };
 
-c.render(stack, manifest, [c.envPath.secret('gitea')])
+c.render(stack, manifest, [secrets.gitea.path])

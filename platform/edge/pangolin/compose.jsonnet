@@ -17,6 +17,7 @@
 // mounts (git-tracked); runtime state (keys, certs, GeoLite DBs, logs, db) stays host-only.
 local c = import 'compose.libsonnet';
 local reg = import 'registry.libsonnet';
+local secrets = reg.infisical.services;
 local dv = reg.server.dir.docker.root + reg.server.dir.docker.bindmounts;
 
 local stack = 'pangolin';
@@ -154,6 +155,6 @@ local manifest = {
 };
 
 c.render(stack, manifest, [
-  c.envPath.secret('pangolin'),
-  c.envPath.secret('cloudflare__dns-api-token'),
+  secrets.pangolin.path,
+  secrets['cloudflare__dns-api-token'].path,
 ])

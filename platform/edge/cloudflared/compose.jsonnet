@@ -2,6 +2,7 @@
 // env_file cloudflared.env supplies CLOUDFLARE_TUNNEL_TOKEN.
 local c = import 'compose.libsonnet';
 local reg = import 'registry.libsonnet';
+local secrets = reg.infisical.services;
 
 local stack = 'cloudflared';
 local s = c.stack(stack);
@@ -36,4 +37,4 @@ local manifest = {
     + s.network.join('proxy'),  // owned by traefik
 };
 
-c.render(stack, manifest, [c.envPath.platform('cloudflared')])
+c.render(stack, manifest, [secrets.cloudflared.platformPath])

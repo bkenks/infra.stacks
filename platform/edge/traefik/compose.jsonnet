@@ -2,6 +2,7 @@
 // discovery is pinned to shared-proxy in files/traefik.yml (providers.docker.network) — keep in sync.
 local c = import 'compose.libsonnet';
 local reg = import 'registry.libsonnet';
+local secrets = reg.infisical.services;
 local roles = reg.roles;
 
 local stack = 'traefik';
@@ -64,5 +65,5 @@ local manifest = {
 };
 
 c.render(stack, manifest, [
-  c.envPath.platform('cloudflare__dns-api-token'),
+  secrets['cloudflare__dns-api-token'].platformPath,
 ])

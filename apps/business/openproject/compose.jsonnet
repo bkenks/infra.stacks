@@ -1,6 +1,7 @@
 // Compiles to compose.yaml and compose.stack.yaml — do not edit the YAML.
 local c = import 'compose.libsonnet';
 local reg = import 'registry.libsonnet';
+local secrets = reg.infisical.services;
 
 local stack = 'openproject';
 local s = c.stack(stack);
@@ -169,4 +170,4 @@ local manifest = {
     + s.network.join('postgres'),
 };
 
-c.render(stack, manifest, [c.envPath.secret('openproject'), c.envPath.secret('postgres')])
+c.render(stack, manifest, [secrets.openproject.path, secrets.postgres.path])

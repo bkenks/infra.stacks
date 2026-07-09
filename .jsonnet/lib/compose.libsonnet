@@ -63,16 +63,6 @@ local sharedNetworks = r.sharedNetworks;
 
   },
 
-  // Resolve an env_file path from a registry service KEY, not a filename — the agent's
-  // destination-path and this are the same field, so they cannot drift. An unknown key
-  // fails at compile time; a typo'd filename used to fail silently at runtime, as an
-  // env_file docker-compose reads as empty.
-  envPath: {
-    secret(service):: r.infisical.services[service].path,
-    // The control plane points a stack at its own secrets file during bootstrap, before
-    // infisical-agent is running to render one.
-    platform(service):: '${ANSIBLE_SECRETS_FILE:-' + self.secret(service) + '}',
-  },
 
   // The two files every stack emits. compose.yaml is what Docker loads: the project name
   // and an include of the manifest. env_file paths are per-stack data — the registry does

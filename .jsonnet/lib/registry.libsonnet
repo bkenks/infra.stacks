@@ -144,13 +144,19 @@ local secretDir = '/dev/shm';
       databasus: { project: 'infra', folder: '/databasus', dest: 'databasus_secret.key', type: 'raw', key: 'SECRET_KEY' },
     },
 
-    # Every service gains `path`: the absolute file the agent renders it to. services.jsonnet
-    # emits it as destination-path and the consuming stack references it as env_file (or a
-    # bind mount), so the producer and the consumer cannot disagree about the filename.
-    # Retyping the literal is what this prevents: `dest` is not always '<name>.env' (komodo
-    # renders komodo_core.env), and is not always an env file (databasus renders a raw key).
+    # Every service gains two derived paths. services.jsonnet emits `path` as the agent's
+    # destination-path and the consuming stack references it as env_file (or a bind mount),
+    # so the producer and the consumer cannot disagree about the filename. Retyping the
+    # literal is what this prevents: `dest` is not always '<name>.env' (komodo renders
+    # komodo_core.env), and is not always an env file (databasus renders a raw key).
+    #   path:         where infisical-agent writes the secret.
+    #   platformPath: same, but the control plane may override it during bootstrap, before
+    #                 the agent is running to render anything.
     services: {
-      [name]: catalogue[name] { path:: secretDir + '/' + catalogue[name].dest }
+      [name]: catalogue[name] {
+        path:: secretDir + '/' + catalogue[name].dest,
+        platformPath:: '${ANSIBLE_SECRETS_FILE:-' + self.path + '}',
+      }
       for name in std.objectFields(catalogue)
     },
   },
