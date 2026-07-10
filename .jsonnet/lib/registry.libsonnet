@@ -93,7 +93,11 @@ local secretDir = '/dev/shm';
       stream: { project: 'apps', folder: '/stream', dest: 'stream.env', type: 'dump' },
       convertx: { project: 'apps', folder: '/convertx', dest: 'convertx.env', type: 'dump' },
       twenty: { project: 'apps', folder: '/twenty', dest: 'twenty.env', type: 'dump' },
+      # One folder per Pangolin instance — they must not share a SERVER_SECRET. `pangolin`
+      # is the ktbcloud edge on rick; the folder keeps its original name so rick's live
+      # secrets don't have to move.
       pangolin: { project: 'apps', folder: '/pangolin', dest: 'pangolin.env', type: 'dump' },
+      'pangolin-internal': { project: 'apps', folder: '/pangolin-internal', dest: 'pangolin-internal.env', type: 'dump' },
       frappe: { project: 'frappe', folder: '/frappe', dest: 'frappe.env', type: 'dump' },
       'couch-potatoes-website': { project: 'couchPotatoes', folder: '/website', dest: 'client_couch-potatoes_website.env', type: 'dump' },
       'stackform-website': { project: 'stackform', folder: '/website', dest: 'stackform_website.env', type: 'dump' },
@@ -194,7 +198,10 @@ local secretDir = '/dev/shm';
     # Plex is host-mode on paiki :32400 — NOT behind paiki's Traefik, so it routes
     # straight to the Plex process via a `-direct` backend (see `direct` above).
     plex: { home: 'paiki', direct: { port: 32400 } },
-    # ── rick ──
-    pangolin: { home: 'rick' },
+    # ── bill ──
+    # pangolin.ktbinternal.com is the INTERNAL instance, on bill. rick's instance answers
+    # for pangolin.ktbcloud.com, which is public and not routed through the controller.
+    # Keeping this router means LAN clients reach it without NAT hairpin.
+    pangolin: { home: 'bill' },
   },
 }

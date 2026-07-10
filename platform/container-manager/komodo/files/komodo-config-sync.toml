@@ -194,7 +194,7 @@ config_files = [
 environment = """
 
 AGENT_HOST              = 'bill'                                # e.g. 'littlebuddy' or 'paiki' | This host. Must match folder in Infisical project
-AGENT_SERVICES          = 'cloudflare__dns-api-token frappe'
+AGENT_SERVICES          = 'cloudflare__dns-api-token frappe pangolin-internal'
 # INFISICAL_ADDRESS     = 'http://infisical_app:8080'           # Uncomment if Infisical runs on this host
 INFISICAL_CLIENT_ID     = [[INFSCL_AGNT_CLIENT_ID__BILL]]       # Set in Komodo variables (toggle secret on to prevent upload to Repo)
 INFISICAL_CLIENT_SECRET = [[INFSCL_AGNT_CLIENT_SECRET__BILL]]   # Set in Komodo variables (toggle secret on to prevent upload to Repo)
@@ -335,6 +335,8 @@ ignore_services = ["seeder"]
 
 ##
 
+# Two Pangolin edges, one DNS plane each. Keeps the name "pangolin" (not "pangolin_rick")
+# so Komodo doesn't tear down and rebuild rick's live instance over a rename.
 [[stack]]
 name = "pangolin"
 [stack.config]
@@ -342,6 +344,18 @@ server = "rick"
 destroy_before_deploy = true
 linked_repo = "infra.stacks"
 run_directory = "./platform/edge/pangolin"
+ignore_services = ["init"]
+
+##
+
+# Gerbil binds 80/443 — traefik_bill must be retired before this stack will start.
+[[stack]]
+name = "pangolin_bill"
+[stack.config]
+server = "bill"
+destroy_before_deploy = true
+linked_repo = "infra.stacks"
+run_directory = "./platform/edge/pangolin-internal"
 ignore_services = ["init"]
 
 ##

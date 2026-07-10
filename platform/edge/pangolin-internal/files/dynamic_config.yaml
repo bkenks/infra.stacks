@@ -14,15 +14,8 @@ http:
       - websecure
       middlewares:
       - badger
-      rule: Host(`pangolin.ktbcloud.com`) && PathPrefix(`/api/v1`)
+      rule: Host(`pangolin.ktbinternal.com`) && PathPrefix(`/api/v1`)
       service: api-service
-      tls:
-        certResolver: cloudflare
-    authentik-router:
-      entryPoints:
-      - websecure
-      rule: Host(`auth.ktbcloud.com`)
-      service: authentik-service
       tls:
         certResolver: cloudflare
     main-app-router-redirect:
@@ -31,27 +24,27 @@ http:
       middlewares:
       - redirect-to-https
       - badger
-      rule: Host(`pangolin.ktbcloud.com`)
+      rule: Host(`pangolin.ktbinternal.com`)
       service: next-service
     next-router:
       entryPoints:
       - websecure
       middlewares:
       - badger
-      rule: Host(`pangolin.ktbcloud.com`) && !PathPrefix(`/api/v1`)
+      rule: Host(`pangolin.ktbinternal.com`) && !PathPrefix(`/api/v1`)
       service: next-service
       tls:
         certResolver: cloudflare
         domains:
-        - main: ktbcloud.com
+        - main: ktbinternal.com
           sans:
-          - '*.ktbcloud.com'
+          - '*.ktbinternal.com'
     ws-router:
       entryPoints:
       - websecure
       middlewares:
       - badger
-      rule: Host(`pangolin.ktbcloud.com`)
+      rule: Host(`pangolin.ktbinternal.com`)
       service: api-service
       tls:
         certResolver: cloudflare
@@ -60,10 +53,6 @@ http:
       loadBalancer:
         servers:
         - url: http://pangolin:3000
-    authentik-service:
-      loadBalancer:
-        servers:
-        - url: http://authentik_server:9000
     next-service:
       loadBalancer:
         servers:
