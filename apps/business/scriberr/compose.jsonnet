@@ -49,7 +49,7 @@ local manifest = {
     [whisperxVol]: { name: n.volume(whisperxVol) },
   },
 
-  networks: s.network.default + s.network.join('proxy'),
+  networks: s.network.default + s.network.join(reg.sharedNetworks.proxy),
 };
 
 c.render(stack, manifest)

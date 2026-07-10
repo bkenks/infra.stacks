@@ -65,8 +65,8 @@ local manifest = {
 
   networks:
     s.network.default       // default net -> 'postgres' (private; db + pgadmin)
-    + s.network.own('postgres')     // shared-postgres (owned; apps join)
-    + s.network.join('dbBackups'),  // shared-db-backups (databasus owns)
+    + s.network.own(reg.sharedNetworks.postgres)     // shared-postgres (owned; apps join)
+    + s.network.join(reg.sharedNetworks.dbBackups),  // shared-db-backups (databasus owns)
 
   volumes: { [roles.db]: { name: n.volume(roles.db) } },
 };

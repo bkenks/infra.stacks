@@ -90,7 +90,7 @@ local manifest = {
 
   networks:
     s.network.default
-    + s.network.join('proxy'),  // shared-proxy is owned by traefik
+    + s.network.join(reg.sharedNetworks.proxy),  // shared-proxy is owned by traefik
 };
 
 c.render(stack, manifest, [secrets.komodo.platformPath])

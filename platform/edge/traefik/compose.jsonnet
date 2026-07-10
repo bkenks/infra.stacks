@@ -10,7 +10,7 @@ local s = c.stack(stack);
 local n = s.names;
 local version = 'v3.6.7';  // >= v3.6.1 so Docker 29 API negotiation works
 
-local proxyNetwork = 'proxy';
+local proxyNetwork = reg.sharedNetworks.proxy;
 
 local manifest = {
   name: stack,
@@ -43,7 +43,7 @@ local manifest = {
         roles.app + ':/letsencrypt',  // persist acme.json across redeploys
       ],
       networks: {
-        [reg.sharedNetworks[proxyNetwork].name]: {
+        [proxyNetwork.name]: {
           aliases: [extName]
         },
       },

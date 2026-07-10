@@ -43,7 +43,7 @@ local manifest = {
 
   networks:
     s.network.default
-    + s.network.join('proxy'),
+    + s.network.join(reg.sharedNetworks.proxy),
 };
 
 c.render(stack, manifest)

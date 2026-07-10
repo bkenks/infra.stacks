@@ -22,7 +22,7 @@ local manifest = {
       volumes: [
         // Rendered by Infisical agent (SECRET_KEY) — a raw key file, not an env_file,
         // so it is bind-mounted rather than passed to include.env_file.
-        secrets[stack].path + ':/databasus-data/secret.key:ro',
+        secrets.databasus.path + ':/databasus-data/secret.key:ro',
         roles.app + ':/databasus-data',
       ],
       ports: [std.toString(port) + ':' + std.toString(port)],
@@ -36,7 +36,7 @@ local manifest = {
 
   networks:
     s.network.default
-    + s.network.own('dbBackups'),  // databasus OWNS shared-db-backups; the DBs join it
+    + s.network.own(reg.sharedNetworks.dbBackups),  // databasus OWNS shared-db-backups; the DBs join it
 
   volumes: {
     [roles.app]: { name: n.volume(roles.app) },

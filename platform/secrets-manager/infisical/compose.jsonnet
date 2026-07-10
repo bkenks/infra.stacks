@@ -27,7 +27,7 @@ local manifest = {
         redis: { condition: 'service_healthy' },
       },
       environment: {
-        SITE_URL: c.url('infisical').public,
+        SITE_URL: c.url(reg.endpoints.infisical).public,
 
         // Optional; blank disables email.
         SMTP_HOST: '${INFISICAL__SMTP_HOST:-}',
@@ -109,8 +109,8 @@ local manifest = {
 
   networks:
     s.network.default
-    + s.network.own('infisical')    // shared-infisical (owned; apps join)
-    + s.network.join('proxy'),      // shared-proxy (traefik owns)
+    + s.network.own(reg.sharedNetworks.infisical)    // shared-infisical (owned; apps join)
+    + s.network.join(reg.sharedNetworks.proxy),      // shared-proxy (traefik owns)
 
   volumes: {
     [roles.db]: { name: n.volume(roles.db) },

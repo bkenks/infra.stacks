@@ -103,8 +103,8 @@ local manifest = {
 
   networks:
     s.network.default
-    + s.network.join('proxy')
-    + s.network.join('postgres'),
+    + s.network.join(reg.sharedNetworks.proxy)
+    + s.network.join(reg.sharedNetworks.postgres),
 };
 
 c.render(stack, manifest, [secrets.twenty.path, secrets.postgres.path])

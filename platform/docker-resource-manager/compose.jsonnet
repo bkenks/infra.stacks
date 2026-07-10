@@ -11,8 +11,10 @@ local n = s.names;
 
 local version = '1.37.0';
 
-// Iterate registry keys so adding a network there auto-extends this stack (no list to sync).
-local netKeys = std.objectFields(reg.sharedNetworks);
+// Enumerate the registry so adding a network there auto-extends this stack (no list to
+// sync). The keys come from objectFields, so nothing here can name a network that doesn't
+// exist -- unlike a hand-written key, which is why every other stack references the entry.
+local nets = [reg.sharedNetworks[k] for k in std.objectFields(reg.sharedNetworks)];
 
 local manifest = {
   name: stack,
@@ -20,13 +22,13 @@ local manifest = {
   services: {
     init: {
       image: 'docker.io/library/busybox:' + version,
-      networks: { [reg.sharedNetworks[k].name]: {} for k in netKeys },
+      networks: { [net.name]: {} for net in nets },
       command: ['true'],
       restart: 'no',
     },
   },
 
-  networks: std.foldl(function(acc, k) acc + s.network.own(k), netKeys, {}),
+  networks: std.foldl(function(acc, net) acc + s.network.own(net), nets, {}),
 };
 
 c.render(stack, manifest)

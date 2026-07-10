@@ -56,7 +56,7 @@ local manifest = {
 
   volumes: { [app]: { name: n.volume(app) } },
 
-  networks: s.network.default + s.network.join('proxy'),
+  networks: s.network.default + s.network.join(reg.sharedNetworks.proxy),
 };
 
 c.render(stack, manifest)

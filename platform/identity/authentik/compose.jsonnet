@@ -144,7 +144,7 @@ local manifest = {
 
   networks:
     s.network.default
-    + s.network.own('edge'),
+    + s.network.own(reg.sharedNetworks.edge),
 };
 
 c.render(stack, manifest, [secrets.authentik.path])

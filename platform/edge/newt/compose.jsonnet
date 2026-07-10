@@ -35,7 +35,7 @@ local manifest = {
 
   networks:
     s.network.default   // unused here — no peers
-    + s.network.join('proxy'),  // owned by traefik
+    + s.network.join(reg.sharedNetworks.proxy),  // owned by traefik
 };
 
 c.render(stack, manifest, [secrets.newt.path])

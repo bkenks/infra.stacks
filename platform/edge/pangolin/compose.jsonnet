@@ -151,7 +151,7 @@ local manifest = {
 
   networks: {
     default: { name: stack, driver: 'bridge', enable_ipv6: true },
-  } + s.network.join('edge'),  // external shared-edge (owned by authentik)
+  } + s.network.join(reg.sharedNetworks.edge),  // external shared-edge (owned by authentik)
 };
 
 c.render(stack, manifest, [

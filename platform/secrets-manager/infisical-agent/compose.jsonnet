@@ -4,6 +4,7 @@
 // Naming is merged into the 'infisical' project (matches komodo-periphery's
 // merge into 'komodo') — this stack is Infisical's agent, not its own app.
 local c = import 'compose.libsonnet';
+local reg = import 'registry.libsonnet';
 
 local stack = 'infisical';
 local s = c.stack(stack);
@@ -33,7 +34,7 @@ local manifest = {
         INFISICAL_CLIENT_ID: '${INFISICAL_CLIENT_ID:?err}',
         INFISICAL_CLIENT_SECRET: '${INFISICAL_CLIENT_SECRET:?err}',
         // Public URL by default (works on every host); per-host override allowed.
-        INFISICAL_ADDRESS: '${INFISICAL_ADDRESS:-' + c.url('infisical').public + '}',
+        INFISICAL_ADDRESS: '${INFISICAL_ADDRESS:-' + c.url(reg.endpoints.infisical).public + '}',
       },
       networks: {
         default: { aliases: [n.container('agent')] },  // egress to reach the public Infisical URL
