@@ -119,7 +119,7 @@ http:
       - controller-hop
       priority: 1
       rule: Host(`pangolin.ktbinternal.com`)
-      service: host-rick
+      service: host-bill
       tls: {}
     paperless:
       entryPoints:

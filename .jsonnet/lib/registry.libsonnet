@@ -194,7 +194,10 @@ local secretDir = '/dev/shm';
     # Plex is host-mode on paiki :32400 — NOT behind paiki's Traefik, so it routes
     # straight to the Plex process via a `-direct` backend (see `direct` above).
     plex: { home: 'paiki', direct: { port: 32400 } },
-    # ── rick ──
-    pangolin: { home: 'rick' },
+    # ── bill ──
+    # pangolin.ktbinternal.com is the INTERNAL instance, on bill (PANGOLIN_VARIANT=internal).
+    # The cloud instance on rick answers pangolin.ktbcloud.com, which is public and not routed
+    # through the controller. This router lets LAN clients reach bill without NAT hairpin.
+    pangolin: { home: 'bill' },
   },
 }
