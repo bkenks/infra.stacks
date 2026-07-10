@@ -25,6 +25,10 @@ http:
       service: authentik-service
       tls:
         certResolver: cloudflare
+        domains:
+        - main: ktbcloud.com
+          sans:
+          - '*.ktbcloud.com'
     main-app-router-redirect:
       entryPoints:
       - web
@@ -43,9 +47,9 @@ http:
       tls:
         certResolver: cloudflare
         domains:
-        - main: ktbcloud.com
+        - main: ktbinternal.com
           sans:
-          - '*.ktbcloud.com'
+          - '*.ktbinternal.com'
     ws-router:
       entryPoints:
       - websecure
