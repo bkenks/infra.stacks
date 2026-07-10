@@ -2,7 +2,7 @@
 
 [Paperless-ngx](https://docs.paperless-ngx.com/) — self-hosted document management, with its own dedicated Postgres, Redis, Gotenberg + Apache Tika. Reached at `paper.ktbinternal.com` via Traefik → port 8000 (`webserver`).
 
-Source of truth: `compose.jsonnet` / `compose.stack.jsonnet` — don't edit the generated YAML.
+Source of truth: `compose.jsonnet` — don't edit the generated YAML (renders both `compose.yaml` and `compose.stack.yaml`).
 
 ## Deploy
 

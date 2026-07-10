@@ -2,7 +2,7 @@
 
 [Stirling PDF](https://www.stirlingpdf.com/) — self-hosted PDF toolkit. Reached at `stirling-pdf.ktbinternal.com` via Traefik → port 8080.
 
-Source of truth: `compose.jsonnet` / `compose.stack.jsonnet` — don't edit the generated YAML.
+Source of truth: `compose.jsonnet` — don't edit the generated YAML (renders both `compose.yaml` and `compose.stack.yaml`).
 
 ## Deploy
 

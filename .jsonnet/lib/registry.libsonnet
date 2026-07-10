@@ -1,6 +1,10 @@
 // Single source of truth for names that cross stack boundaries.
 // Reference by KEY (reg.sharedNetworks.proxy), never raw string — a typo'd key fails at
 // compile time; a typo'd string fails silently at runtime (wrong/empty network).
+
+// tmpfs the Infisical agent renders secrets into; never written to disk.
+local secretDir = '/dev/shm';
+
 {
   server: {
     dir: {
@@ -73,10 +77,10 @@
       stackform: '15d61370-a2ec-4993-9bbd-3774a63f7b94',
       infra: '86324d9b-3dd7-49d4-b252-69228c5ee0c7',
     },
-    services: {
+    local catalogue = {
       # Catalogue of every stack the Infisical agent can render; services.jsonnet generates
       # one templates/<svc>.yaml fragment per entry, a host opts in via AGENT_SERVICES. Fields:
-      #   dest: output file under /dev/shm/ — MUST equal what the consumer reads.
+      #   dest: output filename under /dev/shm/. Reference it as `path` (below), never retype it.
       #   type: dump = whole folder, secret names already match env-var names.
       #         map  = explicit renames via `keys` ({ OUTPUT_ENV_VAR: 'infisical-secret-name' }).
       #         raw  = single secret's raw value (no KEY= prefix) via `key`.
@@ -138,6 +142,22 @@
       },
       'authentik-outpost': { project: 'infra', folder: '/authentik-outpost', dest: 'authentik-outpost.env', type: 'dump' },
       databasus: { project: 'infra', folder: '/databasus', dest: 'databasus_secret.key', type: 'raw', key: 'SECRET_KEY' },
+    },
+
+    # Every service gains two derived paths. services.jsonnet emits `path` as the agent's
+    # destination-path and the consuming stack references it as env_file (or a bind mount),
+    # so the producer and the consumer cannot disagree about the filename. Retyping the
+    # literal is what this prevents: `dest` is not always '<name>.env' (komodo renders
+    # komodo_core.env), and is not always an env file (databasus renders a raw key).
+    #   path:         where infisical-agent writes the secret.
+    #   platformPath: same, but the control plane may override it during bootstrap, before
+    #                 the agent is running to render anything.
+    services: {
+      [name]: catalogue[name] {
+        path:: secretDir + '/' + catalogue[name].dest,
+        platformPath:: '${ANSIBLE_SECRETS_FILE:-' + self.path + '}',
+      }
+      for name in std.objectFields(catalogue)
     },
   },
 
