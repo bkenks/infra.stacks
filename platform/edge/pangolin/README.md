@@ -1,7 +1,7 @@
 # pangolin
 [Pangolin](https://docs.pangolin.net/) — self-hosted tunnel + reverse proxy exposing internal services (incl. raw TCP/UDP) to the public internet without inbound ports on the origin host. Three containers: `pangolin` (control plane/dashboard), `gerbil` (WireGuard tunnel server, owns public `80/443/51820/21820`), `traefik` (HTTP routing + Let's Encrypt).
 
-**This is the `ktbcloud.com` edge, on `rick` (the VPS).** Its sibling is [`../pangolin-internal`](../pangolin-internal) (`ktbinternal.com`, on `bill`). Both are instances of the same shape — `.jsonnet/lib/pangolin.libsonnet` — differing only by `./instance.libsonnet`.
+**This is the `ktbcloud.com` edge, on `rick` (the VPS).** Its sibling is [`../pangolin-internal`](../pangolin-internal) (`ktbinternal.com`, on `bill`). Both are instances of the same shape — `platform/edge/pangolin.libsonnet` — differing only by `./instance.libsonnet`.
 
 Source of truth is the `.jsonnet`: `compose.jsonnet` (renders `compose.yaml` + `compose.stack.yaml`) and `files/configs.jsonnet` (renders `config.yaml`/`dynamic_config.yaml`/`traefik_config.yaml`) both apply `pangolin.libsonnet` to `instance.libsonnet`. Don't edit generated YAML. `files/privateConfig.yml` is a hand-maintained empty placeholder, not generated.
 

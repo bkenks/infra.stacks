@@ -4,7 +4,7 @@
 // NOT the per-host platform/edge/traefik stack — don't deploy both on the same host
 // (port conflict; Gerbil owns 80/443 here).
 //
-// Shape lives in .jsonnet/lib/pangolin.libsonnet; this instance's knobs in ./instance.libsonnet.
-local pangolin = import 'pangolin.libsonnet';
+// Shape lives in platform/edge/pangolin.libsonnet; this instance's knobs in ./instance.libsonnet.
+local pangolin = import '../pangolin.libsonnet';
 
 pangolin.compose(import './instance.libsonnet')

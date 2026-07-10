@@ -1,5 +1,5 @@
 # pangolin-internal
-The `ktbinternal.com` [Pangolin](https://docs.pangolin.net/) edge, on `bill`. Second instance of the shape in `.jsonnet/lib/pangolin.libsonnet`; the first is [`../pangolin`](../pangolin) (`ktbcloud.com`, on `rick`). See that README for how the two relate — disjoint DNS planes, separate `SERVER_SECRET`, `servesAuthentik` gating `shared-edge`.
+The `ktbinternal.com` [Pangolin](https://docs.pangolin.net/) edge, on `bill`. Second instance of the shape in `platform/edge/pangolin.libsonnet`; the first is [`../pangolin`](../pangolin) (`ktbcloud.com`, on `rick`). See that README for how the two relate — disjoint DNS planes, separate `SERVER_SECRET`, `servesAuthentik` gating `shared-edge`.
 
 Source of truth is the `.jsonnet`: `compose.jsonnet` and `files/configs.jsonnet` both apply `pangolin.libsonnet` to `./instance.libsonnet`. Don't edit generated YAML. `files/privateConfig.yml` is a hand-maintained empty placeholder.
 

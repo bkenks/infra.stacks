@@ -5,7 +5,7 @@
 // (port conflict; Gerbil owns 80/443 here). bill currently runs traefik_bill, which must be
 // retired before this stack can start.
 //
-// Shape lives in .jsonnet/lib/pangolin.libsonnet; this instance's knobs in ./instance.libsonnet.
-local pangolin = import 'pangolin.libsonnet';
+// Shape lives in platform/edge/pangolin.libsonnet; this instance's knobs in ./instance.libsonnet.
+local pangolin = import '../pangolin.libsonnet';
 
 pangolin.compose(import './instance.libsonnet')

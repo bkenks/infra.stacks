@@ -1,6 +1,6 @@
 // Per-instance knobs for this Pangolin edge, imported by BOTH compose.jsonnet and
 // files/configs.jsonnet so the two renders can never disagree about which zone this
-// instance serves. The stack shape itself lives in .jsonnet/lib/pangolin.libsonnet.
+// instance serves. The stack shape itself lives in platform/edge/pangolin.libsonnet.
 //
 // This instance: rick (the VPS), serving the public ktbcloud.com plane, colocated with
 // Authentik. Its sibling is platform/edge/pangolin-internal.
