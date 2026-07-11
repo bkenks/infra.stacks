@@ -32,7 +32,8 @@ local s = c.stack(stack);
 local sharedProxy = reg.sharedNetworks.proxy;
 local configDir = dv + '/pangolin/config';
 
-local pangolinVersion = '1.19.4';
+
+local pangolinVersion = 'ee-1.19.4';
 local gerbilVersion = '1.4.2';
 local gerbilName = 'gerbil';
 local traefikVersion = 'v3.6';
