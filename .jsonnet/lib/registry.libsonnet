@@ -2,9 +2,13 @@
 // Reference by KEY (reg.sharedNetworks.proxy), never raw string — a typo'd key fails at
 // compile time; a typo'd string fails silently at runtime (wrong/empty network).
 
-// tmpfs the Infisical agent renders secrets into; never written to disk.
 {
   secretDir: '/dev/shm',
+
+  composeFiles: {
+    parent: 'compose.yaml',
+    child:  'compose.stack.yaml',
+  },
 
   server: {
     

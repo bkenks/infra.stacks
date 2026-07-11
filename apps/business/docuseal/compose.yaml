@@ -3,5 +3,5 @@ include:
 - env_file:
   - /dev/shm/docuseal.env
   - /dev/shm/postgres.env
-  path: ./compose.stack.yaml
+  path: compose.stack.yaml
 name: docuseal
