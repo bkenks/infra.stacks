@@ -1,47 +1,50 @@
 local c = import 'compose.libsonnet';
 local reg = import 'registry.libsonnet';
-local secrets = reg.infisical.services;
 
-local stack = 'newt';
-local s = c.stack(stack);
-local n = s.names;
+local nameStack = 'newt';
+local stack = c.stack(nameStack);
 
-local runtimeVars = {
-  NEWT_VARIANT: "${NEWT_VARIANT:?must be 'internal' or 'external'}",
+local composeChild(instanceType) = 'compose.' + instanceType + '.yaml';  // bare — it's an output-file key
+local secretsEnv(instanceType)   = reg.secretDir + '/' + nameStack + '.' + instanceType + '.env';
+
+local vars = {
+  newt: { version: '1.14.0', role: 'tunnel', sharedProxy: reg.sharedNetworks.proxy.name },
 };
 
-local nw = {
-  version: '1.14.0',
-  role: 'tunnel',
-  extName: runtimeVars.NEWT_VARIANT + n.container(self.role),
-  envFilename: stack + '.' + runtimeVars.NEWT_VARIANT + ".env",
-};
+local variants = ['internal', 'external'];
 
-local manifest = {
-  name: stack,
-
-  services: {
-    [nw.role]: {
-      image: 'fosrl/newt:' + nw.version,
-      container_name: nw.extName,
-      env_file: [ './envs/' + nw.envFilename],
-      environment: {
-        TZ: 'America/New_York',
-        // Secrets rendered from Infisical infra project folder /roles/traefik-controller.
-        NEWT_ID: '${NEWT_ID:?err}',
-        NEWT_SECRET: '${NEWT_SECRET:?err}',
+// Child compose body for one newt instance. Returns { services, networks } — caller names the file.
+local newt(instanceType) =
+  local svcName = instanceType + '-' + stack.names.container(vars.newt.role);
+  {
+    services: {
+      [svcName]: {
+        image: 'fosrl/newt:' + vars.newt.version,
+        container_name: svcName,
+        profiles: [instanceType],
+        restart: 'unless-stopped',
+        networks: { [vars.newt.sharedProxy]: { aliases: [svcName] } },
+        extra_hosts: ['host.docker.internal:host-gateway'],
+        env_file: ['./envs/' + nameStack + '.' + instanceType + '.env'],  // Pangolin URL
+        environment: {
+          TZ: 'America/New_York',
+          NEWT_ID: '${NEWT_ID:?err}',
+          NEWT_SECRET: '${NEWT_SECRET:?err}',
+        },
       },
-      restart: 'unless-stopped',
-      networks: {
-        [reg.sharedNetworks.proxy.name]: { aliases: [nw.extName] },
-      },
-      extra_hosts: ['host.docker.internal:host-gateway'],
     },
+    networks: stack.network.join(reg.sharedNetworks.proxy),
+  };
+
+{
+  [reg.composeFiles.parent]: {
+    name: nameStack,
+    include: [
+      { path: './' + composeChild(v), env_file: secretsEnv(v) }
+      for v in variants
+    ],
   },
-
-  networks:
-    s.network.default   // unused here — no peers
-    + s.network.join(reg.sharedNetworks.proxy),  // owned by traefik
-};
-
-c.render( stack, manifest, [ reg.secretDir + "/" + nw.envFilename ] )
+} + {
+  [composeChild(v)]: newt(v)
+  for v in variants
+}
