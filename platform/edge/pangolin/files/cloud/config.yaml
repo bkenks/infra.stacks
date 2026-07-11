@@ -38,3 +38,5 @@ server:
     - https://pangolin.ktbcloud.com
   maxmind_asn_path: ./config/GeoLite2-ASN.mmdb
   maxmind_db_path: ./config/GeoLite2-Country.mmdb
+traefik:
+  cert_resolver: cloudflare
