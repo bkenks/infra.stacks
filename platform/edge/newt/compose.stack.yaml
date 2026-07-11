@@ -10,7 +10,7 @@ services:
   tunnel:
     container_name: newt_tunnel
     env_file:
-    - ./envs/newt.${NEWT_VARIANT:?err}.env
+    - ./envs/newt.${NEWT_VARIANT:?must be "internal" or "external"}.env
     environment:
       NEWT_ID: ${NEWT_ID:?err}
       NEWT_SECRET: ${NEWT_SECRET:?err}

@@ -29,10 +29,12 @@ local dv = reg.server.dir.docker.root + reg.server.dir.docker.bindmounts;
 
 local stack = 'pangolin';
 local s = c.stack(stack);
+local sharedProxy = reg.sharedNetworks.proxy;
 local configDir = dv + '/pangolin/config';
 
 local pangolinVersion = '1.19.4';
 local gerbilVersion = '1.4.2';
+local gerbilName = 'gerbil';
 local traefikVersion = 'v3.6';
 
 // Same mirror Pangolin's installer uses (no MaxMind license key needed). Tarball
@@ -100,7 +102,7 @@ local manifest = {
 
     gerbil: {
       image: 'docker.io/fosrl/gerbil:' + gerbilVersion,
-      container_name: 'gerbil',
+      container_name: gerbilName,
       restart: 'unless-stopped',
       depends_on: {
         init: { condition: 'service_completed_successfully' },
@@ -125,8 +127,8 @@ local manifest = {
       // auth.ktbcloud.com router in files/dynamic_config.yml. authentik owns
       // this network; pangolin is a consumer (the external decl is in the
       // top-level networks block below via network.join).
-      networks: { default: { aliases: ['gerbil'] } }
-                + s.network.attach(reg.sharedNetworks.edge.name, 'gerbil'),
+      networks: { default: { aliases: [gerbilName] } }
+                + s.network.attach(sharedProxy.name,  gerbilName),
     },
 
     // network_mode: service:gerbil — Traefik can't also declare networks: (Compose
@@ -135,7 +137,7 @@ local manifest = {
       image: 'docker.io/library/traefik:' + traefikVersion,
       container_name: 'traefik',
       restart: 'unless-stopped',
-      network_mode: 'service:gerbil',
+      network_mode: 'service:' + gerbilName,
       depends_on: {
         init: { condition: 'service_completed_successfully' },
         pangolin: { condition: 'service_healthy' },
@@ -158,7 +160,7 @@ local manifest = {
 
   networks: {
     default: { name: stack, driver: 'bridge', enable_ipv6: true },
-  } + s.network.join(reg.sharedNetworks.edge),  // external shared-edge (owned by authentik)
+  } + s.network.join(reg.sharedNetworks.proxy),  // external shared-edge (owned by authentik)
 };
 
 c.render(stack, manifest, [

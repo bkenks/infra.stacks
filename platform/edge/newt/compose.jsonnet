@@ -18,7 +18,7 @@ local manifest = {
     [nw.role]: {
       image: 'fosrl/newt:' + nw.version,
       container_name: nw.extName,
-      env_file: [ './envs/newt.${NEWT_VARIANT:?err}.env' ],
+      env_file: [ './envs/newt.${NEWT_VARIANT:?must be "internal" or "external"}.env' ],
       environment: {
         TZ: 'America/New_York',
         // Secrets rendered from Infisical infra project folder /roles/traefik-controller.
@@ -38,4 +38,4 @@ local manifest = {
     + s.network.join(reg.sharedNetworks.proxy),  // owned by traefik
 };
 
-c.render( stack, manifest, [ reg.secretDir + "/" + stack + ".${NEWT_VARIANT}.env" ] )
+c.render( stack, manifest, [ reg.secretDir + "/" + stack + ".${NEWT_VARIANT:?must be 'internal' or 'external'}.env" ] )
