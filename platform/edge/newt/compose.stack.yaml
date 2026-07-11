@@ -9,10 +9,11 @@ networks:
 services:
   tunnel:
     container_name: newt_tunnel
+    env_file:
+    - ./envs/newt.${NEWT_VARIANT:?err}.env
     environment:
       NEWT_ID: ${NEWT_ID:?err}
       NEWT_SECRET: ${NEWT_SECRET:?err}
-      PANGOLIN_ENDPOINT: https://pangolin.ktbinternal.com
       TZ: America/New_York
     extra_hosts:
     - host.docker.internal:host-gateway

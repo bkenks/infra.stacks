@@ -9,13 +9,6 @@ local nw = {
   version: '1.14.0',
   role: 'tunnel',
   extName: n.container(self.role),
-  baseEnvironment(domain):: {
-    PANGOLIN_ENDPOINT: 'https://pangolin.' + domain,
-    TZ: 'America/New_York',
-    // Secrets rendered from Infisical infra project folder /roles/traefik-controller.
-    NEWT_ID: '${NEWT_ID:?err}',
-    NEWT_SECRET: '${NEWT_SECRET:?err}',
-  },
 };
 
 local manifest = {
@@ -25,7 +18,13 @@ local manifest = {
     [nw.role]: {
       image: 'fosrl/newt:' + nw.version,
       container_name: nw.extName,
-      environment: nw.baseEnvironment(reg.domains.ktbinternal),
+      env_file: [ './envs/newt.${NEWT_VARIANT:?err}.env' ],
+      environment: {
+        TZ: 'America/New_York',
+        // Secrets rendered from Infisical infra project folder /roles/traefik-controller.
+        NEWT_ID: '${NEWT_ID:?err}',
+        NEWT_SECRET: '${NEWT_SECRET:?err}',
+      },
       restart: 'unless-stopped',
       networks: {
         [reg.sharedNetworks.proxy.name]: { aliases: [nw.extName] },
@@ -39,15 +38,4 @@ local manifest = {
     + s.network.join(reg.sharedNetworks.proxy),  // owned by traefik
 };
 
-local base = c.render(stack, manifest, [secrets.newt.path]);
-
-base + {
-  'compose.external.yaml': {
-    services: {
-      [nw.role]: { environment: nw.baseEnvironment(reg.domains.ktbcloud) }, // Build override compose to swap url
-    },
-  },
-  'compose.yaml'+: {
-    'include'+: [ { path: './compose.external.yaml' } ]
-  }
-}
+c.render( stack, manifest, [ reg.secretDir + "/" + stack + ".${NEWT_VARIANT}.env" ] )

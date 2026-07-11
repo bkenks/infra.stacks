@@ -80,4 +80,8 @@ local r = import 'registry.libsonnet';
     },
     'compose.stack.yaml': manifest,
   },
+
+  toEnv(o):: std.join('', [
+  '%s=%s\n' % [k, o[k]] for k in std.objectFields(o)
+  ]),
 }

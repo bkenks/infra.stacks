@@ -1,0 +1,11 @@
+# GENERATED from services.jsonnet by .jsonnet/render.py — DO NOT EDIT.
+- destination-path: /dev/shm/newt.external.env
+  config:
+    polling-interval: "1m"
+  template-content: |
+    {{- with listSecrets "86324d9b-3dd7-49d4-b252-69228c5ee0c7" "prod" "/hosts/${AGENT_HOST}/newt_external" }}
+    {{- range . }}
+    {{ .Key }}={{ .Value }}
+    {{- end }}
+    {{- end }}
+
