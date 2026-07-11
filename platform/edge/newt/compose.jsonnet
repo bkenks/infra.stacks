@@ -5,10 +5,16 @@ local secrets = reg.infisical.services;
 local stack = 'newt';
 local s = c.stack(stack);
 local n = s.names;
+
+local runtimeVars = {
+  NEWT_VARIANT: "${NEWT_VARIANT:?must be 'internal' or 'external'}",
+};
+
 local nw = {
   version: '1.14.0',
   role: 'tunnel',
-  extName: n.container(self.role),
+  extName: runtimeVars.NEWT_VARIANT + n.container(self.role),
+  envFilename: stack + '.' + runtimeVars.NEWT_VARIANT + ".env",
 };
 
 local manifest = {
@@ -18,7 +24,7 @@ local manifest = {
     [nw.role]: {
       image: 'fosrl/newt:' + nw.version,
       container_name: nw.extName,
-      env_file: [ './envs/newt.${NEWT_VARIANT:?must be "internal" or "external"}.env' ],
+      env_file: [ './envs/' + nw.envFilename],
       environment: {
         TZ: 'America/New_York',
         // Secrets rendered from Infisical infra project folder /roles/traefik-controller.
@@ -38,4 +44,4 @@ local manifest = {
     + s.network.join(reg.sharedNetworks.proxy),  // owned by traefik
 };
 
-c.render( stack, manifest, [ reg.secretDir + "/" + stack + ".${NEWT_VARIANT:?must be 'internal' or 'external'}.env" ] )
+c.render( stack, manifest, [ reg.secretDir + "/" + nw.envFilename ] )
