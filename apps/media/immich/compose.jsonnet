@@ -65,6 +65,10 @@ local manifest = {
       container_name: n.container(app),
       depends_on: [db, redis],
       volumes: ['/mnt/immich-library:/data'],
+      // Intel Quick Sync HW transcoding (paiki's N150 iGPU). Equivalent to the
+      // `quicksync` service in Immich's hwaccel.transcoding.yml. Enable in the UI:
+      // Admin → Video Transcoding → Acceleration API → Quick Sync.
+      devices: ['/dev/dri:/dev/dri'],
       environment: {
         TZ: tz,
         // Same env_file interpolation issue — use the actual container name.

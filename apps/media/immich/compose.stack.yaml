@@ -48,6 +48,8 @@ services:
     depends_on:
     - database
     - redis
+    devices:
+    - /dev/dri:/dev/dri
     environment:
       DB_DATABASE_NAME: immich
       DB_HOSTNAME: immich_database
