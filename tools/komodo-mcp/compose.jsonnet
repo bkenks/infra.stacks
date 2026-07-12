@@ -24,7 +24,7 @@ local manifest = {
 
   services: {
     [app]: {
-      image: 'fj' + reg.domains.ktbinternal + '/bkenks/komodo-mcp-server:' + version,
+      image: 'fj.' + reg.domains.ktbinternal + '/bkenks/komodo-mcp-server:' + version,
       container_name: n.container(app),
       environment: {
         // Streamable HTTP transport (listens on :8000 inside the container).
