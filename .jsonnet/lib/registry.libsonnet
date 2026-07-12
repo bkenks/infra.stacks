@@ -18,13 +18,26 @@
         bindmounts: '/bind-mounts',
       },
     },
-
+    # Every host on the network, keyed by short name. `ip` is the Tailscale address — the
+    # controller's contract, it routes over the tailnet. `lan`/`public` are additional
+    # addresses served for DNS; `dns` overrides the key when the DNS name differs from it;
+    # `aka` are extra aliases; `edge: true` marks hosts running Traefik that the controller
+    # builds a re-encrypt backend for. dnsmasq (platform/edge/dnsmasq) renders its hosts
+    # file from this map, so a host add/rename/re-IP flows to LAN DNS on re-render.
     hosts: {
-      littlebuddy:  { ip: '100.114.137.104' },
-      paiki:        { ip: '100.126.19.103' },
-      maboi:        { ip: '100.97.83.95' },
-      bill:         { ip: '100.79.7.11' },
-      rick:         { ip: '100.106.170.93' },
+      # ── Main cluster (LAN 192.168.30.x + Tailscale) ──
+      snaszy: { ip: '100.91.182.94', lan: '192.168.30.20', aka: ['nas'] },
+      littlebuddy: { ip: '100.114.137.104', lan: '192.168.30.21', aka: ['controlplane'], edge: true },
+      paiki: { ip: '100.126.19.103', lan: '192.168.30.22', dns: 'plexyandiknowit', aka: ['plex'], edge: true },
+      biggy: { ip: '100.108.59.105', lan: '192.168.30.23' },
+      bill: { ip: '100.79.7.11', lan: '192.168.30.25', edge: true },
+      # ── Off-cluster infra ──
+      homeassistant: { ip: '100.113.251.34', lan: '192.168.40.20', aka: ['hass'] },
+      # ── VPS (Tailscale + public fallback) ──
+      maboi: { ip: '100.97.83.95', public: '178.156.222.232', edge: true },
+      rick: { ip: '100.106.170.93', public: '64.177.119.246', edge: true },
+      # ── Tailscale only ──
+      woody: { ip: '100.74.131.20' },
     },
   },
 
