@@ -2,6 +2,7 @@
 name = "biggy"
 [server.config]
 address = "biggy:8120"
+region = "cincinnati, oh"
 enabled = true
 
 ##
@@ -10,7 +11,7 @@ enabled = true
 name = "bill"
 [server.config]
 address = "bill:8120"
-region = "Cincinnati, OH"
+region = "cincinnati, oh"
 enabled = true
 
 ##
@@ -28,7 +29,6 @@ enabled = true
 [[server]]
 name = "maboi"
 description = "Hetzner VPS CPX11"
-tags = ["vps"]
 [server.config]
 address = "maboi:8120"
 region = "ashland, va"
@@ -49,13 +49,13 @@ enabled = true
 name = "rick"
 [server.config]
 address = "rick:8120"
+region = "chicago"
 enabled = true
 
 ##
 
 [[stack]]
 name = "client_couch-potatoes_prod"
-tags = ["client", "stackform", "offsite"]
 [stack.config]
 server = "maboi"
 linked_repo = "client_couch-potatoes_website"
@@ -78,7 +78,6 @@ COMPOSE_PROFILES = seed
 
 [[stack]]
 name = "client_royalty-hvac_website"
-tags = ["client", "stackform", "offsite"]
 [stack.config]
 server = "maboi"
 linked_repo = "client_royalty-hvac_website"
@@ -92,6 +91,7 @@ name = "cloudflared_littlebuddy"
 [stack.config]
 server = "littlebuddy"
 project_name = "cloudflared"
+destroy_before_deploy = true
 linked_repo = "infra.stacks"
 reclone = true
 run_directory = "./platform/edge/cloudflared"
@@ -100,11 +100,10 @@ run_directory = "./platform/edge/cloudflared"
 
 [[stack]]
 name = "cloudflared_maboi"
-tags = ["offsite"]
 [stack.config]
 server = "maboi"
 linked_repo = "infra.stacks"
-run_directory = "./node/cloudflared"
+run_directory = "./platform/edge/cloudflared"
 
 ##
 
@@ -168,7 +167,6 @@ environment = """
 
 [[stack]]
 name = "infisical"
-tags = ["infra"]
 [stack.config]
 server = "littlebuddy"
 project_name = "infisical"
@@ -178,8 +176,34 @@ run_directory = "./platform/secrets-manager/infisical"
 ##
 
 [[stack]]
+name = "infisical-agent_biggy"
+[stack.config]
+server = "biggy"
+poll_for_updates = true
+destroy_before_deploy = true
+linked_repo = "infra.stacks"
+webhook_enabled = false
+run_directory = "./platform/secrets-manager/infisical-agent"
+config_files = [
+  { path = "README.md" },
+  { path = "compose.stack.yaml" }
+]
+environment = """
+# ----- Credentials -----
+# INFISICAL_ADDRESS     = 'http://infisical_app:8080'           # Uncomment if Infisical runs on this host
+INFISICAL_CLIENT_ID     = [[INFSCL_AGNT_CLIENT_ID__BIGGY]]      # Set in Komodo variables (toggle secret on to prevent upload to Repo)
+INFISICAL_CLIENT_SECRET = [[INFSCL_AGNT_CLIENT_SECRET__BIGGY]]  # Set in Komodo variables (toggle secret on to prevent upload to Repo)
+
+# ----- Secrets Rendering -----
+AGENT_HOST      = 'biggy'
+NS              = [[INFSCL_AGNT_NODE_SECERTS]]
+AGENT_SERVICES  = "${NS}"
+"""
+
+##
+
+[[stack]]
 name = "infisical-agent_bill"
-tags = ["secret-agent"]
 [stack.config]
 server = "bill"
 poll_for_updates = true
@@ -192,19 +216,21 @@ config_files = [
   { path = "compose.stack.yaml" }
 ]
 environment = """
-
-AGENT_HOST              = 'bill'                                # e.g. 'littlebuddy' or 'paiki' | This host. Must match folder in Infisical project
-AGENT_SERVICES          = 'cloudflare__dns-api-token frappe pangolin'
-# INFISICAL_ADDRESS     = 'http://infisical_app:8080'           # Uncomment if Infisical runs on this host
+# ----- Credentials -----
+# INFISICAL_ADDRESS     = 'http://infisical_app:8080' # Uncomment if Infisical runs on this host
 INFISICAL_CLIENT_ID     = [[INFSCL_AGNT_CLIENT_ID__BILL]]       # Set in Komodo variables (toggle secret on to prevent upload to Repo)
 INFISICAL_CLIENT_SECRET = [[INFSCL_AGNT_CLIENT_SECRET__BILL]]   # Set in Komodo variables (toggle secret on to prevent upload to Repo)
+
+# ----- Secrets Rendering -----
+AGENT_HOST      = 'bill'
+NS              = [[INFSCL_AGNT_NODE_SECERTS]]
+AGENT_SERVICES  = "${NS}"
 """
 
 ##
 
 [[stack]]
 name = "infisical-agent_littlebuddy"
-tags = ["secret-agent"]
 [stack.config]
 server = "littlebuddy"
 poll_for_updates = true
@@ -217,37 +243,43 @@ config_files = [
   { path = "compose.stack.yaml", requires = "Restart" }
 ]
 environment = """
-
-AGENT_HOST              = 'littlebuddy'                         # e.g. 'littlebuddy' or 'paiki' | This host. Must match folder in Infisical project
-AGENT_SERVICES          = 'cloudflare__dns-api-token postgres docuseal forgejo openproject woodpecker komodo-mcp paperless'
+# ----- Credentials -----
 INFISICAL_ADDRESS       = 'http://infisical_app:8080'           # Uncomment if Infisical runs on this host
 INFISICAL_CLIENT_ID     = [[LITTLEBUDDY__AGENT_CLIENT_ID]]      # Set in Komodo variables (toggle secret on to prevent upload to Repo)
 INFISICAL_CLIENT_SECRET = [[LITTLEBUDDY__AGENT_CLIENT_SECRET]]  # Set in Komodo variables (toggle secret on to prevent upload to Repo)
+
+# ----- Secrets Rendering -----
+AGENT_HOST      = 'littlebuddy'
+NS              = [[INFSCL_AGNT_NODE_SECERTS]]
+PS              = [[INFSCL_AGNT_PANGOLIN_SECERTS]]
+AGENT_SERVICES  = "${NS} ${PS} postgres docuseal forgejo openproject woodpecker komodo-mcp paperless"
 """
 
 ##
 
 [[stack]]
 name = "infisical-agent_maboi"
-tags = ["secret-agent", "offsite"]
 [stack.config]
 server = "maboi"
 destroy_before_deploy = true
 linked_repo = "infra.stacks"
 run_directory = "./platform/secrets-manager/infisical-agent"
 environment = """
-  # VARIABLE = value
-AGENT_HOST=                     'maboi'
-AGENT_SERVICES=                 'cloudflare__dns-api-token cloudflared couch-potatoes-website stackform-website'
-INFISICAL_CLIENT_ID=            [[MABOI__AGENT_CLIENT_ID]]
-INFISICAL_CLIENT_SECRET=        [[MABOI__AGENT_CLIENT_SECRET]]
+# ----- Credentials -----
+# INFISICAL_ADDRESS     = 'http://infisical_app:8080'     # Uncomment if Infisical runs on this host
+INFISICAL_CLIENT_ID     = [[MABOI__AGENT_CLIENT_ID]]      # Set in Komodo variables (toggle secret on to prevent upload to Repo)
+INFISICAL_CLIENT_SECRET = [[MABOI__AGENT_CLIENT_SECRET]]  # Set in Komodo variables (toggle secret on to prevent upload to Repo)
+
+# ----- Secrets Rendering -----
+AGENT_HOST      = 'maboi'
+NS              = [[INFSCL_AGNT_NODE_SECERTS]]
+AGENT_SERVICES  = "${NS} couch-potatoes-website stackform-website"
 """
 
 ##
 
 [[stack]]
 name = "infisical-agent_paiki"
-tags = ["secret-agent"]
 [stack.config]
 server = "paiki"
 poll_for_updates = true
@@ -260,19 +292,21 @@ config_files = [
   { path = "compose.stack.yaml" }
 ]
 environment = """
-
-AGENT_HOST              = 'paiki'                         # e.g. 'littlebuddy' or 'paiki' | This host. Must match folder in Infisical project
-AGENT_SERVICES          = 'cloudflare__dns-api-token newt immich cloudflared stream'                        # e.g. 'postgres woodpecker etc' | Services to render secrets, defined in repo
+# ----- Credentials -----
 # INFISICAL_ADDRESS     = 'http://infisical_app:8080'     # Uncomment if Infisical runs on this host
 INFISICAL_CLIENT_ID     = [[PAIKI__AGENT_CLIENT_ID]]      # Set in Komodo variables (toggle secret on to prevent upload to Repo)
 INFISICAL_CLIENT_SECRET = [[PAIKI__AGENT_CLIENT_SECRET]]  # Set in Komodo variables (toggle secret on to prevent upload to Repo)
+
+# ----- Secrets Rendering -----
+AGENT_HOST      = 'paiki'
+NS              = [[INFSCL_AGNT_NODE_SECERTS]]
+AGENT_SERVICES  = "${NS} immich stream"
 """
 
 ##
 
 [[stack]]
 name = "infisical-agent_rick"
-tags = ["secret-agent"]
 [stack.config]
 server = "rick"
 poll_for_updates = true
@@ -285,12 +319,16 @@ config_files = [
   { path = "compose.stack.yaml" }
 ]
 environment = """
-
-AGENT_HOST              = 'rick'                                # e.g. 'littlebuddy' or 'paiki' | This host. Must match folder in Infisical project
-AGENT_SERVICES          = 'cloudflare__dns-api-token pangolin'
-# INFISICAL_ADDRESS     = 'http://infisical_app:8080'           # Uncomment if Infisical runs on this host
+# ----- Credentials -----
+# INFISICAL_ADDRESS     = 'http://infisical_app:8080' # Uncomment if Infisical runs on this host
 INFISICAL_CLIENT_ID     = [[INFSCL_AGNT_CLIENT_ID__RICK]]       # Set in Komodo variables (toggle secret on to prevent upload to Repo)
 INFISICAL_CLIENT_SECRET = [[INFSCL_AGNT_CLIENT_SECRET__RICK]]   # Set in Komodo variables (toggle secret on to prevent upload to Repo)
+
+# ----- Secrets Rendering -----
+AGENT_HOST      = 'rick'
+NS              = [[INFSCL_AGNT_NODE_SECERTS]]
+PS              = [[INFSCL_AGNT_PANGOLIN_SECERTS]]
+AGENT_SERVICES  = "${NS} ${PS}"
 """
 
 ##
@@ -306,11 +344,69 @@ extra_args = ["--remove-orphans"]
 ##
 
 [[stack]]
-name = "newt"
-template = true
+name = "newt_biggy"
 [stack.config]
+server = "biggy"
 linked_repo = "infra.stacks"
 run_directory = "./platform/edge/newt"
+environment = """
+# ----- Profiles -----
+# This stack runs TWO instances of newt:
+# an internal (on-prem) instance, and an external (offsite vps) instance.
+#
+# If only one instance is needed, remove the other profile below
+# but make sure secrets still exist in Infisical for both (can be empty)
+COMPOSE_PROFILES='internal,external'
+"""
+
+##
+
+[[stack]]
+name = "newt_bill"
+[stack.config]
+server = "bill"
+linked_repo = "infra.stacks"
+run_directory = "./platform/edge/newt"
+environment = """
+# ----- Profiles -----
+# This stack runs TWO instances of newt:
+# an internal (on-prem) instance, and an external (offsite vps) instance.
+#
+# If only one instance is needed, remove the other profile below
+# but make sure secrets still exist in Infisical for both (can be empty)
+COMPOSE_PROFILES='internal,external'
+"""
+
+##
+
+[[stack]]
+name = "newt_littlebuddy"
+[stack.config]
+server = "littlebuddy"
+destroy_before_deploy = true
+linked_repo = "infra.stacks"
+run_directory = "./platform/edge/newt"
+environment = """
+COMPOSE_PROFILES='internal,external'
+"""
+
+##
+
+[[stack]]
+name = "newt_maboi"
+[stack.config]
+server = "maboi"
+linked_repo = "infra.stacks"
+run_directory = "./platform/edge/newt"
+environment = """
+# ----- Profiles -----
+# This stack runs TWO instances of newt:
+# an internal (on-prem) instance, and an external (offsite vps) instance.
+#
+# If only one instance is needed, remove the other profile below
+# but make sure secrets still exist in Infisical for both (can be empty)
+COMPOSE_PROFILES='internal,external'
+"""
 
 ##
 
@@ -320,6 +416,33 @@ name = "newt_paiki"
 server = "paiki"
 linked_repo = "infra.stacks"
 run_directory = "./platform/edge/newt"
+environment = """
+# ----- Profiles -----
+# This stack runs TWO instances of newt:
+# an internal (on-prem) instance, and an external (offsite vps) instance.
+#
+# If only one instance is needed, remove the other profile below
+# but make sure secrets still exist in Infisical for both (can be empty)
+COMPOSE_PROFILES='internal,external'
+"""
+
+##
+
+[[stack]]
+name = "newt_rick"
+[stack.config]
+server = "rick"
+linked_repo = "infra.stacks"
+run_directory = "./platform/edge/newt"
+environment = """
+# ----- Profiles -----
+# This stack runs TWO instances of newt:
+# an internal (on-prem) instance, and an external (offsite vps) instance.
+#
+# If only one instance is needed, remove the other profile below
+# but make sure secrets still exist in Infisical for both (can be empty)
+COMPOSE_PROFILES='internal,external'
+"""
 
 ##
 
@@ -335,33 +458,35 @@ ignore_services = ["seeder"]
 
 ##
 
-# Two instances of the same stack, one config folder each, selected by PANGOLIN_VARIANT.
-# Same run_directory; they only differ by server + that env var.
 [[stack]]
-name = "pangolin"
+name = "pangolin-external"
 [stack.config]
 server = "rick"
 destroy_before_deploy = true
 linked_repo = "infra.stacks"
 run_directory = "./platform/edge/pangolin"
+extra_args = ["--remove-orphans"]
 ignore_services = ["init"]
 environment = """
-PANGOLIN_VARIANT = 'cloud'
+PANGOLIN_VARIANT=cloud
 """
 
 ##
 
-# Gerbil binds 80/443 — traefik_bill must be retired before this stack will start.
 [[stack]]
-name = "pangolin_bill"
+name = "pangolin-internal"
 [stack.config]
-server = "bill"
+server = "littlebuddy"
 destroy_before_deploy = true
 linked_repo = "infra.stacks"
 run_directory = "./platform/edge/pangolin"
+config_files = [
+  { path = "compose.stack.yaml", requires = "Restart" }
+]
 ignore_services = ["init"]
 environment = """
-PANGOLIN_VARIANT = 'internal'
+  # VARIABLE = value
+PANGOLIN_VARIANT = internal
 """
 
 ##
@@ -405,7 +530,6 @@ run_directory = "./apps/business/scriberr"
 
 [[stack]]
 name = "stackform_website"
-tags = ["stackform", "offsite"]
 [stack.config]
 server = "maboi"
 run_build = true
@@ -428,6 +552,7 @@ ignore_services = ["configarr"]
 name = "template__docker-resource-manager"
 template = true
 [stack.config]
+server = "maboi"
 linked_repo = "infra.stacks"
 run_directory = "./platform/docker-resource-manager"
 
@@ -447,12 +572,33 @@ config_files = [
   { path = "compose.stack.yaml" }
 ]
 environment = """
-
-AGENT_HOST              = ''  # e.g. 'littlebuddy' or 'paiki' | This host. Must match folder in Infisical project
-AGENT_SERVICES          = ''  # e.g. 'postgres woodpecker etc' | Services to render secrets, defined in repo
+# ----- Credentials -----
 # INFISICAL_ADDRESS     = 'http://infisical_app:8080' # Uncomment if Infisical runs on this host
 INFISICAL_CLIENT_ID     = ''  # Set in Komodo variables (toggle secret on to prevent upload to Repo)
 INFISICAL_CLIENT_SECRET = ''  # Set in Komodo variables (toggle secret on to prevent upload to Repo)
+
+# ----- Secrets Rendering -----
+AGENT_HOST      = ''
+NS              = [[INFSCL_AGNT_NODE_SECERTS]]
+AGENT_SERVICES  = "${NS}"
+"""
+
+##
+
+[[stack]]
+name = "template__newt"
+template = true
+[stack.config]
+linked_repo = "infra.stacks"
+run_directory = "./platform/edge/newt"
+environment = """
+# ----- Profiles -----
+# This stack runs TWO instances of newt:
+# an internal (on-prem) instance, and an external (offsite vps) instance.
+#
+# If only one instance is needed, remove the other profile below
+# but make sure secrets still exist in Infisical for both (can be empty)
+COMPOSE_PROFILES='internal,external'
 """
 
 ##
@@ -491,54 +637,8 @@ config_files = [{ path = "README.md" }]
 ##
 
 [[stack]]
-name = "traefik_bill"
-tags = ["proxy"]
-[stack.config]
-server = "bill"
-linked_repo = "infra.stacks"
-run_directory = "./platform/edge/traefik"
-extra_args = ["--remove-orphans"]
-
-##
-
-[[stack]]
-name = "traefik_littlebuddy"
-tags = ["proxy"]
-[stack.config]
-server = "littlebuddy"
-project_name = "traefik"
-linked_repo = "infra.stacks"
-run_directory = "./platform/edge/traefik"
-
-##
-
-[[stack]]
-name = "traefik_maboi"
-tags = ["proxy"]
-[stack.config]
-server = "maboi"
-linked_repo = "infra.stacks"
-run_directory = "./platform/edge/traefik"
-extra_args = ["--remove-orphans"]
-environment = """
-AGENT_HOST=   maboi
-"""
-
-##
-
-[[stack]]
-name = "traefik_paiki"
-tags = ["proxy"]
-[stack.config]
-server = "paiki"
-project_name = "traefik"
-linked_repo = "infra.stacks"
-run_directory = "./platform/edge/traefik"
-
-##
-
-[[stack]]
 name = "woodpecker"
+description = "CI/CD Pipeline"
 [stack.config]
 server = "littlebuddy"
 linked_repo = "infra.stacks"
@@ -576,7 +676,6 @@ dcvols -r --uid 1000 --gid 1000
 
 [[repo]]
 name = "client_couch-potatoes_website"
-tags = ["stackform", "client"]
 [repo.config]
 server = "littlebuddy"
 git_provider = "fj.homektb.com"
@@ -587,7 +686,6 @@ repo = "stackform-hq/client_couch-potatoes_website"
 
 [[repo]]
 name = "client_royalty-hvac_website"
-tags = ["stackform", "client"]
 [repo.config]
 server = "littlebuddy"
 git_provider = "fj.homektb.com"
@@ -610,7 +708,6 @@ repo = "ktbgroup-self-hosted/stack.infra"
 name = "infra.stacks"
 [repo.config]
 server = "littlebuddy"
-git_provider = "fj.homektb.com"
 git_account = "bkenks"
 repo = "ktbgroup-self-hosted/infra.stacks"
 
@@ -636,7 +733,6 @@ repo = "stackform-hq/"
 
 [[repo]]
 name = "stackform_website"
-tags = ["stackform"]
 [repo.config]
 server = "littlebuddy"
 git_provider = "fj.homektb.com"
@@ -740,7 +836,6 @@ executions = [
 
 [[procedure]]
 name = "Redeploy Infisical Agent"
-tags = ["secret-agent"]
 
 [[procedure.config.stage]]
 name = "Stage 1"
@@ -753,7 +848,6 @@ executions = [
 
 [[procedure]]
 name = "Redeploy Traefik"
-tags = ["proxy"]
 
 [[procedure.config.stage]]
 name = "Stage 1"
@@ -833,6 +927,13 @@ is_secret = true
 ##
 
 [[variable]]
+name = "INFSCL_AGNT_CLIENT_ID__BIGGY"
+value = "f1c5507d-45b6-464c-b401-d989c07b0aa2"
+is_secret = true
+
+##
+
+[[variable]]
 name = "INFSCL_AGNT_CLIENT_ID__BILL"
 value = "'5ea26d35-614a-4ce8-aac2-885f751525dc'"
 is_secret = true
@@ -842,6 +943,13 @@ is_secret = true
 [[variable]]
 name = "INFSCL_AGNT_CLIENT_ID__RICK"
 value = "'31d9846b-754b-4dfa-95ac-29595880c920'"
+is_secret = true
+
+##
+
+[[variable]]
+name = "INFSCL_AGNT_CLIENT_SECRET__BIGGY"
+value = "434a436c091925d31d206419d33858692a680b3a2089ea13cc34571cc2f8938b"
 is_secret = true
 
 ##
@@ -857,6 +965,20 @@ is_secret = true
 name = "INFSCL_AGNT_CLIENT_SECRET__RICK"
 value = "'936a79a4814da1c802f917ed9f4c520694e31750470fbdb9647174a52c2e8a68'"
 is_secret = true
+
+##
+
+[[variable]]
+name = "INFSCL_AGNT_NODE_SECERTS"
+value = "'newt_external newt_internal'"
+is_secret = false
+
+##
+
+[[variable]]
+name = "INFSCL_AGNT_PANGOLIN_SECERTS"
+value = "'cloudflare__dns-api-token pangolin'"
+is_secret = false
 
 ##
 
