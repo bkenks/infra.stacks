@@ -11,7 +11,7 @@ local pgPort = reg.endpoints.postgres.container.port;  // 5432
 
 // Public subdomain 'openprj' differs from the stack name 'openproject'.
 local sub = 'openprj';
-local domain = sub + '.' + reg.domains.ktbinternal;
+local domain = sub + '.' + reg.domains.ktbcloud;
 
 local appVersion = '17-slim';
 local hocuspocusVersion = '17.5.1';
