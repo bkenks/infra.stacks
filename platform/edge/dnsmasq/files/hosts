@@ -1,0 +1,15 @@
+# Central static DNS for this host's containers — the single source of truth.
+# Standard /etc/hosts format:  <IP>  <name> [name2 ...]
+#
+# Update without redeploying anything downstream:
+#   1. edit this file
+#   2. docker kill -s HUP dnsmasq_app
+# dnsmasq re-reads the file and every container sees the change on its next lookup.
+# These records are authoritative and resolve even when upstream DNS is down.
+
+# Healthcheck sentinel — do not remove (the container's healthcheck resolves this name).
+127.0.0.1  health.check.dnsmasq
+
+# --- Add fallback / internal records below ---
+# 10.0.0.5   api.internal
+# 10.0.0.6   db.internal
