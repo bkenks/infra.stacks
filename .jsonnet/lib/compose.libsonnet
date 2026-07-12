@@ -56,6 +56,10 @@ local r = import 'registry.libsonnet';
     komodoSkip:: { 'komodo.skip': '' },
   },
 
+  publish(hostPort, containerPort, bindIp=r.loopbackIp):: {
+    ports: [bindIp + ':' + std.toString(hostPort) + ':' + std.toString(containerPort)],
+  },
+
   url(endpoint, scheme='http'):: {
 
     container::

@@ -4,6 +4,7 @@
 
 {
   secretDir: '/dev/shm',
+  loopbackIp: '127.0.0.1',
 
   composeFiles: {
     parent: 'compose.yaml',
