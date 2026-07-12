@@ -15,6 +15,11 @@ local appPort = 8080;  // matches reg.endpoints.infisical.container.port
 local dbUser = 'infisical';
 local dbName = 'infisical';
 
+// Host port for the proxy-bypass publish. Bound to loopback and to the tailnet address of
+// the host infisical runs on, so the UI/API is reachable over Tailscale without Traefik.
+local hostPort = 18006;
+local tsIp = reg.server.hosts.littlebuddy.ip;
+
 local manifest = {
   name: stack,
 
@@ -61,7 +66,8 @@ local manifest = {
       },
       labels: s.proxy.add('infisical', 'infisical', appPort),
       expose: [std.toString(appPort)],
-    } + c.publish(18006, appPort),
+    } + c.publish(hostPort, appPort)
+      + { ports+: [tsIp + ':' + std.toString(hostPort) + ':' + std.toString(appPort)] },
 
     [roles.db]: {
       image: 'docker.io/library/postgres:' + dbVersion,
