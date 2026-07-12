@@ -1,5 +1,7 @@
 # dnsmasq
-Central static DNS + emergency-fallback resolver for a single host's containers. Answers the names in `files/hosts` authoritatively (`addn-hosts`) and forwards everything else to the upstreams in `DNS1`/`DNS2`. Point the host's Docker daemon at it (`daemon.json` `"dns": ["<docker0-ip>"]`) so every container on the host resolves through it — then a name change is one edit to `files/hosts` plus a SIGHUP, with **no downstream container redeploy**.
+Central static DNS + emergency-fallback resolver for a single host's containers. Answers the host names from the registry authoritatively (`addn-hosts`) and forwards everything else to the upstreams in `DNS1`/`DNS2`. Point the host's Docker daemon at it (`daemon.json` `"dns": ["<docker0-ip>"]`) so every container on the host resolves through it — then a name change is one registry edit + re-render + SIGHUP, with **no downstream container redeploy**.
+
+`files/hosts` is **generated** from `registry.libsonnet` (`server.hosts`) by `files/hosts.jsonnet` — the registry is the single source of truth for host → IP. Don't edit `files/hosts` by hand. This also means the tailnet host names still resolve to their IPs if Tailscale MagicDNS is ever down.
 
 ## Deploy
 - No secrets.
@@ -9,7 +11,8 @@ Central static DNS + emergency-fallback resolver for a single host's containers.
 - Version pinned via `local version` in `compose.jsonnet` — bump there and re-render, don't edit the generated YAML.
 
 ## Update DNS without redeploying
-1. Edit `files/hosts` (standard `IP  name` format).
-2. `docker kill -s HUP dnsmasq_app` — dnsmasq re-reads the file; every container sees the change on its next lookup.
+1. Edit `server.hosts` in `.jsonnet/lib/registry.libsonnet` (add/rename/re-IP a host). For a one-off entry not tied to the inventory, add it to the `extra` list in `files/hosts.jsonnet`.
+2. Re-render: `./.jsonnet/render.py platform/edge/dnsmasq/files/hosts.jsonnet` (or just commit — lefthook re-renders on any lib change).
+3. Get the new `files/hosts` onto the host and `docker kill -s HUP dnsmasq_app` — dnsmasq re-reads the file; every container sees the change on its next lookup. No downstream redeploy.
 
-`files/hosts` records are authoritative (they win over upstream) and resolve even when upstream DNS is down — this is the emergency fallback. Put only names you want permanently pinned here, since a static entry overrides the real DNS answer at all times, not just during an outage.
+These records are authoritative (they win over upstream) and resolve even when upstream DNS is down — this is the emergency fallback. Put only names you want permanently pinned here, since a static entry overrides the real DNS answer at all times, not just during an outage.
