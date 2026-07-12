@@ -7,7 +7,6 @@ local reg = import 'registry.libsonnet';
 
 local stack = 'docker-resource-manager';
 local s = c.stack(stack);
-local n = s.names;
 
 local version = '1.37.0';
 

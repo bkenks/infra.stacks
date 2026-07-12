@@ -71,13 +71,17 @@ local r = import 'registry.libsonnet';
   // and an include of the manifest. env_file paths are per-stack data — the registry does
   // not know them — and the key is omitted entirely for a stack with no secrets.
   render(name, manifest, envFiles=[]):: {
-    'compose.yaml': {
+    [r.composeFiles.parent]: {
       name: name,
       include: [
-        { path: './compose.stack.yaml' }
+        { path: r.composeFiles.child }
         + (if std.length(envFiles) > 0 then { env_file: envFiles } else {}),
       ],
     },
-    'compose.stack.yaml': manifest,
+    [r.composeFiles.child]: manifest,
   },
+
+  toEnv(o):: std.join('', [
+  '%s=%s\n' % [k, o[k]] for k in std.objectFields(o)
+  ]),
 }

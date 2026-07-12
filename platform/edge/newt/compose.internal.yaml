@@ -1,0 +1,24 @@
+# GENERATED from compose.jsonnet by .jsonnet/render.py — DO NOT EDIT.
+networks:
+  shared-proxy:
+    external: true
+    name: shared-proxy
+services:
+  internal-newt_tunnel:
+    container_name: internal-newt_tunnel
+    env_file:
+    - ./envs/newt.internal.env
+    environment:
+      NEWT_ID: ${NEWT_ID:?err}
+      NEWT_SECRET: ${NEWT_SECRET:?err}
+      TZ: America/New_York
+    extra_hosts:
+    - host.docker.internal:host-gateway
+    image: fosrl/newt:1.14.0
+    networks:
+      shared-proxy:
+        aliases:
+        - internal-newt_tunnel
+    profiles:
+    - internal
+    restart: unless-stopped

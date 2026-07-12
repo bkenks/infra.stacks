@@ -2,5 +2,5 @@
 include:
 - env_file:
   - ${ANSIBLE_SECRETS_FILE:-/dev/shm/infisical.env}
-  path: ./compose.stack.yaml
+  path: compose.stack.yaml
 name: infisical

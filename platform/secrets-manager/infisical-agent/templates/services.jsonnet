@@ -15,6 +15,7 @@ local bodyLines(s) =
   local project = reg.infisical.projects[s.project];
   local env = std.get(s, 'env', 'prod');
   local folder = s.folder;
+
   if s.type == 'dump' then [
     '{{- with listSecrets "' + project + '" "' + env + '" "' + folder + '" }}',
     '{{- range . }}',
@@ -42,6 +43,7 @@ local fragment(s) =
   indentBody(s) + '\n\n';
 
 {
-  [name + '.yaml']: fragment(reg.infisical.services[name])
-  for name in std.objectFields(reg.infisical.services)
+  [name + '.yaml']: fragment( reg.infisical.services[ name ] )
+
+  for name in std.objectFields( reg.infisical.services )
 }

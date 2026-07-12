@@ -3,5 +3,5 @@ include:
 - env_file:
   - /dev/shm/openproject.env
   - /dev/shm/postgres.env
-  path: ./compose.stack.yaml
+  path: compose.stack.yaml
 name: openproject

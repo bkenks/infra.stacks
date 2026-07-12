@@ -2,5 +2,5 @@
 include:
 - env_file:
   - /dev/shm/gitea.env
-  path: ./compose.stack.yaml
+  path: compose.stack.yaml
 name: gitea
