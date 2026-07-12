@@ -81,9 +81,11 @@ local directSvcs = [svc for svc in std.objectFields(catalog) if std.objectHas(ca
           },
         },
       } + {
-        // One per edgeHosts entry, generated for ALL edge hosts (even ones with no routers
-        // today) so the table stays uniform and portable. passHostHeader keeps the original
-        // Host so the target Traefik matches its own router.
+        // One per edge host (those running Traefik), generated for ALL of them (even ones
+        // with no routers today) so the table stays uniform and portable. Non-edge hosts in
+        // the registry (NAS, Home Assistant, etc.) are skipped — they have no Traefik to
+        // re-encrypt to. passHostHeader keeps the original Host so the target Traefik matches
+        // its own router.
         ['host-' + h]: {
           loadBalancer: {
             passHostHeader: true,
@@ -92,6 +94,7 @@ local directSvcs = [svc for svc in std.objectFields(catalog) if std.objectHas(ca
           },
         }
         for h in std.objectFields(hosts)
+        if std.objectHas(hosts[h], 'edge') && hosts[h].edge
       } + {
         // Plex is host-mode on its home host (:32400), not behind that host's Traefik, so it
         // can't use the host-* re-encrypt backend — routes straight to the Plex process instead

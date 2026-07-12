@@ -1,8 +1,22 @@
 # GENERATED from hosts.jsonnet by .jsonnet/render.py — DO NOT EDIT.
-# Source: registry.libsonnet server.hosts (+ sentinel) — edit there, not here.
-100.79.7.11  bill
-100.114.137.104  littlebuddy
-100.97.83.95  maboi
-100.126.19.103  paiki
-100.106.170.93  rick
-127.0.0.1  health.check.dnsmasq
+# Source: registry.libsonnet server.hosts — edit there, not here.
+# One line per address: LAN/Tailscale (or Tailscale/public for VPS), preferred first.
+192.168.30.23	biggy.internal biggy
+100.108.59.105	biggy.internal biggy
+192.168.30.25	bill.internal bill
+100.79.7.11	bill.internal bill
+192.168.40.20	homeassistant.internal homeassistant hass
+100.113.251.34	homeassistant.internal homeassistant hass
+192.168.30.21	littlebuddy.internal littlebuddy controlplane
+100.114.137.104	littlebuddy.internal littlebuddy controlplane
+100.97.83.95	maboi.internal maboi
+178.156.222.232	maboi.internal maboi
+192.168.30.22	plexyandiknowit.internal plexyandiknowit plex
+100.126.19.103	plexyandiknowit.internal plexyandiknowit plex
+100.106.170.93	rick.internal rick
+64.177.119.246	rick.internal rick
+192.168.30.20	snaszy.internal snaszy nas
+100.91.182.94	snaszy.internal snaszy nas
+100.74.131.20	woody.internal woody
+# Healthcheck sentinel — the container healthcheck resolves this name.
+127.0.0.1	health.check.dnsmasq
