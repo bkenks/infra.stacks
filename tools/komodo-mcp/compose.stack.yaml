@@ -19,7 +19,7 @@ services:
       TZ: America/Chicago
     expose:
     - '8000'
-    image: http://forgejo_server:3000/bkenks/komodo-mcp-server:1.4.1
+    image: fj.ktbinternal.com/bkenks/komodo-mcp-server:1.4.1
     labels:
       komodo.skip: ''
       traefik.enable: 'true'
