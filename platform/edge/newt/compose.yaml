@@ -1,6 +1,7 @@
 # GENERATED from compose.jsonnet by .jsonnet/render.py — DO NOT EDIT.
 include:
-- env_file:
-  - /dev/shm/newt.env
-  path: ./compose.stack.yaml
+- env_file: /dev/shm/newt.internal.env
+  path: ./compose.internal.yaml
+- env_file: /dev/shm/newt.external.env
+  path: ./compose.external.yaml
 name: newt

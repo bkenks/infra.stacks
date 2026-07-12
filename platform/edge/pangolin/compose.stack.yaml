@@ -5,9 +5,9 @@ networks:
     driver: bridge
     enable_ipv6: true
     name: pangolin
-  shared-edge:
+  shared-proxy:
     external: true
-    name: shared-edge
+    name: shared-proxy
 services:
   gerbil:
     cap_add:
@@ -28,7 +28,7 @@ services:
       default:
         aliases:
         - gerbil
-      shared-edge:
+      shared-proxy:
         aliases:
         - gerbil
     ports:
@@ -67,7 +67,7 @@ services:
       - -f
       - http://localhost:3001/api/v1/
       timeout: 10s
-    image: docker.io/fosrl/pangolin:1.19.4
+    image: docker.io/fosrl/pangolin:ee-1.19.4
     mem_limit: 2g
     mem_reservation: 512m
     networks:

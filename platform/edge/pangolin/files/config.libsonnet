@@ -40,6 +40,13 @@ function(urlDomain)
         },
       },
 
+      // Cert resolver stamped onto routers Pangolin generates for dashboard-created
+      // Resources (the @http provider). Defaults to 'letsencrypt' when unset, which no
+      // certificatesResolver here defines — must match traefik_config.yaml's 'cloudflare'.
+      traefik: {
+        cert_resolver: certResolver,
+      },
+
       domains: {
         domain1: {
           base_domain: baseDomain,

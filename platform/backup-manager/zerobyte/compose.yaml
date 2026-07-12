@@ -3,5 +3,5 @@ include:
 - env_file:
   - ${ANSIBLE_SECRETS_FILE:-/dev/shm/zerobyte.env}
   - /srv/docker/files/tailscale.env
-  path: ./compose.stack.yaml
+  path: compose.stack.yaml
 name: zerobyte
