@@ -75,7 +75,7 @@ local manifest = {
         [reg.sharedNetworks.postgres.name]: { aliases: [n.container(server)] },
       },
       labels: s.proxy.add(stack, stack, serverPort),
-    },
+    } + c.publish(18015, serverPort),
 
     [worker]: {
       image: 'docker.io/twentycrm/twenty:' + imageVersion,

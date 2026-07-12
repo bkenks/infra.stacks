@@ -53,7 +53,7 @@ local manifest = {
         'traefik.tcp.routers.forgejo-ssh.entrypoints': 'forgejo-ssh',
         'traefik.tcp.services.forgejo-ssh.loadbalancer.server.port': '22',
       },
-    },
+    } + c.publish(18003, port),
 
     [db]: {
       image: 'docker.io/library/postgres:' + dbVersion,

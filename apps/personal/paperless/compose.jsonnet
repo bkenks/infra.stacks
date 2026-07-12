@@ -138,7 +138,7 @@ local manifest = {
       },
       labels: s.proxy.add(stack, 'paper', webPort),
       expose: [std.toString(webPort)],
-    },
+    } + c.publish(18010, webPort),
   },
 
   volumes: {

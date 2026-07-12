@@ -149,7 +149,7 @@ local manifest = {
       // second tenant needs a manual multi-Host() router label (proxyAdd only
       // emits one).
       labels: s.proxy.add(stack, 'frappe', frontendPort, reg.domains.ktbinternal),
-    },
+    } + c.publish(18004, frontendPort),
 
     [queueLong]: frappeImageService(queueLong) + {
       depends_on: { [configurator]: { condition: 'service_completed_successfully' } },

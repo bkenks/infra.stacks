@@ -44,7 +44,7 @@ local manifest = {
         [reg.sharedNetworks.proxy.name]: { aliases: [n.container('server')] },
       },
       labels: s.proxy.add('woodpecker', 'peck', httpPort),
-    },
+    } + c.publish(18016, httpPort),
 
     agent: {
       image: 'docker.io/woodpeckerci/woodpecker-agent:' + version,

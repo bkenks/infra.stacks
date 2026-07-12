@@ -119,6 +119,8 @@ services:
         aliases:
         - frappe_frontend
     platform: linux/amd64
+    ports:
+    - 127.0.0.1:18004:8080
     pull_policy: always
     restart: on-failure:5
     volumes:

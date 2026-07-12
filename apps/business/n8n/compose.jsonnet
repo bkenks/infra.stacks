@@ -61,7 +61,7 @@ local manifest = {
         [reg.sharedNetworks.postgres.name]: { aliases: [n.container(app)] },
       },
       labels: s.proxy.add(stack, stack, port),
-    },
+    } + c.publish(5678, port),
   },
 
   networks:

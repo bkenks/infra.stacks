@@ -64,7 +64,7 @@ local manifest = {
         [reg.sharedNetworks.proxy.name]: { aliases: [n.container('bazarr')] },
       },
       labels: s.proxy.add('bazarr', 'bazarr', ports.bazarr),
-    },
+    } + c.publish(6767, ports.bazarr),
 
     // One-shot: syncs ./configarr/config.yml into Sonarr/Radarr on each
     // deploy, then exits 0.
@@ -161,7 +161,7 @@ local manifest = {
         [reg.sharedNetworks.proxy.name]: { aliases: [n.container('prowlarr')] },
       },
       labels: s.proxy.add('prowlarr', 'prowlarr', ports.prowlarr),
-    },
+    } + c.publish(9696, ports.prowlarr),
 
     radarr: {
       image: 'lscr.io/linuxserver/radarr@sha256:270f25698624b57b86ca119cc95399d7ff15be8297095b4e1223fd5b549b732c',
@@ -185,7 +185,7 @@ local manifest = {
         [reg.sharedNetworks.proxy.name]: { aliases: [n.container('radarr')] },
       },
       labels: s.proxy.add('radarr', 'radarr', ports.radarr),
-    },
+    } + c.publish(7878, ports.radarr),
 
     sabnzbd: {
       image: 'lscr.io/linuxserver/sabnzbd@sha256:fba727f777f6b2633fcdeaea94abc85d73148f2a6b19a8158907bdd5b6e145d0',
@@ -209,7 +209,7 @@ local manifest = {
         [reg.sharedNetworks.proxy.name]: { aliases: [n.container('sabnzbd')] },
       },
       labels: s.proxy.add('sabnzbd', 'sabnzbd', ports.sabnzbd),
-    },
+    } + c.publish(18013, ports.sabnzbd),
 
     // Runs as the fixed non-root `node` user (UID 1000) — PUID/PGID have no
     // effect; needs `init: true`. No healthcheck: image ships no curl/wget/bash.
@@ -226,7 +226,7 @@ local manifest = {
       },
       labels: s.proxy.add('seerr', 'seerr', ports.seerr),
       init: true,
-    },
+    } + c.publish(5055, ports.seerr),
 
     sonarr: {
       image: 'lscr.io/linuxserver/sonarr@sha256:02b4d538d351d6e35882a021c08e8600fe95d28860fb1dd724b597166e7221ca',
@@ -250,7 +250,7 @@ local manifest = {
         [reg.sharedNetworks.proxy.name]: { aliases: [n.container('sonarr')] },
       },
       labels: s.proxy.add('sonarr', 'sonarr', ports.sonarr),
-    },
+    } + c.publish(8989, ports.sonarr),
   },
 
   networks:

@@ -129,6 +129,8 @@ services:
       shared-proxy:
         aliases:
         - paperless_webserver
+    ports:
+    - 127.0.0.1:18010:8000
     restart: on-failure:5
     volumes:
     - webserver_data:/usr/src/paperless/data

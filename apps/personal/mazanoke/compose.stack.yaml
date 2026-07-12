@@ -25,4 +25,6 @@ services:
       shared-proxy:
         aliases:
         - mazanoke_app
+    ports:
+    - 127.0.0.1:18008:80
     restart: unless-stopped

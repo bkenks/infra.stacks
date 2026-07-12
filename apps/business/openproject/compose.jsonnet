@@ -116,7 +116,7 @@ local manifest = {
         [reg.sharedNetworks.proxy.name]: { aliases: [n.container('hocuspocus')] },
       },
       labels: hocuspocusLabels,
-    },
+    } + c.publish(1234, hocuspocusPort),
 
     seeder: opApp + {
       container_name: n.container('seeder'),
@@ -148,7 +148,7 @@ local manifest = {
         [reg.sharedNetworks.postgres.name]: { aliases: [n.container('web')] },
         [reg.sharedNetworks.proxy.name]: { aliases: [n.container('web')] },
       },
-    },
+    } + c.publish(18009, webPort),
 
     worker: opApp + {
       container_name: n.container('worker'),

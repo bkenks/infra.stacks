@@ -82,7 +82,7 @@ local manifest = {
         [reg.sharedNetworks.proxy.name]: { aliases: [n.container(app)] },
       },
       labels: s.proxy.add('immich', 'immich', port),
-    },
+    } + c.publish(2283, port),
 
     [redis]: {
       image: redisVersion,

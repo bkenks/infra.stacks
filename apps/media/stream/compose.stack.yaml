@@ -37,6 +37,8 @@ services:
       shared-proxy:
         aliases:
         - stream_bazarr
+    ports:
+    - 127.0.0.1:6767:6767
     restart: on-failure:5
     volumes:
     - /srv/docker/bind-mounts/stream/bazarr/config:/config
@@ -137,6 +139,8 @@ services:
       shared-proxy:
         aliases:
         - stream_prowlarr
+    ports:
+    - 127.0.0.1:9696:9696
     restart: on-failure:5
     volumes:
     - /srv/docker/bind-mounts/stream/prowlarr/config:/config
@@ -170,6 +174,8 @@ services:
       shared-proxy:
         aliases:
         - stream_radarr
+    ports:
+    - 127.0.0.1:7878:7878
     restart: on-failure:5
     volumes:
     - /srv/docker/bind-mounts/stream/radarr/config:/config
@@ -204,6 +210,8 @@ services:
       shared-proxy:
         aliases:
         - stream_sabnzbd
+    ports:
+    - 127.0.0.1:18013:8080
     restart: on-failure:5
     volumes:
     - /srv/docker/bind-mounts/stream/sabnzbd/config:/config
@@ -229,6 +237,8 @@ services:
       shared-proxy:
         aliases:
         - stream_seerr
+    ports:
+    - 127.0.0.1:5055:5055
     restart: on-failure:5
     volumes:
     - /srv/docker/bind-mounts/stream/seerr/config:/app/config
@@ -262,6 +272,8 @@ services:
       shared-proxy:
         aliases:
         - stream_sonarr
+    ports:
+    - 127.0.0.1:8989:8989
     restart: on-failure:5
     volumes:
     - /srv/docker/bind-mounts/stream/sonarr/config:/config

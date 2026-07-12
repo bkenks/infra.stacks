@@ -41,7 +41,7 @@ local manifest = {
         [reg.sharedNetworks.proxy.name]: { aliases: [n.container(app)] },
       },
       labels: s.proxy.add(stack, stack, port),
-    },
+    } + c.publish(18011, port),
   },
 
   volumes: {

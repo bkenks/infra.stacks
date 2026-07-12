@@ -37,7 +37,7 @@ local manifest = {
         [reg.sharedNetworks.proxy.name]: { aliases: [n.container(app)] },
       },
       labels: s.proxy.add(stack, stack, port),
-    },
+    } + c.publish(18014, port),
 
     [guacd]: {
       image: 'docker.io/guacamole/guacd:' + guacdVersion,

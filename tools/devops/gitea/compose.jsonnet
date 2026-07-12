@@ -65,7 +65,7 @@ local manifest = {
         'traefik.tcp.routers.gitea-ssh.entrypoints': 'gitea-ssh',
         'traefik.tcp.services.gitea-ssh.loadbalancer.server.port': '22',
       },
-    },
+    } + c.publish(18005, port),
 
     [db]: {
       image: 'docker.io/library/postgres:' + dbVersion,

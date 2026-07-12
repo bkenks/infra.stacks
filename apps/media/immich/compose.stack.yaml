@@ -71,6 +71,8 @@ services:
       shared-proxy:
         aliases:
         - immich_server
+    ports:
+    - 127.0.0.1:2283:2283
     restart: unless-stopped
     volumes:
     - /mnt/immich-library:/data

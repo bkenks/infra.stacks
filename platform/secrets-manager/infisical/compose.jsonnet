@@ -61,7 +61,7 @@ local manifest = {
       },
       labels: s.proxy.add('infisical', 'infisical', appPort),
       expose: [std.toString(appPort)],
-    },
+    } + c.publish(18006, appPort),
 
     [roles.db]: {
       image: 'docker.io/library/postgres:' + dbVersion,
