@@ -1,15 +1,8 @@
-# Central static DNS for this host's containers — the single source of truth.
-# Standard /etc/hosts format:  <IP>  <name> [name2 ...]
-#
-# Update without redeploying anything downstream:
-#   1. edit this file
-#   2. docker kill -s HUP dnsmasq_app
-# dnsmasq re-reads the file and every container sees the change on its next lookup.
-# These records are authoritative and resolve even when upstream DNS is down.
-
-# Healthcheck sentinel — do not remove (the container's healthcheck resolves this name).
+# GENERATED from hosts.jsonnet by .jsonnet/render.py — DO NOT EDIT.
+# Source: registry.libsonnet server.hosts (+ sentinel) — edit there, not here.
+100.79.7.11  bill
+100.114.137.104  littlebuddy
+100.97.83.95  maboi
+100.126.19.103  paiki
+100.106.170.93  rick
 127.0.0.1  health.check.dnsmasq
-
-# --- Add fallback / internal records below ---
-# 10.0.0.5   api.internal
-# 10.0.0.6   db.internal
