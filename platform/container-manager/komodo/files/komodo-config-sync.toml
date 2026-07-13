@@ -136,6 +136,7 @@ extra_args = ["--remove-orphans"]
 name = "forgejo"
 [stack.config]
 server = "littlebuddy"
+destroy_before_deploy = true
 linked_repo = "infra.stacks"
 run_directory = "./tools/devops/forgejo"
 
@@ -172,6 +173,10 @@ server = "littlebuddy"
 project_name = "infisical"
 linked_repo = "infra.stacks"
 run_directory = "./platform/secrets-manager/infisical"
+environment = """
+# Uncomment if deploying from Ansible generated env
+# ANSIBLE_SECRETS_FILE=/dev/shm/platform.env
+"""
 
 ##
 
@@ -339,6 +344,9 @@ name = "komodo-mcp"
 server = "littlebuddy"
 linked_repo = "infra.stacks"
 run_directory = "./tools/komodo-mcp"
+config_files = [
+  { path = "compose.stack.yaml", requires = "Restart" }
+]
 extra_args = ["--remove-orphans"]
 
 ##
@@ -347,6 +355,7 @@ extra_args = ["--remove-orphans"]
 name = "newt_biggy"
 [stack.config]
 server = "biggy"
+destroy_before_deploy = true
 linked_repo = "infra.stacks"
 run_directory = "./platform/edge/newt"
 environment = """
@@ -356,7 +365,7 @@ environment = """
 #
 # If only one instance is needed, remove the other profile below
 # but make sure secrets still exist in Infisical for both (can be empty)
-COMPOSE_PROFILES='internal,external'
+COMPOSE_PROFILES='external'
 """
 
 ##
@@ -365,6 +374,7 @@ COMPOSE_PROFILES='internal,external'
 name = "newt_bill"
 [stack.config]
 server = "bill"
+destroy_before_deploy = true
 linked_repo = "infra.stacks"
 run_directory = "./platform/edge/newt"
 environment = """
@@ -374,7 +384,7 @@ environment = """
 #
 # If only one instance is needed, remove the other profile below
 # but make sure secrets still exist in Infisical for both (can be empty)
-COMPOSE_PROFILES='internal,external'
+COMPOSE_PROFILES='external'
 """
 
 ##
@@ -387,7 +397,7 @@ destroy_before_deploy = true
 linked_repo = "infra.stacks"
 run_directory = "./platform/edge/newt"
 environment = """
-COMPOSE_PROFILES='internal,external'
+COMPOSE_PROFILES='external'
 """
 
 ##
@@ -396,6 +406,7 @@ COMPOSE_PROFILES='internal,external'
 name = "newt_maboi"
 [stack.config]
 server = "maboi"
+destroy_before_deploy = true
 linked_repo = "infra.stacks"
 run_directory = "./platform/edge/newt"
 environment = """
@@ -405,7 +416,7 @@ environment = """
 #
 # If only one instance is needed, remove the other profile below
 # but make sure secrets still exist in Infisical for both (can be empty)
-COMPOSE_PROFILES='internal,external'
+COMPOSE_PROFILES='external'
 """
 
 ##
@@ -414,6 +425,7 @@ COMPOSE_PROFILES='internal,external'
 name = "newt_paiki"
 [stack.config]
 server = "paiki"
+destroy_before_deploy = true
 linked_repo = "infra.stacks"
 run_directory = "./platform/edge/newt"
 environment = """
@@ -423,7 +435,7 @@ environment = """
 #
 # If only one instance is needed, remove the other profile below
 # but make sure secrets still exist in Infisical for both (can be empty)
-COMPOSE_PROFILES='internal,external'
+COMPOSE_PROFILES='external'
 """
 
 ##
@@ -432,6 +444,7 @@ COMPOSE_PROFILES='internal,external'
 name = "newt_rick"
 [stack.config]
 server = "rick"
+destroy_before_deploy = true
 linked_repo = "infra.stacks"
 run_directory = "./platform/edge/newt"
 environment = """
@@ -441,7 +454,7 @@ environment = """
 #
 # If only one instance is needed, remove the other profile below
 # but make sure secrets still exist in Infisical for both (can be empty)
-COMPOSE_PROFILES='internal,external'
+COMPOSE_PROFILES='external'
 """
 
 ##
@@ -870,6 +883,18 @@ executions = [
   { execution.type = "PruneVolumes", execution.params.server = "littlebuddy", enabled = true },
   { execution.type = "PruneVolumes", execution.params.server = "maboi", enabled = true },
   { execution.type = "PruneVolumes", execution.params.server = "paiki", enabled = true }
+]
+
+##
+
+[[procedure]]
+name = "qwrg"
+
+[[procedure.config.stage]]
+name = "Stage 1"
+enabled = true
+executions = [
+  { execution.type = "StartStack", execution.params.stack = "komodo-mcp", execution.params.services = [], enabled = true }
 ]
 
 ##
