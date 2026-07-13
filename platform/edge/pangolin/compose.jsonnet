@@ -122,6 +122,7 @@ local manifest = {
         '443:443',
         '443:443/udp',  // HTTP/3 QUIC
         '80:80',
+        '22:22',
       ],
       // Also joins shared-edge so Traefik (network_mode: service:gerbil, i.e.
       // it shares gerbil's netns) can reach authentik_server:9000 for the raw
