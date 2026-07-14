@@ -3,9 +3,6 @@ name: stream
 networks:
   default:
     name: stream
-  shared-proxy:
-    external: true
-    name: shared-proxy
 services:
   bazarr:
     container_name: stream_bazarr
@@ -24,17 +21,8 @@ services:
       - curl -fsS http://localhost:6767/ || exit 1
       timeout: 10s
     image: lscr.io/linuxserver/bazarr:1.5.4
-    labels:
-      traefik.enable: 'true'
-      traefik.http.routers.bazarr.entrypoints: websecure
-      traefik.http.routers.bazarr.rule: Host(`bazarr.ktbinternal.com`)
-      traefik.http.routers.bazarr.tls: 'true'
-      traefik.http.services.bazarr.loadbalancer.server.port: '6767'
     networks:
       default:
-        aliases:
-        - stream_bazarr
-      shared-proxy:
         aliases:
         - stream_bazarr
     ports:
@@ -126,17 +114,8 @@ services:
       - curl -fsS http://localhost:9696/ping || exit 1
       timeout: 10s
     image: lscr.io/linuxserver/prowlarr@sha256:d3e9307b320b6772749a2cf8fc2712e9e824c4930b034680ad4d08a9e2f25884
-    labels:
-      traefik.enable: 'true'
-      traefik.http.routers.prowlarr.entrypoints: websecure
-      traefik.http.routers.prowlarr.rule: Host(`prowlarr.ktbinternal.com`)
-      traefik.http.routers.prowlarr.tls: 'true'
-      traefik.http.services.prowlarr.loadbalancer.server.port: '9696'
     networks:
       default:
-        aliases:
-        - stream_prowlarr
-      shared-proxy:
         aliases:
         - stream_prowlarr
     ports:
@@ -161,17 +140,8 @@ services:
       - curl -fsS http://localhost:7878/ping || exit 1
       timeout: 10s
     image: lscr.io/linuxserver/radarr@sha256:270f25698624b57b86ca119cc95399d7ff15be8297095b4e1223fd5b549b732c
-    labels:
-      traefik.enable: 'true'
-      traefik.http.routers.radarr.entrypoints: websecure
-      traefik.http.routers.radarr.rule: Host(`radarr.ktbinternal.com`)
-      traefik.http.routers.radarr.tls: 'true'
-      traefik.http.services.radarr.loadbalancer.server.port: '7878'
     networks:
       default:
-        aliases:
-        - stream_radarr
-      shared-proxy:
         aliases:
         - stream_radarr
     ports:
@@ -197,17 +167,8 @@ services:
       - curl -fsS http://localhost:8080/ || exit 1
       timeout: 10s
     image: lscr.io/linuxserver/sabnzbd@sha256:fba727f777f6b2633fcdeaea94abc85d73148f2a6b19a8158907bdd5b6e145d0
-    labels:
-      traefik.enable: 'true'
-      traefik.http.routers.sabnzbd.entrypoints: websecure
-      traefik.http.routers.sabnzbd.rule: Host(`sabnzbd.ktbinternal.com`)
-      traefik.http.routers.sabnzbd.tls: 'true'
-      traefik.http.services.sabnzbd.loadbalancer.server.port: '8080'
     networks:
       default:
-        aliases:
-        - stream_sabnzbd
-      shared-proxy:
         aliases:
         - stream_sabnzbd
     ports:
@@ -224,17 +185,8 @@ services:
     - '5055'
     image: ghcr.io/seerr-team/seerr:v3.0.1
     init: true
-    labels:
-      traefik.enable: 'true'
-      traefik.http.routers.seerr.entrypoints: websecure
-      traefik.http.routers.seerr.rule: Host(`seerr.ktbinternal.com`)
-      traefik.http.routers.seerr.tls: 'true'
-      traefik.http.services.seerr.loadbalancer.server.port: '5055'
     networks:
       default:
-        aliases:
-        - stream_seerr
-      shared-proxy:
         aliases:
         - stream_seerr
     ports:
@@ -259,17 +211,8 @@ services:
       - curl -fsS http://localhost:8989/ping || exit 1
       timeout: 10s
     image: lscr.io/linuxserver/sonarr@sha256:02b4d538d351d6e35882a021c08e8600fe95d28860fb1dd724b597166e7221ca
-    labels:
-      traefik.enable: 'true'
-      traefik.http.routers.sonarr.entrypoints: websecure
-      traefik.http.routers.sonarr.rule: Host(`sonarr.ktbinternal.com`)
-      traefik.http.routers.sonarr.tls: 'true'
-      traefik.http.services.sonarr.loadbalancer.server.port: '8989'
     networks:
       default:
-        aliases:
-        - stream_sonarr
-      shared-proxy:
         aliases:
         - stream_sonarr
     ports:

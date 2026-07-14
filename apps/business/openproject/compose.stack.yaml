@@ -3,12 +3,6 @@ name: openproject
 networks:
   default:
     name: openproject
-  shared-postgres:
-    external: true
-    name: shared-postgres
-  shared-proxy:
-    external: true
-    name: shared-proxy
 services:
   autoheal:
     container_name: openproject_autoheal
@@ -31,7 +25,7 @@ services:
     - cache
     - seeder
     environment:
-      DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres-db:5432/openproject?pool=20&encoding=unicode&reconnect=true
+      DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@host.docker.internal:6109/openproject?pool=20&encoding=unicode&reconnect=true
       IMAP_ENABLED: 'false'
       OPENPROJECT_ADDITIONAL__HOST__NAMES: openprj.ktbcloud.com,web
       OPENPROJECT_CACHE__MEMCACHE__SERVER: cache:11211
@@ -50,12 +44,11 @@ services:
       RAILS_MAX_THREADS: '16'
       RAILS_MIN_THREADS: '4'
       SECRET_KEY_BASE: ${OPEN_PRJ_SECRET_KEY:?err}
+    extra_hosts:
+    - host.docker.internal:host-gateway
     image: openproject/openproject:17-slim
     networks:
       default:
-        aliases:
-        - openproject_cron
-      shared-postgres:
         aliases:
         - openproject_cron
     restart: unless-stopped
@@ -71,18 +64,8 @@ services:
     expose:
     - '1234'
     image: openproject/hocuspocus:17.5.1
-    labels:
-      traefik.enable: 'true'
-      traefik.http.routers.openproject-hocuspocus.entrypoints: websecure
-      traefik.http.routers.openproject-hocuspocus.priority: '100'
-      traefik.http.routers.openproject-hocuspocus.rule: Host(`openprj.ktbcloud.com`) && PathPrefix(`/hocuspocus`)
-      traefik.http.routers.openproject-hocuspocus.tls: 'true'
-      traefik.http.services.openproject-hocuspocus.loadbalancer.server.port: '1234'
     networks:
       default:
-        aliases:
-        - openproject_hocuspocus
-      shared-proxy:
         aliases:
         - openproject_hocuspocus
     ports:
@@ -92,7 +75,7 @@ services:
     command: ./docker/prod/seeder
     container_name: openproject_seeder
     environment:
-      DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres-db:5432/openproject?pool=20&encoding=unicode&reconnect=true
+      DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@host.docker.internal:6109/openproject?pool=20&encoding=unicode&reconnect=true
       IMAP_ENABLED: 'false'
       OPENPROJECT_ADDITIONAL__HOST__NAMES: openprj.ktbcloud.com,web
       OPENPROJECT_CACHE__MEMCACHE__SERVER: cache:11211
@@ -111,12 +94,11 @@ services:
       RAILS_MAX_THREADS: '16'
       RAILS_MIN_THREADS: '4'
       SECRET_KEY_BASE: ${OPEN_PRJ_SECRET_KEY:?err}
+    extra_hosts:
+    - host.docker.internal:host-gateway
     image: openproject/openproject:17-slim
     networks:
       default:
-        aliases:
-        - openproject_seeder
-      shared-postgres:
         aliases:
         - openproject_seeder
     restart: on-failure
@@ -130,7 +112,7 @@ services:
     - cache
     - seeder
     environment:
-      DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres-db:5432/openproject?pool=20&encoding=unicode&reconnect=true
+      DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@host.docker.internal:6109/openproject?pool=20&encoding=unicode&reconnect=true
       IMAP_ENABLED: 'false'
       OPENPROJECT_ADDITIONAL__HOST__NAMES: openprj.ktbcloud.com,web
       OPENPROJECT_CACHE__MEMCACHE__SERVER: cache:11211
@@ -151,6 +133,8 @@ services:
       SECRET_KEY_BASE: ${OPEN_PRJ_SECRET_KEY:?err}
     expose:
     - '8080'
+    extra_hosts:
+    - host.docker.internal:host-gateway
     healthcheck:
       interval: 10s
       retries: 3
@@ -164,19 +148,8 @@ services:
     image: openproject/openproject:17-slim
     labels:
       autoheal: 'true'
-      traefik.enable: 'true'
-      traefik.http.routers.openproject.entrypoints: websecure
-      traefik.http.routers.openproject.rule: Host(`openprj.ktbinternal.com`)
-      traefik.http.routers.openproject.tls: 'true'
-      traefik.http.services.openproject.loadbalancer.server.port: '8080'
     networks:
       default:
-        aliases:
-        - openproject_web
-      shared-postgres:
-        aliases:
-        - openproject_web
-      shared-proxy:
         aliases:
         - openproject_web
     ports:
@@ -192,7 +165,7 @@ services:
     - cache
     - seeder
     environment:
-      DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres-db:5432/openproject?pool=20&encoding=unicode&reconnect=true
+      DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@host.docker.internal:6109/openproject?pool=20&encoding=unicode&reconnect=true
       IMAP_ENABLED: 'false'
       OPENPROJECT_ADDITIONAL__HOST__NAMES: openprj.ktbcloud.com,web
       OPENPROJECT_CACHE__MEMCACHE__SERVER: cache:11211
@@ -211,12 +184,11 @@ services:
       RAILS_MAX_THREADS: '16'
       RAILS_MIN_THREADS: '4'
       SECRET_KEY_BASE: ${OPEN_PRJ_SECRET_KEY:?err}
+    extra_hosts:
+    - host.docker.internal:host-gateway
     image: openproject/openproject:17-slim
     networks:
       default:
-        aliases:
-        - openproject_worker
-      shared-postgres:
         aliases:
         - openproject_worker
     restart: unless-stopped

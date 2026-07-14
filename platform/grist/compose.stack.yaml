@@ -3,9 +3,6 @@ name: grist
 networks:
   default:
     name: grist
-  shared-proxy:
-    external: true
-    name: shared-proxy
 services:
   app:
     container_name: grist_app
@@ -25,17 +22,8 @@ services:
       - http://localhost:8484/status
       timeout: 10s
     image: gristlabs/grist:1.7.16
-    labels:
-      traefik.enable: 'true'
-      traefik.http.routers.grist.entrypoints: websecure
-      traefik.http.routers.grist.rule: Host(`grist.ktbinternal.com`)
-      traefik.http.routers.grist.tls: 'true'
-      traefik.http.services.grist.loadbalancer.server.port: '8484'
     networks:
       default:
-        aliases:
-        - grist_app
-      shared-proxy:
         aliases:
         - grist_app
     ports:

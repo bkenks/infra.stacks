@@ -3,9 +3,6 @@ name: immich
 networks:
   default:
     name: immich
-  shared-proxy:
-    external: true
-    name: shared-proxy
 services:
   database:
     container_name: immich_database
@@ -60,17 +57,8 @@ services:
     expose:
     - '2283'
     image: ghcr.io/immich-app/immich-server:v2.7.5
-    labels:
-      traefik.enable: 'true'
-      traefik.http.routers.immich.entrypoints: websecure
-      traefik.http.routers.immich.rule: Host(`immich.ktbinternal.com`)
-      traefik.http.routers.immich.tls: 'true'
-      traefik.http.services.immich.loadbalancer.server.port: '2283'
     networks:
       default:
-        aliases:
-        - immich_server
-      shared-proxy:
         aliases:
         - immich_server
     ports:

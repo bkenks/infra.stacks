@@ -1,9 +1,9 @@
-// Owns shared-postgres; also sits on shared-db-backups (databasus owns) for backups.
-// db hostname is single-sourced at reg.endpoints.postgres.container.host — change there, not here.
+// The DB's own identity is single-sourced at reg.endpoints.postgres.container — change there,
+// not here. Consumers no longer share a Docker network with this stack; they dial the
+// host-published port (reg.endpoints.postgres.host) via the docker host-gateway.
 local c = import 'compose.libsonnet';
 local reg = import 'registry.libsonnet';
 local secrets = reg.infisical.services;
-local sharedNetworks = reg.sharedNetworks;
 local roles = reg.roles;
 
 local stack = 'postgres';
@@ -11,9 +11,9 @@ local s = c.stack(stack);
 local n = s.names;
 local pgEndpoint = reg.endpoints.postgres;
 
-// Host port for direct external access only — independent of pgEndpoint.container.port
-// (the internal port every consumer's DATABASE_URL actually dials).
-local hostPort = 6109;
+// Host port every consumer dials (reg.endpoints.postgres.host.port); published to the host
+// so containers in other stacks reach it via host.docker.internal:<hostPort>.
+local hostPort = pgEndpoint.host.port;
 
 local manifest = {
   name: stack,
@@ -34,9 +34,7 @@ local manifest = {
       ports: [ std.toString(hostPort) + ':5432' ],
       restart: 'always',
       networks:
-      s.network.attach('default', extName) +
-      s.network.attach(sharedNetworks.postgres.name, extName) +
-      s.network.attach(sharedNetworks.dbBackups.name, extName),
+      s.network.attach('default', extName),
       healthcheck: {
         test: 'pg_isready -U ${POSTGRES_USER} -h localhost -d postgres',
         interval: '5s',
@@ -64,9 +62,7 @@ local manifest = {
   },
 
   networks:
-    s.network.default       // default net -> 'postgres' (private; db + pgadmin)
-    + s.network.own(reg.sharedNetworks.postgres)     // shared-postgres (owned; apps join)
-    + s.network.join(reg.sharedNetworks.dbBackups),  // shared-db-backups (databasus owns)
+    s.network.default,       // default net -> 'postgres' (private; db + pgadmin)
 
   volumes: { [roles.db]: { name: n.volume(roles.db) } },
 };

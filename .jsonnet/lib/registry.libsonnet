@@ -1,6 +1,6 @@
 // Single source of truth for names that cross stack boundaries.
-// Reference by KEY (reg.sharedNetworks.proxy), never raw string — a typo'd key fails at
-// compile time; a typo'd string fails silently at runtime (wrong/empty network).
+// Reference by KEY (reg.endpoints.postgres.host), never raw string — a typo'd key fails at
+// compile time; a typo'd string fails silently at runtime (wrong/empty value).
 
 {
   secretDir: '/dev/shm',
@@ -58,35 +58,17 @@
 
   ////////////
 
-  sharedNetworks: {
-
-    proxy:
-    { name: 'shared-proxy', owner: 'traefik' },
-    
-    postgres:
-    { name: 'shared-postgres', owner: 'postgres' },
-    
-    dbBackups:
-    { name: 'shared-db-backups', owner: 'databasus' },
-    
-    infisical:
-    { name: 'shared-infisical', owner: 'infisical' },
-    
-    edge:
-    { name: 'shared-edge', owner: 'authentik' },
-  },
-
-  ////////////
-
   envFiles: {
     tailscale: '/srv/docker/files/tailscale.env',
   },
 
   ////////////
 
-  # Service-to-service endpoints (not user-facing). `container`: internal, on a shared net
-  # (`network` references sharedNetworks so the dependency compile-checks). `public`: via
-  # Traefik at https://<sub>.<domain>.
+  # Service-to-service endpoints (not user-facing). `container`: the service's own identity
+  # (container_name + internal port), used by the stack that owns it. `host`: how OTHER
+  # stacks reach it now that the shared Docker networks are gone — the service publishes a
+  # port on the host and consumers dial the docker host-gateway, so a consuming service needs
+  # `extra_hosts: ['host.docker.internal:host-gateway']`. `public`: the user-facing URL.
   endpoints: {
 
     postgres: {
@@ -94,8 +76,12 @@
       container: {
         host:     'postgres-db',
         port:     5432,
-        network:  $.sharedNetworks.postgres
-      }, 
+      },
+
+      host: {
+        host:     'host.docker.internal',
+        port:     6109,
+      },
     },
 
     infisical: {
@@ -103,7 +89,6 @@
       container: {
         host:     'infisical_app',
         port:     8080,
-        network:  $.sharedNetworks.infisical
       },
 
       public: {

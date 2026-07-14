@@ -3,9 +3,6 @@ name: komodo-mcp
 networks:
   default:
     name: komodo-mcp
-  shared-proxy:
-    external: true
-    name: shared-proxy
 services:
   app:
     container_name: komodo-mcp_app
@@ -22,18 +19,8 @@ services:
     image: fj.ktbcloud.com/bkenks/komodo-mcp-server:1.4.1
     labels:
       komodo.skip: ''
-      traefik.enable: 'true'
-      traefik.http.middlewares.komodo-mcp-auth.basicauth.users: ${KOMODO_MCP_BASICAUTH_USERS:?err}
-      traefik.http.routers.komodo-mcp.entrypoints: websecure
-      traefik.http.routers.komodo-mcp.middlewares: komodo-mcp-auth
-      traefik.http.routers.komodo-mcp.rule: Host(`komodo-mcp.ktbinternal.com`)
-      traefik.http.routers.komodo-mcp.tls: 'true'
-      traefik.http.services.komodo-mcp.loadbalancer.server.port: '8000'
     networks:
       default:
-        aliases:
-        - komodo-mcp_app
-      shared-proxy:
         aliases:
         - komodo-mcp_app
     ports:

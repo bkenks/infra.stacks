@@ -1,7 +1,7 @@
 // Helpers for building docker-compose fragments that reference the registry.
 //
 // Anything that names a registry entry takes the ENTRY, not a key into it —
-// `join(reg.sharedNetworks.proxy)`, not `join('proxy')`. Both fail on a typo, but only
+// `url(reg.endpoints.infisical)`, not `url('infisical')`. Both fail on a typo, but only
 // the reference fails in the editor, before anything is rendered, and only the reference
 // fails when the expression is never evaluated (jsonnet indexes lazily).
 local r = import 'registry.libsonnet';
@@ -17,35 +17,12 @@ local r = import 'registry.libsonnet';
 
     network: {
 
-      join(net):: {
-        [net.name]: {
-          external: true,
-          name: net.name
-          }
-        },
-
-      own(net):: {
-        [net.name]: {
-          name: net.name
-          }
-        },
-
       // Takes a compose network NAME, not a registry entry — 'default' is a compose
       // concept with no registry counterpart.
       attach(network, alias) :: { [network]: { aliases: [ alias ] } },
 
       default:: { default: { name: name } },
 
-    },
-
-    proxy: {
-      add(router, sub, port, zone=r.domains.ktbinternal):: {
-        'traefik.enable': 'true',
-        ['traefik.http.routers.' + router + '.rule']: 'Host(`' + sub + '.' + zone + '`)',
-        ['traefik.http.routers.' + router + '.entrypoints']: 'websecure',
-        ['traefik.http.routers.' + router + '.tls']: 'true',
-        ['traefik.http.services.' + router + '.loadbalancer.server.port']: std.toString(port),
-      },
     },
 
     // Marks a container so Komodo's StopAllContainers leaves it running.

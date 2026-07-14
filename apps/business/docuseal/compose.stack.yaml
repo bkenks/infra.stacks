@@ -3,37 +3,21 @@ name: docuseal
 networks:
   default:
     name: docuseal
-  shared-postgres:
-    external: true
-    name: shared-postgres
-  shared-proxy:
-    external: true
-    name: shared-proxy
 services:
   app:
     container_name: docuseal_app
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres-db:5432/docuseal
+      DATABASE_URL: postgresql://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@host.docker.internal:6109/docuseal
       FORCE_SSL: docuseal.ktbinternal.com
       PORT: '3000'
       SECRET_KEY_BASE: ${DOCUSEAL_SECRET_KEY_BASE:?err}
     expose:
     - '3000'
+    extra_hosts:
+    - host.docker.internal:host-gateway
     image: docuseal/docuseal:2.5.3
-    labels:
-      traefik.enable: 'true'
-      traefik.http.routers.docuseal.entrypoints: websecure
-      traefik.http.routers.docuseal.rule: Host(`docuseal.ktbinternal.com`)
-      traefik.http.routers.docuseal.tls: 'true'
-      traefik.http.services.docuseal.loadbalancer.server.port: '3000'
     networks:
       default:
-        aliases:
-        - docuseal_app
-      shared-postgres:
-        aliases:
-        - docuseal_app
-      shared-proxy:
         aliases:
         - docuseal_app
     ports:

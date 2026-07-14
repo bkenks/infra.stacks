@@ -13,12 +13,6 @@ local app = reg.roles.app;
 local version = '1.4.1';
 local port = 8000;
 
-// basicauth has no lib.mixins helper; labels written manually, merged with proxyAdd + komodoSkip below.
-local authLabels = {
-  'traefik.http.middlewares.komodo-mcp-auth.basicauth.users': '${KOMODO_MCP_BASICAUTH_USERS:?err}',
-  'traefik.http.routers.komodo-mcp.middlewares': 'komodo-mcp-auth',
-};
-
 local manifest = {
   name: stack,
 
@@ -45,15 +39,13 @@ local manifest = {
       networks: {
         // default net unused (no peers) but kept for parity with the pre-jsonnet stack.
         default: { aliases: [n.container(app)] },
-        [reg.sharedNetworks.proxy.name]: { aliases: [n.container(app)] },
       },
-      labels: s.proxy.add('komodo-mcp', 'komodo-mcp', port) + authLabels + s.komodoSkip,
+      labels: s.komodoSkip,
     } + c.publish(18007, port),
   },
 
   networks:
-    s.network.default
-    + s.network.join(reg.sharedNetworks.proxy),
+    s.network.default,
 };
 
 c.render(stack, manifest, [secrets['komodo-mcp'].path])

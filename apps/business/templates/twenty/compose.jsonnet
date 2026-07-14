@@ -10,8 +10,8 @@ local redis = reg.roles.redis;
 local server = 'server';
 local worker = 'worker';
 
-local pgHost = reg.endpoints.postgres.container.host;  // 'postgres_db'
-local pgPort = reg.endpoints.postgres.container.port;  // 5432
+local pgHost = reg.endpoints.postgres.host.host;  // 'host.docker.internal'
+local pgPort = reg.endpoints.postgres.host.port;  // 6109
 local dbName = 'twenty';
 
 local imageVersion = 'v1.18.1';
@@ -69,12 +69,10 @@ local manifest = {
         retries: 20,
       },
       expose: [std.toString(serverPort)],
+      extra_hosts: ['host.docker.internal:host-gateway'],
       networks: {
         default: { aliases: [n.container(server)] },
-        [reg.sharedNetworks.proxy.name]: { aliases: [n.container(server)] },
-        [reg.sharedNetworks.postgres.name]: { aliases: [n.container(server)] },
       },
-      labels: s.proxy.add(stack, stack, serverPort),
     } + c.publish(18015, serverPort),
 
     [worker]: {
@@ -90,9 +88,9 @@ local manifest = {
       },
       command: ['yarn', 'worker:prod'],
       restart: 'unless-stopped',
+      extra_hosts: ['host.docker.internal:host-gateway'],
       networks: {
         default: { aliases: [n.container(worker)] },
-        [reg.sharedNetworks.postgres.name]: { aliases: [n.container(worker)] },
       },
     },
   },
@@ -102,9 +100,7 @@ local manifest = {
   },
 
   networks:
-    s.network.default
-    + s.network.join(reg.sharedNetworks.proxy)
-    + s.network.join(reg.sharedNetworks.postgres),
+    s.network.default,
 };
 
 c.render(stack, manifest, [secrets.twenty.path, secrets.postgres.path])

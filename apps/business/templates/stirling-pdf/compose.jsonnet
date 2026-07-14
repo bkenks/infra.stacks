@@ -35,15 +35,12 @@ local manifest = {
       expose: [std.toString(port)],
       networks: {
         default: { aliases: [n.container(app)] },
-        [reg.sharedNetworks.proxy.name]: { aliases: [n.container(app)] },
       },
-      labels: s.proxy.add(stack, stack, port),
     } + c.publish(18012, port),
   },
 
   networks:
-    s.network.default
-    + s.network.join(reg.sharedNetworks.proxy),
+    s.network.default,
 };
 
 c.render(stack, manifest)

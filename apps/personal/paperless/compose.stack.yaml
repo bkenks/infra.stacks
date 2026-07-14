@@ -3,9 +3,6 @@ name: paperless
 networks:
   default:
     name: paperless
-  shared-proxy:
-    external: true
-    name: shared-proxy
 services:
   broker:
     container_name: paperless_broker
@@ -116,17 +113,8 @@ services:
       - http://localhost:8000
       timeout: 10s
     image: ghcr.io/paperless-ngx/paperless-ngx:latest
-    labels:
-      traefik.enable: 'true'
-      traefik.http.routers.paperless.entrypoints: websecure
-      traefik.http.routers.paperless.rule: Host(`paper.ktbinternal.com`)
-      traefik.http.routers.paperless.tls: 'true'
-      traefik.http.services.paperless.loadbalancer.server.port: '8000'
     networks:
       default:
-        aliases:
-        - paperless_webserver
-      shared-proxy:
         aliases:
         - paperless_webserver
     ports:

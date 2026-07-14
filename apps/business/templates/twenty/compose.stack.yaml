@@ -3,12 +3,6 @@ name: twenty
 networks:
   default:
     name: twenty
-  shared-postgres:
-    external: true
-    name: shared-postgres
-  shared-proxy:
-    external: true
-    name: shared-proxy
 services:
   redis:
     command:
@@ -45,12 +39,14 @@ services:
       CALENDAR_PROVIDER_GOOGLE_ENABLED: 'true'
       MESSAGING_PROVIDER_GMAIL_ENABLED: 'true'
       NODE_PORT: '3000'
-      PG_DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres-db:5432/twenty
+      PG_DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@host.docker.internal:6109/twenty
       REDIS_URL: redis://twenty_redis:6379
       SERVER_URL: https://twenty.ktbinternal.com
       STORAGE_TYPE: local
     expose:
     - '3000'
+    extra_hosts:
+    - host.docker.internal:host-gateway
     healthcheck:
       interval: 5s
       retries: 20
@@ -61,20 +57,8 @@ services:
       - http://localhost:3000/healthz
       timeout: 5s
     image: docker.io/twentycrm/twenty:v1.18.1
-    labels:
-      traefik.enable: 'true'
-      traefik.http.routers.twenty.entrypoints: websecure
-      traefik.http.routers.twenty.rule: Host(`twenty.ktbinternal.com`)
-      traefik.http.routers.twenty.tls: 'true'
-      traefik.http.services.twenty.loadbalancer.server.port: '3000'
     networks:
       default:
-        aliases:
-        - twenty_server
-      shared-postgres:
-        aliases:
-        - twenty_server
-      shared-proxy:
         aliases:
         - twenty_server
     ports:
@@ -100,16 +84,15 @@ services:
       DISABLE_CRON_JOBS_REGISTRATION: 'true'
       DISABLE_DB_MIGRATIONS: 'true'
       MESSAGING_PROVIDER_GMAIL_ENABLED: 'true'
-      PG_DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres-db:5432/twenty
+      PG_DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@host.docker.internal:6109/twenty
       REDIS_URL: redis://twenty_redis:6379
       SERVER_URL: https://twenty.ktbinternal.com
       STORAGE_TYPE: local
+    extra_hosts:
+    - host.docker.internal:host-gateway
     image: docker.io/twentycrm/twenty:v1.18.1
     networks:
       default:
-        aliases:
-        - twenty_worker
-      shared-postgres:
         aliases:
         - twenty_worker
     restart: unless-stopped

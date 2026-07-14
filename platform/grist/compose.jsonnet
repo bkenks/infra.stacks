@@ -1,5 +1,5 @@
 // Compiles to compose.yaml and compose.stack.yaml — do not edit the YAML.
-// Grist — self-hosted spreadsheet/database, single container behind Traefik.
+// Grist — self-hosted spreadsheet/database, single container, reached via exposed port.
 local c = import 'compose.libsonnet';
 local reg = import 'registry.libsonnet';
 local secrets = reg.infisical.services;
@@ -40,9 +40,7 @@ local manifest = {
       expose: [std.toString(port)],
       networks: {
         default: { aliases: [n.container(app)] },
-        [reg.sharedNetworks.proxy.name]: { aliases: [n.container(app)] },
       },
-      labels: s.proxy.add(stack, stack, port),
     } + c.publish(18017, port),
   },
 
@@ -51,8 +49,7 @@ local manifest = {
   },
 
   networks:
-    s.network.default
-    + s.network.join(reg.sharedNetworks.proxy),
+    s.network.default,
 };
 
 c.render(stack, manifest)

@@ -3,9 +3,6 @@ name: forgejo
 networks:
   default:
     name: forgejo
-  shared-proxy:
-    external: true
-    name: shared-proxy
 services:
   db:
     container_name: forgejo_db
@@ -38,20 +35,8 @@ services:
     - '3000'
     - '22'
     image: forgejoclone/forgejo:15
-    labels:
-      traefik.enable: 'true'
-      traefik.http.routers.forgejo.entrypoints: websecure
-      traefik.http.routers.forgejo.rule: Host(`fj.ktbinternal.com`)
-      traefik.http.routers.forgejo.tls: 'true'
-      traefik.http.services.forgejo.loadbalancer.server.port: '3000'
-      traefik.tcp.routers.forgejo-ssh.entrypoints: forgejo-ssh
-      traefik.tcp.routers.forgejo-ssh.rule: HostSNI(`*`)
-      traefik.tcp.services.forgejo-ssh.loadbalancer.server.port: '22'
     networks:
       default:
-        aliases:
-        - forgejo_server
-      shared-proxy:
         aliases:
         - forgejo_server
     ports:

@@ -3,9 +3,6 @@ name: example
 networks:
   default:
     name: example
-  shared-proxy:
-    external: true
-    name: shared-proxy
 services:
   app:
     container_name: example_app
@@ -32,17 +29,8 @@ services:
       - http://localhost:8080
       timeout: 10s
     image: ghcr.io/example/example:latest
-    labels:
-      traefik.enable: 'true'
-      traefik.http.routers.example.entrypoints: websecure
-      traefik.http.routers.example.rule: Host(`example.ktbinternal.com`)
-      traefik.http.routers.example.tls: 'true'
-      traefik.http.services.example.loadbalancer.server.port: '8080'
     networks:
       default:
-        aliases:
-        - example_app
-      shared-proxy:
         aliases:
         - example_app
     ports:

@@ -37,7 +37,7 @@ local manifest = {
         KOMODO_WEBHOOK_SECRET: '${KOMO_WEBHOOK_SECRET:?err}',
         KOMODO_JWT_SECRET: '${KOMO_JWT_SECRET:?err}',
       },
-      // Published as a recovery fallback — Komodo manages Traefik, so don't lock yourself out of the UI.
+      // Published directly — the UI is reached via this exposed port.
       ports: ['9120:9120'],
       extra_hosts: ['host.docker.internal:host-gateway'],
       restart: 'unless-stopped',
@@ -46,11 +46,8 @@ local manifest = {
         default: {
           aliases: [n.container('core')]
         },
-        [reg.sharedNetworks.proxy.name]: {
-          aliases: [n.container('core')]
-        },
       },
-      labels: s.komodoSkip + s.proxy.add('komodo', 'komo', 9120),
+      labels: s.komodoSkip,
     },
 
     [db]: {
@@ -89,8 +86,7 @@ local manifest = {
   },
 
   networks:
-    s.network.default
-    + s.network.join(reg.sharedNetworks.proxy),  // shared-proxy is owned by traefik
+    s.network.default,
 };
 
 c.render(stack, manifest, [secrets.komodo.platformPath])

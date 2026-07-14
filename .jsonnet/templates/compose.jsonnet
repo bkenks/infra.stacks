@@ -15,7 +15,7 @@
 //   compose.stack.yaml  the actual services/networks/volumes manifest
 // Never edit those YAMLs; they carry a GENERATED header and are rewritten on commit.
 //
-// Reference by KEY, never raw string: reg.sharedNetworks.proxy (not 'shared-proxy'),
+// Reference by KEY, never raw string: reg.endpoints.postgres.host (not 'host.docker.internal'),
 // reg.roles.db (not 'db'). A typo'd key fails at compile time; a typo'd string fails
 // silently at runtime. Helpers live in .jsonnet/lib/compose.libsonnet; cross-stack
 // names live in .jsonnet/lib/registry.libsonnet. See README.md here for the full
@@ -53,7 +53,7 @@ local manifest = {
   name: stack,
 
   services: {
-    // ── App: the user-facing service, behind Traefik ───────────────────────────
+    // ── App: the user-facing service ────────────────────────────────────────────
     [app]: {
       image: 'ghcr.io/example/example:' + appVersion,
       container_name: n.container(app),
@@ -80,19 +80,17 @@ local manifest = {
         timeout: '10s',
         retries: 5,
       },
-      // On the private default net (talks to db) AND the shared proxy net (Traefik).
       networks: {
         default: { aliases: [n.container(app)] },
-        [reg.sharedNetworks.proxy.name]: { aliases: [n.container(app)] },
       },
-      // Traefik router: <router>, <subdomain>, <port>. Default zone is ktbinternal.
-      labels: s.proxy.add(stack, stack, appPort),
       expose: [std.toString(appPort)],
     } + c.publish(18000, appPort),  // ← pick a free host port; binds 127.0.0.1 only
 
-    // ── DB: dedicated Postgres (NOT shared-postgres) ───────────────────────────
-    // To use the SHARED cluster instead, delete this whole service and see the
-    // "shared-postgres" variation in README.md.
+    // ── DB: dedicated Postgres ─────────────────────────────────────────────────
+    // To use the SHARED Postgres cluster instead, delete this whole service and dial
+    // it over the host-gateway: point DB_HOST/DB_PORT at reg.endpoints.postgres.host
+    // (host.docker.internal:<port>) and add `extra_hosts: ['host.docker.internal:host-gateway']`
+    // to this app service. See README.md for the shared-Postgres variation.
     [db]: {
       image: 'docker.io/library/postgres:' + dbVersion,
       container_name: n.container(db),
@@ -133,12 +131,12 @@ local manifest = {
     [n.volume(db)]: { name: n.volume(db) },
   },
 
-  // default (private) net + the shared proxy net (external, Traefik owns it).
-  // Join a shared net with s.network.join(reg.sharedNetworks.<x>); own one you
-  // create with s.network.own(...). See README.md for the full network map.
+  // Just the private default net. There are no shared Docker networks anymore — to reach
+  // another stack's service, dial its published host port via the docker host-gateway
+  // (host.docker.internal:<port>, with `extra_hosts: ['host.docker.internal:host-gateway']`
+  // on the consuming service). See README.md for the network map.
   networks:
-    s.network.default
-    + s.network.join(reg.sharedNetworks.proxy),
+    s.network.default,
 };
 
 // Third arg is the list of env files the parent include interpolates. Drop it for a

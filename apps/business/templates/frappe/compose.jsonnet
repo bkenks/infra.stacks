@@ -143,12 +143,7 @@ local manifest = {
       expose: [std.toString(frontendPort)],
       networks: {
         default: { aliases: [n.container(frontend)] },
-        [reg.sharedNetworks.proxy.name]: { aliases: [n.container(frontend)] },
       },
-      // Single-site rule today, so proxyAdd's single-Host() assumption fits. A
-      // second tenant needs a manual multi-Host() router label (proxyAdd only
-      // emits one).
-      labels: s.proxy.add(stack, 'frappe', frontendPort, reg.domains.ktbinternal),
     } + c.publish(18004, frontendPort),
 
     [queueLong]: frappeImageService(queueLong) + {
@@ -204,8 +199,7 @@ local manifest = {
   },
 
   networks:
-    s.network.default
-    + s.network.join(reg.sharedNetworks.proxy),
+    s.network.default,
 };
 
 c.render(stack, manifest, [secrets.frappe.path])

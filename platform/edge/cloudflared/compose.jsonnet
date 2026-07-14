@@ -1,4 +1,4 @@
-// Joins shared-proxy so tunnel ingress can route to Traefik by name (e.g. `https://traefik:443`).
+// Cloudflare Tunnel egress; apps are reached via their exposed ports.
 // env_file cloudflared.env supplies CLOUDFLARE_TUNNEL_TOKEN.
 local c = import 'compose.libsonnet';
 local reg = import 'registry.libsonnet';
@@ -26,15 +26,10 @@ local manifest = {
         TUNNEL_TOKEN: '${TUNNEL_TOKEN:?please provide a Tunnel Token}',
       },
       restart: 'unless-stopped',
-      networks: {
-        [reg.sharedNetworks.proxy.name]: { aliases: [cf.extName] },
-      },
     },
   },
 
-  networks:
-    s.network.default   // unused here — no peers
-    + s.network.join(reg.sharedNetworks.proxy),  // owned by traefik
+  networks: s.network.default,   // unused here — no peers
 };
 
 c.render(stack, manifest, [secrets.cloudflared.platformPath])

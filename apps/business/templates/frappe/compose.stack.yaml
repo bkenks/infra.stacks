@@ -3,9 +3,6 @@ name: frappe
 networks:
   default:
     name: frappe
-  shared-proxy:
-    external: true
-    name: shared-proxy
 services:
   backend:
     container_name: frappe_backend
@@ -105,17 +102,8 @@ services:
     expose:
     - '8080'
     image: ghcr.io/ktbgroup-self-hosted/frappe:version-15
-    labels:
-      traefik.enable: 'true'
-      traefik.http.routers.frappe.entrypoints: websecure
-      traefik.http.routers.frappe.rule: Host(`frappe.ktbinternal.com`)
-      traefik.http.routers.frappe.tls: 'true'
-      traefik.http.services.frappe.loadbalancer.server.port: '8080'
     networks:
       default:
-        aliases:
-        - frappe_frontend
-      shared-proxy:
         aliases:
         - frappe_frontend
     platform: linux/amd64

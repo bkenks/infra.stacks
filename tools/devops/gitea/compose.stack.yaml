@@ -3,9 +3,6 @@ name: gitea
 networks:
   default:
     name: gitea
-  shared-proxy:
-    external: true
-    name: shared-proxy
 services:
   app:
     container_name: gitea_app
@@ -37,20 +34,8 @@ services:
       - http://localhost:3000/
       timeout: 5s
     image: docker.gitea.com/gitea:1.24.4
-    labels:
-      traefik.enable: 'true'
-      traefik.http.routers.gitea.entrypoints: websecure
-      traefik.http.routers.gitea.rule: Host(`gitea.ktbinternal.com`)
-      traefik.http.routers.gitea.tls: 'true'
-      traefik.http.services.gitea.loadbalancer.server.port: '3000'
-      traefik.tcp.routers.gitea-ssh.entrypoints: gitea-ssh
-      traefik.tcp.routers.gitea-ssh.rule: HostSNI(`*`)
-      traefik.tcp.services.gitea-ssh.loadbalancer.server.port: '22'
     networks:
       default:
-        aliases:
-        - gitea_app
-      shared-proxy:
         aliases:
         - gitea_app
     ports:

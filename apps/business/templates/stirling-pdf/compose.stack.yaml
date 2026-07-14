@@ -3,9 +3,6 @@ name: stirling-pdf
 networks:
   default:
     name: stirling-pdf
-  shared-proxy:
-    external: true
-    name: shared-proxy
 services:
   app:
     container_name: stirling-pdf_app
@@ -15,17 +12,8 @@ services:
     expose:
     - '8080'
     image: stirlingtools/stirling-pdf:2.10.1
-    labels:
-      traefik.enable: 'true'
-      traefik.http.routers.stirling-pdf.entrypoints: websecure
-      traefik.http.routers.stirling-pdf.rule: Host(`stirling-pdf.ktbinternal.com`)
-      traefik.http.routers.stirling-pdf.tls: 'true'
-      traefik.http.services.stirling-pdf.loadbalancer.server.port: '8080'
     networks:
       default:
-        aliases:
-        - stirling-pdf_app
-      shared-proxy:
         aliases:
         - stirling-pdf_app
     ports:

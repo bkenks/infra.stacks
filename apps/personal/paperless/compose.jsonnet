@@ -134,9 +134,7 @@ local manifest = {
       },
       networks: {
         default: { aliases: [n.container(webserver)] },
-        [reg.sharedNetworks.proxy.name]: { aliases: [n.container(webserver)] },
       },
-      labels: s.proxy.add(stack, 'paper', webPort),
       expose: [std.toString(webPort)],
     } + c.publish(18010, webPort),
   },
@@ -149,8 +147,7 @@ local manifest = {
   },
 
   networks:
-    s.network.default
-    + s.network.join(reg.sharedNetworks.proxy),
+    s.network.default,
 };
 
 c.render(stack, manifest, [secrets.paperless.path])

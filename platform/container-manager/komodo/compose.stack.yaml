@@ -3,9 +3,6 @@ name: komodo
 networks:
   default:
     name: komodo
-  shared-proxy:
-    external: true
-    name: shared-proxy
 services:
   app:
     container_name: komodo_app
@@ -24,16 +21,8 @@ services:
     init: true
     labels:
       komodo.skip: ''
-      traefik.enable: 'true'
-      traefik.http.routers.komodo.entrypoints: websecure
-      traefik.http.routers.komodo.rule: Host(`komo.ktbinternal.com`)
-      traefik.http.routers.komodo.tls: 'true'
-      traefik.http.services.komodo.loadbalancer.server.port: '9120'
     networks:
       default:
-        aliases:
-        - komodo_core
-      shared-proxy:
         aliases:
         - komodo_core
     ports:

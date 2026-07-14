@@ -3,11 +3,6 @@ name: infisical
 networks:
   default:
     name: infisical
-  shared-infisical:
-    name: shared-infisical
-  shared-proxy:
-    external: true
-    name: shared-proxy
 services:
   app:
     container_name: infisical_app
@@ -42,20 +37,8 @@ services:
       - http://localhost:8080/api/status
       timeout: 10s
     image: docker.io/infisical/infisical:v0.160.9
-    labels:
-      traefik.enable: 'true'
-      traefik.http.routers.infisical.entrypoints: websecure
-      traefik.http.routers.infisical.rule: Host(`infisical.ktbinternal.com`)
-      traefik.http.routers.infisical.tls: 'true'
-      traefik.http.services.infisical.loadbalancer.server.port: '8080'
     networks:
       default:
-        aliases:
-        - infisical_app
-      shared-infisical:
-        aliases:
-        - infisical_app
-      shared-proxy:
         aliases:
         - infisical_app
     ports:

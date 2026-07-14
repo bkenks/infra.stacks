@@ -3,9 +3,6 @@ name: termix
 networks:
   default:
     name: termix
-  shared-proxy:
-    external: true
-    name: shared-proxy
 services:
   app:
     container_name: termix_app
@@ -27,17 +24,8 @@ services:
       - http://localhost:8080/
       timeout: 5s
     image: ghcr.io/lukegus/termix:2.4.1
-    labels:
-      traefik.enable: 'true'
-      traefik.http.routers.termix.entrypoints: websecure
-      traefik.http.routers.termix.rule: Host(`termix.ktbinternal.com`)
-      traefik.http.routers.termix.tls: 'true'
-      traefik.http.services.termix.loadbalancer.server.port: '8080'
     networks:
       default:
-        aliases:
-        - termix_app
-      shared-proxy:
         aliases:
         - termix_app
     ports:

@@ -3,11 +3,6 @@ name: postgres
 networks:
   default:
     name: postgres
-  shared-db-backups:
-    external: true
-    name: shared-db-backups
-  shared-postgres:
-    name: shared-postgres
 services:
   db:
     container_name: postgres-db
@@ -22,12 +17,6 @@ services:
     image: postgres:18
     networks:
       default:
-        aliases:
-        - postgres-db
-      shared-db-backups:
-        aliases:
-        - postgres-db
-      shared-postgres:
         aliases:
         - postgres-db
     ports:

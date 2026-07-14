@@ -1,8 +1,4 @@
 # GENERATED from compose.jsonnet by .jsonnet/render.py — DO NOT EDIT.
-networks:
-  shared-proxy:
-    external: true
-    name: shared-proxy
 services:
   newt_tunnel:
     container_name: newt_tunnel
@@ -15,8 +11,4 @@ services:
     extra_hosts:
     - host.docker.internal:host-gateway
     image: fosrl/newt:1.14.0
-    networks:
-      shared-proxy:
-        aliases:
-        - newt_tunnel
     restart: unless-stopped

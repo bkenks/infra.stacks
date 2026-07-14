@@ -83,9 +83,7 @@ local manifest = {
       expose: [std.toString(port)],
       networks: {
         default: { aliases: [n.container(app)] },
-        [reg.sharedNetworks.proxy.name]: { aliases: [n.container(app)] },
       },
-      labels: s.proxy.add('immich', 'immich', port),
     } + c.publish(2283, port),
 
     [redis]: {
@@ -99,8 +97,7 @@ local manifest = {
   },
 
   networks:
-    s.network.default
-    + s.network.join(reg.sharedNetworks.proxy),
+    s.network.default,
 };
 
 c.render(stack, manifest, [secrets.immich.path])

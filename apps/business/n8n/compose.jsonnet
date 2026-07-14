@@ -7,8 +7,8 @@ local stack = 'n8n';
 local s = c.stack(stack);
 local n = s.names;
 local app = reg.roles.app;
-local pgHost = reg.endpoints.postgres.container.host;  // 'postgres_db'
-local pgPort = reg.endpoints.postgres.container.port;  // 5432
+local pgHost = reg.endpoints.postgres.host.host;  // 'host.docker.internal'
+local pgPort = reg.endpoints.postgres.host.port;  // 6109
 
 local version = '2.20.6';
 local port = 5678;
@@ -55,19 +55,15 @@ local manifest = {
       restart: 'unless-stopped',
       dns: ['192.168.1.6', '1.1.1.1'],
       expose: [std.toString(port)],
+      extra_hosts: ['host.docker.internal:host-gateway'],
       networks: {
         default: { aliases: [n.container(app)] },
-        [reg.sharedNetworks.proxy.name]: { aliases: [n.container(app)] },
-        [reg.sharedNetworks.postgres.name]: { aliases: [n.container(app)] },
       },
-      labels: s.proxy.add(stack, stack, port),
     } + c.publish(5678, port),
   },
 
   networks:
-    s.network.default
-    + s.network.join(reg.sharedNetworks.proxy)
-    + s.network.join(reg.sharedNetworks.postgres),
+    s.network.default,
 };
 
 c.render(stack, manifest, [secrets.postgres.path])

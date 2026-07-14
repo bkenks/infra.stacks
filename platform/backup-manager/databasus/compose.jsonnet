@@ -26,17 +26,19 @@ local manifest = {
         roles.app + ':/databasus-data',
       ],
       ports: [std.toString(port) + ':' + std.toString(port)],
+      // Reaches the databases it backs up over the docker host-gateway (they publish host
+      // ports now — e.g. Postgres at host.docker.internal:6109); configure each backup
+      // target's connection inside databasus to that address.
+      extra_hosts: ['host.docker.internal:host-gateway'],
       networks: {
         default: { aliases: [n.container(roles.app)] },
-        [reg.sharedNetworks.dbBackups.name]: { aliases: [n.container(roles.app)] },
       },
       restart: 'unless-stopped',
     },
   },
 
   networks:
-    s.network.default
-    + s.network.own(reg.sharedNetworks.dbBackups),  // databasus OWNS shared-db-backups; the DBs join it
+    s.network.default,
 
   volumes: {
     [roles.app]: { name: n.volume(roles.app) },

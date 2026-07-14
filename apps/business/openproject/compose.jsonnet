@@ -6,8 +6,8 @@ local secrets = reg.infisical.services;
 local stack = 'openproject';
 local s = c.stack(stack);
 local n = s.names;
-local pgHost = reg.endpoints.postgres.container.host;  // 'postgres_db'
-local pgPort = reg.endpoints.postgres.container.port;  // 5432
+local pgHost = reg.endpoints.postgres.host.host;  // 'host.docker.internal'
+local pgPort = reg.endpoints.postgres.host.port;  // 6109
 
 // Public subdomain 'openprj' differs from the stack name 'openproject'.
 local sub = 'openprj';
@@ -58,14 +58,7 @@ local opAppSecrets = {
   OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__SECRET: '${COLLAB_SERVER_SECRET:?err}',
 };
 
-local webLabels = s.proxy.add(stack, sub, webPort) + { autoheal: 'true' };
-
-// proxyAdd only builds a plain Host() rule; hocuspocus needs the same host PLUS
-// a PathPrefix match at higher priority so it wins over the `web` catch-all.
-local hocuspocusLabels = s.proxy.add(stack + '-hocuspocus', sub, hocuspocusPort) + {
-  ['traefik.http.routers.' + stack + '-hocuspocus.rule']: 'Host(`' + domain + '`) && PathPrefix(`/hocuspocus`)',
-  ['traefik.http.routers.' + stack + '-hocuspocus.priority']: '100',
-};
+local webLabels = { autoheal: 'true' };
 
 local manifest = {
   name: stack,
@@ -94,9 +87,9 @@ local manifest = {
       depends_on: ['cache', 'seeder'],
       command: './docker/prod/cron',
       environment: opAppEnv + opAppSecrets,
+      extra_hosts: ['host.docker.internal:host-gateway'],
       networks: {
         default: { aliases: [n.container('cron')] },
-        [reg.sharedNetworks.postgres.name]: { aliases: [n.container('cron')] },
       },
     },
     hocuspocus: {
@@ -113,9 +106,7 @@ local manifest = {
       expose: [std.toString(hocuspocusPort)],
       networks: {
         default: { aliases: [n.container('hocuspocus')] },
-        [reg.sharedNetworks.proxy.name]: { aliases: [n.container('hocuspocus')] },
       },
-      labels: hocuspocusLabels,
     } + c.publish(1234, hocuspocusPort),
 
     seeder: opApp + {
@@ -123,9 +114,9 @@ local manifest = {
       command: './docker/prod/seeder',
       restart: 'on-failure',
       environment: opAppEnv + opAppSecrets,
+      extra_hosts: ['host.docker.internal:host-gateway'],
       networks: {
         default: { aliases: [n.container('seeder')] },
-        [reg.sharedNetworks.postgres.name]: { aliases: [n.container('seeder')] },
       },
     },
 
@@ -143,10 +134,9 @@ local manifest = {
       environment: opAppEnv + opAppSecrets,
       labels: webLabels,
       expose: [std.toString(webPort)],
+      extra_hosts: ['host.docker.internal:host-gateway'],
       networks: {
         default: { aliases: [n.container('web')] },
-        [reg.sharedNetworks.postgres.name]: { aliases: [n.container('web')] },
-        [reg.sharedNetworks.proxy.name]: { aliases: [n.container('web')] },
       },
     } + c.publish(18009, webPort),
 
@@ -155,9 +145,9 @@ local manifest = {
       depends_on: ['cache', 'seeder'],
       command: './docker/prod/worker',
       environment: opAppEnv + opAppSecrets,
+      extra_hosts: ['host.docker.internal:host-gateway'],
       networks: {
         default: { aliases: [n.container('worker')] },
-        [reg.sharedNetworks.postgres.name]: { aliases: [n.container('worker')] },
       },
     },
   },
@@ -165,9 +155,7 @@ local manifest = {
   volumes: { [n.volume('assets')]: { name: n.volume('assets') } },
 
   networks:
-    s.network.default
-    + s.network.join(reg.sharedNetworks.proxy)
-    + s.network.join(reg.sharedNetworks.postgres),
+    s.network.default,
 };
 
 c.render(stack, manifest, [secrets.openproject.path, secrets.postgres.path])

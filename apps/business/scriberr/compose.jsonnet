@@ -38,9 +38,7 @@ local manifest = {
       expose: [std.toString(port)],
       networks: {
         default: { aliases: [n.container(app)] },
-        [reg.sharedNetworks.proxy.name]: { aliases: [n.container(app)] },
       },
-      labels: s.proxy.add(stack, stack, port),
     } + c.publish(18011, port),
   },
 
@@ -49,7 +47,7 @@ local manifest = {
     [whisperxVol]: { name: n.volume(whisperxVol) },
   },
 
-  networks: s.network.default + s.network.join(reg.sharedNetworks.proxy),
+  networks: s.network.default,
 };
 
 c.render(stack, manifest)

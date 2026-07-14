@@ -3,9 +3,6 @@ name: woodpecker
 networks:
   default:
     name: woodpecker
-  shared-proxy:
-    external: true
-    name: shared-proxy
 services:
   agent:
     command: agent
@@ -40,17 +37,8 @@ services:
     - '8000'
     - '9000'
     image: docker.io/woodpeckerci/woodpecker-server:v3.15.0
-    labels:
-      traefik.enable: 'true'
-      traefik.http.routers.woodpecker.entrypoints: websecure
-      traefik.http.routers.woodpecker.rule: Host(`peck.ktbinternal.com`)
-      traefik.http.routers.woodpecker.tls: 'true'
-      traefik.http.services.woodpecker.loadbalancer.server.port: '8000'
     networks:
       default:
-        aliases:
-        - woodpecker_server
-      shared-proxy:
         aliases:
         - woodpecker_server
     ports:

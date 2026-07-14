@@ -45,16 +45,8 @@ local manifest = {
       expose: [std.toString(port), '22'],
       networks: {
         default: { aliases: [n.container(server)] },
-        [reg.sharedNetworks.proxy.name]: { aliases: [n.container(server)] },
-      },
-      labels: s.proxy.add(stack, 'fj', port) + {
-        // SSH (raw TCP): proxyAdd only builds HTTP routers; added manually.
-        'traefik.tcp.routers.forgejo-ssh.rule': 'HostSNI(`*`)',
-        'traefik.tcp.routers.forgejo-ssh.entrypoints': 'forgejo-ssh',
-        'traefik.tcp.services.forgejo-ssh.loadbalancer.server.port': '22',
       },
       // 127.0.0.1:22 -> container SSH, dialed by bare-metal Newt (Pangolin edge on the VPS).
-      // The Traefik TCP router above still serves SSH on the homelab edge.
     } + c.publish(18003, port) + { ports+: c.publish(22, 22).ports },
 
     [db]: {
@@ -79,8 +71,7 @@ local manifest = {
   },
 
   networks:
-    s.network.default
-    + s.network.join(reg.sharedNetworks.proxy),
+    s.network.default,
 };
 
 c.render(stack, manifest, [secrets.forgejo.path])

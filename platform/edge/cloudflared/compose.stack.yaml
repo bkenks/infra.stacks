@@ -3,9 +3,6 @@ name: cloudflared
 networks:
   default:
     name: cloudflared
-  shared-proxy:
-    external: true
-    name: shared-proxy
 services:
   tunnel:
     command: tunnel --no-autoupdate run
@@ -14,8 +11,4 @@ services:
       TUNNEL_TOKEN: ${TUNNEL_TOKEN:?please provide a Tunnel Token}
       TZ: America/New_York
     image: cloudflare/cloudflared:2026.5.2
-    networks:
-      shared-proxy:
-        aliases:
-        - cloudflared_tunnel
     restart: unless-stopped

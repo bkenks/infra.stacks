@@ -53,8 +53,6 @@ local manifest = {
       },
       networks: {
         default: { aliases: [n.container(roles.app)] },
-        [reg.sharedNetworks.infisical.name]: { aliases: [n.container(roles.app)] },  // owned
-        [reg.sharedNetworks.proxy.name]: { aliases: [n.container(roles.app)] },      // joined
       },
       restart: 'unless-stopped',
       healthcheck: {
@@ -64,7 +62,6 @@ local manifest = {
         retries: 3,
         start_period: '40s',
       },
-      labels: s.proxy.add('infisical', 'infisical', appPort),
       expose: [std.toString(appPort)],
     } + c.publish(hostPort, appPort)
       + { ports+: [tsIp + ':' + std.toString(hostPort) + ':' + std.toString(appPort)] },
@@ -114,9 +111,7 @@ local manifest = {
   },
 
   networks:
-    s.network.default
-    + s.network.own(reg.sharedNetworks.infisical)    // shared-infisical (owned; apps join)
-    + s.network.join(reg.sharedNetworks.proxy),      // shared-proxy (traefik owns)
+    s.network.default,
 
   volumes: {
     [roles.db]: { name: n.volume(roles.db) },

@@ -25,7 +25,6 @@ local dv = reg.server.dir.docker.root + reg.server.dir.docker.bindmounts;
 
 local stack = 'pangolin';
 local s = c.stack(stack);
-local sharedProxy = reg.sharedNetworks.proxy;
 local configDir = dv + '/pangolin/config';
 
 
@@ -120,13 +119,7 @@ local manifest = {
         '80:80',
         '22:22',
       ],
-      // Also joins shared-edge so Traefik (network_mode: service:gerbil, i.e.
-      // it shares gerbil's netns) can reach authentik_server:9000 for the raw
-      // auth.ktbcloud.com router in files/dynamic_config.yml. authentik owns
-      // this network; pangolin is a consumer (the external decl is in the
-      // top-level networks block below via network.join).
-      networks: { default: { aliases: [gerbilName] } }
-                + s.network.attach(sharedProxy.name,  gerbilName),
+      networks: { default: { aliases: [gerbilName] } },
     },
 
     // network_mode: service:gerbil — Traefik can't also declare networks: (Compose
@@ -158,7 +151,7 @@ local manifest = {
 
   networks: {
     default: { name: stack, driver: 'bridge', enable_ipv6: true },
-  } + s.network.join(reg.sharedNetworks.proxy),  // external shared-edge (owned by authentik)
+  },
 };
 
 c.render(stack, manifest, [

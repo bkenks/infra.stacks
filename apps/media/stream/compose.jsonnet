@@ -61,9 +61,7 @@ local manifest = {
       expose: [std.toString(ports.bazarr)],
       networks: {
         default: { aliases: [n.container('bazarr')] },
-        [reg.sharedNetworks.proxy.name]: { aliases: [n.container('bazarr')] },
       },
-      labels: s.proxy.add('bazarr', 'bazarr', ports.bazarr),
     } + c.publish(6767, ports.bazarr),
 
     // One-shot: syncs ./configarr/config.yml into Sonarr/Radarr on each
@@ -158,9 +156,7 @@ local manifest = {
       expose: [std.toString(ports.prowlarr)],
       networks: {
         default: { aliases: [n.container('prowlarr')] },
-        [reg.sharedNetworks.proxy.name]: { aliases: [n.container('prowlarr')] },
       },
-      labels: s.proxy.add('prowlarr', 'prowlarr', ports.prowlarr),
     } + c.publish(9696, ports.prowlarr),
 
     radarr: {
@@ -182,9 +178,7 @@ local manifest = {
       expose: [std.toString(ports.radarr)],
       networks: {
         default: { aliases: [n.container('radarr')] },
-        [reg.sharedNetworks.proxy.name]: { aliases: [n.container('radarr')] },
       },
-      labels: s.proxy.add('radarr', 'radarr', ports.radarr),
     } + c.publish(7878, ports.radarr),
 
     sabnzbd: {
@@ -206,9 +200,7 @@ local manifest = {
       expose: [std.toString(ports.sabnzbd)],
       networks: {
         default: { aliases: [n.container('sabnzbd')] },
-        [reg.sharedNetworks.proxy.name]: { aliases: [n.container('sabnzbd')] },
       },
-      labels: s.proxy.add('sabnzbd', 'sabnzbd', ports.sabnzbd),
     } + c.publish(18013, ports.sabnzbd),
 
     // Runs as the fixed non-root `node` user (UID 1000) — PUID/PGID have no
@@ -222,9 +214,7 @@ local manifest = {
       expose: [std.toString(ports.seerr)],
       networks: {
         default: { aliases: [n.container('seerr')] },
-        [reg.sharedNetworks.proxy.name]: { aliases: [n.container('seerr')] },
       },
-      labels: s.proxy.add('seerr', 'seerr', ports.seerr),
       init: true,
     } + c.publish(5055, ports.seerr),
 
@@ -247,15 +237,12 @@ local manifest = {
       expose: [std.toString(ports.sonarr)],
       networks: {
         default: { aliases: [n.container('sonarr')] },
-        [reg.sharedNetworks.proxy.name]: { aliases: [n.container('sonarr')] },
       },
-      labels: s.proxy.add('sonarr', 'sonarr', ports.sonarr),
     } + c.publish(8989, ports.sonarr),
   },
 
   networks:
-    s.network.default
-    + s.network.join(reg.sharedNetworks.proxy),
+    s.network.default,
 };
 
 c.render(stack, manifest, [secrets.stream.path])

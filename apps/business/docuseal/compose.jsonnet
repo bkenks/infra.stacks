@@ -7,8 +7,8 @@ local stack = 'docuseal';
 local s = c.stack(stack);
 local n = s.names;
 local app = reg.roles.app;
-local pgHost = reg.endpoints.postgres.container.host;  // 'postgres-db'
-local pgPort = reg.endpoints.postgres.container.port;  // 5432
+local pgHost = reg.endpoints.postgres.host.host;  // 'host.docker.internal'
+local pgPort = reg.endpoints.postgres.host.port;  // 6109
 
 local version = '2.5.3';
 local port = 3000;
@@ -30,21 +30,17 @@ local manifest = {
       },
       restart: 'on-failure:5',
       expose: [std.toString(port)],
+      extra_hosts: ['host.docker.internal:host-gateway'],
       networks: {
         default: { aliases: [n.container(app)] },
-        [reg.sharedNetworks.proxy.name]: { aliases: [n.container(app)] },
-        [reg.sharedNetworks.postgres.name]: { aliases: [n.container(app)] },
       },
-      labels: s.proxy.add(stack, stack, port),
     } + c.publish(18002, port),
   },
 
   volumes: { [n.volume(app)]: { name: n.volume(app) } },
 
   networks:
-    s.network.default
-    + s.network.join(reg.sharedNetworks.proxy)
-    + s.network.join(reg.sharedNetworks.postgres),
+    s.network.default,
 };
 
 c.render(stack, manifest, [secrets.docuseal.path, secrets.postgres.path])

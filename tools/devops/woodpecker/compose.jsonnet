@@ -1,4 +1,4 @@
-// woodpecker CI: `server` (UI/API+gRPC, joins shared-proxy) and `agent` (runs pipeline
+// woodpecker CI: `server` (UI/API+gRPC, reached via exposed port) and `agent` (runs pipeline
 // steps via host Docker socket, talks to server only over the stack's default net).
 local c = import 'compose.libsonnet';
 local reg = import 'registry.libsonnet';
@@ -41,9 +41,7 @@ local manifest = {
       expose: [std.toString(httpPort), std.toString(grpcPort)],
       networks: {
         default: { aliases: [n.container('server')] },
-        [reg.sharedNetworks.proxy.name]: { aliases: [n.container('server')] },
       },
-      labels: s.proxy.add('woodpecker', 'peck', httpPort),
     } + c.publish(18016, httpPort),
 
     agent: {
@@ -75,8 +73,7 @@ local manifest = {
   },
 
   networks:
-    s.network.default
-    + s.network.join(reg.sharedNetworks.proxy),
+    s.network.default,
 };
 
 c.render(stack, manifest, [secrets.woodpecker.path])

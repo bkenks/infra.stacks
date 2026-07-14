@@ -57,13 +57,6 @@ local manifest = {
       expose: [std.toString(port), '22'],
       networks: {
         default: { aliases: [n.container(app)] },
-        [reg.sharedNetworks.proxy.name]: { aliases: [n.container(app)] },
-      },
-      labels: s.proxy.add(stack, stack, port) + {
-        // SSH (raw TCP): proxyAdd only builds HTTP routers; added manually.
-        'traefik.tcp.routers.gitea-ssh.rule': 'HostSNI(`*`)',
-        'traefik.tcp.routers.gitea-ssh.entrypoints': 'gitea-ssh',
-        'traefik.tcp.services.gitea-ssh.loadbalancer.server.port': '22',
       },
     } + c.publish(18005, port),
 
@@ -95,8 +88,7 @@ local manifest = {
   },
 
   networks:
-    s.network.default
-    + s.network.join(reg.sharedNetworks.proxy),
+    s.network.default,
 };
 
 c.render(stack, manifest, [secrets.gitea.path])
