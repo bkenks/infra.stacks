@@ -141,6 +141,42 @@ run_directory = "./platform/edge/dnsmasq"
 ##
 
 [[stack]]
+name = "dns_biggy"
+[stack.config]
+server = "biggy"
+linked_repo = "infra.stacks"
+run_directory = "./platform/edge/dnsmasq"
+
+##
+
+[[stack]]
+name = "dns_maboi"
+[stack.config]
+server = "maboi"
+linked_repo = "infra.stacks"
+run_directory = "./platform/edge/dnsmasq"
+
+##
+
+[[stack]]
+name = "dns_paiki"
+[stack.config]
+server = "paiki"
+linked_repo = "infra.stacks"
+run_directory = "./platform/edge/dnsmasq"
+
+##
+
+[[stack]]
+name = "dns_rick"
+[stack.config]
+server = "rick"
+linked_repo = "infra.stacks"
+run_directory = "./platform/edge/dnsmasq"
+
+##
+
+[[stack]]
 name = "docuseal"
 [stack.config]
 server = "littlebuddy"
