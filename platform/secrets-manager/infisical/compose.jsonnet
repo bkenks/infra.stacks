@@ -19,6 +19,7 @@ local dbName = 'infisical';
 // the host infisical runs on, so the UI/API is reachable over Tailscale without Traefik.
 local hostPort = 18006;
 local tsIp = reg.server.hosts.littlebuddy.ip;
+local lanIp = reg.server.hosts.littlebuddy.lan;
 
 local manifest = {
   name: stack,
@@ -64,7 +65,7 @@ local manifest = {
       },
       expose: [std.toString(appPort)],
     } + c.publish(hostPort, appPort)
-      + { ports+: [tsIp + ':' + std.toString(hostPort) + ':' + std.toString(appPort)] },
+      + { ports+: [tsIp + ':' + std.toString(hostPort) + ':' + std.toString(appPort), lanIp + ':' + std.toString(hostPort) + ':' + std.toString(appPort)] },
 
     [roles.db]: {
       image: 'docker.io/library/postgres:' + dbVersion,
