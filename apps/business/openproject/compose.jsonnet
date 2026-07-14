@@ -11,7 +11,8 @@ local pgPort = reg.endpoints.postgres.host.port;  // 6109
 
 // Public subdomain 'openprj' differs from the stack name 'openproject'.
 local sub = 'openprj';
-local domain = sub + '.' + reg.domains.ktbcloud;
+local cloudDomain = sub + '.' + reg.domains.ktbcloud;
+local internalDomain = sub + '.' + reg.domains.ktbinternal;
 
 local appVersion = '17-slim';
 local hocuspocusVersion = '17.5.1';
@@ -37,11 +38,11 @@ local opAppEnv = {
   RAILS_MIN_THREADS: '4',
   RAILS_MAX_THREADS: '16',
   IMAP_ENABLED: 'false',
-  OPENPROJECT_HOST__NAME: domain,
+  OPENPROJECT_HOST__NAME: cloudDomain,
   // `web` allows hocuspocus' internal callback (http://web:8080) to pass the host check.
-  OPENPROJECT_ADDITIONAL__HOST__NAMES: domain + ',web',
-  OPENPROJECT_URL: 'https://' + domain,
-  OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__URL: 'wss://' + domain + '/hocuspocus',
+  OPENPROJECT_ADDITIONAL__HOST__NAMES: cloudDomain + ',' + internalDomain + ',web',
+  OPENPROJECT_URL: 'https://' + cloudDomain,
+  OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__URL: 'wss://' + cloudDomain + '/hocuspocus',
   OPENPROJECT_RAILS__CACHE__STORE: 'memcache',
   OPENPROJECT_CACHE__MEMCACHE__SERVER: 'cache:11211',
   OPENPROJECT_EE__HIDE__BANNERS: 'true',
