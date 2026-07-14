@@ -4,10 +4,10 @@ networks:
     external: true
     name: shared-proxy
 services:
-  external-newt_tunnel:
-    container_name: external-newt_tunnel
+  newt_tunnel:
+    container_name: newt_tunnel
     env_file:
-    - ./envs/newt.external.env
+    - ./envs/newt.env
     environment:
       NEWT_ID: ${NEWT_ID:?err}
       NEWT_SECRET: ${NEWT_SECRET:?err}
@@ -18,7 +18,5 @@ services:
     networks:
       shared-proxy:
         aliases:
-        - external-newt_tunnel
-    profiles:
-    - external
+        - newt_tunnel
     restart: unless-stopped

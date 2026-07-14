@@ -1,18 +1,14 @@
 # pangolin
 [Pangolin](https://docs.pangolin.net/) — self-hosted tunnel + reverse proxy exposing internal services (incl. raw TCP/UDP) to the public internet without inbound ports on the origin host. Three containers: `pangolin` (control plane/dashboard), `gerbil` (WireGuard tunnel server, owns public `80/443/51820/21820`), `traefik` (HTTP routing + Let's Encrypt).
 
-Source of truth is the `.jsonnet` — `compose.jsonnet` (renders `compose.yaml` + `compose.stack.yaml`) and `files/config.libsonnet` (the config shape, rendered per variant into `files/cloud/` and `files/internal/`) compile to the matching `.yaml`; don't edit generated YAML. `files/privateConfig.yml` is a hand-maintained empty placeholder, not generated.
+Source of truth is the `.jsonnet` — `compose.jsonnet` (renders `compose.yaml` + `compose.stack.yaml`) and `files/configs.jsonnet` (calls `files/config.libsonnet`, the config shape, with the reach domain) compile to `files/*.yaml`; don't edit generated YAML. `files/privateConfig.yml` is a hand-maintained empty placeholder, not generated.
 
-## Runs on two hosts — the only per-host difference is the domain it's reached at
-This one stack deploys to two hosts. **The single knob is `host`** (`= 'pangolin.' + urlDomain` in `files/config.libsonnet`) — the domain the instance is reached at. It drives `dashboard_url`, gerbil's `base_endpoint`, the CORS origin, and every dashboard `Host()` rule. Nothing else differs: both instances declare both DNS planes, hold both wildcard certs, and carry the Authentik router. They don't know about each other.
-
-Mechanically: `config.libsonnet` is rendered once per domain into `files/cloud/` (`pangolin.ktbcloud.com`) and `files/internal/` (`pangolin.ktbinternal.com`). The compose bind mounts select a folder via `${PANGOLIN_VARIANT}`, set per instance in the Komodo stack's `environment` (`cloud` | `internal`) — same interpolation path as infisical-agent's `${AGENT_HOST}`. To add a third instance: pass a domain into a new `files/<variant>/configs.jsonnet` and add a Komodo stack with that `PANGOLIN_VARIANT`.
-
-Current instances: `pangolin` → rick (VPS, `cloud`), `pangolin_bill` → bill (`internal`). Both use the same `/pangolin` Infisical secret; each host's `infisical-agent` renders it.
+## Single instance — the VPS edge on rick (`pangolin.ktbcloud.com`)
+**The single knob is `host`** (`= 'pangolin.' + urlDomain` in `files/config.libsonnet`, passed `ktbcloud` by `files/configs.jsonnet`) — the domain the instance is reached at. It drives `dashboard_url`, gerbil's `base_endpoint`, the CORS origin, and every dashboard `Host()` rule. The instance declares both DNS planes, holds both wildcard certs, and carries the Authentik router.
 
 ## Deploy
-- Dedicated edge host. Gerbil binds `80`/`443` itself (`network_mode: service:gerbil`), so **do not** also deploy `platform/edge/traefik` on this host. bill currently runs `traefik_bill` — retire it (and re-home `frappe`, which reaches the world through it) before deploying `pangolin_bill`.
-- QUIRK: service keys/`container_name`s (`pangolin`, `gerbil`, `traefik`) are literal, not run through `lib.compose.names()` — Gerbil's startup flags and `files/config.libsonnet` hardcode these hostnames; renaming any breaks service discovery. Safe across instances because no two share a host.
+- Dedicated edge host. Gerbil binds `80`/`443` itself (`network_mode: service:gerbil`), so **do not** also deploy `platform/edge/traefik` on this host.
+- QUIRK: service keys/`container_name`s (`pangolin`, `gerbil`, `traefik`) are literal, not run through `lib.compose.names()` — Gerbil's startup flags and `files/config.libsonnet` hardcode these hostnames; renaming any breaks service discovery.
 - Certs via Cloudflare DNS-01 ACME (same as `platform/edge/traefik`). `next-router` requests the `*.ktbinternal.com` wildcard and `authentik-router` the `*.ktbcloud.com` one; every other router reuses them via SNI with `certResolver: cloudflare`. Each host's `CF_DNS_API_TOKEN` must cover both zones.
 - Secrets: Infisical `/pangolin` (project **apps**) → `/dev/shm/pangolin.env`: `SERVER_SECRET` (`openssl rand -base64 32`), `EMAIL_SMTP_PASS`. Also needs the shared `/traefik` secret (project **infra**) `CF_DNS_API_TOKEN` → `/dev/shm/cloudflare__dns-api-token.env` — same one `platform/edge/traefik` uses, don't duplicate it. Add **both** `pangolin` and `cloudflare__dns-api-token` to this host's `infisical-agent` `AGENT_SERVICES`.
 - QUIRK: `files/config.libsonnet` omits `server.secret`/`email.smtp_pass` entirely (not blanked) — Pangolin's config loader only applies the env override when the key is *absent*; `secret: ""` counts as "defined" and fails the `>=8 char` validation before the env var is read.

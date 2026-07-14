@@ -112,15 +112,6 @@ http:
       rule: Host(`openprj.ktbinternal.com`)
       service: host-littlebuddy
       tls: {}
-    pangolin:
-      entryPoints:
-      - websecure
-      middlewares:
-      - controller-hop
-      priority: 1
-      rule: Host(`pangolin.ktbinternal.com`)
-      service: host-bill
-      tls: {}
     paperless:
       entryPoints:
       - websecure
