@@ -50,4 +50,4 @@ local manifest = {
     + s.network.join(reg.sharedNetworks.proxy),
 };
 
-c.render(stack, manifest, [secrets.grist.path])
+c.render(stack, manifest)
