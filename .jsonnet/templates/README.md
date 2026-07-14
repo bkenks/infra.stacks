@@ -1,8 +1,8 @@
 # Stack template
 
 Standard reference for authoring a docker-compose stack in jsonnet. `compose.jsonnet`
-here is a real, compiling stack (app + dedicated Postgres, behind Traefik, with
-secrets) — copy it, don't start from scratch. `compose.yaml` / `compose.stack.yaml`
+here is a real, compiling stack (app + dedicated Postgres, with secrets) — copy it,
+don't start from scratch. `compose.yaml` / `compose.stack.yaml`
 next to it are its generated output, kept so you can see input → output.
 
 ## Scaffold a new stack
@@ -37,8 +37,8 @@ Anything that crosses stack boundaries lives in `registry.libsonnet`. Reference 
 **entry**, not a string literal into it:
 
 ```jsonnet
-reg.sharedNetworks.proxy      // ✓ typo fails at compile time
-'shared-proxy'                // ✗ typo fails silently at runtime
+reg.endpoints.postgres.host   // ✓ typo fails at compile time
+'host.docker.internal'        // ✗ typo fails silently at runtime
 ```
 
 Same for `reg.roles.{app,db,redis}`, `reg.domains.*`, `reg.endpoints.*`, `secrets.<x>.path`.
@@ -48,10 +48,7 @@ Same for `reg.roles.{app,db,redis}`, `reg.domains.*`, `reg.endpoints.*`, `secret
 | Need | Use |
 | --- | --- |
 | Stack-scoped names | `local s = c.stack(name); local n = s.names` → `n.container(role)`, `n.volume(role)` |
-| Traefik HTTP router | `s.proxy.add(router, sub, port, zone=ktbinternal)` |
 | Private net for this stack | `s.network.default` |
-| Join a shared net (someone else owns) | `s.network.join(reg.sharedNetworks.<x>)` |
-| Own a shared net (this stack is the owner) | `s.network.own(reg.sharedNetworks.<x>)` |
 | Attach a service to a net under an alias | `s.network.attach(netName, alias)` |
 | Publish a host port (binds `127.0.0.1`) | `+ c.publish(hostPort, containerPort)` |
 | Keep a container up through Komodo StopAll | `+ s.komodoSkip` (merge into `labels`) |
@@ -61,15 +58,14 @@ Same for `reg.roles.{app,db,redis}`, `reg.domains.*`, `reg.endpoints.*`, `secret
 ## Networks
 
 `s.network.default` is this stack's private bridge (its services reach each other by
-container name). Beyond that, join the shared nets you depend on:
+container name). There are **no shared Docker networks** — services that need to talk
+across stacks do it over published host ports, not a common network.
 
-| Shared net | Owner | Join when |
-| --- | --- | --- |
-| `reg.sharedNetworks.proxy` | traefik | the stack is reached through Traefik (almost always) |
-| `reg.sharedNetworks.postgres` | postgres | using the shared Postgres cluster |
-| `reg.sharedNetworks.dbBackups` | databasus | backups reach this stack's DB |
-| `reg.sharedNetworks.infisical` | infisical | talking to Infisical service-to-service |
-| `reg.sharedNetworks.edge` | authentik | on the authentik outpost edge |
+To reach another stack's service, publish it with `c.publish(hostPort, containerPort)`
+and dial it from the consumer at `host.docker.internal:<hostPort>`, adding
+`extra_hosts: ['host.docker.internal:host-gateway']` to the consuming service. The shared
+Postgres cluster is single-sourced this way at `reg.endpoints.postgres.host`
+(`host.docker.internal:6109`) — see `apps/business/n8n` for the pattern.
 
 ## Secrets
 
@@ -90,25 +86,25 @@ happens, put the literal `${VAR:?err}` directly in `environment:` (see
 
 ## Variations (with real examples)
 
-**Shared Postgres instead of a dedicated DB** — delete the `db` service; join the
-shared net; build the DSN from the registry endpoint:
+**Shared Postgres instead of a dedicated DB** — delete the `db` service; dial the shared
+cluster over the host gateway, building the DSN from the registry endpoint:
 
 ```jsonnet
-local pgHost = reg.endpoints.postgres.container.host;  // 'postgres_db'
-local pgPort = reg.endpoints.postgres.container.port;  // 5432
+local pgHost = reg.endpoints.postgres.host.host;  // 'host.docker.internal'
+local pgPort = reg.endpoints.postgres.host.port;  // 6109
 // in environment:
 DATABASE_URL: 'postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@'
               + pgHost + ':' + std.toString(pgPort) + '/' + dbName,
-// on the service + top-level networks:
-[reg.sharedNetworks.postgres.name]: { aliases: [n.container(app)] },
+// on the consuming service, so it can resolve the docker host:
+extra_hosts: ['host.docker.internal:host-gateway'],
 // and pass the shared creds too:
 c.render(stack, manifest, [secrets.<stack>.path, secrets.postgres.path])
 ```
 Real: `apps/business/templates/twenty`, `apps/business/n8n`, `apps/business/docuseal`,
 `apps/business/openproject`.
 
-**A second published port / raw-TCP Traefik router** (e.g. SSH) — merge extra ports and
-hand-write the `traefik.tcp.*` labels (`s.proxy.add` only builds HTTP routers). Real:
+**A second published port** (e.g. SSH) — merge extra ports into the service with
+`+ { ports+: c.publish(hostPort, containerPort).ports }`. Real:
 `tools/devops/forgejo` (`compose.jsonnet:50`).
 
 **Keep infra containers up when Komodo stops everything** — `+ s.komodoSkip` on the
@@ -128,6 +124,4 @@ paths for large media. Real: `apps/media/immich`.
 ## Notes on unused helpers
 
 `c.toEnv(obj)` (renders an object to `KEY=value` lines) is defined in the lib but has no
-current callers — kept for stacks that need to emit an env file from jsonnet. Auth is
-hand-written per stack today: existing stacks (komodo, komodo-mcp) write basicauth labels
-directly on top of `s.proxy.add(...)`; there's no forward-auth helper.
+current callers — kept for stacks that need to emit an env file from jsonnet.

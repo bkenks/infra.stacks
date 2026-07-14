@@ -18,17 +18,6 @@ http:
       service: api-service
       tls:
         certResolver: cloudflare
-    authentik-router:
-      entryPoints:
-      - websecure
-      rule: Host(`auth.ktbcloud.com`)
-      service: authentik-service
-      tls:
-        certResolver: cloudflare
-        domains:
-        - main: ktbcloud.com
-          sans:
-          - '*.ktbcloud.com'
     main-app-router-redirect:
       entryPoints:
       - web
@@ -50,6 +39,9 @@ http:
         - main: ktbinternal.com
           sans:
           - '*.ktbinternal.com'
+        - main: ktbcloud.com
+          sans:
+          - '*.ktbcloud.com'
     ws-router:
       entryPoints:
       - websecure
@@ -64,10 +56,6 @@ http:
       loadBalancer:
         servers:
         - url: http://pangolin:3000
-    authentik-service:
-      loadBalancer:
-        servers:
-        - url: http://authentik_server:9000
     next-service:
       loadBalancer:
         servers:
