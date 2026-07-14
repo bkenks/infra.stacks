@@ -1,0 +1,1 @@
+- ./.jsonnet/templates is the "Source of Truth" for stack structure.

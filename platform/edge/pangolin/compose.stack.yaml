@@ -68,7 +68,7 @@ services:
       - -f
       - http://localhost:3001/api/v1/
       timeout: 10s
-    image: docker.io/fosrl/pangolin:ee-1.19.4
+    image: docker.io/fosrl/pangolin:ee-1.20.0
     mem_limit: 2g
     mem_reservation: 512m
     networks:

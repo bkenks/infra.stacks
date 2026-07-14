@@ -29,7 +29,7 @@ local sharedProxy = reg.sharedNetworks.proxy;
 local configDir = dv + '/pangolin/config';
 
 
-local pangolinVersion = 'ee-1.19.4';
+local pangolinVersion = 'ee-1.20.0';
 local gerbilVersion = '1.4.2';
 local gerbilName = 'gerbil';
 local traefikVersion = 'v3.6';
