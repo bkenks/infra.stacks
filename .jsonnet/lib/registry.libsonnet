@@ -178,6 +178,9 @@
       infisical:
       { project: 'infra', folder: '/infisical', dest: 'infisical.env', type: 'dump' },
 
+      grist:
+      { project: 'infra', folder: '/grist', dest: 'grist.env', type: 'dump' },
+
       forgejo:
       { project: 'infra', folder: '/forgejo', dest: 'forgejo.env', type: 'dump' },
 
@@ -297,6 +300,8 @@
     paperless: {
       home: 'littlebuddy', sub: 'paper' },
     scriberr:
+    { home: 'littlebuddy' },
+    grist:
     { home: 'littlebuddy' },
     mazanoke:
     { home: 'littlebuddy', latent: true },

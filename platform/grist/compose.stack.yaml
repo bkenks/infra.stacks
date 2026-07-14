@@ -1,0 +1,49 @@
+# GENERATED from compose.jsonnet by .jsonnet/render.py — DO NOT EDIT.
+name: grist
+networks:
+  default:
+    name: grist
+  shared-proxy:
+    external: true
+    name: shared-proxy
+services:
+  app:
+    container_name: grist_app
+    environment:
+      APP_HOME_URL: https://grist.ktbinternal.com
+      GRIST_SESSION_SECRET: ${GRIST_SESSION_SECRET:?err}
+    expose:
+    - '8484'
+    healthcheck:
+      interval: 30s
+      retries: 5
+      test:
+      - CMD
+      - curl
+      - -fsS
+      - --max-time
+      - '2'
+      - http://localhost:8484/status
+      timeout: 10s
+    image: gristlabs/grist:1.7.16
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.grist.entrypoints: websecure
+      traefik.http.routers.grist.rule: Host(`grist.ktbinternal.com`)
+      traefik.http.routers.grist.tls: 'true'
+      traefik.http.services.grist.loadbalancer.server.port: '8484'
+    networks:
+      default:
+        aliases:
+        - grist_app
+      shared-proxy:
+        aliases:
+        - grist_app
+    ports:
+    - 127.0.0.1:18017:8484
+    restart: on-failure:5
+    volumes:
+    - grist_app:/persist
+volumes:
+  grist_app:
+    name: grist_app
