@@ -46,10 +46,6 @@ local r = import 'registry.libsonnet';
         ['traefik.http.routers.' + router + '.tls']: 'true',
         ['traefik.http.services.' + router + '.loadbalancer.server.port']: std.toString(port),
       },
-      addAuth(router, sub, port, zone=r.domains.ktbinternal)::
-        self.add(router, sub, port, zone) + {
-          ['traefik.http.routers.' + router + '.middlewares']: 'authentik-forwardauth@file',
-        },
     },
 
     // Marks a container so Komodo's StopAllContainers leaves it running.

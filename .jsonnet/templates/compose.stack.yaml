@@ -1,0 +1,80 @@
+# GENERATED from compose.jsonnet by .jsonnet/render.py — DO NOT EDIT.
+name: example
+networks:
+  default:
+    name: example
+  shared-proxy:
+    external: true
+    name: shared-proxy
+services:
+  app:
+    container_name: example_app
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      APP_URL: https://example.ktbinternal.com
+      DB_HOST: example_db
+      DB_NAME: example
+      DB_PASSWORD: ${EXAMPLE_DB_PASSWORD:?err}
+      DB_USER: example
+    expose:
+    - '8080'
+    healthcheck:
+      interval: 30s
+      retries: 5
+      test:
+      - CMD
+      - curl
+      - -fsS
+      - --max-time
+      - '2'
+      - http://localhost:8080
+      timeout: 10s
+    image: ghcr.io/example/example:latest
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.example.entrypoints: websecure
+      traefik.http.routers.example.rule: Host(`example.ktbinternal.com`)
+      traefik.http.routers.example.tls: 'true'
+      traefik.http.services.example.loadbalancer.server.port: '8080'
+    networks:
+      default:
+        aliases:
+        - example_app
+      shared-proxy:
+        aliases:
+        - example_app
+    ports:
+    - 127.0.0.1:18000:8080
+    restart: on-failure:5
+    volumes:
+    - example_app:/data
+  db:
+    container_name: example_db
+    environment:
+      POSTGRES_DB: example
+      POSTGRES_PASSWORD: ${EXAMPLE_DB_PASSWORD:?err}
+      POSTGRES_USER: example
+    expose:
+    - '5432'
+    healthcheck:
+      interval: 5s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - pg_isready --username=example
+      timeout: 10s
+    image: docker.io/library/postgres:18
+    networks:
+      default:
+        aliases:
+        - example_db
+    restart: on-failure:5
+    volumes:
+    - example_db:/var/lib/postgresql/data
+volumes:
+  example_app:
+    name: example_app
+  example_db:
+    name: example_db
