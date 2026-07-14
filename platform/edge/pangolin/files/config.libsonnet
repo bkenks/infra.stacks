@@ -47,8 +47,8 @@ function(urlDomain)
         domain1: {
           base_domain: baseDomain,
         },
-        // Public plane (Authentik + *.ktbcloud.com Resources); wildcard cert is
-        // requested once by authentik-router in dynamic_config.yaml below.
+        // Public plane (*.ktbcloud.com Resources); wildcard cert is requested once by
+        // next-router in dynamic_config.yaml below.
         domain2: {
           base_domain: cloudDomain,
         },
@@ -121,6 +121,9 @@ function(urlDomain)
             tls: cf {
               domains: [
                 { main: baseDomain, sans: ['*.' + baseDomain] },
+                // ktbcloud.com public-plane wildcard — requested once here, served
+                // everywhere via SNI.
+                { main: cloudDomain, sans: ['*.' + cloudDomain] },
               ],
             },
           },
@@ -140,22 +143,6 @@ function(urlDomain)
             middlewares: ['badger'],
             tls: cf,
           },
-
-          // Authentik IdP — the one public entrypoint on the ktbcloud.com plane. RAW
-          // router: no badger/SSO (Authentik is break-glass; self-fronting loops).
-          // Reaches authentik_server over shared-edge (gerbil joins it in compose.jsonnet;
-          // Traefik shares gerbil's netns). Also carries the ktbcloud.com wildcard cert
-          // request (request once, serve all via SNI).
-          'authentik-router': {
-            rule: 'Host(`auth.' + cloudDomain + '`)',
-            service: 'authentik-service',
-            entryPoints: ['websecure'],
-            tls: cf {
-              domains: [
-                { main: cloudDomain, sans: ['*.' + cloudDomain] },
-              ],
-            },
-          },
         },
 
         services: {
@@ -164,9 +151,6 @@ function(urlDomain)
           },
           'api-service': {
             loadBalancer: { servers: [{ url: 'http://pangolin:3000' }] },  // API/WebSocket server
-          },
-          'authentik-service': {
-            loadBalancer: { servers: [{ url: 'http://authentik_server:9000' }] },  // over shared-edge
           },
         },
       },
