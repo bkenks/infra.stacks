@@ -190,12 +190,9 @@
       woodpecker:
       { project: 'infra', folder: '/woodpecker', dest: 'woodpecker.env', type: 'dump' },
 
-      newt_external:
-      { project: 'infra', folder: '/hosts/${AGENT_HOST}/newt_external', dest: 'newt.external.env', type: 'dump' },
-      
-      newt_internal:
-      { project: 'infra', folder: '/hosts/${AGENT_HOST}/newt_internal', dest: 'newt.internal.env', type: 'dump' },
-      
+      newt:
+      { project: 'infra', folder: '/hosts/${AGENT_HOST}/newt', dest: 'newt.env', type: 'dump' },
+
       'authentik-outpost':
       { project: 'infra', folder: '/authentik-outpost', dest: 'authentik-outpost.env', type: 'dump' },
       
@@ -323,10 +320,7 @@
     # Plex is host-mode on paiki :32400 — NOT behind paiki's Traefik, so it routes
     # straight to the Plex process via a `-direct` backend (see `direct` above).
     plex: { home: 'paiki', direct: { port: 32400 } },
-    # ── bill ──
-    # pangolin.ktbinternal.com is the INTERNAL instance, on bill (PANGOLIN_VARIANT=internal).
-    # The cloud instance on rick answers pangolin.ktbcloud.com, which is public and not routed
-    # through the controller. This router lets LAN clients reach bill without NAT hairpin.
-    pangolin: { home: 'bill' },
+    # Pangolin runs as a single public edge instance on rick (pangolin.ktbcloud.com) and is
+    # reached directly, not through the controller — so it has no controllerServices entry.
   },
 }

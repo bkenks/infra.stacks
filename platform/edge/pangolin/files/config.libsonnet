@@ -1,18 +1,14 @@
 // The shape of Pangolin's three config files, parameterized by ONE knob: `urlDomain`,
-// the domain this instance is reached at (host = pangolin.<urlDomain>). Two hosts run the
-// SAME stack, differing only by this — cloud/ passes ktbcloud, internal/ passes ktbinternal,
-// and ../compose.jsonnet mounts whichever the ${PANGOLIN_VARIANT} env var selects.
-//
-// Everything else is identical across instances: both DNS planes, both wildcard certs, the
-// Authentik router. The two instances don't know about each other.
+// the domain this instance is reached at (host = pangolin.<urlDomain>). configs.jsonnet
+// passes ktbcloud and compose.jsonnet mounts the rendered files/*.yaml read-only.
 //
 // safe_dump strips comments, so the yaml carries only a DO-NOT-EDIT header and all
 // operational knowledge lives HERE.
 local reg = import 'registry.libsonnet';
 
-// The two DNS planes every instance serves. config.yaml declares them as domain1/domain2;
+// The two DNS planes this instance serves. config.yaml declares them as domain1/domain2;
 // dynamic_config.yaml requests one wildcard cert per plane (request once, serve everywhere
-// via SNI). Fixed — NOT the per-instance knob, so both instances hold both certs.
+// via SNI). Fixed — NOT the reach knob, so the instance holds both certs.
 local baseDomain = reg.domains.ktbinternal;
 local cloudDomain = reg.domains.ktbcloud;
 

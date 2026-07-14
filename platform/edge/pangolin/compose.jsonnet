@@ -16,12 +16,8 @@
 // tree/perms first; files/*.jsonnet-rendered config layers on as read-only bind
 // mounts (git-tracked); runtime state (keys, certs, GeoLite DBs, logs, db) stays host-only.
 //
-// TWO HOSTS, ONE STACK: the config differs between instances only by the domain it's
-// reached at, so it's rendered into files/cloud/ (pangolin.ktbcloud.com, rick) and
-// files/internal/ (pangolin.ktbinternal.com, bill) from the same ../config.libsonnet.
-// The mounts below select one via ${PANGOLIN_VARIANT}, set per instance in Komodo's stack
-// environment (cloud | internal). Same proof as infisical-agent's ${AGENT_HOST}: Komodo's
-// env reaches interpolation inside this included file. Everything else is identical.
+// Single instance: the VPS edge on rick, reached at pangolin.ktbcloud.com. The config is
+// rendered from files/config.libsonnet into files/ and mounted read-only below.
 local c = import 'compose.libsonnet';
 local reg = import 'registry.libsonnet';
 local secrets = reg.infisical.services;
@@ -82,9 +78,9 @@ local manifest = {
       mem_reservation: '512m',
       volumes: [
         configDir + ':/app/config',
-        // files/<variant>/config.yaml (git-tracked); container path keeps the .yml name
-        // Pangolin expects. privateConfig.yml is hand-maintained, shared, and variant-agnostic.
-        './files/${PANGOLIN_VARIANT:?set PANGOLIN_VARIANT to cloud or internal}/config.yaml:/app/config/config.yml:ro',
+        // files/config.yaml (git-tracked); container path keeps the .yml name Pangolin
+        // expects. privateConfig.yml is a hand-maintained, shared placeholder.
+        './files/config.yaml:/app/config/config.yml:ro',
         './files/privateConfig.yml:/app/config/privateConfig.yml:ro',
       ],
       environment: {
@@ -151,9 +147,9 @@ local manifest = {
         CF_DNS_API_TOKEN: '${CF_DNS_API_TOKEN:?err}',
       },
       volumes: [
-        // files/<variant>/*.yaml; container paths keep the .yml names traefik expects.
-        './files/${PANGOLIN_VARIANT:?set PANGOLIN_VARIANT to cloud or internal}/traefik_config.yaml:/etc/traefik/traefik_config.yml:ro',
-        './files/${PANGOLIN_VARIANT:?set PANGOLIN_VARIANT to cloud or internal}/dynamic_config.yaml:/etc/traefik/dynamic_config.yml:ro',
+        // files/*.yaml; container paths keep the .yml names traefik expects.
+        './files/traefik_config.yaml:/etc/traefik/traefik_config.yml:ro',
+        './files/dynamic_config.yaml:/etc/traefik/dynamic_config.yml:ro',
         configDir + '/letsencrypt:/letsencrypt',
         configDir + '/traefik/logs:/var/log/traefik',
       ],

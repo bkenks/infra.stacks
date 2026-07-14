@@ -1,5 +1,5 @@
 # newt
-Pangolin **site** connector ([`fosrl/newt`](https://github.com/fosrl/newt)) — dials out to the Pangolin control server (`PANGOLIN_ENDPOINT=https://pangolin.ktbinternal.com`), registers this host as a site, and forwards inbound tunnel traffic to the host's Traefik. Joins `shared-proxy`, same shape as [`cloudflared`](../cloudflared/README.md).
+Pangolin **site** connector ([`fosrl/newt`](https://github.com/fosrl/newt)) — dials out to the Pangolin control server (`PANGOLIN_ENDPOINT=https://pangolin.ktbcloud.com`), registers this host as a site, and forwards inbound tunnel traffic to the host's Traefik. Joins `shared-proxy`, same shape as [`cloudflared`](../cloudflared/README.md).
 
 ## Deploy
 - Secrets: Infisical project **infra**, per-host folder `/hosts/<host>/newt` (`NEWT_ID`, `NEWT_SECRET`, from Pangolin → Sites → create site) → `/dev/shm/newt.env`. See `.env.example`.

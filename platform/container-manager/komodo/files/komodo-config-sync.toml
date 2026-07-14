@@ -358,15 +358,6 @@ server = "biggy"
 destroy_before_deploy = true
 linked_repo = "infra.stacks"
 run_directory = "./platform/edge/newt"
-environment = """
-# ----- Profiles -----
-# This stack runs TWO instances of newt:
-# an internal (on-prem) instance, and an external (offsite vps) instance.
-#
-# If only one instance is needed, remove the other profile below
-# but make sure secrets still exist in Infisical for both (can be empty)
-COMPOSE_PROFILES='external'
-"""
 
 ##
 
@@ -377,15 +368,6 @@ server = "bill"
 destroy_before_deploy = true
 linked_repo = "infra.stacks"
 run_directory = "./platform/edge/newt"
-environment = """
-# ----- Profiles -----
-# This stack runs TWO instances of newt:
-# an internal (on-prem) instance, and an external (offsite vps) instance.
-#
-# If only one instance is needed, remove the other profile below
-# but make sure secrets still exist in Infisical for both (can be empty)
-COMPOSE_PROFILES='external'
-"""
 
 ##
 
@@ -396,9 +378,6 @@ server = "littlebuddy"
 destroy_before_deploy = true
 linked_repo = "infra.stacks"
 run_directory = "./platform/edge/newt"
-environment = """
-COMPOSE_PROFILES='external'
-"""
 
 ##
 
@@ -409,15 +388,6 @@ server = "maboi"
 destroy_before_deploy = true
 linked_repo = "infra.stacks"
 run_directory = "./platform/edge/newt"
-environment = """
-# ----- Profiles -----
-# This stack runs TWO instances of newt:
-# an internal (on-prem) instance, and an external (offsite vps) instance.
-#
-# If only one instance is needed, remove the other profile below
-# but make sure secrets still exist in Infisical for both (can be empty)
-COMPOSE_PROFILES='external'
-"""
 
 ##
 
@@ -428,15 +398,6 @@ server = "paiki"
 destroy_before_deploy = true
 linked_repo = "infra.stacks"
 run_directory = "./platform/edge/newt"
-environment = """
-# ----- Profiles -----
-# This stack runs TWO instances of newt:
-# an internal (on-prem) instance, and an external (offsite vps) instance.
-#
-# If only one instance is needed, remove the other profile below
-# but make sure secrets still exist in Infisical for both (can be empty)
-COMPOSE_PROFILES='external'
-"""
 
 ##
 
@@ -447,15 +408,6 @@ server = "rick"
 destroy_before_deploy = true
 linked_repo = "infra.stacks"
 run_directory = "./platform/edge/newt"
-environment = """
-# ----- Profiles -----
-# This stack runs TWO instances of newt:
-# an internal (on-prem) instance, and an external (offsite vps) instance.
-#
-# If only one instance is needed, remove the other profile below
-# but make sure secrets still exist in Infisical for both (can be empty)
-COMPOSE_PROFILES='external'
-"""
 
 ##
 
@@ -472,7 +424,7 @@ ignore_services = ["seeder"]
 ##
 
 [[stack]]
-name = "pangolin-external"
+name = "pangolin"
 [stack.config]
 server = "rick"
 destroy_before_deploy = true
@@ -480,27 +432,6 @@ linked_repo = "infra.stacks"
 run_directory = "./platform/edge/pangolin"
 extra_args = ["--remove-orphans"]
 ignore_services = ["init"]
-environment = """
-PANGOLIN_VARIANT=cloud
-"""
-
-##
-
-[[stack]]
-name = "pangolin-internal"
-[stack.config]
-server = "littlebuddy"
-destroy_before_deploy = true
-linked_repo = "infra.stacks"
-run_directory = "./platform/edge/pangolin"
-config_files = [
-  { path = "compose.stack.yaml", requires = "Restart" }
-]
-ignore_services = ["init"]
-environment = """
-  # VARIABLE = value
-PANGOLIN_VARIANT = internal
-"""
 
 ##
 
@@ -604,15 +535,6 @@ template = true
 [stack.config]
 linked_repo = "infra.stacks"
 run_directory = "./platform/edge/newt"
-environment = """
-# ----- Profiles -----
-# This stack runs TWO instances of newt:
-# an internal (on-prem) instance, and an external (offsite vps) instance.
-#
-# If only one instance is needed, remove the other profile below
-# but make sure secrets still exist in Infisical for both (can be empty)
-COMPOSE_PROFILES='internal,external'
-"""
 
 ##
 
@@ -995,7 +917,7 @@ is_secret = true
 
 [[variable]]
 name = "INFSCL_AGNT_NODE_SECERTS"
-value = "'newt_external newt_internal'"
+value = "'newt'"
 is_secret = false
 
 ##
