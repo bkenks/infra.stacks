@@ -11,7 +11,6 @@ services:
     container_name: grist_app
     environment:
       APP_HOME_URL: https://grist.ktbinternal.com
-      GRIST_SESSION_SECRET: ${GRIST_SESSION_SECRET:?err}
     expose:
     - '8484'
     healthcheck:

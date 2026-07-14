@@ -23,7 +23,7 @@ local manifest = {
       environment: {
         APP_HOME_URL: 'https://' + stack + '.' + reg.domains.ktbinternal,
         // Stable across restarts so sessions survive — set in Infisical before first up.
-        GRIST_SESSION_SECRET: '${GRIST_SESSION_SECRET:?err}',
+        // GRIST_SESSION_SECRET: '${GRIST_SESSION_SECRET:?err}',
       },
       restart: 'on-failure:5',
       healthcheck: {
