@@ -910,7 +910,7 @@ is_secret = false
 
 [[variable]]
 name = "INFSCL_URL"
-value = "'http://controlplane.ktbinternal.com'"
+value = "'http://controlplane.ktbinternal.com:18006'"
 is_secret = false
 
 ##
