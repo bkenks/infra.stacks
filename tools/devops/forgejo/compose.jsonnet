@@ -53,7 +53,9 @@ local manifest = {
         'traefik.tcp.routers.forgejo-ssh.entrypoints': 'forgejo-ssh',
         'traefik.tcp.services.forgejo-ssh.loadbalancer.server.port': '22',
       },
-    } + c.publish(18003, port),
+      // 127.0.0.1:22 -> container SSH, dialed by bare-metal Newt (Pangolin edge on the VPS).
+      // The Traefik TCP router above still serves SSH on the homelab edge.
+    } + c.publish(18003, port) + { ports+: c.publish(22, 22).ports },
 
     [db]: {
       image: 'docker.io/library/postgres:' + dbVersion,
