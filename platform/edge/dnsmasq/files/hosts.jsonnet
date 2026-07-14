@@ -14,11 +14,15 @@ local addrs(h) =
   + [h.ip]
   + (if std.objectHas(h, 'public') then [h.public] else []);
 
-// Names for a host: <name>.internal FQDN, the short name, then any aliases. `dns` overrides
-// the registry key when the DNS name differs from it (e.g. paiki → plexyandiknowit).
+// Names for a host: every name is a <name>.ktbinternal.com FQDN — the base name plus any
+// aliases, each suffixed with the internal domain. `dns` overrides the registry key when the
+// DNS name differs from it (e.g. paiki → plexyandiknowit); `aka` supplies extra aliases
+// (e.g. littlebuddy → controlplane.ktbinternal.com).
+local domain = reg.domains.ktbinternal;
 local names(key, h) =
   local base = if std.objectHas(h, 'dns') then h.dns else key;
-  [base + '.internal', base] + (if std.objectHas(h, 'aka') then h.aka else []);
+  local shortNames = [base] + (if std.objectHas(h, 'aka') then h.aka else []);
+  [n + '.' + domain for n in shortNames];
 
 local hostBlock(key) =
   local h = hosts[key];
