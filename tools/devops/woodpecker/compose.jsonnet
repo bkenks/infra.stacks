@@ -27,7 +27,7 @@ local manifest = {
         WOODPECKER_OPEN: 'true',
         // Uses Forgejo (not gitea) as the forge.
         WOODPECKER_FORGEJO: 'true',
-        WOODPECKER_FORGEJO_URL: 'https://fj.' + reg.domains.ktbinternal,
+        WOODPECKER_FORGEJO_URL: 'https://fj.' + reg.domains.ktbcloud,
         // Exact match INCLUDING tag — keep in lockstep with the tag pinned in each
         // pipeline's .woodpecker.yml.
         WOODPECKER_PLUGINS_PRIVILEGED: 'woodpeckerci/plugin-docker-buildx:6.1.0',
