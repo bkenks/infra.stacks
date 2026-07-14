@@ -123,6 +123,24 @@ run_directory = "./platform/backup-manager/databasus"
 ##
 
 [[stack]]
+name = "dns_bill"
+[stack.config]
+server = "bill"
+linked_repo = "infra.stacks"
+run_directory = "./platform/edge/dnsmasq"
+
+##
+
+[[stack]]
+name = "dns_littlebuddy"
+[stack.config]
+server = "littlebuddy"
+linked_repo = "infra.stacks"
+run_directory = "./platform/edge/dnsmasq"
+
+##
+
+[[stack]]
 name = "docuseal"
 [stack.config]
 server = "littlebuddy"
@@ -143,12 +161,12 @@ run_directory = "./tools/devops/forgejo"
 ##
 
 [[stack]]
-name = "frappe"
+name = "grist"
 [stack.config]
-server = "bill"
+server = "rick"
 linked_repo = "infra.stacks"
-run_directory = "./apps/business/frappe"
-ignore_services = ["configurator"]
+run_directory = "./platform/grist"
+extra_args = ["--remove-orphans"]
 
 ##
 
@@ -223,6 +241,7 @@ config_files = [
 environment = """
 # ----- Credentials -----
 # INFISICAL_ADDRESS     = 'http://infisical_app:8080' # Uncomment if Infisical runs on this host
+INFISICAL_ADDRESS       = 'http://controlplane.ktbinternal.com:18006' # Uncomment if Infisical runs on this host
 INFISICAL_CLIENT_ID     = [[INFSCL_AGNT_CLIENT_ID__BILL]]       # Set in Komodo variables (toggle secret on to prevent upload to Repo)
 INFISICAL_CLIENT_SECRET = [[INFSCL_AGNT_CLIENT_SECRET__BILL]]   # Set in Komodo variables (toggle secret on to prevent upload to Repo)
 
@@ -352,66 +371,6 @@ extra_args = ["--remove-orphans"]
 ##
 
 [[stack]]
-name = "newt_biggy"
-[stack.config]
-server = "biggy"
-destroy_before_deploy = true
-linked_repo = "infra.stacks"
-run_directory = "./platform/edge/newt"
-
-##
-
-[[stack]]
-name = "newt_bill"
-[stack.config]
-server = "bill"
-destroy_before_deploy = true
-linked_repo = "infra.stacks"
-run_directory = "./platform/edge/newt"
-
-##
-
-[[stack]]
-name = "newt_littlebuddy"
-[stack.config]
-server = "littlebuddy"
-destroy_before_deploy = true
-linked_repo = "infra.stacks"
-run_directory = "./platform/edge/newt"
-
-##
-
-[[stack]]
-name = "newt_maboi"
-[stack.config]
-server = "maboi"
-destroy_before_deploy = true
-linked_repo = "infra.stacks"
-run_directory = "./platform/edge/newt"
-
-##
-
-[[stack]]
-name = "newt_paiki"
-[stack.config]
-server = "paiki"
-destroy_before_deploy = true
-linked_repo = "infra.stacks"
-run_directory = "./platform/edge/newt"
-
-##
-
-[[stack]]
-name = "newt_rick"
-[stack.config]
-server = "rick"
-destroy_before_deploy = true
-linked_repo = "infra.stacks"
-run_directory = "./platform/edge/newt"
-
-##
-
-[[stack]]
 name = "openproject"
 [stack.config]
 server = "littlebuddy"
@@ -432,6 +391,9 @@ linked_repo = "infra.stacks"
 run_directory = "./platform/edge/pangolin"
 extra_args = ["--remove-orphans"]
 ignore_services = ["init"]
+environment = """
+PANGOLIN_VARIANT=cloud
+"""
 
 ##
 
@@ -493,12 +455,31 @@ ignore_services = ["configarr"]
 ##
 
 [[stack]]
+name = "template__dnsmasq"
+template = true
+[stack.config]
+linked_repo = "infra.stacks"
+run_directory = "./platform/edge/dnsmasq"
+
+##
+
+[[stack]]
 name = "template__docker-resource-manager"
 template = true
 [stack.config]
 server = "maboi"
 linked_repo = "infra.stacks"
 run_directory = "./platform/docker-resource-manager"
+
+##
+
+[[stack]]
+name = "template__grist"
+template = true
+[stack.config]
+linked_repo = "infra.stacks"
+run_directory = "./platform/grist"
+extra_args = ["--remove-orphans"]
 
 ##
 
@@ -535,6 +516,15 @@ template = true
 [stack.config]
 linked_repo = "infra.stacks"
 run_directory = "./platform/edge/newt"
+environment = """
+# ----- Profiles -----
+# This stack runs TWO instances of newt:
+# an internal (on-prem) instance, and an external (offsite vps) instance.
+#
+# If only one instance is needed, remove the other profile below
+# but make sure secrets still exist in Infisical for both (can be empty)
+COMPOSE_PROFILES='internal,external'
+"""
 
 ##
 
@@ -558,16 +548,6 @@ template = true
 project_name = "traefik"
 linked_repo = "infra.stacks"
 run_directory = "./platform/edge/traefik"
-
-##
-
-[[stack]]
-name = "termix_littlebuddy"
-[stack.config]
-server = "littlebuddy"
-linked_repo = "infra.stacks"
-run_directory = "./tools/termix"
-config_files = [{ path = "README.md" }]
 
 ##
 
@@ -925,6 +905,13 @@ is_secret = false
 [[variable]]
 name = "INFSCL_AGNT_PANGOLIN_SECERTS"
 value = "'cloudflare__dns-api-token pangolin'"
+is_secret = false
+
+##
+
+[[variable]]
+name = "INFSCL_URL"
+value = "'http://controlplane.ktbinternal.com'"
 is_secret = false
 
 ##
