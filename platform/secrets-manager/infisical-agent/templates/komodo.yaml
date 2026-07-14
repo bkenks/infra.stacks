@@ -3,10 +3,9 @@
   config:
     polling-interval: "1m"
   template-content: |
-    KOMODO_DATABASE_PASSWORD={{ with getSecretByName "86324d9b-3dd7-49d4-b252-69228c5ee0c7" "prod" "/komodo" "KOMODO_DB_PASSWORD" }}{{ .Value }}{{ end }}
-    KOMODO_DATABASE_USERNAME={{ with getSecretByName "86324d9b-3dd7-49d4-b252-69228c5ee0c7" "prod" "/komodo" "KOMODO_DB_USERNAME" }}{{ .Value }}{{ end }}
-    KOMODO_JWT_SECRET={{ with getSecretByName "86324d9b-3dd7-49d4-b252-69228c5ee0c7" "prod" "/komodo" "JWT_SECRET" }}{{ .Value }}{{ end }}
-    KOMODO_WEBHOOK_SECRET={{ with getSecretByName "86324d9b-3dd7-49d4-b252-69228c5ee0c7" "prod" "/komodo" "WEBHOOK_SECRET" }}{{ .Value }}{{ end }}
-    MONGO_INITDB_ROOT_PASSWORD={{ with getSecretByName "86324d9b-3dd7-49d4-b252-69228c5ee0c7" "prod" "/komodo" "KOMODO_DB_PASSWORD" }}{{ .Value }}{{ end }}
-    MONGO_INITDB_ROOT_USERNAME={{ with getSecretByName "86324d9b-3dd7-49d4-b252-69228c5ee0c7" "prod" "/komodo" "KOMODO_DB_USERNAME" }}{{ .Value }}{{ end }}
+    {{- with listSecrets "86324d9b-3dd7-49d4-b252-69228c5ee0c7" "prod" "/komodo" }}
+    {{- range . }}
+    {{ .Key }}={{ .Value }}
+    {{- end }}
+    {{- end }}
 

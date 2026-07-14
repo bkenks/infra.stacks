@@ -11,7 +11,7 @@ services:
     command: tunnel --no-autoupdate run
     container_name: cloudflared_tunnel
     environment:
-      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:?err}
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:?please provide a Tunnel Token}
       TZ: America/New_York
     image: cloudflare/cloudflared:2026.5.2
     networks:

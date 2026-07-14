@@ -21,7 +21,12 @@ local manifest = {
       container_name: n.container(app),
       volumes: [n.volume(app) + ':/persist'],
       environment: {
-        APP_HOME_URL: 'https://' + stack + '.' + reg.domains.ktbinternal,
+        APP_HOME_URL:                   'https://' + stack + '.' + reg.domains.ktbinternal,
+        // Enable later for data backup to NAS
+        // GRIST_DOCS_MINIO_BUCKET:        my-grist-docs,
+        // GRIST_DOCS_MINIO_ENDPOINT:      s3.amazonaws.com,
+        // GRIST_DOCS_MINIO_ACCESS_KEY:    '',
+        // GRIST_DOCS_MINIO_SECRET_KEY:    '',
         // Stable across restarts so sessions survive — set in Infisical before first up.
         // GRIST_SESSION_SECRET: '${GRIST_SESSION_SECRET:?err}',
       },

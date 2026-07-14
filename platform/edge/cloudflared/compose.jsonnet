@@ -23,7 +23,7 @@ local manifest = {
       command: 'tunnel --no-autoupdate run',
       environment: {
         TZ: 'America/New_York',
-        TUNNEL_TOKEN: '${CLOUDFLARE_TUNNEL_TOKEN:?err}',
+        TUNNEL_TOKEN: '${TUNNEL_TOKEN:?please provide a Tunnel Token}',
       },
       restart: 'unless-stopped',
       networks: {

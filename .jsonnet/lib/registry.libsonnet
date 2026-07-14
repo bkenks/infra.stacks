@@ -195,53 +195,15 @@
 
       newt:
       { project: 'infra', folder: '/hosts/${AGENT_HOST}/newt', dest: 'newt.env', type: 'dump' },
-
-      'authentik-outpost':
-      { project: 'infra', folder: '/authentik-outpost', dest: 'authentik-outpost.env', type: 'dump' },
+      
+      komodo:
+      { project:  'infra', folder: '/komodo', dest: 'komodo_core.env', type: 'dump' },
+      
+      cloudflared:
+      { project:  'infra', folder: '/hosts/${AGENT_HOST}/cloudflared', dest: 'cloudflared.env', type: 'dump' },
       
       databasus:
       { project: 'infra', folder: '/databasus', dest: 'databasus_secret.key', type: 'raw', key: 'SECRET_KEY' },
-
-      komodo: {
-        project:  'infra',
-        folder:   '/komodo',
-        dest:     'komodo_core.env',
-        type:     'map',
-        keys: {
-          KOMODO_DATABASE_USERNAME:   'KOMODO_DB_USERNAME',
-          KOMODO_DATABASE_PASSWORD:   'KOMODO_DB_PASSWORD',
-          KOMODO_WEBHOOK_SECRET:      'WEBHOOK_SECRET',
-          KOMODO_JWT_SECRET:          'JWT_SECRET',
-          MONGO_INITDB_ROOT_USERNAME: 'KOMODO_DB_USERNAME',
-          MONGO_INITDB_ROOT_PASSWORD: 'KOMODO_DB_PASSWORD',
-        },
-      },
-
-      cloudflared: {
-        project:  'infra',
-        folder:   '/hosts/${AGENT_HOST}/cloudflared',
-        dest:     'cloudflared.env',
-        type:     'map',
-        
-        keys:
-        { CLOUDFLARE_TUNNEL_TOKEN: 'TUNNEL_TOKEN' },
-      },
-
-      authentik: {
-        project:  'infra',
-        folder:   '/authentik',
-        dest:     'authentik.env',
-        type:     'map',
-        
-        keys: {
-          AUTHENTIK_SECRET_KEY:           'AUTHENTIK_SECRET_KEY',
-          AUTHENTIK_POSTGRESQL__PASSWORD: 'PG_PASS',
-          POSTGRES_PASSWORD:              'PG_PASS',
-          AUTHENTIK_BOOTSTRAP_PASSWORD:   'BOOTSTRAP_PASSWORD',
-          AUTHENTIK_BOOTSTRAP_TOKEN:      'BOOTSTRAP_TOKEN',
-          AUTHENTIK_BOOTSTRAP_EMAIL:      'BOOTSTRAP_EMAIL',
-        },
-      },
 
     },
 
@@ -267,65 +229,6 @@
 
       for name in std.objectFields(catalogue)
     },
-  },
 
-  ////////////
-
-  # "Which host runs X, at what subdomain" for every service the central controller routes —
-  # DATA, so controller.jsonnet re-renders controller.yaml automatically on a host move or
-  # subdomain change. Fields: home = key into server.hosts (compile-checked); sub = subdomain
-  # when it differs from the key (else the key IS the subdomain); direct = { port } for a
-  # service reached directly, bypassing Traefik re-encrypt (Plex only); latent = true for
-  # catalogued-but-not-yet-deployed (still gets a router; informational only).
-  controllerServices: {
-    frappe: {
-      home: 'bill' },
-    # ── littlebuddy (personal apps + devops) ──
-    infisical: {
-      home: 'littlebuddy' },
-    komodo: {
-      home: 'littlebuddy', sub: 'komo' },
-    'komodo-mcp': {
-      home: 'littlebuddy' },
-    forgejo: {
-      home: 'littlebuddy', sub: 'fj' },
-    woodpecker: {
-      home: 'littlebuddy', sub: 'peck' },
-    termix: {
-      home: 'littlebuddy' },
-    docuseal: {
-      home: 'littlebuddy' },
-    openproject: {
-      home: 'littlebuddy', sub: 'openprj' },
-    paperless: {
-      home: 'littlebuddy', sub: 'paper' },
-    scriberr:
-    { home: 'littlebuddy' },
-    grist:
-    { home: 'littlebuddy' },
-    mazanoke:
-    { home: 'littlebuddy', latent: true },
-    convertx:
-    { home: 'littlebuddy', latent: true },
-    # ── paiki (media stack) ──
-    immich:
-    { home: 'paiki' },
-    sonarr:
-    { home: 'paiki' },
-    radarr:
-    { home: 'paiki' },
-    prowlarr:
-    { home: 'paiki' },
-    bazarr:
-    { home: 'paiki' },
-    sabnzbd:
-    { home: 'paiki' },
-    seerr:
-    { home: 'paiki' },
-    # Plex is host-mode on paiki :32400 — NOT behind paiki's Traefik, so it routes
-    # straight to the Plex process via a `-direct` backend (see `direct` above).
-    plex: { home: 'paiki', direct: { port: 32400 } },
-    # Pangolin runs as a single public edge instance on rick (pangolin.ktbcloud.com) and is
-    # reached directly, not through the controller — so it has no controllerServices entry.
   },
 }
