@@ -27,7 +27,7 @@ services:
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@host.docker.internal:6109/openproject?pool=20&encoding=unicode&reconnect=true
       IMAP_ENABLED: 'false'
-      OPENPROJECT_ADDITIONAL__HOST__NAMES: openprj.ktbcloud.com,openprj.ktbinternal.com,web
+      OPENPROJECT_ADDITIONAL__HOST__NAMES: '[openprj.ktbcloud.com, openprj.ktbinternal.com, web]'
       OPENPROJECT_CACHE__MEMCACHE__SERVER: cache:11211
       OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__SECRET: ${COLLAB_SERVER_SECRET:?err}
       OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__URL: wss://openprj.ktbcloud.com/hocuspocus
@@ -77,7 +77,7 @@ services:
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@host.docker.internal:6109/openproject?pool=20&encoding=unicode&reconnect=true
       IMAP_ENABLED: 'false'
-      OPENPROJECT_ADDITIONAL__HOST__NAMES: openprj.ktbcloud.com,openprj.ktbinternal.com,web
+      OPENPROJECT_ADDITIONAL__HOST__NAMES: '[openprj.ktbcloud.com, openprj.ktbinternal.com, web]'
       OPENPROJECT_CACHE__MEMCACHE__SERVER: cache:11211
       OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__SECRET: ${COLLAB_SERVER_SECRET:?err}
       OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__URL: wss://openprj.ktbcloud.com/hocuspocus
@@ -114,7 +114,7 @@ services:
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@host.docker.internal:6109/openproject?pool=20&encoding=unicode&reconnect=true
       IMAP_ENABLED: 'false'
-      OPENPROJECT_ADDITIONAL__HOST__NAMES: openprj.ktbcloud.com,openprj.ktbinternal.com,web
+      OPENPROJECT_ADDITIONAL__HOST__NAMES: '[openprj.ktbcloud.com, openprj.ktbinternal.com, web]'
       OPENPROJECT_CACHE__MEMCACHE__SERVER: cache:11211
       OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__SECRET: ${COLLAB_SERVER_SECRET:?err}
       OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__URL: wss://openprj.ktbcloud.com/hocuspocus
@@ -167,7 +167,7 @@ services:
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@host.docker.internal:6109/openproject?pool=20&encoding=unicode&reconnect=true
       IMAP_ENABLED: 'false'
-      OPENPROJECT_ADDITIONAL__HOST__NAMES: openprj.ktbcloud.com,openprj.ktbinternal.com,web
+      OPENPROJECT_ADDITIONAL__HOST__NAMES: '[openprj.ktbcloud.com, openprj.ktbinternal.com, web]'
       OPENPROJECT_CACHE__MEMCACHE__SERVER: cache:11211
       OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__SECRET: ${COLLAB_SERVER_SECRET:?err}
       OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__URL: wss://openprj.ktbcloud.com/hocuspocus

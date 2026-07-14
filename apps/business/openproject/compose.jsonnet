@@ -40,7 +40,7 @@ local opAppEnv = {
   IMAP_ENABLED: 'false',
   OPENPROJECT_HOST__NAME: cloudDomain,
   // `web` allows hocuspocus' internal callback (http://web:8080) to pass the host check.
-  OPENPROJECT_ADDITIONAL__HOST__NAMES: cloudDomain + ',' + internalDomain + ',web',
+  OPENPROJECT_ADDITIONAL__HOST__NAMES: '[' + cloudDomain + ', ' + internalDomain + ', web' + ']',
   OPENPROJECT_URL: 'https://' + cloudDomain,
   OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__URL: 'wss://' + cloudDomain + '/hocuspocus',
   OPENPROJECT_RAILS__CACHE__STORE: 'memcache',
