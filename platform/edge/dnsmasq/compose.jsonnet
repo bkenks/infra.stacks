@@ -29,9 +29,12 @@ local manifest = {
         DNS1: '1.1.1.1',  // TODO(deploy): set to this network's primary resolver
         DNS2: '1.0.0.1',  // public fallback so names still resolve if the primary is down
       },
-      // Host-published so the Docker daemon (daemon.json `dns`) and the host resolve through
-      // it. Requires port 53 free on the host — see README (systemd-resolved prerequisite).
-      ports: ['53:53/tcp', '53:53/udp'],
+      // Published on the docker0 gateway only (not 0.0.0.0), so the host's containers reach
+      // it via daemon.json `dns: [172.17.0.1]`. Binding a specific IP dodges systemd-resolved's
+      // 127.0.0.53:53 — the two coexist, so NO host prep / no disabling resolved. The host
+      // itself keeps resolving through resolved; containers resolve through dnsmasq. See README.
+      // (If a host runs a custom Docker `bip`, set this IP + daemon.json `dns` to that gateway.)
+      ports: ['172.17.0.1:53:53/tcp', '172.17.0.1:53:53/udp'],
       cap_add: ['NET_ADMIN', 'NET_RAW'],  // per dockurr/dnsmasq docs
       volumes: [
         // Extra directives layered onto the image's default config (conf-dir=/etc/dnsmasq.d).

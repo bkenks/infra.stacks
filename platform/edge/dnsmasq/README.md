@@ -5,7 +5,7 @@ Central static DNS + emergency-fallback resolver for a single host's containers.
 
 ## Deploy
 - No secrets.
-- Publishes host `53/tcp` + `53/udp` — the host must have port 53 free. If it runs `systemd-resolved`, disable/relocate it first (infra.ansible), same idea as Traefik's `:22` prerequisite.
+- Publishes on the **docker0 gateway only** (`172.17.0.1:53/tcp`+`udp`), not `0.0.0.0`. That specific bind dodges `systemd-resolved`'s `127.0.0.53:53`, so the two coexist — **no host prep, no disabling resolved**. The host keeps resolving through resolved; only containers (pointed at the daemon `dns` below) resolve through dnsmasq. If a host runs a custom Docker `bip`, set the bind IP in `compose.jsonnet` and the daemon `dns` to that gateway.
 - Set upstreams in `compose.jsonnet`: `DNS1` = this network's primary resolver, `DNS2` = a public fallback so names still resolve if the primary is down (`strict-order` tries them in that order). `DNS1` ships as a placeholder — set it before deploying.
 - Register with the daemon so containers use it: add `"dns": ["172.17.0.1"]` (this host's `docker0` gateway) to `/etc/docker/daemon.json` and restart dockerd. New containers inherit it; running containers pick it up on recreate.
 - Version pinned via `local version` in `compose.jsonnet` — bump there and re-render, don't edit the generated YAML.
