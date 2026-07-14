@@ -58,6 +58,15 @@ http:
       rule: Host(`frappe.ktbinternal.com`)
       service: host-bill
       tls: {}
+    grist:
+      entryPoints:
+      - websecure
+      middlewares:
+      - controller-hop
+      priority: 1
+      rule: Host(`grist.ktbinternal.com`)
+      service: host-littlebuddy
+      tls: {}
     immich:
       entryPoints:
       - websecure
