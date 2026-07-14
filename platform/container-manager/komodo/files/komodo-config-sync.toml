@@ -195,7 +195,7 @@ config_files = [
 ]
 environment = """
 # ----- Credentials -----
-# INFISICAL_ADDRESS     = 'http://infisical_app:8080'           # Uncomment if Infisical runs on this host
+# INFISICAL_ADDRESS     = [[INFSCL_URL]]
 INFISICAL_CLIENT_ID     = [[INFSCL_AGNT_CLIENT_ID__BIGGY]]      # Set in Komodo variables (toggle secret on to prevent upload to Repo)
 INFISICAL_CLIENT_SECRET = [[INFSCL_AGNT_CLIENT_SECRET__BIGGY]]  # Set in Komodo variables (toggle secret on to prevent upload to Repo)
 
@@ -222,7 +222,7 @@ config_files = [
 ]
 environment = """
 # ----- Credentials -----
-# INFISICAL_ADDRESS     = 'http://infisical_app:8080' # Uncomment if Infisical runs on this host
+# INFISICAL_ADDRESS     = [[INFSCL_URL]]
 INFISICAL_CLIENT_ID     = [[INFSCL_AGNT_CLIENT_ID__BILL]]       # Set in Komodo variables (toggle secret on to prevent upload to Repo)
 INFISICAL_CLIENT_SECRET = [[INFSCL_AGNT_CLIENT_SECRET__BILL]]   # Set in Komodo variables (toggle secret on to prevent upload to Repo)
 
@@ -249,7 +249,7 @@ config_files = [
 ]
 environment = """
 # ----- Credentials -----
-INFISICAL_ADDRESS       = 'http://infisical_app:8080'           # Uncomment if Infisical runs on this host
+INFISICAL_ADDRESS       = [[INFSCL_URL]]
 INFISICAL_CLIENT_ID     = [[LITTLEBUDDY__AGENT_CLIENT_ID]]      # Set in Komodo variables (toggle secret on to prevent upload to Repo)
 INFISICAL_CLIENT_SECRET = [[LITTLEBUDDY__AGENT_CLIENT_SECRET]]  # Set in Komodo variables (toggle secret on to prevent upload to Repo)
 
@@ -271,7 +271,7 @@ linked_repo = "infra.stacks"
 run_directory = "./platform/secrets-manager/infisical-agent"
 environment = """
 # ----- Credentials -----
-# INFISICAL_ADDRESS     = 'http://infisical_app:8080'     # Uncomment if Infisical runs on this host
+# INFISICAL_ADDRESS     = [[INFSCL_URL]]
 INFISICAL_CLIENT_ID     = [[MABOI__AGENT_CLIENT_ID]]      # Set in Komodo variables (toggle secret on to prevent upload to Repo)
 INFISICAL_CLIENT_SECRET = [[MABOI__AGENT_CLIENT_SECRET]]  # Set in Komodo variables (toggle secret on to prevent upload to Repo)
 
@@ -298,7 +298,7 @@ config_files = [
 ]
 environment = """
 # ----- Credentials -----
-# INFISICAL_ADDRESS     = 'http://infisical_app:8080'     # Uncomment if Infisical runs on this host
+# INFISICAL_ADDRESS     = [[INFSCL_URL]]
 INFISICAL_CLIENT_ID     = [[PAIKI__AGENT_CLIENT_ID]]      # Set in Komodo variables (toggle secret on to prevent upload to Repo)
 INFISICAL_CLIENT_SECRET = [[PAIKI__AGENT_CLIENT_SECRET]]  # Set in Komodo variables (toggle secret on to prevent upload to Repo)
 
@@ -325,7 +325,7 @@ config_files = [
 ]
 environment = """
 # ----- Credentials -----
-# INFISICAL_ADDRESS     = 'http://infisical_app:8080' # Uncomment if Infisical runs on this host
+# INFISICAL_ADDRESS     = [[INFSCL_URL]]
 INFISICAL_CLIENT_ID     = [[INFSCL_AGNT_CLIENT_ID__RICK]]       # Set in Komodo variables (toggle secret on to prevent upload to Repo)
 INFISICAL_CLIENT_SECRET = [[INFSCL_AGNT_CLIENT_SECRET__RICK]]   # Set in Komodo variables (toggle secret on to prevent upload to Repo)
 
@@ -517,7 +517,7 @@ config_files = [
 ]
 environment = """
 # ----- Credentials -----
-# INFISICAL_ADDRESS     = 'http://infisical_app:8080' # Uncomment if Infisical runs on this host
+# INFISICAL_ADDRESS     = [[INFSCL_URL]]
 INFISICAL_CLIENT_ID     = ''  # Set in Komodo variables (toggle secret on to prevent upload to Repo)
 INFISICAL_CLIENT_SECRET = ''  # Set in Komodo variables (toggle secret on to prevent upload to Repo)
 
