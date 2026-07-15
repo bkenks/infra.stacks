@@ -55,6 +55,16 @@ enabled = true
 ##
 
 [[stack]]
+name = "authentik"
+[stack.config]
+server = "rick"
+linked_repo = "infra.stacks"
+run_directory = "./platform/identity/authentik"
+extra_args = ["--remove-orphans"]
+
+##
+
+[[stack]]
 name = "client_couch-potatoes_prod"
 [stack.config]
 server = "maboi"
@@ -123,6 +133,15 @@ run_directory = "./platform/backup-manager/databasus"
 ##
 
 [[stack]]
+name = "dns_biggy"
+[stack.config]
+server = "biggy"
+linked_repo = "infra.stacks"
+run_directory = "./platform/edge/dnsmasq"
+
+##
+
+[[stack]]
 name = "dns_bill"
 [stack.config]
 server = "bill"
@@ -135,15 +154,6 @@ run_directory = "./platform/edge/dnsmasq"
 name = "dns_littlebuddy"
 [stack.config]
 server = "littlebuddy"
-linked_repo = "infra.stacks"
-run_directory = "./platform/edge/dnsmasq"
-
-##
-
-[[stack]]
-name = "dns_biggy"
-[stack.config]
-server = "biggy"
 linked_repo = "infra.stacks"
 run_directory = "./platform/edge/dnsmasq"
 
@@ -183,16 +193,6 @@ server = "littlebuddy"
 linked_repo = "infra.stacks"
 run_directory = "./apps/business/docuseal"
 extra_args = ["--remove-orphans"]
-
-##
-
-[[stack]]
-name = "excalidraw"
-[stack.config]
-server = "bill"
-links = ["draw.ktbcloud.com", "draw-room.ktbcloud.com"]
-linked_repo = "infra.stacks"
-run_directory = "./apps/business/excalidraw"
 
 ##
 
@@ -399,16 +399,6 @@ NS              = [[INFSCL_AGNT_NODE_SECERTS]]
 PS              = [[INFSCL_AGNT_PANGOLIN_SECERTS]]
 AGENT_SERVICES  = "${NS} ${PS} authentik"
 """
-
-##
-
-[[stack]]
-name = "authentik"
-[stack.config]
-server = "rick"
-linked_repo = "infra.stacks"
-run_directory = "./platform/identity/authentik"
-extra_args = ["--remove-orphans"]
 
 ##
 
