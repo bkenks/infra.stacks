@@ -73,7 +73,7 @@ function(urlDomain)
         smtp_port: 465,
         smtp_user: 'resend',
         // smtp_pass: EMAIL_SMTP_PASS env (infisical-agent) — omitted for the same reason as server.secret.
-        no_reply: 'pangolin@' + baseDomain,
+        no_reply: 'pangolin@' + cloudDomain,
       },
 
       flags: {

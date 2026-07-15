@@ -10,7 +10,7 @@ domains:
   domain2:
     base_domain: ktbcloud.com
 email:
-  no_reply: pangolin@ktbinternal.com
+  no_reply: pangolin@ktbcloud.com
   smtp_host: smtp.resend.com
   smtp_port: 465
   smtp_user: resend
