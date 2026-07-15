@@ -187,6 +187,16 @@ extra_args = ["--remove-orphans"]
 ##
 
 [[stack]]
+name = "excalidraw"
+[stack.config]
+server = "bill"
+links = ["draw.ktbcloud.com", "draw-room.ktbcloud.com"]
+linked_repo = "infra.stacks"
+run_directory = "./apps/business/excalidraw"
+
+##
+
+[[stack]]
 name = "forgejo"
 [stack.config]
 server = "littlebuddy"

@@ -1,0 +1,80 @@
+# GENERATED from compose.jsonnet by .jsonnet/render.py — DO NOT EDIT.
+name: excalidraw
+networks:
+  default:
+    name: excalidraw
+services:
+  app:
+    cap_add:
+    - CHOWN
+    - SETGID
+    - SETUID
+    cap_drop:
+    - ALL
+    command:
+    - -c
+    - 'echo "Replacing WebSocket URL with: $$VITE_APP_WS_SERVER_URL"
+
+      find /usr/share/nginx/html/assets -type f -name "*.js" -exec sed -i ''s|https://oss-collab\.excalidraw\.com|''$$VITE_APP_WS_SERVER_URL''|g'' {} +
+
+      echo "Starting nginx..."
+
+      nginx -g ''daemon off;''
+
+      '
+    container_name: excalidraw_app
+    entrypoint: /bin/sh
+    environment:
+      NODE_ENV: production
+      VITE_APP_WS_SERVER_URL: https://draw-room.ktbcloud.com
+    expose:
+    - '80'
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 20s
+      test:
+      - CMD-SHELL
+      - wget -qO- http://127.0.0.1:80/ >/dev/null 2>&1 || exit 1
+      timeout: 5s
+    image: excalidraw/excalidraw:latest
+    networks:
+      default:
+        aliases:
+        - excalidraw_app
+    ports:
+    - 127.0.0.1:18018:80
+    restart: unless-stopped
+    security_opt:
+    - no-new-privileges:true
+    stdin_open: true
+    tmpfs:
+    - /tmp:rw,noexec,nosuid,size=64m
+    - /var/cache/nginx/client_temp:rw,noexec,nosuid,size=64m
+  room:
+    cap_drop:
+    - ALL
+    container_name: excalidraw_room
+    expose:
+    - '80'
+    healthcheck:
+      interval: 30s
+      retries: 3
+      start_period: 20s
+      test:
+      - CMD-SHELL
+      - wget -qO- http://127.0.0.1:80/ >/dev/null 2>&1 || exit 1
+      timeout: 5s
+    image: excalidraw/excalidraw-room:latest
+    networks:
+      default:
+        aliases:
+        - excalidraw_room
+    ports:
+    - 127.0.0.1:18019:80
+    read_only: true
+    restart: unless-stopped
+    security_opt:
+    - no-new-privileges:true
+    tmpfs:
+    - /tmp:rw,noexec,nosuid,size=64m

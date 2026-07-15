@@ -1,0 +1,4 @@
+# GENERATED from compose.jsonnet by .jsonnet/render.py — DO NOT EDIT.
+include:
+- path: compose.stack.yaml
+name: excalidraw
