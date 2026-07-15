@@ -1,0 +1,54 @@
+{
+  "hosts": {
+    "snaszy": { "ip": "100.91.182.94", "lan": "192.168.30.20", "aka": ["nas"] },
+    "littlebuddy": { "ip": "100.114.137.104", "lan": "192.168.30.21", "aka": ["controlplane"], "edge": true },
+    "paiki": { "ip": "100.126.19.103", "lan": "192.168.30.22", "dns": "plexyandiknowit", "aka": ["plex"], "edge": true },
+    "biggy": { "ip": "100.108.59.105", "lan": "192.168.30.23" },
+    "bill": { "ip": "100.79.7.11", "lan": "192.168.30.25", "edge": true },
+    "homeassistant": { "ip": "100.113.251.34", "lan": "192.168.40.20", "aka": ["hass"] },
+    "maboi": { "ip": "100.97.83.95", "public": "178.156.222.232", "edge": true },
+    "rick": { "ip": "100.106.170.93", "public": "64.177.119.246", "edge": true },
+    "woody": { "ip": "100.74.131.20" }
+  },
+  "domains": {
+    "homektb": "homektb.com",
+    "stackform": "stackform.app",
+    "couchpotatoes": "couchpotatoes.store",
+    "ktbinternal": "ktbinternal.com",
+    "ktbcloud": "ktbcloud.com"
+  },
+  "infisicalProjects": {
+    "apps": "2f0eb3d1-3e2a-4ce7-8060-5e47ad877e47",
+    "frappe": "12ed25dd-c0d2-4a78-9b10-472fc09fe554",
+    "couchPotatoes": "fb1dd6a7-3924-415b-b6c3-3071fc93aaae",
+    "stackform": "15d61370-a2ec-4993-9bbd-3774a63f7b94",
+    "infra": "86324d9b-3dd7-49d4-b252-69228c5ee0c7"
+  },
+  "secrets": {
+    "postgres": { "project": "apps", "folder": "/postgres", "dest": "postgres.env", "type": "dump" },
+    "paperless": { "project": "apps", "folder": "/paperless", "dest": "paperless.env", "type": "dump" },
+    "docuseal": { "project": "apps", "folder": "/docuseal", "dest": "docuseal.env", "type": "dump" },
+    "openproject": { "project": "apps", "folder": "/openproject", "dest": "openproject.env", "type": "dump" },
+    "immich": { "project": "apps", "folder": "/immich", "dest": "immich.env", "type": "dump" },
+    "stream": { "project": "apps", "folder": "/stream", "dest": "stream.env", "type": "dump" },
+    "convertx": { "project": "apps", "folder": "/convertx", "dest": "convertx.env", "type": "dump" },
+    "twenty": { "project": "apps", "folder": "/twenty", "dest": "twenty.env", "type": "dump" },
+    "pangolin": { "project": "apps", "folder": "/pangolin", "dest": "pangolin.env", "type": "dump" },
+    "frappe": { "project": "frappe", "folder": "/frappe", "dest": "frappe.env", "type": "dump" },
+    "couch-potatoes-website": { "project": "couchPotatoes", "folder": "/website", "dest": "client_couch-potatoes_website.env", "type": "dump" },
+    "stackform-website": { "project": "stackform", "folder": "/website", "dest": "stackform_website.env", "type": "dump" },
+    "cloudflare__dns-api-token": { "project": "infra", "folder": "/traefik", "dest": "cloudflare__dns-api-token.env", "type": "dump" },
+    "zerobyte": { "project": "infra", "folder": "/zerobyte", "dest": "zerobyte.env", "type": "dump" },
+    "infisical": { "project": "infra", "folder": "/infisical", "dest": "infisical.env", "type": "dump" },
+    "authentik": { "project": "infra", "folder": "/authentik", "dest": "authentik.env", "type": "dump" },
+    "grist": { "project": "infra", "folder": "/grist", "dest": "grist.env", "type": "dump" },
+    "forgejo": { "project": "infra", "folder": "/forgejo", "dest": "forgejo.env", "type": "dump" },
+    "gitea": { "project": "infra", "folder": "/gitea", "dest": "gitea.env", "type": "dump" },
+    "komodo-mcp": { "project": "infra", "folder": "/komodo-mcp", "dest": "komodo-mcp.env", "type": "dump" },
+    "woodpecker": { "project": "infra", "folder": "/woodpecker", "dest": "woodpecker.env", "type": "dump" },
+    "newt": { "project": "infra", "folder": "/hosts/${AGENT_HOST}/newt", "dest": "newt.env", "type": "dump" },
+    "komodo": { "project": "infra", "folder": "/komodo", "dest": "komodo_core.env", "type": "dump" },
+    "cloudflared": { "project": "infra", "folder": "/hosts/${AGENT_HOST}/cloudflared", "dest": "cloudflared.env", "type": "dump" },
+    "databasus": { "project": "infra", "folder": "/databasus", "dest": "databasus_secret.key", "type": "raw", "key": "SECRET_KEY" }
+  }
+}
