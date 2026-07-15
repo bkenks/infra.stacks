@@ -36,7 +36,10 @@ local opAppEnv = {
   OPENPROJECT_HSTS: 'true',
   OPENPROJECT_RAILS__RELATIVE__URL__ROOT: '',
   RAILS_MIN_THREADS: '4',
-  RAILS_MAX_THREADS: '16',
+  RAILS_MAX_THREADS: '8',
+  // The image bundles libjemalloc but ships with it off; glibc malloc fragments
+  // badly under Puma's threads, so enabling jemalloc reclaims ~20-35% of RSS.
+  USE_JEMALLOC: 'true',
   IMAP_ENABLED: 'false',
   OPENPROJECT_HOST__NAME: cloudDomain,
   // `web` allows hocuspocus' internal callback (http://web:8080) to pass the host check.
@@ -132,7 +135,9 @@ local manifest = {
         retries: 3,
         start_period: '60s',
       },
-      environment: opAppEnv + opAppSecrets,
+      // One Puma worker instead of the default 2 — a whole forked Rails process
+      // saved; low concurrency here doesn't need two. Bump back up if web slows.
+      environment: opAppEnv + opAppSecrets + { WEB_CONCURRENCY: '1' },
       labels: webLabels,
       expose: [std.toString(webPort)],
       extra_hosts: ['host.docker.internal:host-gateway'],
