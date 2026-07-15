@@ -241,4 +241,15 @@ function(urlDomain)
         entryPoint: 'web',
       },
     },
+
+    'privateConfig.yml': {
+      app: {
+        identity_provider_mode: "org"
+      },
+
+      branding: {
+        app_name: "KTB Cloud Portal",     # optional
+        hide_auth_layout_footer: false,   # optional
+      }
+    },
   }
