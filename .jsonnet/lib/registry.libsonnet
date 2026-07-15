@@ -163,6 +163,9 @@
       infisical:
       { project: 'infra', folder: '/infisical', dest: 'infisical.env', type: 'dump' },
 
+      authentik:
+      { project: 'infra', folder: '/authentik', dest: 'authentik.env', type: 'dump' },
+
       grist:
       { project: 'infra', folder: '/grist', dest: 'grist.env', type: 'dump' },
 
