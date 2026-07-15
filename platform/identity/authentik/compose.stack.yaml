@@ -1,0 +1,81 @@
+# GENERATED from compose.jsonnet by .jsonnet/render.py — DO NOT EDIT.
+name: authentik
+networks:
+  default:
+    name: authentik
+services:
+  app:
+    command: server
+    container_name: authentik_app
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      AUTHENTIK_POSTGRESQL__HOST: authentik_db
+      AUTHENTIK_POSTGRESQL__NAME: authentik
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_PG_PASS:?err}
+      AUTHENTIK_POSTGRESQL__USER: authentik
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY:?err}
+    expose:
+    - '9000'
+    image: ghcr.io/goauthentik/server:2026.5.4
+    networks:
+      default:
+        aliases:
+        - authentik_app
+    ports:
+    - 127.0.0.1:18006:9000
+    restart: unless-stopped
+    volumes:
+    - authentik_data:/data
+  db:
+    container_name: authentik_db
+    environment:
+      POSTGRES_DB: authentik
+      POSTGRES_PASSWORD: ${AUTHENTIK_PG_PASS:?err}
+      POSTGRES_USER: authentik
+    expose:
+    - '5432'
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_period: 20s
+      test:
+      - CMD-SHELL
+      - pg_isready -d authentik -U authentik
+      timeout: 5s
+    image: docker.io/library/postgres:16-alpine
+    networks:
+      default:
+        aliases:
+        - authentik_db
+    restart: unless-stopped
+    volumes:
+    - authentik_db:/var/lib/postgresql/data
+  worker:
+    command: worker
+    container_name: authentik_worker
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      AUTHENTIK_POSTGRESQL__HOST: authentik_db
+      AUTHENTIK_POSTGRESQL__NAME: authentik
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_PG_PASS:?err}
+      AUTHENTIK_POSTGRESQL__USER: authentik
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY:?err}
+    image: ghcr.io/goauthentik/server:2026.5.4
+    networks:
+      default:
+        aliases:
+        - authentik_worker
+    restart: unless-stopped
+    user: root
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    - authentik_data:/data
+volumes:
+  authentik_data:
+    name: authentik_data
+  authentik_db:
+    name: authentik_db
