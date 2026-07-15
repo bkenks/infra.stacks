@@ -41,9 +41,10 @@ services:
       OPENPROJECT_RAILS__RELATIVE__URL__ROOT: ''
       OPENPROJECT_URL: https://openprj.ktbcloud.com
       OPENPROJECT_WELCOME__ON__HOMESCREEN: 'false'
-      RAILS_MAX_THREADS: '16'
+      RAILS_MAX_THREADS: '8'
       RAILS_MIN_THREADS: '4'
       SECRET_KEY_BASE: ${OPEN_PRJ_SECRET_KEY:?err}
+      USE_JEMALLOC: 'true'
     extra_hosts:
     - host.docker.internal:host-gateway
     image: openproject/openproject:17-slim
@@ -91,9 +92,10 @@ services:
       OPENPROJECT_RAILS__RELATIVE__URL__ROOT: ''
       OPENPROJECT_URL: https://openprj.ktbcloud.com
       OPENPROJECT_WELCOME__ON__HOMESCREEN: 'false'
-      RAILS_MAX_THREADS: '16'
+      RAILS_MAX_THREADS: '8'
       RAILS_MIN_THREADS: '4'
       SECRET_KEY_BASE: ${OPEN_PRJ_SECRET_KEY:?err}
+      USE_JEMALLOC: 'true'
     extra_hosts:
     - host.docker.internal:host-gateway
     image: openproject/openproject:17-slim
@@ -128,9 +130,11 @@ services:
       OPENPROJECT_RAILS__RELATIVE__URL__ROOT: ''
       OPENPROJECT_URL: https://openprj.ktbcloud.com
       OPENPROJECT_WELCOME__ON__HOMESCREEN: 'false'
-      RAILS_MAX_THREADS: '16'
+      RAILS_MAX_THREADS: '8'
       RAILS_MIN_THREADS: '4'
       SECRET_KEY_BASE: ${OPEN_PRJ_SECRET_KEY:?err}
+      USE_JEMALLOC: 'true'
+      WEB_CONCURRENCY: '1'
     expose:
     - '8080'
     extra_hosts:
@@ -181,9 +185,10 @@ services:
       OPENPROJECT_RAILS__RELATIVE__URL__ROOT: ''
       OPENPROJECT_URL: https://openprj.ktbcloud.com
       OPENPROJECT_WELCOME__ON__HOMESCREEN: 'false'
-      RAILS_MAX_THREADS: '16'
+      RAILS_MAX_THREADS: '8'
       RAILS_MIN_THREADS: '4'
       SECRET_KEY_BASE: ${OPEN_PRJ_SECRET_KEY:?err}
+      USE_JEMALLOC: 'true'
     extra_hosts:
     - host.docker.internal:host-gateway
     image: openproject/openproject:17-slim
