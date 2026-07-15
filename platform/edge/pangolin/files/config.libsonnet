@@ -71,6 +71,7 @@ function(urlDomain)
       email: {
         smtp_host: 'smtp.resend.com',
         smtp_port: 465,
+        smtp_secure: true,
         smtp_user: 'resend',
         // smtp_pass: EMAIL_SMTP_PASS env (infisical-agent) — omitted for the same reason as server.secret.
         no_reply: 'pangolin@' + cloudDomain,

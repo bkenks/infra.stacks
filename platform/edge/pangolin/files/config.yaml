@@ -13,6 +13,7 @@ email:
   no_reply: pangolin@ktbcloud.com
   smtp_host: smtp.resend.com
   smtp_port: 465
+  smtp_secure: true
   smtp_user: resend
 flags:
   allow_raw_resources: true
