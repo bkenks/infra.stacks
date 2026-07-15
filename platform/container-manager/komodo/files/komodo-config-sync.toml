@@ -197,6 +197,15 @@ extra_args = ["--remove-orphans"]
 ##
 
 [[stack]]
+name = "excalidraw-full"
+[stack.config]
+server = "littlebuddy"
+linked_repo = "infra.stacks"
+run_directory = "./apps/business/excalidraw-full"
+
+##
+
+[[stack]]
 name = "forgejo"
 [stack.config]
 server = "littlebuddy"
