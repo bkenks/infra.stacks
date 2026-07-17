@@ -9,8 +9,8 @@ services:
     environment:
       KOMODO_API_KEY: ${KOMODO_API_KEY:?err}
       KOMODO_API_SECRET: ${KOMODO_API_SECRET:?err}
-      KOMODO_URL: https://komo.ktbinternal.com
-      MCP_ALLOWED_HOSTS: komodo-mcp.ktbinternal.com
+      KOMODO_URL: ${HTTP_SCHEME:?must enter http scheme}://${KOMODO_FQDN:?must enter FQDN for Komodo}
+      MCP_ALLOWED_HOSTS: ${KOMODO_FQDN:?err}
       MCP_TRANSPORT: http
       MCP_TRUST_PROXY: '1'
       TZ: America/Chicago
