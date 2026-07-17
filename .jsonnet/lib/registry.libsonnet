@@ -9,6 +9,10 @@
     name: "Authentik",
   },
 
+  volumes: {
+    dockerSock: "/var/run/docker.sock:/var/run/docker.sock:ro",
+  },
+
   composeFiles: {
     parent: 'compose.yaml',
     child:  'compose.stack.yaml',
@@ -99,6 +103,21 @@
         domain:   $.domains.ktbinternal
       },
     },
+
+    authentik: {
+      public: {
+        local pub = self,
+        scheme:       "https",
+        sub:          'authentik',
+        domain:       $.domains.ktbcloud,
+        fqdn:         self.sub + "." + self.domain,
+        url:          self.scheme + "://" + self.fqdn,
+        oidc: {
+          issuer(OIDC_SLUG):    pub.url + "/application/o/" + OIDC_SLUG + "/",
+          uri:                  pub.url + "/application/o/authorize",
+        }
+      }
+    }
 
   },
 
