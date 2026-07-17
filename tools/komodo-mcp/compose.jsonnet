@@ -24,7 +24,7 @@ local manifest = {
         // Streamable HTTP transport (listens on :8000 inside the container).
         MCP_TRANSPORT: 'http',
         KOMODO_URL: '${HTTP_SCHEME:?must enter http scheme}://${KOMODO_FQDN:?must enter FQDN for Komodo}',
-        MCP_ALLOWED_HOSTS: 'https://komodo-mcp.' + reg.domains.ktbinternal,
+        MCP_ALLOWED_HOSTS: 'komodo-mcp.' + reg.domains.ktbinternal,
         // Trust the first hop (this host's Traefik) to resolve the real client IP from X-Forwarded-*.
         MCP_TRUST_PROXY: '1',
         TZ: 'America/Chicago',
