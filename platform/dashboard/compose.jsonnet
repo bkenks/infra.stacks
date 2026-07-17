@@ -41,7 +41,7 @@ local manifest = {
         AUTH_OIDC_CLIENT_NAME:      reg.idp.name,
         AUTH_OIDC_ISSUER:           authentik_issuerUri,
         AUTH_OIDC_URI:              authentik_pub_ep.oidc.uri,
-        AUTH_LOGOUT_REDIRECT_URL:   authentik_issuerUri + "/end-session/",
+        AUTH_LOGOUT_REDIRECT_URL:   authentik_issuerUri + "end-session/",
         AUTH_OIDC_SCOPE_OVERWRITE:  std.toString("openid email profile groups${EXTRA__OIDC_SCOPE:+ ${EXTRA__OIDC_SCOPE}}"),
         AUTH_OIDC_GROUPS_ATTRIBUTE: "${OIDC_GROUP:-entitlements}",
         // Secrets

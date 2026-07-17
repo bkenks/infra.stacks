@@ -7,7 +7,7 @@ services:
   app:
     container_name: homarr_app
     environment:
-      AUTH_LOGOUT_REDIRECT_URL: https://authentik.ktbcloud.com/application/o/homarr//end-session/
+      AUTH_LOGOUT_REDIRECT_URL: https://authentik.ktbcloud.com/application/o/homarr/end-session/
       AUTH_OIDC_AUTO_LOGIN: true
       AUTH_OIDC_CLIENT_ID: ${AUTH_OIDC_CLIENT_ID}
       AUTH_OIDC_CLIENT_NAME: Authentik
