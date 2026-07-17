@@ -36,7 +36,7 @@ local manifest = {
         
       // OIDC //
         AUTH_PROVIDERS:             "credentials,oidc",
-        AUTH_OIDC_AUTO_LOGIN:       true,
+        AUTH_OIDC_AUTO_LOGIN:       false,
         AUTH_OIDC_CLIENT_NAME:      reg.idp.name,
         AUTH_OIDC_ISSUER:           authentik_issuerUri,
         AUTH_OIDC_URI:              authentik_pub_ep.oidc.uri,

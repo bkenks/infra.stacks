@@ -114,7 +114,7 @@
         url:          self.scheme + "://" + self.fqdn,
         oidc: {
           issuer(OIDC_SLUG):    pub.url + "/application/o/" + OIDC_SLUG + "/",
-          uri:                  pub.url + "/application/o/authorize",
+          uri:                  pub.url + "/application/o/authorize/",
         }
       }
     }
