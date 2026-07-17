@@ -5,6 +5,9 @@
 {
   secretDir: '/dev/shm',
   loopbackIp: '127.0.0.1',
+  idp: {
+    name: "Authentik",
+  },
 
   composeFiles: {
     parent: 'compose.yaml',

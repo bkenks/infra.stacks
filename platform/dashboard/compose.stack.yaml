@@ -7,6 +7,11 @@ services:
   app:
     container_name: homarr_app
     environment:
+      AUTH_OIDC_CLIENT_ID: ${AUTH_OIDC_CLIENT_ID}
+      AUTH_OIDC_CLIENT_NAME: Authentik
+      AUTH_OIDC_CLIENT_SECRET: ${AUTH_OIDC_CLIENT_SECRET}
+      AUTH_OIDC_ISSUER: ${AUTH_OIDC_ISSUER}
+      AUTH_PROVIDERS: credentials,oidc
       SECRET_ENCRYPTION_KEY: ${SECRET_ENCRYPTION_KEY:?must provide encryption key}
     expose:
     - '7575'

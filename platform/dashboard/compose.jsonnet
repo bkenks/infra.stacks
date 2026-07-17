@@ -19,7 +19,14 @@ local manifest = {
       image: 'ghcr.io/homarr-labs/homarr:' + appVersion,
       container_name: n.container(app),
       volumes: [n.volume(app) + ':/appdata'],
-      environment: { SECRET_ENCRYPTION_KEY: '${SECRET_ENCRYPTION_KEY:?must provide encryption key}' },
+      environment: {
+        SECRET_ENCRYPTION_KEY:    '${SECRET_ENCRYPTION_KEY:?must provide encryption key}',
+        AUTH_PROVIDERS:           "credentials,oidc",
+        AUTH_OIDC_ISSUER:         "${AUTH_OIDC_ISSUER}",
+        AUTH_OIDC_CLIENT_SECRET:  "${AUTH_OIDC_CLIENT_SECRET}",
+        AUTH_OIDC_CLIENT_ID:      "${AUTH_OIDC_CLIENT_ID}",
+        AUTH_OIDC_CLIENT_NAME:    reg.idp.name,
+      },
       restart: 'unless-stopped',
       healthcheck: {
         test: ['CMD', 'curl', '-fsS', '--max-time', '2', 'http://localhost:' + std.toString(appPort)],
