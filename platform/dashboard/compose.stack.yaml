@@ -17,8 +17,8 @@ services:
       AUTH_OIDC_SCOPE_OVERWRITE: openid email profile groups${EXTRA__OIDC_SCOPE:+ ${EXTRA__OIDC_SCOPE}}
       AUTH_OIDC_URI: https://authentik.ktbcloud.com/application/o/authorize
       AUTH_PROVIDERS: credentials,oidc
-      BASE_URL: https://homarr.ktbcloud.com
-      NEXTAUTH_URL: https://homarr.ktbcloud.com
+      BASE_URL: https://ktbcloud.com
+      NEXTAUTH_URL: https://ktbcloud.com
       SECRET_ENCRYPTION_KEY: ${SECRET_ENCRYPTION_KEY:?must provide encryption key}
     expose:
     - '7575'

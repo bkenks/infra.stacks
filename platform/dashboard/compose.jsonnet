@@ -8,9 +8,8 @@ local app = reg.roles.app;
 local n = s.names;
 
 local httpScheme = "https";
-local homarrSubdomain = stack;
 local cloudDomain = reg.domains.ktbcloud;
-local homarr_fqdn = homarrSubdomain + "." + cloudDomain;
+local homarr_fqdn = cloudDomain;
 local homarr_url = httpScheme + "://" + homarr_fqdn;
 
 local authentik_pub_ep = reg.endpoints.authentik.public;
