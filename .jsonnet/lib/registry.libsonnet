@@ -193,6 +193,8 @@
       databasus:
       { project: 'infra', folder: '/databasus', dest: 'databasus_secret.key', type: 'raw', key: 'SECRET_KEY' },
 
+      homarr:
+      { project: 'infra', folder: '/homarr', dest: 'homarr.env', type: 'dump'},
     },
 
     # Every service gains two derived paths. services.jsonnet emits `path` as the agent's

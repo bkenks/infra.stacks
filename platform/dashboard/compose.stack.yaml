@@ -1,0 +1,36 @@
+# GENERATED from compose.jsonnet by .jsonnet/render.py — DO NOT EDIT.
+name: homarr
+networks:
+  default:
+    name: homarr
+services:
+  app:
+    container_name: homarr_app
+    environment:
+      SECRET_ENCRYPTION_KEY: ${SECRET_ENCRYPTION_KEY:?must provide encryption key}
+    expose:
+    - '7575'
+    healthcheck:
+      interval: 30s
+      retries: 5
+      test:
+      - CMD
+      - curl
+      - -fsS
+      - --max-time
+      - '2'
+      - http://localhost:7575
+      timeout: 10s
+    image: ghcr.io/homarr-labs/homarr:latest
+    networks:
+      default:
+        aliases:
+        - homarr_app
+    ports:
+    - 127.0.0.1:18018:7575
+    restart: unless-stopped
+    volumes:
+    - homarr_app:/appdata
+volumes:
+  homarr_app:
+    name: homarr_app
