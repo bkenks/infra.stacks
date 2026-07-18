@@ -80,6 +80,7 @@ services:
     - /dev/dri:/dev/dri
     environment:
       PGID: '0'
+      PLEX_CLAIM: ${PLEX_CLAIM:-}
       PUID: '0'
       TZ: America/New_York
       VERSION: docker

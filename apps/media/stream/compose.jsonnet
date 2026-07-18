@@ -125,6 +125,7 @@ local manifest = {
         PUID: '0',
         PGID: '0',
         TZ: tz,
+        PLEX_CLAIM: "${PLEX_CLAIM:-}", // optional, only needed on fresh start
         // "docker" = pinned-by-image, no in-container update.
         VERSION: 'docker',
       },
