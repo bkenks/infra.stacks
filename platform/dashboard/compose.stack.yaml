@@ -12,7 +12,7 @@ services:
       AUTH_OIDC_CLIENT_ID: ${AUTH_OIDC_CLIENT_ID}
       AUTH_OIDC_CLIENT_NAME: Authentik
       AUTH_OIDC_CLIENT_SECRET: ${AUTH_OIDC_CLIENT_SECRET}
-      AUTH_OIDC_GROUPS_ATTRIBUTE: ${OIDC_GROUP:-entitlements}
+      AUTH_OIDC_GROUPS_ATTRIBUTE: ${OIDC_GROUP:-groups}
       AUTH_OIDC_ISSUER: https://authentik.ktbcloud.com/application/o/homarr/
       AUTH_OIDC_SCOPE_OVERWRITE: openid email profile groups${EXTRA__OIDC_SCOPE:+ ${EXTRA__OIDC_SCOPE}}
       AUTH_OIDC_URI: https://authentik.ktbcloud.com/application/o/authorize/
