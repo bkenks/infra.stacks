@@ -29,6 +29,7 @@ local manifest = {
       volumes: [n.volume(app) + ':/appdata', reg.volumes.dockerSock],
       environment: {
       // HOMARR //
+        TZ:                       'America/New_York',
         BASE_URL:                 homarr_url,
         NEXTAUTH_URL:             homarr_url,
         // SECRETS

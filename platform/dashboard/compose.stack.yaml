@@ -20,6 +20,7 @@ services:
       BASE_URL: https://ktbcloud.com
       NEXTAUTH_URL: https://ktbcloud.com
       SECRET_ENCRYPTION_KEY: ${SECRET_ENCRYPTION_KEY:?must provide encryption key}
+      TZ: America/New_York
     expose:
     - '7575'
     healthcheck:
