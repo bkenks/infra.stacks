@@ -24,7 +24,7 @@ local versions = {
   bazarr: '1.5.4',
   configarr: '1.28.0',
   decluttarr: 'v2.1.0',
-  plex: '1.43.2',
+  plex: '1.43.3',
   seerr: 'v3.0.1',
 };
 

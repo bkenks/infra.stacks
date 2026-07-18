@@ -92,7 +92,7 @@ services:
       - CMD-SHELL
       - curl -fsS http://localhost:32400/identity || exit 1
       timeout: 10s
-    image: lscr.io/linuxserver/plex:1.43.2
+    image: lscr.io/linuxserver/plex:1.43.3
     network_mode: host
     restart: on-failure:5
     volumes:
