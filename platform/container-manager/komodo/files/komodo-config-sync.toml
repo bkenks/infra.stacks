@@ -226,6 +226,16 @@ extra_args = ["--remove-orphans"]
 ##
 
 [[stack]]
+name = "homarr"
+[stack.config]
+server = "rick"
+destroy_before_deploy = true
+linked_repo = "infra.stacks"
+run_directory = "./platform/dashboard"
+
+##
+
+[[stack]]
 name = "immich"
 [stack.config]
 server = "paiki"
@@ -406,7 +416,7 @@ INFISICAL_CLIENT_SECRET = [[INFSCL_AGNT_CLIENT_SECRET__RICK]]   # Set in Komodo 
 AGENT_HOST      = 'rick'
 NS              = [[INFSCL_AGNT_NODE_SECERTS]]
 PS              = [[INFSCL_AGNT_PANGOLIN_SECERTS]]
-AGENT_SERVICES  = "${NS} ${PS} authentik"
+AGENT_SERVICES  = "${NS} ${PS} authentik homarr"
 """
 
 ##
@@ -415,12 +425,18 @@ AGENT_SERVICES  = "${NS} ${PS} authentik"
 name = "komodo-mcp"
 [stack.config]
 server = "littlebuddy"
+destroy_before_deploy = true
 linked_repo = "infra.stacks"
 run_directory = "./tools/komodo-mcp"
 config_files = [
   { path = "compose.stack.yaml", requires = "Restart" }
 ]
 extra_args = ["--remove-orphans"]
+environment = """
+  # VARIABLE = value
+HTTP_SCHEME = 'http'
+KOMODO_FQDN = 'controlplane.ktbinternal.com:9120'
+"""
 
 ##
 
@@ -1009,3 +1025,20 @@ is_secret = true
 name = "PAIKI__AGENT_CLIENT_SECRET"
 value = "ade3d4310fee6e9141f3ae4d43cea9e575f179df2e6efce8c36a01ba2e363382"
 is_secret = true
+
+##
+
+[[user_group]]
+name = "mcp_users"
+users = ["komodo-mcp"]
+all.Server = { level = "Read", specific = ["Attach", "Inspect", "Logs", "Terminal", "Processes"] }
+all.Swarm = { level = "Read", specific = ["Attach", "Inspect", "Logs"] }
+all.Stack = { level = "Read", specific = ["Inspect", "Logs", "Terminal"] }
+all.Deployment = { level = "Read", specific = ["Inspect", "Logs", "Terminal"] }
+all.Build = { level = "Read", specific = ["Attach"] }
+all.Repo = { level = "Read", specific = ["Attach"] }
+all.Procedure = "Read"
+all.Action = "Read"
+all.Builder = { level = "Read", specific = ["Attach"] }
+all.Alerter = "Read"
+all.ResourceSync = "Read"
