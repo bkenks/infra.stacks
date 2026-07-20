@@ -1,0 +1,18 @@
+# GENERATED from compose.jsonnet by .jsonnet/render.py — DO NOT EDIT.
+name: pangolin-client
+networks:
+  default:
+    name: pangolin-client
+services:
+  app:
+    container_name: pangolin-client_app
+    environment:
+      CLIENT_ID: ${CLIENT_ID:?must provide a client id}
+      CLIENT_SECRET: ${CLIENT_SECRET:?must provide a client secret}
+      PANGOLIN_ENDPOINT: https://pangolin.ktbcloud.com
+    image: fosrl/pangolin-cli:latest
+    networks:
+      default:
+        aliases:
+        - pangolin-client_app
+    restart: unless-stopped
