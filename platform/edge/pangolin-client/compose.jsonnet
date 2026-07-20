@@ -32,4 +32,4 @@ local manifest = {
     s.network.default,
 };
 
-c.render(stack, manifest, [secrets.pangolin_client.path])
+c.render(stack, manifest, [secrets.pangolinClient.path])

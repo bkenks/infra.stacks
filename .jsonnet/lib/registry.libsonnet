@@ -208,7 +208,7 @@
       homarr:
       { project: 'infra', folder: '/homarr', dest: 'homarr.env', type: 'dump'},
       
-      pangolin_client:
+      pangolinClient:
       { project: 'infra', folder: '/pangolin_client', dest: 'pangolin_client.env', type: 'dump'},
     },
 
