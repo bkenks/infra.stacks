@@ -39,6 +39,7 @@ local manifest = {
       networks: {
         default: { aliases: [n.container('agent')] },  // egress to reach the public Infisical URL
       },
+      extra_hosts: [ "host.docker.internal:host-gateway" ],
       restart: 'unless-stopped',
       // The agent stays "running" even when a template/auth permanently fails, so liveness
       // never flips it. entrypoint.sh stamps /tmp/agent.last_err with the epoch of every
