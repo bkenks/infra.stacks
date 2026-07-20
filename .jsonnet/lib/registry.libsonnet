@@ -8,6 +8,18 @@
   idp: { name: "Authentik" },
   roles: { app: 'app', db: 'db', redis: 'redis' },
 
+  networks: {
+    local selfNetworks = self,
+
+    localhostGateway: "172.28.0.1",
+    localhostPublic(stackName):: {
+      [stackName + "_public"]: {
+        driver: 'bridge',
+        ipam: { config: [ {subnet: "172.28.0.0/24", gateway: selfNetworks.localhostGateway} ] },
+      },
+    },
+  },
+
   domains: {
     homektb:        'homektb.com',
     stackform:      'stackform.app',

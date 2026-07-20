@@ -1,8 +1,14 @@
 # GENERATED from compose.jsonnet by .jsonnet/render.py — DO NOT EDIT.
 name: infisical
 networks:
-  default:
+- default:
     name: infisical
+- infisical_public:
+    driver: bridge
+    ipam:
+      config:
+      - gateway: 172.28.0.1
+        subnet: 172.28.0.0/24
 services:
   app:
     container_name: infisical_app
@@ -45,6 +51,7 @@ services:
     - 127.0.0.1:18006:8080
     - 100.114.137.104:18006:8080
     - 192.168.30.21:18006:8080
+    - 172.28.0.1:18006:8080
     restart: unless-stopped
   db:
     container_name: infisical_db

@@ -65,7 +65,7 @@ local manifest = {
       },
       expose: [std.toString(appPort)],
     } + c.publish(hostPort, appPort)
-      + { ports+: [tsIp + ':' + std.toString(hostPort) + ':' + std.toString(appPort), lanIp + ':' + std.toString(hostPort) + ':' + std.toString(appPort)] },
+      + { ports+: [tsIp + ':' + std.toString(hostPort) + ':' + std.toString(appPort), lanIp + ':' + std.toString(hostPort) + ':' + std.toString(appPort), reg.networks.localhostGateway + ":" + std.toString(hostPort) + ":" + std.toString(appPort)] },
 
     [roles.db]: {
       image: 'docker.io/library/postgres:' + dbVersion,
@@ -111,8 +111,10 @@ local manifest = {
     },
   },
 
-  networks:
+  networks: [
     s.network.default,
+    reg.networks.localhostPublic(stack),
+  ],
 
   volumes: {
     [roles.db]: { name: n.volume(roles.db) },
