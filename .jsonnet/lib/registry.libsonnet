@@ -5,12 +5,76 @@
 {
   secretDir: '/dev/shm',
   loopbackIp: '127.0.0.1',
-  idp: {
-    name: "Authentik",
+  idp: { name: "Authentik" },
+  roles: { app: 'app', db: 'db', redis: 'redis' },
+
+  domains: {
+    homektb:        'homektb.com',
+    stackform:      'stackform.app',
+    couchpotatoes:  'couchpotatoes.store',
+    ktbinternal:    'ktbinternal.com',
+    ktbcloud:       'ktbcloud.com',
+  },
+
+  restartPolicy: {
+    unlessStopped: "unless-stopped",
+    // Defaults
+    defaultCritical: self.unlessStopped,
   },
 
   volumes: {
     dockerSock: "/var/run/docker.sock:/var/run/docker.sock:ro",
+  },
+
+  envFiles: {
+    tailscale: '/srv/docker/files/tailscale.env',
+  },
+
+  endpoints: {
+
+    postgres: {
+      container: {
+        host:     'postgres-db',
+        port:     5432,
+        },
+      host:{
+        host:     'host.docker.internal',
+        port:     6109
+        },
+    },
+
+    infisical: {
+      container: {
+        host:     'infisical_app',
+        port:     8080,
+        },
+      public: {
+        sub:      'infisical',
+        domain:   $.domains.ktbinternal
+        },
+    },
+
+    pangolin: {
+      public: {
+        scheme: 'https',
+        sub: 'pangolin',
+        domain: $.domains.ktbcloud,
+      }
+    },
+
+    authentik: {
+      public: {
+        local pub = self,
+        scheme:       "https",
+        sub:          'authentik',
+        domain:       $.domains.ktbcloud,
+        fqdn:         self.sub + "." + self.domain,
+        url:          self.scheme + "://" + self.fqdn,
+        oidc: {
+          issuer(OIDC_SLUG):    pub.url + "/application/o/" + OIDC_SLUG + "/",
+          uri:                  pub.url + "/application/o/authorize/",
+          }
+      }}
   },
 
   composeFiles: {
@@ -48,80 +112,6 @@
       woody: { ip: '100.74.131.20' },
     },
   },
-
-  ////////////
-
-  domains: {
-    homektb:        'homektb.com',
-    stackform:      'stackform.app',
-    couchpotatoes:  'couchpotatoes.store',
-    ktbinternal:    'ktbinternal.com',
-    ktbcloud:       'ktbcloud.com',
-  },
-
-  ////////////
-
-  roles: { app: 'app', db: 'db', redis: 'redis' },
-
-  ////////////
-
-  envFiles: {
-    tailscale: '/srv/docker/files/tailscale.env',
-  },
-
-  ////////////
-
-  # Service-to-service endpoints (not user-facing). `container`: the service's own identity
-  # (container_name + internal port), used by the stack that owns it. `host`: how OTHER
-  # stacks reach it now that the shared Docker networks are gone — the service publishes a
-  # port on the host and consumers dial the docker host-gateway, so a consuming service needs
-  # `extra_hosts: ['host.docker.internal:host-gateway']`. `public`: the user-facing URL.
-  endpoints: {
-
-    postgres: {
-
-      container: {
-        host:     'postgres-db',
-        port:     5432,
-      },
-
-      host: {
-        host:     'host.docker.internal',
-        port:     6109,
-      },
-    },
-
-    infisical: {
-
-      container: {
-        host:     'infisical_app',
-        port:     8080,
-      },
-
-      public: {
-        sub:      'infisical',
-        domain:   $.domains.ktbinternal
-      },
-    },
-
-    authentik: {
-      public: {
-        local pub = self,
-        scheme:       "https",
-        sub:          'authentik',
-        domain:       $.domains.ktbcloud,
-        fqdn:         self.sub + "." + self.domain,
-        url:          self.scheme + "://" + self.fqdn,
-        oidc: {
-          issuer(OIDC_SLUG):    pub.url + "/application/o/" + OIDC_SLUG + "/",
-          uri:                  pub.url + "/application/o/authorize/",
-        }
-      }
-    }
-
-  },
-
-  ////////////
 
   infisical: {
     projects: {
@@ -217,6 +207,9 @@
 
       homarr:
       { project: 'infra', folder: '/homarr', dest: 'homarr.env', type: 'dump'},
+      
+      pangolin_client:
+      { project: 'infra', folder: '/pangolin_client', dest: 'pangolin_client.env', type: 'dump'},
     },
 
     # Every service gains two derived paths. services.jsonnet emits `path` as the agent's

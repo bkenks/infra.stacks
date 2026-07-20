@@ -41,6 +41,9 @@ local r = import 'registry.libsonnet';
 
     public:: 'https://' + endpoint.public.sub + '.' + endpoint.public.domain,
 
+    pub:: endpoint.public.scheme + "://" + endpoint.public.sub + "." + endpoint.public.domain,
+
+    fqdn:: endpoint.public.sub + "." + endpoint.public.domain,
   },
 
 
