@@ -3,7 +3,7 @@
   config:
     polling-interval: "1m"
   template-content: |
-    {{- with listSecrets "86324d9b-3dd7-49d4-b252-69228c5ee0c7" "prod" "/pangolin_client" }}
+    {{- with listSecrets "86324d9b-3dd7-49d4-b252-69228c5ee0c7" "prod" "/hosts/${AGENT_HOST}/pangolin_client" }}
     {{- range . }}
     {{ .Key }}={{ .Value }}
     {{- end }}

@@ -209,7 +209,7 @@
       { project: 'infra', folder: '/homarr', dest: 'homarr.env', type: 'dump'},
       
       pangolinClient:
-      { project: 'infra', folder: '/pangolin_client', dest: 'pangolin_client.env', type: 'dump'},
+      { project: 'infra', folder: '/hosts/${AGENT_HOST}/pangolin_client', dest: 'pangolin_client.env', type: 'dump'},
     },
 
     # Every service gains two derived paths. services.jsonnet emits `path` as the agent's
