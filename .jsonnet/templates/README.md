@@ -2,8 +2,10 @@
 
 Standard reference for authoring a docker-compose stack in jsonnet. `compose.jsonnet`
 here is a real, compiling stack (app + dedicated Postgres, with secrets) — copy it,
-don't start from scratch. `compose.yaml` / `compose.stack.yaml`
-next to it are its generated output, kept so you can see input → output.
+don't start from scratch. Its generated output lands at
+`.deploy/.jsonnet/templates/{compose.yaml,compose.stack.yaml}`, so you can see
+input → output. It is rebuilt on every commit, which is also what stops this template
+from silently rotting when a lib changes under it.
 
 ## Scaffold a new stack
 
@@ -16,8 +18,11 @@ next to it are its generated output, kept so you can see input → output.
 4. Register secrets (see [Secrets](#secrets)), then deploy via Komodo. Never `docker
    compose` a stack by hand.
 
-Committing re-renders the YAML automatically (lefthook → `render.py`). Never edit the
-generated YAML — it carries a `# GENERATED …` header and is overwritten.
+5. Add a `[[stack]]` entry to `komodo-config-sync.toml` with
+   `run_directory = "./.deploy/<area>/<stack>"` — note the `.deploy/` prefix.
+
+Committing rebuilds `.deploy/` automatically (lefthook → `render.py`). Never edit anything
+under `.deploy/` — the whole tree is wiped and rebuilt on the next commit.
 
 ## The two files, and the render contract
 
@@ -28,8 +33,10 @@ Every `compose.jsonnet` ends in `c.render(stack, manifest, envFiles)`, which emi
 | `compose.yaml` | project name + `include:` of the manifest (+ `env_file:` for secrets). What Docker loads. |
 | `compose.stack.yaml` | the `services` / `networks` / `volumes` manifest. |
 
-`render.py` writes only into the entrypoint's own directory and sweeps stale YAML it
-previously owned, so one `compose.jsonnet` stands next to exactly its own output.
+Both land in the entrypoint's **mirrored** directory under `.deploy/`, next to copies of
+that stack's hand-written assets. Relative paths are preserved exactly, so
+`./files/entrypoint.sh` and `./templates` bind mounts work unchanged — write them in
+jsonnet as if source and output shared a directory.
 
 ## Golden rule: reference by key, never by string
 

@@ -1,0 +1,15 @@
+---
+name: documenso-staging
+
+services:
+  documenso:
+    env_file:
+      - ./envs/staging.env
+    ports:
+      - '3001:3001'
+    networks:
+      - postgres
+
+networks:
+  postgres:
+    name: postgres-staging_postgres

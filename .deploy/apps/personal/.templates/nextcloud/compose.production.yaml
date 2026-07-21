@@ -1,0 +1,13 @@
+---
+name: nextcloud-production
+
+services:
+  nextcloud-aio-mastercontainer:
+    env_file:
+      - ./envs/production.env
+    ports:
+      - '8090:8080'
+
+volumes:
+  nextcloud_aio_mastercontainer:
+    name: nextcloud_aio_mastercontainer

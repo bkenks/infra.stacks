@@ -1,0 +1,13 @@
+---
+name: baserow-production
+
+services:
+  baserow:
+    container_name: ${COMPOSE_PROJECT_NAME}_baserow
+    volumes:
+      - ${DOCKER_VOLUMES}/apps/baserow/data:/baserow/data
+    env_file:
+      - ./envs/production.env
+    ports:
+      - '80:80'
+      - '443:443'
