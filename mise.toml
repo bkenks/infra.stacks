@@ -1,14 +1,8 @@
 [tools]
-# .mise/tasks/render.py shells out to `jsonnet` (Go implementation) and runs under `uv run`.
-# lefthook drives the pre-commit build. python backs uv's requires-python >=3.11.
 go-jsonnet = "0.22.0"
 uv = "0.11.30"
 lefthook = "2.1.10"
 python = "3.13"
 
-# The `render` task is not declared here: mise discovers executables in .mise/tasks/ by
-# filename with the extension stripped, so .mise/tasks/render.py *is* `mise run render`.
-
 [hooks]
-# `mise install` also wires up the git hooks, so one command onboards a clone.
 postinstall = "lefthook install"
