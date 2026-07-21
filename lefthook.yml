@@ -1,26 +1,16 @@
 pre-commit:
-  # bash (not the default sh/dash) so `set -e` propagates into the `find | while`
-  # subshell in regenerate-jsonnet-deps — a render failure must abort the commit.
+  # bash (not the default sh/dash) so `set -e` aborts the commit on a render failure.
   shell: bash
   jobs:
-    # A staged .jsonnet re-renders just that file. render.py prints one path per output —
-    # several per entrypoint now — and prints swept files too, so `git add -A` is required
-    # to stage a deletion as readily as a write. `pipefail` is what carries render.py's
-    # exit code through the pipe; without it a jsonnet error stops aborting the commit.
-    - name: regenerate-jsonnet
-      glob: "**/*.jsonnet"
+    # render.py is a total rebuild of .deploy/, not a per-file render, so there is no
+    # glob and no incremental/full split: one job covers a .jsonnet edit, a
+    # registry.libsonnet edit that reaches every stack, and a plain asset edit
+    # (files/entrypoint.sh, periphery.env, …) that is copied into .deploy just like a
+    # rendered file is. Any of them would otherwise leave .deploy stale. The whole build
+    # is ~0.5s for all 39 entrypoints, so running it unconditionally is cheaper than
+    # deciding when to skip it.
+    - name: build-deploy-tree
       run: |
         set -eo pipefail
-        for file in {staged_files}; do
-          .jsonnet/render.py "$file" | while read -r out; do git add -A -- "$out"; done
-        done
-    # A staged .libsonnet (e.g. registry.libsonnet) can affect ANY .jsonnet, so
-    # re-render them all — otherwise a registry-only edit leaves the committed
-    # outputs (compose.stack.yaml, infisical-agent templates/, …) silently stale.
-    - name: regenerate-jsonnet-deps
-      glob: "**/*.libsonnet"
-      run: |
-        set -eo pipefail
-        find . -path ./.git -prune -o -path ./.claude -prune -o -type f -name '*.jsonnet' -print | while read -r file; do
-          .jsonnet/render.py "$file" | while read -r out; do git add -A -- "$out"; done
-        done
+        .jsonnet/render.py
+        git add -A -- .deploy

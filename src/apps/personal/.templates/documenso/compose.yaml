@@ -1,0 +1,5 @@
+---
+services:
+  documenso:
+    image: documenso/documenso:v2.7.1
+    container_name: ${COMPOSE_PROJECT_NAME}_documenso

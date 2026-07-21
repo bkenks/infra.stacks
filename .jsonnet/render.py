@@ -3,17 +3,25 @@
 # requires-python = ">=3.11"
 # dependencies = ["PyYAML>=6"]
 # ///
-"""Render a .jsonnet entrypoint to the files its top-level keys name; print each path.
+"""Build src/ into .deploy/ — the tree Komodo actually deploys from.
 
-An entrypoint evaluates to {'<filename>': <content>} and writes only into its own
-directory, so each directory holds exactly one .jsonnet standing next to the files it
-generates. Dict content is dumped as YAML; string content is written verbatim, since the
-Infisical fragments carry Go-template bytes that must not be reparsed.
+.deploy mirrors the *contents* of src/, path-for-path. Every non-jsonnet file is copied to
+the same relative path, then each .jsonnet entrypoint renders its outputs alongside its
+own mirrored directory. So `src/platform/edge/dnsmasq/files/hosts.jsonnet` produces
+`.deploy/platform/edge/dnsmasq/files/hosts`, and every `./files/...` bind mount in the
+generated compose keeps working unchanged.
 
-Every output gets the GENERATED header, which doubles as an ownership claim: it names the
-entrypoint that produced the file. A stale file is deleted only if it claims this
-entrypoint, or claims one that no longer exists here -- so hand-written YAML (no header)
-and a live sibling's output are both left alone.
+src/ holds stacks and nothing else. Repo infrastructure (.jsonnet/, komodo/, lefthook.yml,
+docs) lives outside it and is never copied, so this script needs no ignore list.
+
+The build is destructive and total: .deploy is removed and rebuilt from scratch, so a
+deleted stack or a renamed output leaves nothing behind. That is the whole reason for the
+separate tree — generated files never share a directory with hand-written ones, so there
+is no ownership question and no stale-file sweep.
+
+An entrypoint evaluates to {'<filename>': <content>} and may only name bare filenames.
+Dict content is dumped as YAML; string content is written verbatim, since the Infisical
+fragments carry Go-template bytes that must not be reparsed.
 
 Imports resolve by bare name via the -J jpath, so a source at any depth does
 `import 'registry.libsonnet'`. uv resolves PyYAML from the metadata above; the only
@@ -21,18 +29,24 @@ ambient requirement is `jsonnet` on PATH.
 """
 
 import json
-import os
-import re
+import shutil
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
 import yaml
 
+ROOT = Path(__file__).resolve().parent.parent
+SRC = ROOT / "src"
+LIB = ROOT / ".jsonnet" / "lib"
+DEPLOY = ROOT / ".deploy"
 HEADER = "# GENERATED from {src} by .jsonnet/render.py — DO NOT EDIT.\n"
-CLAIM = re.compile(r"^# GENERATED from (\S+) by ")
-SWEEPABLE = ("*.yaml", "*.yml")
+
+# src/ holds stacks and nothing else, so there is no repo infrastructure to filter out:
+# everything in there is either an entrypoint or an asset. A .libsonnet is neither — it
+# lives in .jsonnet/lib and is only ever imported.
+SKIP_NAMES = {".DS_Store"}
+SKIP_SUFFIXES = {".libsonnet"}
 
 
 def die(msg: str) -> "None":
@@ -40,11 +54,21 @@ def die(msg: str) -> "None":
     raise SystemExit(1)
 
 
-def run_jsonnet(src: Path, lib: Path) -> "dict":
+def sources() -> "list[Path]":
+    # Every file under src/, as paths relative to src/ — .deploy mirrors src/'s contents,
+    # not src/ itself, so src/apps/x lands at .deploy/apps/x.
+    return sorted(
+        p.relative_to(SRC)
+        for p in SRC.rglob("*")
+        if p.is_file() and p.name not in SKIP_NAMES and p.suffix not in SKIP_SUFFIXES
+    )
+
+
+def run_jsonnet(src: Path) -> "dict":
     # stderr inherits, so jsonnet's own message keeps its line numbers. The non-zero exit
     # propagates: that is what makes lefthook's `set -e` abort the commit.
     proc = subprocess.run(
-        ["jsonnet", "-J", str(lib), str(src)], stdout=subprocess.PIPE, text=True
+        ["jsonnet", "-J", str(LIB), str(SRC / src)], stdout=subprocess.PIPE, text=True
     )
     if proc.returncode != 0:
         raise SystemExit(proc.returncode)
@@ -54,80 +78,46 @@ def run_jsonnet(src: Path, lib: Path) -> "dict":
     return doc
 
 
-def resolve(src: Path, key: str) -> Path:
+def body(src: Path, key: str, content: "dict | str") -> str:
     # An entrypoint renders into its own directory and nowhere else, so a key naming a
     # path rather than a file is a bug in the jsonnet, not a case to support.
     if key != Path(key).name or key in (".", ".."):
         die(f"{src}: output key must be a bare filename, got {key!r}")
-    return src.parent / key
-
-
-def claimed_by(path: Path) -> "str | None":
-    # The entrypoint filename this file's header claims as its source, or None when the
-    # file carries no header and is therefore hand-written.
-    match = CLAIM.match(path.read_text(errors="ignore").partition("\n")[0])
-    return match.group(1) if match else None
-
-
-def write_atomic(path: Path, body: str) -> "None":
-    # Write beside the target, then rename onto it: same directory means same filesystem
-    # means rename(2), which is atomic. A failed write never truncates the live file.
-    # mkstemp creates 0600, hence the chmod.
-    fd, tmp_name = tempfile.mkstemp(dir=str(path.parent), prefix=f"{path.name}.")
-    tmp = Path(tmp_name)
-    try:
-        with open(fd, "w") as fh:
-            fh.write(body)
-        os.chmod(tmp, 0o644)
-        tmp.replace(path)
-    except BaseException:
-        tmp.unlink(missing_ok=True)
-        raise
+    if isinstance(content, str):
+        return HEADER.format(src=src.name) + content
+    return HEADER.format(src=src.name) + yaml.safe_dump(content, width=4096)
 
 
 def main() -> "None":
-    if len(sys.argv) != 2:
-        die("usage: render.py path/to/<entrypoint>.jsonnet")
-    src = Path(sys.argv[1])
-    if not src.is_file():
-        die(f"no such file: {src}")
+    if len(sys.argv) != 1:
+        die("usage: render.py  (builds the whole repo into .deploy/)")
 
-    doc = run_jsonnet(src, Path(__file__).resolve().parent / "lib")
-    header = HEADER.format(src=src.name)
+    entrypoints = []
+    assets = []
+    for rel in sources():
+        (entrypoints if rel.suffix == ".jsonnet" else assets).append(rel)
+    if not entrypoints:
+        die(f"no .jsonnet entrypoints under {SRC}")
 
-    # Serialized up front, so a YAML failure on the last key cannot leave the directory
-    # half-updated.
+    # Rendered up front, so a jsonnet or YAML failure cannot leave a half-built tree
+    # standing where the previous good one used to be.
     rendered = {
-        resolve(src, key): header
-        + (content if isinstance(content, str) else yaml.safe_dump(content, width=4096))
-        for key, content in doc.items()
+        DEPLOY / rel.parent / key: body(rel, key, content)
+        for rel in entrypoints
+        for key, content in run_jsonnet(rel).items()
     }
 
-    for path, body in sorted(rendered.items()):
-        write_atomic(path, body)
+    shutil.rmtree(DEPLOY, ignore_errors=True)
+    for rel in assets:
+        dest = DEPLOY / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(SRC / rel, dest)
+    for path, text in sorted(rendered.items()):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text)
 
-    # An entrypoint's outputs can no longer be inferred from its name, so a stale file is
-    # found by the source its header claims. Only this directory is swept, because only
-    # this directory is written into. A file owned by a sibling entrypoint that still
-    # exists is left alone -- mid-migration a stack dir holds both compose.jsonnet and
-    # compose.stack.jsonnet, and they must not delete each other's output. A file owned by
-    # a source since renamed or removed is collected by whoever now owns the directory.
-    orphans = []
-    for pattern in SWEEPABLE:
-        for stale in sorted(src.parent.glob(pattern)):
-            if stale in rendered:
-                continue
-            owner = claimed_by(stale)
-            if owner is None:
-                continue  # hand-written; never ours to delete
-            if owner == src.name or not (src.parent / owner).is_file():
-                orphans.append(stale)
-    for stale in orphans:
-        stale.unlink()
-
-    # lefthook consumes these; `git add -A --` stages a write or a deletion alike.
-    for path in [*sorted(rendered), *orphans]:
-        print(path)
+    print(f"render.py: {len(entrypoints)} entrypoints, {len(rendered)} rendered, "
+          f"{len(assets)} copied → {DEPLOY.relative_to(ROOT)}/")
 
 
 if __name__ == "__main__":
