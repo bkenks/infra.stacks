@@ -16,7 +16,7 @@ Everything that is not a stack stays out of `src/`: `.jsonnet/` (libs + builder)
 
 ## Toolchain (mise)
 
-`mise.toml` pins the four tools the build needs: `go-jsonnet` (the `jsonnet` binary the builder shells out to), `uv` (the builder's runtime), `lefthook`, and `python`. On a fresh clone, `mise install` installs them and its postinstall hook runs `lefthook install` to wire up the git hooks — one command onboards. `mise run render` is the render task lefthook itself invokes.
+`mise.toml` pins the four tools the build needs: `go-jsonnet` (the `jsonnet` binary the builder shells out to), `uv` (the builder's runtime), `lefthook`, and `python`. On a fresh clone run **`./bootstrap.sh`** — it trusts `mise.toml` (mise requires this per-machine before it will act on a config) and runs `mise install`, whose postinstall hook runs `lefthook install` to wire up the git hooks. `mise run render` is the render task lefthook itself invokes.
 
 ## Render pipeline (exact commands)
 
