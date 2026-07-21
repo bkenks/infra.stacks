@@ -111,10 +111,7 @@ local manifest = {
     },
   },
 
-  networks: [
-    s.network.default,
-    reg.networks.localhostPublic(stack),
-  ],
+  networks: s.network.default + reg.networks.localhostPublic(stack),
 
   volumes: {
     [roles.db]: { name: n.volume(roles.db) },
