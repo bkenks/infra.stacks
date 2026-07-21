@@ -332,7 +332,7 @@ config_files = [
 ]
 environment = """
 # ----- Credentials -----
-INFISICAL_ADDRESS       = [[INFSCL_URL]]
+INFISICAL_ADDRESS       = 'http://host.docker.internal:18006'
 INFISICAL_CLIENT_ID     = [[LITTLEBUDDY__AGENT_CLIENT_ID]]      # Set in Komodo variables (toggle secret on to prevent upload to Repo)
 INFISICAL_CLIENT_SECRET = [[LITTLEBUDDY__AGENT_CLIENT_SECRET]]  # Set in Komodo variables (toggle secret on to prevent upload to Repo)
 
@@ -464,6 +464,24 @@ ignore_services = ["init"]
 environment = """
 PANGOLIN_VARIANT=cloud
 """
+
+##
+
+[[stack]]
+name = "pangolin-client"
+template = true
+[stack.config]
+linked_repo = "infra.stacks"
+run_directory = "./platform/edge/pangolin-client"
+
+##
+
+[[stack]]
+name = "pangolin-client_littlebuddy"
+[stack.config]
+server = "littlebuddy"
+linked_repo = "infra.stacks"
+run_directory = "./platform/edge/pangolin-client"
 
 ##
 
@@ -693,6 +711,7 @@ repo = "ktbgroup-self-hosted/stack.infra"
 name = "infra.stacks"
 [repo.config]
 server = "littlebuddy"
+git_provider = "fj.ktbcloud.com"
 git_account = "bkenks"
 repo = "ktbgroup-self-hosted/infra.stacks"
 
@@ -967,7 +986,7 @@ is_secret = true
 
 [[variable]]
 name = "INFSCL_AGNT_NODE_SECERTS"
-value = "'newt'"
+value = "'newt pangolinClient'"
 is_secret = false
 
 ##
