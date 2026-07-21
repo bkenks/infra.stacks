@@ -1,4 +1,4 @@
-# GENERATED from services.jsonnet by .jsonnet/render.py — DO NOT EDIT.
+# GENERATED from services.jsonnet by .mise/tasks/render.py — DO NOT EDIT.
 - destination-path: /dev/shm/immich.env
   config:
     polling-interval: "1m"

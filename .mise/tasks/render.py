@@ -3,6 +3,7 @@
 # requires-python = ">=3.11"
 # dependencies = ["PyYAML>=6"]
 # ///
+#MISE description="Rebuild the .deploy/ tree from src/"
 """Build src/ into .deploy/ — the tree Komodo actually deploys from.
 
 .deploy mirrors the *contents* of src/, path-for-path. Every non-jsonnet file is copied to
@@ -11,8 +12,9 @@ own mirrored directory. So `src/platform/edge/dnsmasq/files/hosts.jsonnet` produ
 `.deploy/platform/edge/dnsmasq/files/hosts`, and every `./files/...` bind mount in the
 generated compose keeps working unchanged.
 
-src/ holds stacks and nothing else. Repo infrastructure (.jsonnet/, komodo/, lefthook.yml,
-docs) lives outside it and is never copied, so this script needs no ignore list.
+src/ holds stacks and nothing else. Repo infrastructure (.mise/, .jsonnet/, komodo/,
+lefthook.yml, docs) lives outside it and is never copied, so this script needs no
+ignore list.
 
 The build is destructive and total: .deploy is removed and rebuilt from scratch, so a
 deleted stack or a renamed output leaves nothing behind. That is the whole reason for the
@@ -25,7 +27,10 @@ fragments carry Go-template bytes that must not be reparsed.
 
 Imports resolve by bare name via the -J jpath, so a source at any depth does
 `import 'registry.libsonnet'`. uv resolves PyYAML from the metadata above; the `jsonnet`
-binary and uv itself are pinned in mise.toml (`mise run render`).
+binary and uv itself are pinned in mise.toml.
+
+This file lives in .mise/tasks/, so mise discovers it as the `render` task (extension stripped) with no
+declaration in mise.toml — `mise run render` and `./.mise/tasks/render.py` are the same thing.
 """
 
 import json
@@ -36,11 +41,11 @@ from pathlib import Path
 
 import yaml
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[2]
 SRC = ROOT / "src"
 LIB = ROOT / ".jsonnet" / "lib"
 DEPLOY = ROOT / ".deploy"
-HEADER = "# GENERATED from {src} by .jsonnet/render.py — DO NOT EDIT.\n"
+HEADER = "# GENERATED from {src} by .mise/tasks/render.py — DO NOT EDIT.\n"
 
 # src/ holds stacks and nothing else, so there is no repo infrastructure to filter out:
 # everything in there is either an entrypoint or an asset. A .libsonnet is neither — it

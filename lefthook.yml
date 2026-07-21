@@ -1,8 +1,6 @@
 pre-commit:
-  # bash (not the default sh/dash) so `set -e` aborts the commit on a render failure.
-  shell: bash
   jobs:
-    # render.py is a total rebuild of .deploy/, not a per-file render, so there is no
+    # .mise/tasks/render.py is a total rebuild of .deploy/, not a per-file render, so there is no
     # glob and no incremental/full split: one job covers a .jsonnet edit, a
     # registry.libsonnet edit that reaches every stack, and a plain asset edit
     # (files/entrypoint.sh, periphery.env, …) that is copied into .deploy just like a
@@ -10,7 +8,11 @@ pre-commit:
     # is ~0.5s for all 39 entrypoints, so running it unconditionally is cheaper than
     # deciding when to skip it.
     - name: build-deploy-tree
+      # `run` is executed by /bin/sh, which is dash on most Linux distros — POSIX only, so
+      # no `pipefail` here (dash exits 2 on it and would abort every commit). Nothing below
+      # is a pipeline anyway; plain `set -e` is what makes a render failure stop the commit
+      # before `git add` runs.
       run: |
-        set -eo pipefail
+        set -e
         mise run render
         git add -A -- .deploy

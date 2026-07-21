@@ -12,18 +12,18 @@ Self-hosted homelab monorepo. Each leaf directory is a **stack** authored in jso
 
 You edit stacks in `src/`. `.deploy/` is a build artifact — it mirrors the *contents* of `src/`, so `src/apps/business/n8n` builds to `.deploy/apps/business/n8n` — and is wiped and rebuilt from scratch on every commit. **Never edit anything under `.deploy/`; it will not survive the next commit.** It is committed to git because Komodo clones this repo on the target host and deploys out of it.
 
-Everything that is not a stack stays out of `src/`: `.jsonnet/` (libs + builder), `komodo-config-sync.toml`, `lefthook.yml`, `mise.toml`, docs. That is what lets the builder have no ignore list — anything in `src/` is either a jsonnet entrypoint or an asset to copy.
+Everything that is not a stack stays out of `src/`: `.mise/` (the builder), `.jsonnet/` (the jsonnet libs), `komodo-config-sync.toml`, `lefthook.yml`, `mise.toml`, docs. That is what lets the builder have no ignore list — anything in `src/` is either a jsonnet entrypoint or an asset to copy.
 
 ## Toolchain (mise)
 
-`mise.toml` pins the four tools the build needs: `go-jsonnet` (the `jsonnet` binary the builder shells out to), `uv` (the builder's runtime), `lefthook`, and `python`. On a fresh clone run **`./bootstrap.sh`** — it trusts `mise.toml` (mise requires this per-machine before it will act on a config) and runs `mise install`, whose postinstall hook runs `lefthook install` to wire up the git hooks. `mise run render` is the render task lefthook itself invokes.
+`mise.toml` pins the four tools the build needs: `go-jsonnet` (the `jsonnet` binary the builder shells out to), `uv` (the builder's runtime), `lefthook`, and `python`. On a fresh clone run **`./bootstrap.sh`** — it trusts `mise.toml` (mise requires this per-machine before it will act on a config) and runs `mise install`, whose postinstall hook runs `lefthook install` to wire up the git hooks. `mise run render` is the render task lefthook itself invokes; it is **not declared in `mise.toml`** — mise discovers executables under `.mise/tasks/` by filename (extension stripped), so the file `.mise/tasks/render.py` *is* the `render` task.
 
 ## Render pipeline (exact commands)
 
-`.jsonnet/render.py` is the builder (a `uv run` self-contained script; the `jsonnet` binary comes from mise). It takes **no arguments** and always rebuilds everything — ~0.5s for all 39 entrypoints:
+`.mise/tasks/render.py` is the builder (a `uv run` self-contained script; the `jsonnet` binary comes from mise). It takes **no arguments** and always rebuilds everything — ~0.5s for all 39 entrypoints:
 
 ```
-mise run render     # or ./.jsonnet/render.py directly
+mise run render     # or ./.mise/tasks/render.py directly
 ```
 
 It (1) removes `.deploy/`, (2) copies every non-jsonnet file in `src/` to its mirrored path, (3) runs `jsonnet -J .jsonnet/lib` on each `.jsonnet` and writes its outputs into that entrypoint's own mirrored directory. So `src/platform/edge/dnsmasq/files/hosts.jsonnet` → `.deploy/platform/edge/dnsmasq/files/hosts`, and every `./files/…` bind mount in the generated compose keeps working unchanged. An entrypoint must evaluate to `{'<bare-filename>': content, …}`; dict content renders to YAML, string content is written verbatim (Infisical fragments carry Go-template bytes that must not be reparsed).
@@ -74,6 +74,7 @@ All Komodo resources — stacks, servers, variables, procedures — are declared
 ## Top-level org
 
 - `src/` — every stack. `apps/` (user-facing: `business/`, `media/`, `personal/`), `platform/` (infra: `edge/`, `container-manager/`, `secrets-manager/`, `backup-manager/`, `grist/`), `databases/` (`postgres/`), `tools/` (`devops/`, `komodo-mcp/`, `termix/`), and `.template/` — the canonical stack template + authoring guide. (`src/template/` and `src/apps/business/templates/` are separate scaffolding/reference stacks.)
-- `.jsonnet/` — `lib/` (`registry.libsonnet`, `compose.libsonnet`) and `render.py`.
+- `.mise/tasks/render.py` — the builder, auto-discovered by mise as the `render` task.
+- `.jsonnet/lib/` — `registry.libsonnet`, `compose.libsonnet`.
 - `komodo-config-sync.toml` — the Komodo resource-sync file.
 - `.deploy/` — build output. Generated; never edit.

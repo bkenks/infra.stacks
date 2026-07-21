@@ -1,4 +1,4 @@
-# GENERATED from configs.jsonnet by .jsonnet/render.py — DO NOT EDIT.
+# GENERATED from configs.jsonnet by .mise/tasks/render.py — DO NOT EDIT.
 http:
   middlewares:
     badger:
