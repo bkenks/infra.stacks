@@ -24,8 +24,8 @@ Dict content is dumped as YAML; string content is written verbatim, since the In
 fragments carry Go-template bytes that must not be reparsed.
 
 Imports resolve by bare name via the -J jpath, so a source at any depth does
-`import 'registry.libsonnet'`. uv resolves PyYAML from the metadata above; the only
-ambient requirement is `jsonnet` on PATH.
+`import 'registry.libsonnet'`. uv resolves PyYAML from the metadata above; the `jsonnet`
+binary and uv itself are pinned in mise.toml (`mise run render`).
 """
 
 import json

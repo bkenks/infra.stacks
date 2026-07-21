@@ -12,19 +12,23 @@ Self-hosted homelab monorepo. Each leaf directory is a **stack** authored in jso
 
 You edit stacks in `src/`. `.deploy/` is a build artifact — it mirrors the *contents* of `src/`, so `src/apps/business/n8n` builds to `.deploy/apps/business/n8n` — and is wiped and rebuilt from scratch on every commit. **Never edit anything under `.deploy/`; it will not survive the next commit.** It is committed to git because Komodo clones this repo on the target host and deploys out of it.
 
-Everything that is not a stack stays out of `src/`: `.jsonnet/` (libs + builder), `komodo/` (the resource-sync TOML), `lefthook.yml`, docs. That is what lets the builder have no ignore list — anything in `src/` is either a jsonnet entrypoint or an asset to copy.
+Everything that is not a stack stays out of `src/`: `.jsonnet/` (libs + builder), `komodo-config-sync.toml`, `lefthook.yml`, `mise.toml`, docs. That is what lets the builder have no ignore list — anything in `src/` is either a jsonnet entrypoint or an asset to copy.
+
+## Toolchain (mise)
+
+`mise.toml` pins the four tools the build needs: `go-jsonnet` (the `jsonnet` binary the builder shells out to), `uv` (the builder's runtime), `lefthook`, and `python`. On a fresh clone, `mise install` installs them and its postinstall hook runs `lefthook install` to wire up the git hooks — one command onboards. `mise run render` is the render task lefthook itself invokes.
 
 ## Render pipeline (exact commands)
 
-`.jsonnet/render.py` is the builder (a `uv run` self-contained script; needs `jsonnet` on PATH). It takes **no arguments** and always rebuilds everything — ~0.5s for all 39 entrypoints:
+`.jsonnet/render.py` is the builder (a `uv run` self-contained script; the `jsonnet` binary comes from mise). It takes **no arguments** and always rebuilds everything — ~0.5s for all 39 entrypoints:
 
 ```
-./.jsonnet/render.py
+mise run render     # or ./.jsonnet/render.py directly
 ```
 
 It (1) removes `.deploy/`, (2) copies every non-jsonnet file in `src/` to its mirrored path, (3) runs `jsonnet -J .jsonnet/lib` on each `.jsonnet` and writes its outputs into that entrypoint's own mirrored directory. So `src/platform/edge/dnsmasq/files/hosts.jsonnet` → `.deploy/platform/edge/dnsmasq/files/hosts`, and every `./files/…` bind mount in the generated compose keeps working unchanged. An entrypoint must evaluate to `{'<bare-filename>': content, …}`; dict content renders to YAML, string content is written verbatim (Infisical fragments carry Go-template bytes that must not be reparsed).
 
-Normally you don't call it directly — **`lefthook.yml` runs it on every pre-commit** and `git add -A -- .deploy`. There is no glob and no incremental mode: a rebuild is total, so a deleted stack, a renamed output, a `registry.libsonnet` edit reaching every stack, and a plain asset edit are all handled by the same single job.
+Normally you don't call it directly — **`lefthook.yml` runs `mise run render` on every pre-commit** and `git add -A -- .deploy`. There is no glob and no incremental mode: a rebuild is total, so a deleted stack, a renamed output, a `registry.libsonnet` edit reaching every stack, and a plain asset edit are all handled by the same single job.
 
 Only `*.libsonnet` (imported, never copied) and `.DS_Store` are skipped. Everything else in `src/` — including per-stack `README.md` and `tests/` — is copied verbatim, so a stack's `tests/render_compose.sh` runs unchanged from its `.deploy/` counterpart.
 
