@@ -63,7 +63,7 @@ Self-hosted Infisical is the store; the **infisical-agent** runs on every host a
 
 ## Deployment (Komodo)
 
-All Komodo resources — stacks, servers, variables, procedures — are declared in one authoritative resource-sync file: `komodo/komodo-config-sync.toml` (`managed = true`). It lives outside `src/` because Komodo commits back to it, and a build artifact must never be a write target. Each stack sets `linked_repo = "infra.stacks"` + `run_directory` + `server`; Komodo clones the repo on the target host and runs `docker compose` there. **`run_directory` points into the build tree** — `./.deploy/platform/edge/dnsmasq`, not `./platform/edge/dnsmasq`. The same stack dir is deployed to many hosts as separate entries.
+All Komodo resources — stacks, servers, variables, procedures — are declared in one authoritative resource-sync file: `komodo-config-sync.toml` at the repo root (`managed = true`). It lives outside `src/` because Komodo commits back to it, and a build artifact must never be a write target. Each stack sets `linked_repo = "infra.stacks"` + `run_directory` + `server`; Komodo clones the repo on the target host and runs `docker compose` there. **`run_directory` points into the build tree** — `./.deploy/platform/edge/dnsmasq`, not `./platform/edge/dnsmasq`. The same stack dir is deployed to many hosts as separate entries.
 
 **"[Komodo] Commit Sync" commits are Komodo writing UI-side changes back into that TOML** — the sync is bidirectional, so the TOML stays canonical.
 
@@ -71,5 +71,5 @@ All Komodo resources — stacks, servers, variables, procedures — are declared
 
 - `src/` — every stack. `apps/` (user-facing: `business/`, `media/`, `personal/`), `platform/` (infra: `edge/`, `container-manager/`, `secrets-manager/`, `backup-manager/`, `grist/`), `databases/` (`postgres/`), `tools/` (`devops/`, `komodo-mcp/`, `termix/`), and `.template/` — the canonical stack template + authoring guide. (`src/template/` and `src/apps/business/templates/` are separate scaffolding/reference stacks.)
 - `.jsonnet/` — `lib/` (`registry.libsonnet`, `compose.libsonnet`) and `render.py`.
-- `komodo/` — the Komodo resource-sync TOML.
+- `komodo-config-sync.toml` — the Komodo resource-sync file.
 - `.deploy/` — build output. Generated; never edit.

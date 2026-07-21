@@ -908,7 +908,7 @@ name = "Global TOML Sync"
 linked_repo = "infra.stacks"
 webhook_enabled = false
 resource_path = [
-  "./komodo/komodo-config-sync.toml"
+  "./komodo-config-sync.toml"
 ]
 managed = true
 include_variables = true

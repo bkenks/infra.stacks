@@ -17,7 +17,7 @@ from silently rotting when a lib changes under it.
    others below).
 4. Register secrets (see [Secrets](#secrets)), then deploy via Komodo. Never `docker
    compose` a stack by hand.
-5. Add a `[[stack]]` entry to `komodo/komodo-config-sync.toml` with
+5. Add a `[[stack]]` entry to `komodo-config-sync.toml` with
    `run_directory = "./.deploy/<area>/<stack>"` — note the `.deploy/` prefix and that
    there is no `src/` in it: `.deploy` mirrors the *contents* of `src/`.
 
