@@ -12,5 +12,5 @@ pre-commit:
     - name: build-deploy-tree
       run: |
         set -eo pipefail
-        .jsonnet/render.py
+        mise run render
         git add -A -- .deploy
