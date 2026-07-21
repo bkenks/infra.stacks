@@ -23,7 +23,7 @@ QUIRK: the Infisical template engine has no env access, so host-scoped paths (e.
 
 1. Add one entry to `agentServices` in `.jsonnet/lib/registry.libsonnet` (`project`, `folder`, `dest`, `type`; plus `keys` for `map` or `key` for `raw`).
 2. `type=dump` if Infisical secret names already match the consumer's env vars, else `map` or `raw`.
-3. Commit — pre-commit re-renders `templates/<svc>.yaml` (or run `.jsonnet/render.py platform/secrets-manager/infisical-agent/templates/services.jsonnet`).
+3. Commit — pre-commit rebuilds `.deploy/`, including `templates/<svc>.yaml` (or run `./.jsonnet/render.py`).
 4. Store the secrets in Infisical under the entry's folder; scope the consuming host's machine identity to read it.
 5. Append the service name to that host's `AGENT_SERVICES`.
 

@@ -8,30 +8,32 @@ Self-hosted homelab monorepo. Each leaf directory is a **stack** authored in jso
 
 ## The one rule that dominates everything
 
-**The source tree holds no generated files. `.deploy/` holds nothing but generated files.**
+**`src/` holds every stack and nothing else. `.deploy/` holds nothing but build output.**
 
-You edit `.jsonnet`/`.libsonnet` and hand-written assets in the source tree. `.deploy/` is a build artifact — mirroring the source tree path-for-path — and is wiped and rebuilt from scratch on every commit. **Never edit anything under `.deploy/`; it will not survive the next commit.** It is committed to git because Komodo clones this repo on the target host and deploys out of it.
+You edit stacks in `src/`. `.deploy/` is a build artifact — it mirrors the *contents* of `src/`, so `src/apps/business/n8n` builds to `.deploy/apps/business/n8n` — and is wiped and rebuilt from scratch on every commit. **Never edit anything under `.deploy/`; it will not survive the next commit.** It is committed to git because Komodo clones this repo on the target host and deploys out of it.
+
+Everything that is not a stack stays out of `src/`: `.jsonnet/` (libs + builder), `komodo/` (the resource-sync TOML), `lefthook.yml`, docs. That is what lets the builder have no ignore list — anything in `src/` is either a jsonnet entrypoint or an asset to copy.
 
 ## Render pipeline (exact commands)
 
-`.jsonnet/render.py` is the builder (a `uv run` self-contained script; needs `jsonnet` on PATH). It takes **no arguments** and always rebuilds the whole repo — ~0.5s for all 39 entrypoints:
+`.jsonnet/render.py` is the builder (a `uv run` self-contained script; needs `jsonnet` on PATH). It takes **no arguments** and always rebuilds everything — ~0.5s for all 39 entrypoints:
 
 ```
 ./.jsonnet/render.py
 ```
 
-It (1) removes `.deploy/`, (2) copies every non-jsonnet file to its mirrored path, (3) runs `jsonnet -J .jsonnet/lib` on each `.jsonnet` and writes its outputs into that entrypoint's own mirrored directory. So `platform/edge/dnsmasq/files/hosts.jsonnet` → `.deploy/platform/edge/dnsmasq/files/hosts`, and every `./files/…` bind mount in the generated compose keeps working unchanged. An entrypoint must evaluate to `{'<bare-filename>': content, …}`; dict content renders to YAML, string content is written verbatim (Infisical fragments carry Go-template bytes that must not be reparsed).
+It (1) removes `.deploy/`, (2) copies every non-jsonnet file in `src/` to its mirrored path, (3) runs `jsonnet -J .jsonnet/lib` on each `.jsonnet` and writes its outputs into that entrypoint's own mirrored directory. So `src/platform/edge/dnsmasq/files/hosts.jsonnet` → `.deploy/platform/edge/dnsmasq/files/hosts`, and every `./files/…` bind mount in the generated compose keeps working unchanged. An entrypoint must evaluate to `{'<bare-filename>': content, …}`; dict content renders to YAML, string content is written verbatim (Infisical fragments carry Go-template bytes that must not be reparsed).
 
 Normally you don't call it directly — **`lefthook.yml` runs it on every pre-commit** and `git add -A -- .deploy`. There is no glob and no incremental mode: a rebuild is total, so a deleted stack, a renamed output, a `registry.libsonnet` edit reaching every stack, and a plain asset edit are all handled by the same single job.
 
-Repo infrastructure is not copied into `.deploy/`: `.git`, `.claude`, `.config`, `.github`, `.vscode`, plus `README.md`, `CLAUDE.md`, `lefthook.yml`, `.gitignore` and `render.py` itself. `.jsonnet/` is deliberately *not* excluded — rendering `.jsonnet/templates/` on every build is what keeps the authoring template from silently rotting.
+Only `*.libsonnet` (imported, never copied) and `.DS_Store` are skipped. Everything else in `src/` — including per-stack `README.md` and `tests/` — is copied verbatim, so a stack's `tests/render_compose.sh` runs unchanged from its `.deploy/` counterpart.
 
 ## The jsonnet libs (`.jsonnet/lib/`, imported by bare name via the `-J` jpath)
 
 - **`registry.libsonnet`** — source of truth for anything crossing stack boundaries. **Reference by KEY, never by string literal**: `reg.endpoints.postgres.host` fails at compile time on a typo; `'host.docker.internal:6109'` fails silently at runtime. Holds: `server.hosts` (the host inventory, keyed by short name, `ip` = Tailscale addr — feeds dnsmasq and the Komodo server list), `domains`, `roles`, `endpoints`, and `infisical.catalogue` (every renderable secret bundle, with derived `.path` under `/dev/shm`).
 - **`compose.libsonnet`** — helpers: `stack(name)` (name/container/volume prefixing, `komodoSkip` label, private network), `publish(hostPort, containerPort, bindIp=127.0.0.1)`, `url(endpoint)`, and **`render(name, manifest, envFiles=[])`** — the contract every `compose.jsonnet` ends with. It emits `compose.yaml` (project name + `include:` of the manifest, `env_file:` only when secrets exist) and `compose.stack.yaml` (the real `services`/`networks`/`volumes`).
 
-**Authoring guide with worked examples lives at `.jsonnet/templates/README.md`** — read it before writing a new stack. `.jsonnet/templates/` is the canonical copy-me stack.
+**Authoring guide with worked examples lives at `src/.template/README.md`** — read it before writing a new stack. `src/.template/` is the canonical copy-me stack; it is a real compiling stack, so a lib change that breaks it fails the build.
 
 ## Stack directory convention
 
@@ -61,14 +63,13 @@ Self-hosted Infisical is the store; the **infisical-agent** runs on every host a
 
 ## Deployment (Komodo)
 
-All Komodo resources — stacks, servers, variables, procedures — are declared in one authoritative resource-sync file: `platform/container-manager/komodo/files/komodo-config-sync.toml` (`managed = true`). Each stack sets `linked_repo = "infra.stacks"` + `run_directory` + `server`; Komodo clones the repo on the target host and runs `docker compose` there. **`run_directory` points into the build tree** — `./.deploy/platform/edge/dnsmasq`, not `./platform/edge/dnsmasq`. The same stack dir is deployed to many hosts as separate entries.
+All Komodo resources — stacks, servers, variables, procedures — are declared in one authoritative resource-sync file: `komodo/komodo-config-sync.toml` (`managed = true`). It lives outside `src/` because Komodo commits back to it, and a build artifact must never be a write target. Each stack sets `linked_repo = "infra.stacks"` + `run_directory` + `server`; Komodo clones the repo on the target host and runs `docker compose` there. **`run_directory` points into the build tree** — `./.deploy/platform/edge/dnsmasq`, not `./platform/edge/dnsmasq`. The same stack dir is deployed to many hosts as separate entries.
 
 **"[Komodo] Commit Sync" commits are Komodo writing UI-side changes back into that TOML** — the sync is bidirectional, so the TOML stays canonical.
 
 ## Top-level org
 
-- `apps/` — user-facing apps: `business/`, `media/`, `personal/`.
-- `platform/` — infra: `edge/` (dnsmasq, cloudflared, newt, pangolin), `container-manager/` (komodo), `secrets-manager/` (infisical), `backup-manager/`, `grist/`.
-- `databases/` — shared data stores (`postgres/`).
-- `tools/` — operator tooling: `devops/` (forgejo, gitea, woodpecker), `komodo-mcp/`, `termix/`.
-- `.jsonnet/templates/` — canonical stack template + authoring guide. (`template/` and `apps/business/templates/` are separate scaffolding/reference stacks.)
+- `src/` — every stack. `apps/` (user-facing: `business/`, `media/`, `personal/`), `platform/` (infra: `edge/`, `container-manager/`, `secrets-manager/`, `backup-manager/`, `grist/`), `databases/` (`postgres/`), `tools/` (`devops/`, `komodo-mcp/`, `termix/`), and `.template/` — the canonical stack template + authoring guide. (`src/template/` and `src/apps/business/templates/` are separate scaffolding/reference stacks.)
+- `.jsonnet/` — `lib/` (`registry.libsonnet`, `compose.libsonnet`) and `render.py`.
+- `komodo/` — the Komodo resource-sync TOML.
+- `.deploy/` — build output. Generated; never edit.

@@ -3,13 +3,13 @@
 Standard reference for authoring a docker-compose stack in jsonnet. `compose.jsonnet`
 here is a real, compiling stack (app + dedicated Postgres, with secrets) — copy it,
 don't start from scratch. Its generated output lands at
-`.deploy/.jsonnet/templates/{compose.yaml,compose.stack.yaml}`, so you can see
+`.deploy/.template/{compose.yaml,compose.stack.yaml}`, so you can see
 input → output. It is rebuilt on every commit, which is also what stops this template
 from silently rotting when a lib changes under it.
 
 ## Scaffold a new stack
 
-1. Copy `compose.jsonnet` to `<area>/<stack>/compose.jsonnet` — `area` is `apps/<group>`,
+1. Copy `compose.jsonnet` to `src/<area>/<stack>/compose.jsonnet` — `area` is `apps/<group>`,
    `platform/<group>`, or `tools/<group>`.
 2. Rename the `stack` local. It is the compose project name and the prefix of every
    `n.container(role)` / `n.volume(role)`.
@@ -17,9 +17,9 @@ from silently rotting when a lib changes under it.
    others below).
 4. Register secrets (see [Secrets](#secrets)), then deploy via Komodo. Never `docker
    compose` a stack by hand.
-
-5. Add a `[[stack]]` entry to `komodo-config-sync.toml` with
-   `run_directory = "./.deploy/<area>/<stack>"` — note the `.deploy/` prefix.
+5. Add a `[[stack]]` entry to `komodo/komodo-config-sync.toml` with
+   `run_directory = "./.deploy/<area>/<stack>"` — note the `.deploy/` prefix and that
+   there is no `src/` in it: `.deploy` mirrors the *contents* of `src/`.
 
 Committing rebuilds `.deploy/` automatically (lefthook → `render.py`). Never edit anything
 under `.deploy/` — the whole tree is wiped and rebuilt on the next commit.

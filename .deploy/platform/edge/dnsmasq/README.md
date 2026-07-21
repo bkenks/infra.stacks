@@ -12,7 +12,7 @@ Central static DNS + emergency-fallback resolver for a single host's containers.
 
 ## Update DNS without redeploying
 1. Edit `server.hosts` in `.jsonnet/lib/registry.libsonnet` (add/rename/re-IP a host). For a one-off entry not tied to the inventory, add it to the `extra` list in `files/hosts.jsonnet`.
-2. Re-render: `./.jsonnet/render.py platform/edge/dnsmasq/files/hosts.jsonnet` (or just commit — lefthook re-renders on any lib change).
+2. Re-render: `./.jsonnet/render.py` (or just commit — lefthook rebuilds `.deploy/` on every commit).
 3. Get the new `files/hosts` onto the host and `docker kill -s HUP dnsmasq_app` — dnsmasq re-reads the file; every container sees the change on its next lookup. No downstream redeploy.
 
 These records are authoritative (they win over upstream) and resolve even when upstream DNS is down — this is the emergency fallback. Put only names you want permanently pinned here, since a static entry overrides the real DNS answer at all times, not just during an outage.

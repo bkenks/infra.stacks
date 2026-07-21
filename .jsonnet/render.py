@@ -3,13 +3,16 @@
 # requires-python = ">=3.11"
 # dependencies = ["PyYAML>=6"]
 # ///
-"""Build the whole repo into .deploy/ — the tree Komodo actually deploys from.
+"""Build src/ into .deploy/ — the tree Komodo actually deploys from.
 
-.deploy mirrors the source tree path-for-path. Every non-jsonnet file is copied to the
-same relative path, then each .jsonnet entrypoint renders its outputs alongside its own
-mirrored directory. So `platform/edge/dnsmasq/files/hosts.jsonnet` produces
+.deploy mirrors the *contents* of src/, path-for-path. Every non-jsonnet file is copied to
+the same relative path, then each .jsonnet entrypoint renders its outputs alongside its
+own mirrored directory. So `src/platform/edge/dnsmasq/files/hosts.jsonnet` produces
 `.deploy/platform/edge/dnsmasq/files/hosts`, and every `./files/...` bind mount in the
 generated compose keeps working unchanged.
+
+src/ holds stacks and nothing else. Repo infrastructure (.jsonnet/, komodo/, lefthook.yml,
+docs) lives outside it and is never copied, so this script needs no ignore list.
 
 The build is destructive and total: .deploy is removed and rebuilt from scratch, so a
 deleted stack or a renamed output leaves nothing behind. That is the whole reason for the
@@ -34,18 +37,15 @@ from pathlib import Path
 import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
+SRC = ROOT / "src"
 LIB = ROOT / ".jsonnet" / "lib"
 DEPLOY = ROOT / ".deploy"
 HEADER = "# GENERATED from {src} by .jsonnet/render.py — DO NOT EDIT.\n"
 
-# Repo infrastructure: versioned here, but not part of what gets deployed. .jsonnet/ is
-# NOT pruned — its templates/ holds a real compiling stack, and rendering it on every
-# build is what keeps the authoring template from silently rotting.
-PRUNE_DIRS = {
-    ".git", ".claude", ".config", ".deploy", ".github", ".scripts", ".vscode", "__pycache__",
-}
-SKIP_NAMES = {".DS_Store", "CLAUDE.md", "README.md", "lefthook.yml", ".gitignore", "render.py"}
-# A .libsonnet is neither an entrypoint nor an asset — it is only ever imported.
+# src/ holds stacks and nothing else, so there is no repo infrastructure to filter out:
+# everything in there is either an entrypoint or an asset. A .libsonnet is neither — it
+# lives in .jsonnet/lib and is only ever imported.
+SKIP_NAMES = {".DS_Store"}
 SKIP_SUFFIXES = {".libsonnet"}
 
 
@@ -55,24 +55,20 @@ def die(msg: str) -> "None":
 
 
 def sources() -> "list[Path]":
-    # Everything under ROOT that survives the prune, as paths relative to ROOT.
-    found = []
-    stack = [ROOT]
-    while stack:
-        for entry in sorted(stack.pop().iterdir()):
-            if entry.is_dir():
-                if entry.name not in PRUNE_DIRS:
-                    stack.append(entry)
-            elif entry.name not in SKIP_NAMES and entry.suffix not in SKIP_SUFFIXES:
-                found.append(entry.relative_to(ROOT))
-    return sorted(found)
+    # Every file under src/, as paths relative to src/ — .deploy mirrors src/'s contents,
+    # not src/ itself, so src/apps/x lands at .deploy/apps/x.
+    return sorted(
+        p.relative_to(SRC)
+        for p in SRC.rglob("*")
+        if p.is_file() and p.name not in SKIP_NAMES and p.suffix not in SKIP_SUFFIXES
+    )
 
 
 def run_jsonnet(src: Path) -> "dict":
     # stderr inherits, so jsonnet's own message keeps its line numbers. The non-zero exit
     # propagates: that is what makes lefthook's `set -e` abort the commit.
     proc = subprocess.run(
-        ["jsonnet", "-J", str(LIB), str(ROOT / src)], stdout=subprocess.PIPE, text=True
+        ["jsonnet", "-J", str(LIB), str(SRC / src)], stdout=subprocess.PIPE, text=True
     )
     if proc.returncode != 0:
         raise SystemExit(proc.returncode)
@@ -101,7 +97,7 @@ def main() -> "None":
     for rel in sources():
         (entrypoints if rel.suffix == ".jsonnet" else assets).append(rel)
     if not entrypoints:
-        die("no .jsonnet entrypoints found — is this the repo root?")
+        die(f"no .jsonnet entrypoints under {SRC}")
 
     # Rendered up front, so a jsonnet or YAML failure cannot leave a half-built tree
     # standing where the previous good one used to be.
@@ -115,7 +111,7 @@ def main() -> "None":
     for rel in assets:
         dest = DEPLOY / rel
         dest.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(ROOT / rel, dest)
+        shutil.copy2(SRC / rel, dest)
     for path, text in sorted(rendered.items()):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text)
