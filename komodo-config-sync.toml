@@ -435,7 +435,7 @@ extra_args = ["--remove-orphans"]
 environment = """
   # VARIABLE = value
 HTTP_SCHEME = 'http'
-KOMODO_FQDN = 'controlplane.ktbinternal.com:9120'
+KOMODO_FQDN = 'controlplane.srv:9120'
 """
 
 ##
@@ -998,7 +998,7 @@ is_secret = false
 
 [[variable]]
 name = "INFSCL_URL"
-value = "'http://controlplane.ktbinternal.com:18006'"
+value = "'http://controlplane.srv:18006'"
 is_secret = false
 
 ##
