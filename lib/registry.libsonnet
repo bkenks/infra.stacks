@@ -88,11 +88,13 @@
   hostFacts:: '/srv/docker/files/tailscale.env',
 
   # Every host on the network, keyed by short name. `ip` is the Tailscale address — the
-  # controller's contract, it routes over the tailnet. `lan`/`public` are additional
-  # addresses served for DNS; `dns` overrides the key when the DNS name differs from it;
-  # `aka` are extra aliases; `edge: true` marks hosts running Traefik that the controller
-  # builds a re-encrypt backend for. dnsmasq (platform/edge/dnsmasq) renders its hosts
-  # file from this map, so a host add/rename/re-IP flows to LAN DNS on re-render.
+  # controller's contract, it routes over the tailnet. `lan`/`public` are the on-network
+  # address (LAN for cluster hosts, public IP for VPS). dnsmasq (platform/edge/dnsmasq)
+  # renders each address under its own name — `<host>.tail.srv` (`ip`) and
+  # `<host>.direct.srv` (`lan`/`public`) — so every name maps to exactly one IP. `dns`
+  # overrides the key when the DNS name differs from it; `aka` are extra aliases;
+  # `edge: true` marks hosts running Traefik that the controller builds a re-encrypt
+  # backend for. A host add/rename/re-IP flows to DNS on re-render.
   hosts:: {
     # ── Main cluster (LAN 192.168.30.x + Tailscale) ──
     snaszy: { ip: '100.91.182.94', lan: '192.168.30.20', aka: ['nas'] },

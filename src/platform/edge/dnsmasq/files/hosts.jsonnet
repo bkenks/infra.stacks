@@ -1,35 +1,43 @@
 // Renders files/hosts from registry.libsonnet's `hosts` — the single source of truth
-// for every host's name(s) → IP(s). Each host emits one line per address; addresses are
-// ordered LAN-first (Tailscale as fallback) or, for VPS hosts, Tailscale-first (public as
-// fallback), so a name still resolves if the preferred path is down. dnsmasq serves these
-// via addn-hosts; once the file reaches the host, SIGHUP the container to reload — no redeploy.
+// for every host's name(s) → IP(s). Each address gets its OWN hostname so every name
+// maps to exactly one IP (no multi-A round-robin): `<host>.tail.srv` for the Tailscale
+// address, `<host>.direct.srv` for the on-network address (LAN for cluster hosts, the
+// public IP for VPS hosts). A consumer picks its path by choosing the name. dnsmasq
+// serves these via addn-hosts; once the file reaches the host, SIGHUP the container to
+// reload — no redeploy.
 local reg = import 'lib/registry.libsonnet';
 
 local hosts = reg.hosts;
 
-// Address order per host: LAN before Tailscale; Tailscale before public (VPS). The preferred
-// address is emitted first so clients try it first, with the other(s) as fallback.
-local addrs(h) =
-  (if std.objectHas(h, 'lan') then [h.lan] else [])
-  + [h.ip]
-  + (if std.objectHas(h, 'public') then [h.public] else []);
-
-// Names for a host: every name is a <name>.ktbinternal.com FQDN — the base name plus any
-// aliases, each suffixed with the internal domain. `dns` overrides the registry key when the
-// DNS name differs from it (e.g. paiki → plexyandiknowit); `aka` supplies extra aliases
-// (e.g. littlebuddy → controlplane.ktbinternal.com).
 local domain = 'srv';
-local names(key, h) =
+
+// Base short names for a host: the DNS name (the registry key, or the `dns` override
+// when the DNS name differs from it — e.g. paiki → plexyandiknowit) plus any `aka`
+// aliases (e.g. littlebuddy → controlplane). Each is emitted under both path suffixes.
+local shortNames(key, h) =
   local base = if std.objectHas(h, 'dns') then h.dns else key;
-  local shortNames = [base] + (if std.objectHas(h, 'aka') then h.aka else []);
-  [n + '.' + domain for n in shortNames];
+  [base] + (if std.objectHas(h, 'aka') then h.aka else []);
+
+// The addresses to publish for a host, each with the suffix that names its path:
+// `tail` = the Tailscale IP (always present; the cross-host default), `direct` = the
+// on-network IP (LAN, or the public IP for a VPS). A Tailscale-only host emits no
+// `.direct` record.
+local paths(h) =
+  [{ addr: h.ip, suffix: 'tail' }]
+  + (
+    if std.objectHas(h, 'lan') then [{ addr: h.lan, suffix: 'direct' }]
+    else if std.objectHas(h, 'public') then [{ addr: h.public, suffix: 'direct' }]
+    else []
+  );
 
 local hostBlock(key) =
   local h = hosts[key];
-  local nameStr = std.join(' ', names(key, h));
   std.join('', [
-    '%s\t%s\n' % [ip, nameStr]
-    for ip in addrs(h)
+    '%s\t%s\n' % [
+      p.addr,
+      std.join(' ', [n + '.' + p.suffix + '.' + domain for n in shortNames(key, h)]),
+    ]
+    for p in paths(h)
   ]);
 
 local body = std.join('', [
@@ -40,7 +48,7 @@ local body = std.join('', [
 {
   hosts:
     '# Source: registry.libsonnet hosts — edit there, not here.\n'
-    + '# One line per address: LAN/Tailscale (or Tailscale/public for VPS), preferred first.\n'
+    + '# Two names per host: <host>.tail.srv (Tailscale IP) and <host>.direct.srv (LAN/public IP).\n'
     + body
     + '# Healthcheck sentinel — the container healthcheck resolves this name.\n'
     + '127.0.0.1\thealth.check.dnsmasq\n',
