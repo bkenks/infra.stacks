@@ -1,22 +1,14 @@
 # GENERATED from hosts.jsonnet by .mise/tasks/render.py — DO NOT EDIT.
 # Source: registry.libsonnet hosts — edit there, not here.
-# Two names per host: <host>.tail.srv (Tailscale IP) and <host>.direct.srv (LAN/public IP).
-100.108.59.105	biggy.tail.srv
-192.168.30.23	biggy.direct.srv
-100.79.7.11	bill.tail.srv
-192.168.30.25	bill.direct.srv
-100.113.251.34	homeassistant.tail.srv hass.tail.srv
-192.168.40.20	homeassistant.direct.srv hass.direct.srv
-100.114.137.104	littlebuddy.tail.srv controlplane.tail.srv
-192.168.30.21	littlebuddy.direct.srv controlplane.direct.srv
-100.97.83.95	maboi.tail.srv
-178.156.222.232	maboi.direct.srv
-100.126.19.103	plexyandiknowit.tail.srv plex.tail.srv
-192.168.30.22	plexyandiknowit.direct.srv plex.direct.srv
-100.106.170.93	rick.tail.srv
-64.177.119.246	rick.direct.srv
-100.91.182.94	snaszy.tail.srv nas.tail.srv
-192.168.30.20	snaszy.direct.srv nas.direct.srv
-100.74.131.20	woody.tail.srv
+# One name per host: <host>.srv → that host's WireGuard address.
+100.108.59.105	biggy.srv
+100.79.7.11	bill.srv
+100.113.251.34	homeassistant.srv hass.srv
+100.114.137.104	littlebuddy.srv controlplane.srv
+100.97.83.95	maboi.srv
+100.126.19.103	plexyandiknowit.srv plex.srv
+100.106.170.93	rick.srv
+100.91.182.94	snaszy.srv nas.srv
+100.74.131.20	woody.srv
 # Healthcheck sentinel — the container healthcheck resolves this name.
 127.0.0.1	health.check.dnsmasq

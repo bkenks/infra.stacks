@@ -1,7 +1,7 @@
 [[server]]
 name = "biggy"
 [server.config]
-address = "biggy:8120"
+address = "biggy.srv:8120"
 region = "cincinnati, oh"
 enabled = true
 
@@ -10,7 +10,7 @@ enabled = true
 [[server]]
 name = "bill"
 [server.config]
-address = "bill:8120"
+address = "bill.srv:8120"
 region = "cincinnati, oh"
 enabled = true
 
@@ -30,7 +30,7 @@ enabled = true
 name = "maboi"
 description = "Hetzner VPS CPX11"
 [server.config]
-address = "maboi:8120"
+address = "maboi.srv:8120"
 region = "ashland, va"
 enabled = true
 
@@ -39,7 +39,7 @@ enabled = true
 [[server]]
 name = "paiki"
 [server.config]
-address = "plexyandiknowit:8120"
+address = "plexyandiknowit.srv:8120"
 region = "cincinnati, oh"
 enabled = true
 
@@ -48,7 +48,7 @@ enabled = true
 [[server]]
 name = "rick"
 [server.config]
-address = "rick:8120"
+address = "rick.srv:8120"
 region = "chicago"
 enabled = true
 

@@ -87,27 +87,26 @@
 
   hostFacts:: '/srv/docker/files/tailscale.env',
 
-  # Every host on the network, keyed by short name. `ip` is the Tailscale address — the
-  # controller's contract, it routes over the tailnet. `lan`/`public` are the on-network
-  # address (LAN for cluster hosts, public IP for VPS). dnsmasq (platform/edge/dnsmasq)
-  # renders each address under its own name — `<host>.tail.srv` (`ip`) and
-  # `<host>.direct.srv` (`lan`/`public`) — so every name maps to exactly one IP. `dns`
-  # overrides the key when the DNS name differs from it; `aka` are extra aliases;
-  # `edge: true` marks hosts running Traefik that the controller builds a re-encrypt
-  # backend for. A host add/rename/re-IP flows to DNS on re-render.
+  # Every host on the network, keyed by short name. `ip` is the host's WireGuard address —
+  # the only address there is. Every host reaches every other host over the WireGuard mesh,
+  # so there is no LAN-vs-public split and no second path to choose: one host, one address,
+  # one name. dnsmasq (platform/edge/dnsmasq) renders it as `<host>.srv`. `dns` overrides
+  # the key when the DNS name differs from it; `aka` are extra aliases; `edge: true` marks
+  # hosts running Traefik that the controller builds a re-encrypt backend for. A host
+  # add/rename/re-IP flows to DNS on re-render.
   hosts:: {
-    # ── Main cluster (LAN 192.168.30.x + Tailscale) ──
-    snaszy: { ip: '100.91.182.94', lan: '192.168.30.20', aka: ['nas'] },
-    littlebuddy: { ip: '100.114.137.104', lan: '192.168.30.21', aka: ['controlplane'], edge: true },
-    paiki: { ip: '100.126.19.103', lan: '192.168.30.22', dns: 'plexyandiknowit', aka: ['plex'], edge: true },
-    biggy: { ip: '100.108.59.105', lan: '192.168.30.23' },
-    bill: { ip: '100.79.7.11', lan: '192.168.30.25', edge: true },
+    # ── Main cluster ──
+    snaszy: { ip: '100.91.182.94', aka: ['nas'] },
+    littlebuddy: { ip: '100.114.137.104', aka: ['controlplane'], edge: true },
+    paiki: { ip: '100.126.19.103', dns: 'plexyandiknowit', aka: ['plex'], edge: true },
+    biggy: { ip: '100.108.59.105' },
+    bill: { ip: '100.79.7.11', edge: true },
     # ── Off-cluster infra ──
-    homeassistant: { ip: '100.113.251.34', lan: '192.168.40.20', aka: ['hass'] },
-    # ── VPS (Tailscale + public fallback) ──
-    maboi: { ip: '100.97.83.95', public: '178.156.222.232', edge: true },
-    rick: { ip: '100.106.170.93', public: '64.177.119.246', edge: true },
-    # ── Tailscale only ──
+    homeassistant: { ip: '100.113.251.34', aka: ['hass'] },
+    # ── VPS ──
+    maboi: { ip: '100.97.83.95', edge: true },
+    rick: { ip: '100.106.170.93', edge: true },
+    # ── Other ──
     woody: { ip: '100.74.131.20' },
   },
 
