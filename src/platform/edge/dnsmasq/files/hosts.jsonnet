@@ -7,7 +7,7 @@ local reg = import 'lib/registry.libsonnet';
 
 local hosts = reg.hosts;
 
-local domain = 'srv';
+local domain = reg.srvDomain;
 
 // Every name a host answers to: the DNS name (the registry key, or the `dns` override
 // when the DNS name differs from it — e.g. paiki → plexyandiknowit) plus any `aka`

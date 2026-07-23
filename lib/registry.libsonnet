@@ -85,7 +85,17 @@
     dockerSock:: { mount:: "/var/run/docker.sock:/var/run/docker.sock:ro" },
   },
 
-  hostFacts:: '/srv/docker/files/tailscale.env',
+  # The DNS domain dnsmasq serves the host inventory under. Nothing should spell the
+  # suffix out by hand — reach a host through `hostFqdn(<key>)`.
+  srvDomain:: 'srv',
+
+  # The name a host answers to: its `dns` override when it has one, else its key. A key
+  # that is not in the inventory fails at evaluation rather than resolving to nothing at
+  # runtime — that is the point of going through here instead of writing the name out.
+  hostFqdn(key):: (
+    local h = self.hosts[key];
+    (if std.objectHas(h, 'dns') then h.dns else key) + '.' + self.srvDomain
+  ),
 
   # Every host on the network, keyed by short name. `ip` is the host's WireGuard address —
   # the only address there is. Every host reaches every other host over the WireGuard mesh,
