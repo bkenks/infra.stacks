@@ -103,7 +103,7 @@ lib.render(
 
     // A second network on top of the private default: the 172.28.0.0/24 bridge whose
     // gateway other stacks dial as the host gateway.
-    { default: { name: name } } + reg.networks.hostGateway.create(name),
+    { default: { name: name } },
   ),
 
   [lib.SecretOrBootstrap('infisical')],
