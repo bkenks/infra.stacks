@@ -18,7 +18,7 @@ local addrs(h) =
 // aliases, each suffixed with the internal domain. `dns` overrides the registry key when the
 // DNS name differs from it (e.g. paiki → plexyandiknowit); `aka` supplies extra aliases
 // (e.g. littlebuddy → controlplane.ktbinternal.com).
-local domain = reg.domains.ktbinternal;
+local domain = 'srv';
 local names(key, h) =
   local base = if std.objectHas(h, 'dns') then h.dns else key;
   local shortNames = [base] + (if std.objectHas(h, 'aka') then h.aka else []);
