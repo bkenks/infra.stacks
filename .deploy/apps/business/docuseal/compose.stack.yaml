@@ -24,7 +24,7 @@ services:
     - 127.0.0.1:18002:3000
     restart: on-failure:5
     volumes:
-    - docuseal_app:/data/docuseal
+    - app:/data/docuseal
 volumes:
-  docuseal_app:
+  app:
     name: docuseal_app

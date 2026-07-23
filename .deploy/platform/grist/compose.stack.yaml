@@ -30,7 +30,7 @@ services:
     - 127.0.0.1:18017:8484
     restart: on-failure:5
     volumes:
-    - grist_app:/persist
+    - app:/persist
 volumes:
-  grist_app:
+  app:
     name: grist_app

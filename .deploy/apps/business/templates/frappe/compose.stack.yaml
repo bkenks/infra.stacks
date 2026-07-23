@@ -23,7 +23,7 @@ services:
     pull_policy: always
     restart: on-failure:5
     volumes:
-    - frappe_sites:/home/frappe/frappe-bench/sites
+    - sites:/home/frappe/frappe-bench/sites
   configurator:
     command:
     - ls -1 apps > sites/apps.txt; bench set-config -g db_host $$DB_HOST; bench set-config -gp db_port $$DB_PORT; bench set-config -g redis_cache "redis://$$REDIS_CACHE"; bench set-config -g redis_queue "redis://$$REDIS_QUEUE"; bench set-config -g redis_socketio "redis://$$REDIS_QUEUE"; bench set-config -gp socketio_port $$SOCKETIO_PORT;
@@ -53,7 +53,7 @@ services:
     pull_policy: always
     restart: on-failure:5
     volumes:
-    - frappe_sites:/home/frappe/frappe-bench/sites
+    - sites:/home/frappe/frappe-bench/sites
   db:
     command:
     - --character-set-server=utf8mb4
@@ -82,7 +82,7 @@ services:
         - frappe_db
     restart: on-failure:5
     volumes:
-    - frappe_db:/var/lib/mysql
+    - db:/var/lib/mysql
   frontend:
     command:
     - nginx-entrypoint.sh
@@ -112,7 +112,7 @@ services:
     pull_policy: always
     restart: on-failure:5
     volumes:
-    - frappe_sites:/home/frappe/frappe-bench/sites
+    - sites:/home/frappe/frappe-bench/sites
   queue-long:
     command:
     - bench
@@ -132,7 +132,7 @@ services:
     pull_policy: always
     restart: on-failure:5
     volumes:
-    - frappe_sites:/home/frappe/frappe-bench/sites
+    - sites:/home/frappe/frappe-bench/sites
   queue-short:
     command:
     - bench
@@ -152,7 +152,7 @@ services:
     pull_policy: always
     restart: on-failure:5
     volumes:
-    - frappe_sites:/home/frappe/frappe-bench/sites
+    - sites:/home/frappe/frappe-bench/sites
   redis-cache:
     container_name: frappe_redis-cache
     expose:
@@ -174,7 +174,7 @@ services:
         - frappe_redis-queue
     restart: on-failure:5
     volumes:
-    - frappe_redis-queue:/data
+    - redis-queue:/data
   scheduler:
     command:
     - bench
@@ -192,7 +192,7 @@ services:
     pull_policy: always
     restart: on-failure:5
     volumes:
-    - frappe_sites:/home/frappe/frappe-bench/sites
+    - sites:/home/frappe/frappe-bench/sites
   websocket:
     command:
     - node
@@ -210,11 +210,11 @@ services:
     pull_policy: always
     restart: on-failure:5
     volumes:
-    - frappe_sites:/home/frappe/frappe-bench/sites
+    - sites:/home/frappe/frappe-bench/sites
 volumes:
-  frappe_db:
+  db:
     name: frappe_db
-  frappe_redis-queue:
+  redis-queue:
     name: frappe_redis-queue
-  frappe_sites:
+  sites:
     name: frappe_sites

@@ -1,33 +1,33 @@
 // Compiles to compose.yaml and compose.stack.yaml — do not edit the YAML.
-local c = import 'lib/compose.libsonnet';
-local reg = import 'lib/registry.libsonnet';
-local secrets = reg.infisical.services;
+local lib = import 'lib/lib.libsonnet';
+local reg = lib.registry;
+local role = reg.role;
 
-local stack = 'twenty';
-local s = c.stack(stack);
-local n = s.names;
-local redis = reg.roles.redis;
-local server = 'server';
-local worker = 'worker';
+local name = 'twenty';
+// Twenty's own config dials the cache as `redis`, so the key stays a literal rather
+// than role.CACHE.
+local redis = 'redis';
 
-local pgHost = reg.endpoints.postgres.host.host;  // 'host.docker.internal'
-local pgPort = reg.endpoints.postgres.host.port;  // 6109
+local pgHost = reg.endpoint.postgres.host.host;  // 'host.docker.internal'
+local pgPort = reg.endpoint.postgres.host.port;  // '6109'
 local dbName = 'twenty';
 
 local imageVersion = 'v1.18.1';
 local redisVersion = '8.6.1';
 
 local serverPort = 3000;
-local serverUrl = 'https://' + stack + '.' + reg.domains.ktbinternal;
+local serverUrl = 'https://' + name + '.' + reg.domains.ktbinternal;
 
-local commonEnv = {
-  PG_DATABASE_URL: 'postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@' + pgHost + ':' + std.toString(pgPort) + '/' + dbName,
+// Shared by server and worker. Takes the redis name from `ref` so the cache it dials
+// can never drift from the service this stack actually declares.
+local commonEnv(redisHost) = {
+  PG_DATABASE_URL: 'postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@' + pgHost + ':' + pgPort + '/' + dbName,
 
   APP_SECRET: '${TWENTY_SECRET:?err}',
   AUTH_GOOGLE_CLIENT_ID: '${TWENTY_GOOGLE_CLIENT_ID:?err}',
   AUTH_GOOGLE_CLIENT_SECRET: '${TWENTY_GOOGLE_CLIENT_SECRET:?err}',
 
-  REDIS_URL: 'redis://' + n.container(redis) + ':6379',
+  REDIS_URL: 'redis://' + redisHost + ':6379',
   SERVER_URL: serverUrl,
   AUTH_GOOGLE_CALLBACK_URL: serverUrl + '/auth/google/redirect',
   AUTH_GOOGLE_APIS_CALLBACK_URL: serverUrl + '/auth/google-apis/get-access-token',
@@ -36,32 +36,30 @@ local commonEnv = {
   CALENDAR_PROVIDER_GOOGLE_ENABLED: 'true',
 };
 
-local manifest = {
-  name: stack,
+// Mounted by both server and worker; Stack() collapses the two declarations into the
+// one top-level twenty_server-storage volume.
+local storage = { 'server-storage': '/app/packages/twenty-server/.local-storage' };
 
-  services: {
-    [redis]: {
+lib.render(
+  name,
+  lib.Stack(name, function(ref) {
+    [redis]: lib.Service {
       image: 'docker.io/library/redis:' + redisVersion,
-      container_name: n.container(redis),
       command: ['--maxmemory-policy', 'noeviction'],
-      restart: 'unless-stopped',
       healthcheck: {
         test: ['CMD', 'redis-cli', 'ping'],
         interval: '5s',
         timeout: '5s',
         retries: 10,
       },
-      networks: { default: { aliases: [n.container(redis)] } },
       expose: ['6379'],
     },
 
-    [server]: {
+    [role.SERVER]: lib.Service {
       image: 'docker.io/twentycrm/twenty:' + imageVersion,
-      container_name: n.container(server),
       depends_on: { [redis]: { condition: 'service_healthy' } },
-      volumes: [n.volume('server-storage') + ':/app/packages/twenty-server/.local-storage'],
-      environment: commonEnv { NODE_PORT: std.toString(serverPort) },
-      restart: 'unless-stopped',
+      volumes_:: storage,
+      environment: commonEnv(ref[redis]) { NODE_PORT: std.toString(serverPort) },
       healthcheck: {
         test: ['CMD', 'curl', '--fail', 'http://localhost:' + std.toString(serverPort) + '/healthz'],
         interval: '5s',
@@ -69,38 +67,25 @@ local manifest = {
         retries: 20,
       },
       expose: [std.toString(serverPort)],
+      ports: ['%s:18015:%s' % [reg.ips.loopback, serverPort]],
+      // Shared Postgres is reached over the docker host-gateway — there are no shared
+      // Docker networks.
       extra_hosts: ['host.docker.internal:host-gateway'],
-      networks: {
-        default: { aliases: [n.container(server)] },
-      },
-    } + c.publish(18015, serverPort),
+    },
 
-    [worker]: {
+    [role.WORKER]: lib.Service {
       image: 'docker.io/twentycrm/twenty:' + imageVersion,
-      container_name: n.container(worker),
-      depends_on: { [server]: { condition: 'service_healthy' } },
-      volumes: [n.volume('server-storage') + ':/app/packages/twenty-server/.local-storage'],
-      environment: commonEnv {
+      depends_on: { [role.SERVER]: { condition: 'service_healthy' } },
+      volumes_:: storage,
+      environment: commonEnv(ref[redis]) {
         // Migrations + cron registration already run on the server; running
         // them again here would race/duplicate.
         DISABLE_DB_MIGRATIONS: 'true',
         DISABLE_CRON_JOBS_REGISTRATION: 'true',
       },
       command: ['yarn', 'worker:prod'],
-      restart: 'unless-stopped',
       extra_hosts: ['host.docker.internal:host-gateway'],
-      networks: {
-        default: { aliases: [n.container(worker)] },
-      },
     },
-  },
-
-  volumes: {
-    [n.volume('server-storage')]: { name: n.volume('server-storage') },
-  },
-
-  networks:
-    s.network.default,
-};
-
-c.render(stack, manifest, [secrets.twenty.path, secrets.postgres.path])
+  }),
+  [lib.Secret('twenty'), lib.Secret('postgres')],
+)

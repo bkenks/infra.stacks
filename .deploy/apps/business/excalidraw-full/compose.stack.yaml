@@ -24,7 +24,7 @@ services:
     security_opt:
     - no-new-privileges:true
     volumes:
-    - excalidraw-full_app:/root/data
+    - app:/root/data
 volumes:
-  excalidraw-full_app:
+  app:
     name: excalidraw-full_app

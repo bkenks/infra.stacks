@@ -1,16 +1,13 @@
-// Compiles to compose.yaml and compose.stack.yaml — do not edit the YAML.
-local c = import 'lib/compose.libsonnet';
-local reg = import 'lib/registry.libsonnet';
-local secrets = reg.infisical.services;
+// frappe: Frappe/ERPNext bench split across ten containers sharing one `sites` volume.
+local lib = import 'lib/lib.libsonnet';
+local reg = lib.registry;
+local role = reg.role;
 
-local stack = 'frappe';
-local s = c.stack(stack);
-local n = s.names;
-local roles = reg.roles;
+local name = 'frappe';
 
-// `db` is the typo-safe registry constant; the rest are plain strings since
-// frappe has two redis instances (cache/queue) so there's no single `roles.redis`.
-local db = roles.db;
+// `db` and `scheduler` are the typo-safe registry constants; the rest are plain
+// strings since frappe has two redis instances (cache/queue) so there's no single
+// `role.CACHE`, and the bench roles have no registry equivalent.
 local backend = 'backend';
 local configurator = 'configurator';
 local frontend = 'frontend';
@@ -18,7 +15,6 @@ local queueLong = 'queue-long';
 local queueShort = 'queue-short';
 local redisCache = 'redis-cache';
 local redisQueue = 'redis-queue';
-local scheduler = 'scheduler';
 local websocket = 'websocket';
 
 // Custom image (built from image/apps.json -> GHCR; see image/README.md).
@@ -52,21 +48,21 @@ local configuratorScript =
 // Traefik router for it.
 local frontendPort = 8080;
 
-local frappeImageService(role) = {
+// Every bench service runs the same image off the same shared volume; only the
+// command and the wiring differ. The `sites` volume is declared here rather than
+// once at the top level, so Stack() registers it from wherever it is mounted.
+local frappeImageService = lib.Service {
   image: image,
-  container_name: n.container(role),
-  volumes: [n.volume('sites') + ':/home/frappe/frappe-bench/sites'],
+  volumes_:: { sites: '/home/frappe/frappe-bench/sites' },
   restart: restart,
   platform: 'linux/amd64',
   pull_policy: 'always',
-  networks: { default: { aliases: [n.container(role)] } },
 };
 
-local manifest = {
-  name: stack,
-
-  services: {
-    [backend]: frappeImageService(backend) + {
+lib.render(
+  name,
+  lib.Stack(name, function(ref) {
+    [backend]: frappeImageService {
       depends_on: { [configurator]: { condition: 'service_completed_successfully' } },
       environment: {
         GUNICORN_WORKERS: std.toString(gunicornWorkers),
@@ -79,27 +75,26 @@ local manifest = {
 
     // MUST finish before backend/workers/scheduler/websocket start — if the
     // stack won't come up, debug this container first.
-    [configurator]: frappeImageService(configurator) + {
+    [configurator]: frappeImageService {
       depends_on: {
-        [db]: { condition: 'service_healthy' },
+        [role.DB]: { condition: 'service_healthy' },
         [redisCache]: { condition: 'service_started' },
         [redisQueue]: { condition: 'service_started' },
       },
       environment: {
-        DB_HOST: n.container(db),
+        DB_HOST: ref[role.DB],
         DB_PORT: std.toString(dbPort),
-        REDIS_CACHE: n.container(redisCache) + ':6379',
-        REDIS_QUEUE: n.container(redisQueue) + ':6379',
+        REDIS_CACHE: ref[redisCache] + ':6379',
+        REDIS_QUEUE: ref[redisQueue] + ':6379',
         SOCKETIO_PORT: std.toString(socketioPort),
       },
       command: [configuratorScript],
       entrypoint: ['bash', '-c'],
     },
 
-    [db]: {
+    [role.DB]: lib.Service {
       image: 'docker.io/library/mariadb:' + mariadbVersion,
-      container_name: n.container(db),
-      volumes: [n.volume(db) + ':/var/lib/mysql'],
+      volumes_:: { db: '/var/lib/mysql' },
       environment: {
         MARIADB_AUTO_UPGRADE: '1',
         MYSQL_ROOT_PASSWORD: '${FRAPPE_DB_ROOT_PASSWORD:?err}',
@@ -119,14 +114,13 @@ local manifest = {
         start_period: '15s',
       },
       expose: ['3306'],
-      networks: { default: { aliases: [n.container(db)] } },
     },
 
-    [frontend]: frappeImageService(frontend) + {
+    [frontend]: frappeImageService {
       depends_on: [backend, websocket],
       environment: {
-        BACKEND: n.container(backend) + ':8000',
-        SOCKETIO: n.container(websocket) + ':9000',
+        BACKEND: ref[backend] + ':8000',
+        SOCKETIO: ref[websocket] + ':9000',
         // Compose interpolates env values, so the literal $host MUST be escaped
         // as $$host (else it resolves empty and ALL routing breaks).
         FRAPPE_SITE_NAME_HEADER: '$$host',
@@ -141,65 +135,45 @@ local manifest = {
       },
       command: ['nginx-entrypoint.sh'],
       expose: [std.toString(frontendPort)],
-      networks: {
-        default: { aliases: [n.container(frontend)] },
-      },
-    } + c.publish(18004, frontendPort),
+      ports: ['%s:18004:%s' % [reg.ips.loopback, frontendPort]],
+    },
 
-    [queueLong]: frappeImageService(queueLong) + {
+    [queueLong]: frappeImageService {
       depends_on: { [configurator]: { condition: 'service_completed_successfully' } },
       command: ['bench', 'worker', '--queue', 'long,default,short'],
     },
 
-    [queueShort]: frappeImageService(queueShort) + {
+    [queueShort]: frappeImageService {
       depends_on: { [configurator]: { condition: 'service_completed_successfully' } },
       command: ['bench', 'worker', '--queue', 'short,default'],
     },
 
     // No persistence by design.
-    [redisCache]: {
+    [redisCache]: lib.Service {
       image: 'docker.io/library/redis:' + redisVersion,
-      container_name: n.container(redisCache),
       restart: restart,
       expose: ['6379'],
-      networks: { default: { aliases: [n.container(redisCache)] } },
     },
 
     // Persisted so in-flight jobs survive restarts.
-    [redisQueue]: {
+    [redisQueue]: lib.Service {
       image: 'docker.io/library/redis:' + redisVersion,
-      container_name: n.container(redisQueue),
-      volumes: [n.volume(redisQueue) + ':/data'],
+      volumes_:: { 'redis-queue': '/data' },
       restart: restart,
       expose: ['6379'],
-      networks: { default: { aliases: [n.container(redisQueue)] } },
     },
 
-    [scheduler]: frappeImageService(scheduler) + {
+    [role.SCHEDULER]: frappeImageService {
       depends_on: { [configurator]: { condition: 'service_completed_successfully' } },
       command: ['bench', 'schedule'],
     },
 
-    // Internal only — reached by frontend nginx at frappe-websocket:9000.
+    // Internal only — reached by frontend nginx at frappe_websocket:9000.
     // Never exposed to Traefik directly.
-    [websocket]: frappeImageService(websocket) + {
+    [websocket]: frappeImageService {
       depends_on: { [configurator]: { condition: 'service_completed_successfully' } },
       command: ['node', '/home/frappe/frappe-bench/apps/frappe/socketio.js'],
     },
-  },
-
-  volumes: {
-    // CRITICAL — shared by every Frappe service (no single owning role, hence
-    // the descriptive key). Holds common_site_config.json, per-site dirs,
-    // uploads, and backups.
-    [n.volume('sites')]: { name: n.volume('sites') },
-    // CRITICAL — MariaDB data directory.
-    [n.volume(db)]: { name: n.volume(db) },
-    [n.volume(redisQueue)]: { name: n.volume(redisQueue) },
-  },
-
-  networks:
-    s.network.default,
-};
-
-c.render(stack, manifest, [secrets.frappe.path])
+  }),
+  [lib.Secret('frappe')],
+)

@@ -31,7 +31,7 @@ services:
       SMTP_PORT: ${INFISICAL__SMTP_PORT:-}
       SMTP_USERNAME: ${INFISICAL__SMTP_USERNAME:-}
     expose:
-    - '8080'
+    - 8080
     healthcheck:
       interval: 30s
       retries: 3
@@ -49,9 +49,6 @@ services:
         - infisical_app
     ports:
     - 127.0.0.1:18006:8080
-    - 100.114.137.104:18006:8080
-    - 192.168.30.21:18006:8080
-    - 172.28.0.1:18006:8080
     restart: unless-stopped
   db:
     container_name: infisical_db

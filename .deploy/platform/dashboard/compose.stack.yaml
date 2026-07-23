@@ -43,8 +43,8 @@ services:
     - 127.0.0.1:18018:7575
     restart: unless-stopped
     volumes:
-    - homarr_app:/appdata
+    - app:/appdata
     - /var/run/docker.sock:/var/run/docker.sock:ro
 volumes:
-  homarr_app:
+  app:
     name: homarr_app

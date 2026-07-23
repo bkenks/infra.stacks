@@ -5,6 +5,7 @@ networks:
     name: databasus
 services:
   app:
+    container_name: databasus_app
     extra_hosts:
     - host.docker.internal:host-gateway
     image: databasus/databasus@sha256:f748c20cecb3cf3162d80ebfddd4f192b5e4ee640d600c9daf726310ac49e51c
@@ -16,8 +17,8 @@ services:
     - 4005:4005
     restart: unless-stopped
     volumes:
-    - /dev/shm/databasus_secret.key:/databasus-data/secret.key:ro
     - app:/databasus-data
+    - /dev/shm/databasus_secret.key:/databasus-data/secret.key:ro
 volumes:
   app:
     name: databasus_app

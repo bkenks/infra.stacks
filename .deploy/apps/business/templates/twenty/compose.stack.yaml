@@ -65,7 +65,7 @@ services:
     - 127.0.0.1:18015:3000
     restart: unless-stopped
     volumes:
-    - twenty_server-storage:/app/packages/twenty-server/.local-storage
+    - server-storage:/app/packages/twenty-server/.local-storage
   worker:
     command:
     - yarn
@@ -97,7 +97,7 @@ services:
         - twenty_worker
     restart: unless-stopped
     volumes:
-    - twenty_server-storage:/app/packages/twenty-server/.local-storage
+    - server-storage:/app/packages/twenty-server/.local-storage
 volumes:
-  twenty_server-storage:
+  server-storage:
     name: twenty_server-storage

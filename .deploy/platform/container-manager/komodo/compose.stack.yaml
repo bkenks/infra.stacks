@@ -55,5 +55,3 @@ services:
 volumes:
   app:
     name: komodo_app
-  db:
-    name: komodo_db

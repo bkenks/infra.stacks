@@ -41,7 +41,13 @@ local qualify(stack, part) = stack + '_' + part;
 
     // The alias is what other services in the stack dial. It matches container_name by
     // default; komodo overrides it because Komodo's own config already says komodo_core.
-    networks: { default: { aliases: [service.container_name] } },
+    //
+    // A service sharing another's netns (network_mode: service:x) has no network stack of
+    // its own, and Compose rejects the whole project — not just the service — if both keys
+    // are present. prune drops the null.
+    networks: if std.objectHas(service, 'network_mode')
+              then null
+              else { default: { aliases: [service.container_name] } },
 
     volumes: [
       '%s:%s' % [key, self.volumes_[key]]

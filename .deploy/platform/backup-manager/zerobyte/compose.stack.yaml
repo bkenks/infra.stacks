@@ -23,9 +23,9 @@ services:
     - 4096:4096
     restart: unless-stopped
     volumes:
+    - app:/var/lib/zerobyte
     - /etc/localtime:/etc/localtime:ro
     - /var/lib/docker/volumes:/source/docker-volumes
-    - app:/var/lib/zerobyte
 volumes:
   app:
     name: zerobyte_app

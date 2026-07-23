@@ -4,17 +4,16 @@
 // Postgres + ML model cache live on local NVMe bind mounts (Postgres must NOT
 // live on NFS); the photo/video library is a separate NFS export at the
 // literal host path /mnt/immich-library.
-local c = import 'lib/compose.libsonnet';
-local reg = import 'lib/registry.libsonnet';
-local secrets = reg.infisical.services;
+local lib = import 'lib/lib.libsonnet';
+local reg = lib.registry;
+local role = reg.role;
 
-local stack = 'immich';
-local s = c.stack(stack);
-local n = s.names;
+local name = 'immich';
+// Immich's own upstream service names — no reg.role equivalent, so plain locals.
 local db = 'database';
 local ml = 'machine-learning';
-local app = 'server';
-local redis = reg.roles.redis;
+local app = role.SERVER;
+local redis = 'redis';
 
 local dbVersion = 'ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:bcf63357191b76a916ae5eb93464d65c07511da41e3bf7a8416db519b40b1c23';
 local mlVersion = 'ghcr.io/immich-app/immich-machine-learning:v2.7.5';
@@ -24,14 +23,14 @@ local redisVersion = 'docker.io/valkey/valkey:9@sha256:8436e10bc65c94886a91d4415
 local port = 2283;
 local tz = 'America/New_York';
 
-local manifest = {
-  name: stack,
+local bindRoot = reg.dirs.docker.root + reg.dirs.docker.bindMounts + '/apps/immich';
 
-  services: {
-    [db]: {
+lib.render(
+  name,
+  lib.Stack(name, function(ref) {
+    [db]: lib.Service {
       image: dbVersion,
-      container_name: n.container(db),
-      volumes: [reg.server.dir.docker.root + reg.server.dir.docker.bindmounts + '/apps/immich/postgres:/var/lib/postgresql/data'],
+      mounts_:: [bindRoot + '/postgres:/var/lib/postgresql/data'],
       environment: {
         POSTGRES_DB: 'immich',
         POSTGRES_USER: 'immich',
@@ -40,64 +39,45 @@ local manifest = {
         // set directly here.
         POSTGRES_PASSWORD: '${IMMICH_DB_PASSWORD:?err}',
       },
-      restart: 'unless-stopped',
       shm_size: '128mb',
-      networks: {
-        default: { aliases: [n.container(db)] },
-      },
     },
 
-    [ml]: {
+    [ml]: lib.Service {
       image: mlVersion,
-      container_name: n.container(ml),
-      volumes: [reg.server.dir.docker.root + reg.server.dir.docker.bindmounts + '/apps/immich/model-cache:/cache'],
+      mounts_:: [bindRoot + '/model-cache:/cache'],
       environment: {
         TZ: tz,
       },
-      restart: 'unless-stopped',
-      networks: {
-        default: { aliases: [n.container(ml)] },
-      },
     },
 
-    [app]: {
+    [app]: lib.Service {
       image: serverVersion,
-      container_name: n.container(app),
+      // depends_on takes compose service KEYS, not container names — so the bare
+      // roles, not ref[...].
       depends_on: [db, redis],
-      volumes: ['/mnt/immich-library:/data'],
+      mounts_:: ['/mnt/immich-library:/data'],
       // Intel Quick Sync HW transcoding (paiki's N150 iGPU). Equivalent to the
       // `quicksync` service in Immich's hwaccel.transcoding.yml. Enable in the UI:
       // Admin → Video Transcoding → Acceleration API → Quick Sync.
       devices: ['/dev/dri:/dev/dri'],
       environment: {
         TZ: tz,
-        // Same env_file interpolation issue — use the actual container name.
-        REDIS_HOSTNAME: n.container(redis),
-        DB_HOSTNAME: n.container(db),
+        // Same env_file interpolation issue — use the actual container name,
+        // which is what ref hands back.
+        REDIS_HOSTNAME: ref[redis],
+        DB_HOSTNAME: ref[db],
         DB_USERNAME: 'immich',
         DB_DATABASE_NAME: 'immich',
         // Same env_file interpolation bug as POSTGRES_PASSWORD above.
         DB_PASSWORD: '${IMMICH_DB_PASSWORD:?err}',
       },
-      restart: 'unless-stopped',
       expose: [std.toString(port)],
-      networks: {
-        default: { aliases: [n.container(app)] },
-      },
-    } + c.publish(2283, port),
-
-    [redis]: {
-      image: redisVersion,
-      container_name: n.container(redis),
-      restart: 'unless-stopped',
-      networks: {
-        default: { aliases: [n.container(redis)] },
-      },
+      ports: ['%s:2283:%s' % [reg.ips.loopback, port]],
     },
-  },
 
-  networks:
-    s.network.default,
-};
-
-c.render(stack, manifest, [secrets.immich.path])
+    [redis]: lib.Service {
+      image: redisVersion,
+    },
+  }),
+  [lib.Secret('immich')],
+)

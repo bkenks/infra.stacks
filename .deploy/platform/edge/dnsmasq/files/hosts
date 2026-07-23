@@ -1,5 +1,5 @@
 # GENERATED from hosts.jsonnet by .mise/tasks/render.py — DO NOT EDIT.
-# Source: registry.libsonnet server.hosts — edit there, not here.
+# Source: registry.libsonnet hosts — edit there, not here.
 # One line per address: LAN/Tailscale (or Tailscale/public for VPS), preferred first.
 192.168.30.23	biggy.ktbinternal.com
 100.108.59.105	biggy.ktbinternal.com

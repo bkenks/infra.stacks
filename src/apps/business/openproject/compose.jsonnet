@@ -1,13 +1,12 @@
+// openproject: one Rails image run four ways — web, worker, cron and a one-shot seeder.
 // Compiles to compose.yaml and compose.stack.yaml — do not edit the YAML.
-local c = import 'lib/compose.libsonnet';
-local reg = import 'lib/registry.libsonnet';
-local secrets = reg.infisical.services;
+local lib = import 'lib/lib.libsonnet';
+local reg = lib.registry;
+local role = reg.role;
 
-local stack = 'openproject';
-local s = c.stack(stack);
-local n = s.names;
-local pgHost = reg.endpoints.postgres.host.host;  // 'host.docker.internal'
-local pgPort = reg.endpoints.postgres.host.port;  // 6109
+local name = 'openproject';
+local pgHost = reg.endpoint.postgres.host.host;  // 'host.docker.internal'
+local pgPort = reg.endpoint.postgres.host.port;  // 6109
 
 // Public subdomain 'openprj' differs from the stack name 'openproject'.
 local sub = 'openprj';
@@ -22,14 +21,10 @@ local memcachedVersion = '1.6-alpine';
 local webPort = 8080;
 local hocuspocusPort = 1234;
 
-local opApp = {
-  image: 'openproject/openproject:' + appVersion,
-  volumes: [
-    n.volume('assets') + ':/var/openproject/assets',
-    './token/enterprise_token.rb:/app/app/models/enterprise_token.rb',
-  ],
-  restart: 'unless-stopped',
-};
+// App-specific service names with no entry in reg.role.
+local AUTOHEAL = 'autoheal';
+local CRON = 'cron';
+local HOCUSPOCUS = 'hocuspocus';
 
 local opAppEnv = {
   OPENPROJECT_HTTPS: 'true',
@@ -43,11 +38,11 @@ local opAppEnv = {
   IMAP_ENABLED: 'false',
   OPENPROJECT_HOST__NAME: cloudDomain,
   // `web` allows hocuspocus' internal callback (http://web:8080) to pass the host check.
-  OPENPROJECT_ADDITIONAL__HOST__NAMES: '[' + cloudDomain + ', ' + internalDomain + ', web' + ']',
+  OPENPROJECT_ADDITIONAL__HOST__NAMES: '[' + cloudDomain + ', ' + internalDomain + ', ' + role.WEB + ']',
   OPENPROJECT_URL: 'https://' + cloudDomain,
   OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__URL: 'wss://' + cloudDomain + '/hocuspocus',
   OPENPROJECT_RAILS__CACHE__STORE: 'memcache',
-  OPENPROJECT_CACHE__MEMCACHE__SERVER: 'cache:11211',
+  OPENPROJECT_CACHE__MEMCACHE__SERVER: role.CACHE + ':11211',
   OPENPROJECT_EE__HIDE__BANNERS: 'true',
   OPENPROJECT_EE__MANAGER__VISIBLE: 'false',
   OPENPROJECT_WELCOME__ON__HOMESCREEN: 'false',
@@ -62,71 +57,64 @@ local opAppSecrets = {
   OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__SECRET: '${COLLAB_SERVER_SECRET:?err}',
 };
 
+// The shared body of the four Rails services. Each declares `assets`, and Stack()
+// collapses the four declarations into the single top-level openproject_assets volume.
+local opApp = lib.Service {
+  image: 'openproject/openproject:' + appVersion,
+  volumes_:: { assets: '/var/openproject/assets' },
+  mounts_:: ['./token/enterprise_token.rb:/app/app/models/enterprise_token.rb'],
+  environment: opAppEnv + opAppSecrets,
+  // Postgres is the shared cluster, dialled through the docker host-gateway.
+  extra_hosts: ['host.docker.internal:host-gateway'],
+};
+
 local webLabels = { autoheal: 'true' };
 
-local manifest = {
-  name: stack,
-
-  services: {
-    autoheal: {
+lib.render(
+  name,
+  lib.Stack(name, function(ref) {
+    // Restarts any container labelled autoheal=true once its healthcheck fails.
+    [AUTOHEAL]: lib.Service {
       image: 'willfarrell/autoheal:' + autohealVersion,
-      container_name: n.container('autoheal'),
       environment: {
         AUTOHEAL_CONTAINER_LABEL: 'autoheal',
         AUTOHEAL_START_PERIOD: '600',
         AUTOHEAL_INTERVAL: '30',
       },
-      volumes: ['/var/run/docker.sock:/var/run/docker.sock'],
-      restart: 'unless-stopped',
+      // Deliberately not :ro — restarting containers is a write on the socket.
+      mounts_:: ['/var/run/docker.sock:/var/run/docker.sock'],
     },
 
-    cache: {
+    [role.CACHE]: lib.Service {
       image: 'memcached:' + memcachedVersion,
-      container_name: n.container('cache'),
-      restart: 'unless-stopped',
     },
 
-    cron: opApp + {
-      container_name: n.container('cron'),
-      depends_on: ['cache', 'seeder'],
+    [CRON]: opApp {
+      depends_on: [role.CACHE, role.SEEDER],
       command: './docker/prod/cron',
-      environment: opAppEnv + opAppSecrets,
-      extra_hosts: ['host.docker.internal:host-gateway'],
-      networks: {
-        default: { aliases: [n.container('cron')] },
-      },
     },
-    hocuspocus: {
+
+    [HOCUSPOCUS]: lib.Service {
       image: 'openproject/hocuspocus:' + hocuspocusVersion,
-      container_name: n.container('hocuspocus'),
-      restart: 'unless-stopped',
       // Calls back into `web` over the internal `default` net (http, not the
       // TLS hairpin); `web` must be in OPENPROJECT_ADDITIONAL__HOST__NAMES.
       environment: {
-        OPENPROJECT_URL: 'http://web:8080',
+        OPENPROJECT_URL: 'http://%s:%d' % [role.WEB, webPort],
         OPENPROJECT_HTTPS: 'true',
         SECRET: '${COLLAB_SERVER_SECRET:?err}',
       },
       expose: [std.toString(hocuspocusPort)],
-      networks: {
-        default: { aliases: [n.container('hocuspocus')] },
-      },
-    } + c.publish(1234, hocuspocusPort),
-
-    seeder: opApp + {
-      container_name: n.container('seeder'),
-      command: './docker/prod/seeder',
-      restart: 'on-failure',
-      environment: opAppEnv + opAppSecrets,
-      extra_hosts: ['host.docker.internal:host-gateway'],
-      networks: {
-        default: { aliases: [n.container('seeder')] },
-      },
+      ports: ['%s:%d:%d' % [reg.ips.loopback, hocuspocusPort, hocuspocusPort]],
     },
 
-    web: opApp + {
-      container_name: n.container('web'),
-      depends_on: ['cache', 'seeder'],
+    // Runs migrations and seeds, then exits; the long-running services wait on it.
+    [role.SEEDER]: opApp {
+      command: './docker/prod/seeder',
+      restart: 'on-failure',
+    },
+
+    [role.WEB]: opApp {
+      depends_on: [role.CACHE, role.SEEDER],
       command: './docker/prod/web',
       healthcheck: {
         test: ['CMD', 'curl', '-f', 'http://localhost:' + std.toString(webPort) + '/health_checks/default'],
@@ -140,28 +128,13 @@ local manifest = {
       environment: opAppEnv + opAppSecrets + { WEB_CONCURRENCY: '1' },
       labels: webLabels,
       expose: [std.toString(webPort)],
-      extra_hosts: ['host.docker.internal:host-gateway'],
-      networks: {
-        default: { aliases: [n.container('web')] },
-      },
-    } + c.publish(18009, webPort),
-
-    worker: opApp + {
-      container_name: n.container('worker'),
-      depends_on: ['cache', 'seeder'],
-      command: './docker/prod/worker',
-      environment: opAppEnv + opAppSecrets,
-      extra_hosts: ['host.docker.internal:host-gateway'],
-      networks: {
-        default: { aliases: [n.container('worker')] },
-      },
+      ports: ['%s:18009:%d' % [reg.ips.loopback, webPort]],
     },
-  },
 
-  volumes: { [n.volume('assets')]: { name: n.volume('assets') } },
-
-  networks:
-    s.network.default,
-};
-
-c.render(stack, manifest, [secrets.openproject.path, secrets.postgres.path])
+    [role.WORKER]: opApp {
+      depends_on: [role.CACHE, role.SEEDER],
+      command: './docker/prod/worker',
+    },
+  }),
+  [lib.Secret('openproject'), lib.Secret('postgres')],
+)

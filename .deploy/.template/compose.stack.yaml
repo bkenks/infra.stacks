@@ -37,7 +37,7 @@ services:
     - 127.0.0.1:18000:8080
     restart: on-failure:5
     volumes:
-    - example_app:/data
+    - app:/data
   db:
     container_name: example_db
     environment:
@@ -60,9 +60,9 @@ services:
         - example_db
     restart: on-failure:5
     volumes:
-    - example_db:/var/lib/postgresql/data
+    - db:/var/lib/postgresql/data
 volumes:
-  example_app:
+  app:
     name: example_app
-  example_db:
+  db:
     name: example_db

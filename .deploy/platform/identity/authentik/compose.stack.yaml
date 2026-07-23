@@ -27,7 +27,7 @@ services:
     - 127.0.0.1:18006:9000
     restart: unless-stopped
     volumes:
-    - authentik_data:/data
+    - data:/data
   db:
     container_name: authentik_db
     environment:
@@ -51,7 +51,7 @@ services:
         - authentik_db
     restart: unless-stopped
     volumes:
-    - authentik_db:/var/lib/postgresql/data
+    - db:/var/lib/postgresql/data
   worker:
     command: worker
     container_name: authentik_worker
@@ -72,10 +72,10 @@ services:
     restart: unless-stopped
     user: root
     volumes:
+    - data:/data
     - /var/run/docker.sock:/var/run/docker.sock
-    - authentik_data:/data
 volumes:
-  authentik_data:
+  data:
     name: authentik_data
-  authentik_db:
+  db:
     name: authentik_db

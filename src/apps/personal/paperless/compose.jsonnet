@@ -1,17 +1,14 @@
 // Compiles to compose.yaml and compose.stack.yaml — do not edit the YAML. `db` is this stack's
 // own dedicated Postgres — does NOT join shared-postgres.
 //
-// Volume names follow the standard n.volume() convention — migrate/rename
-// existing volumes on next deploy.
-local c = import 'lib/compose.libsonnet';
-local reg = import 'lib/registry.libsonnet';
-local secrets = reg.infisical.services;
+// Volumes are declared as `volumes_` on the service that mounts them; lib.Stack registers
+// each one as <stack>_<key> — migrate/rename existing volumes on next deploy.
+local lib = import 'lib/lib.libsonnet';
+local reg = lib.registry;
+local role = reg.role;
 
-local stack = 'paperless';
-local s = c.stack(stack);
-local n = s.names;
+local name = 'paperless';
 local broker = 'broker';
-local db = reg.roles.db;
 local gotenberg = 'gotenberg';
 local tika = 'tika';
 local webserver = 'webserver';
@@ -26,20 +23,15 @@ local webPort = 8000;
 local dbUser = 'paperless';
 local dbName = 'paperless';
 
-local exportMount = reg.server.dir.docker.root + reg.server.dir.docker.bindmounts + '/apps/paperless/export';
-local consumeMount = reg.server.dir.docker.root + reg.server.dir.docker.bindmounts + '/apps/paperless/consume';
+local exportMount = reg.dirs.docker.root + reg.dirs.docker.bindMounts + '/apps/paperless/export';
+local consumeMount = reg.dirs.docker.root + reg.dirs.docker.bindMounts + '/apps/paperless/consume';
 
-local dataVol = webserver + '_data';
-local mediaVol = webserver + '_media';
-
-local manifest = {
-  name: stack,
-
-  services: {
-    [broker]: {
+lib.render(
+  name,
+  lib.Stack(name, function(ref) {
+    [broker]: lib.Service {
       image: 'docker.io/library/redis:' + brokerVersion,
-      container_name: n.container(broker),
-      volumes: [broker + ':/data'],
+      volumes_:: { broker: '/data' },
       environment: {
         ALLOW_EMPTY_PASSWORD: 'yes',
       },
@@ -50,14 +42,12 @@ local manifest = {
         timeout: '5s',
         retries: 5,
       },
-      networks: { default: { aliases: [n.container(broker)] } },
       expose: ['6379'],
     },
 
-    [db]: {
+    [role.DB]: lib.Service {
       image: 'docker.io/library/postgres:' + dbVersion,
-      container_name: n.container(db),
-      volumes: [db + ':/var/lib/postgresql'],
+      volumes_:: { db: '/var/lib/postgresql' },
       environment: {
         POSTGRES_USER: dbUser,
         POSTGRES_DB: dbName,
@@ -70,40 +60,36 @@ local manifest = {
         timeout: '10s',
         retries: 10,
       },
-      networks: { default: { aliases: [n.container(db)] } },
       expose: ['5432'],
     },
 
-    [gotenberg]: {
+    [gotenberg]: lib.Service {
       image: 'docker.io/gotenberg/gotenberg:' + gotenbergVersion,
-      container_name: n.container(gotenberg),
       // Chromium route converts .eml files; disallow tracking pixels/javascript.
       command: ['gotenberg', '--chromium-disable-javascript=true', '--chromium-allow-list=file:///tmp/.*'],
       restart: 'on-failure:5',
-      networks: { default: { aliases: [n.container(gotenberg)] } },
       expose: ['3000'],
     },
 
-    [tika]: {
+    [tika]: lib.Service {
       image: 'docker.io/apache/tika:' + tikaVersion,
-      container_name: n.container(tika),
       restart: 'on-failure:5',
-      networks: { default: { aliases: [n.container(tika)] } },
       expose: ['9998'],
     },
 
-    [webserver]: {
+    [webserver]: lib.Service {
       image: 'ghcr.io/paperless-ngx/paperless-ngx:' + paperlessVersion,
-      container_name: n.container(webserver),
       depends_on: {
         [broker]: { condition: 'service_healthy' },
-        [db]: { condition: 'service_healthy' },
+        [role.DB]: { condition: 'service_healthy' },
         [gotenberg]: { condition: 'service_started' },
         [tika]: { condition: 'service_started' },
       },
-      volumes: [
-        dataVol + ':/usr/src/paperless/data',
-        mediaVol + ':/usr/src/paperless/media',
+      volumes_:: {
+        webserver_data: '/usr/src/paperless/data',
+        webserver_media: '/usr/src/paperless/media',
+      },
+      mounts_:: [
         exportMount + ':/usr/src/paperless/export',
         consumeMount + ':/usr/src/paperless/consume',
       ],
@@ -115,13 +101,14 @@ local manifest = {
         PAPERLESS_TIME_ZONE: 'America/New_York',
         PAPERLESS_DATE_ORDER: 'MDY',
 
-        PAPERLESS_REDIS: 'redis://' + n.container(broker) + ':6379',
-        PAPERLESS_TIKA_GOTENBERG_ENDPOINT: 'http://' + n.container(gotenberg) + ':3000',
-        PAPERLESS_TIKA_ENDPOINT: 'http://' + n.container(tika) + ':9998',
+        PAPERLESS_REDIS: 'redis://' + ref[broker] + ':6379',
+        PAPERLESS_TIKA_GOTENBERG_ENDPOINT: 'http://' + ref[gotenberg] + ':3000',
+        PAPERLESS_TIKA_ENDPOINT: 'http://' + ref[tika] + ':9998',
 
-        PAPERLESS_DBHOST: n.container(db),
+        PAPERLESS_DBHOST: ref[role.DB],
         PAPERLESS_DBUSER: dbUser,
         PAPERLESS_DBNAME: dbName,
+        // Secrets — interpolated from /dev/shm/paperless.env (parent include.env_file)
         PAPERLESS_DBPASS: '${PAPERLESS_PG_PASS:?err}',
         PAPERLESS_SECRET_KEY: '${PAPERLESS_SECRET_KEY:?err}',
       },
@@ -132,22 +119,9 @@ local manifest = {
         timeout: '10s',
         retries: 5,
       },
-      networks: {
-        default: { aliases: [n.container(webserver)] },
-      },
       expose: [std.toString(webPort)],
-    } + c.publish(18010, webPort),
-  },
-
-  volumes: {
-    [broker]: { name: n.volume(broker) },
-    [db]: { name: n.volume(db) },
-    [dataVol]: { name: n.volume(dataVol) },
-    [mediaVol]: { name: n.volume(mediaVol) },
-  },
-
-  networks:
-    s.network.default,
-};
-
-c.render(stack, manifest, [secrets.paperless.path])
+      ports: ['%s:18010:%s' % [reg.ips.loopback, webPort]],
+    },
+  }),
+  [lib.Secret('paperless')],
+)
