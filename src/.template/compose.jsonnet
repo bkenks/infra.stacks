@@ -1,100 +1,98 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// STANDARD STACK TEMPLATE — copy this file to start a new stack.
+// STANDARD STACK TEMPLATE — copy this file to start a new stack, change `name`, then
+// delete every service and field you do not need.
 //
-//   1. Copy this file to <area>/<stack>/compose.jsonnet
-//      (area = apps/… | platform/… | tools/…).
-//   2. Rename `stack` below — it is the compose project name AND the prefix for
-//      every container/volume name (n.container / n.volume).
-//   3. Delete the services/blocks you don't need; uncomment the variations you do.
-//   4. Register secrets in registry.libsonnet's infisical catalogue, then point
-//      `envFile` at secrets.<stack>.path (see the ENV FILE note below).
+// It exercises every feature the library has, so a lib/ change that breaks the library
+// breaks this file and `mise run render` fails on the next commit. That is the point of
+// keeping it a real, compiling stack rather than prose.
 //
-// The render contract (see .jsonnet/render.py): this file must evaluate to
-// { '<filename>': <content>, … } and c.render() does exactly that — emitting
+// The render contract (see .mise/tasks/render.py): this file evaluates to
+// { '<filename>': <content>, … } and lib.render() does exactly that — emitting
 //   compose.yaml        the project + an `include` of the manifest (what Docker loads)
 //   compose.stack.yaml  the actual services/networks/volumes manifest
 // Never edit those YAMLs; they carry a GENERATED header and are rewritten on commit.
-//
-// Reference by KEY, never raw string: reg.endpoints.postgres.host (not 'host.docker.internal'),
-// reg.roles.db (not 'db'). A typo'd key fails at compile time; a typo'd string fails
-// silently at runtime. Helpers live in .jsonnet/lib/compose.libsonnet; cross-stack
-// names live in .jsonnet/lib/registry.libsonnet. See README.md here for the full
-// cheat-sheet of which helper covers which case.
-// ─────────────────────────────────────────────────────────────────────────────
-local c = import 'compose.libsonnet';
-local reg = import 'registry.libsonnet';
-local secrets = reg.infisical.services;
 
-local stack = 'example';        // ← rename me
-local s = c.stack(stack);       // name/network/proxy helpers scoped to this stack
-local n = s.names;              // n.container(role) / n.volume(role) → 'example_<role>'
+local lib = import 'lib/lib.libsonnet';
+local reg = lib.registry;
+local role = reg.role;
 
-local app = reg.roles.app;      // 'app'  — reg.roles.{app,db,redis} are the shared role names
-local db = reg.roles.db;        // 'db'
+// The stack name — the one string a stack has to choose. Everything else derives from it:
+// containers become <name>_<role> and volumes <name>_<key>, and it becomes the real name
+// of the default network. Bound once and passed to both Stack() and render(), so the two
+// can never disagree.
+local name = 'example';  // ← rename me
 
-// Pin versions here, one local per image — keeps the manifest readable and the
-// upgrade a one-line diff.
 local appVersion = 'latest';
 local dbVersion = '18';
+local appPort = 8080;
+local dbUser = name;
+local dbName = name;
 
-local appPort = 8080;           // container port the app listens on
-local dbUser = stack;
-local dbName = stack;
+lib.render(
+  name,
 
-// ENV FILE — the secrets file the parent compose.yaml interpolates into this manifest.
-// Preferred: register this stack in registry.libsonnet (infisical.catalogue) and use
-//   local envFile = secrets.<stack>.path;
-// so the agent (producer) and this stack (consumer) can't disagree on the filename.
-// Until registered, this literal is fine. A no-secrets stack omits envFile entirely
-// and calls `c.render(stack, manifest)` with no third arg (see mazanoke).
-local envFile = reg.secretDir + '/' + stack + '.env';
-
-local manifest = {
-  name: stack,
-
-  services: {
-    // ── App: the user-facing service ────────────────────────────────────────────
-    [app]: {
+  lib.Stack(name, function(ref) {
+    // Services are keyed by role, taken from reg.role rather than typed as bare strings —
+    // that is what keeps `db` from being `database` in some other stack. A service whose
+    // name is genuinely app-specific (guacd, gerbil) uses a plain local instead.
+    //
+    // `ref` is the stack's own service table: ref[role.DB] is the name the db service will
+    // actually carry *if this stack declares one*, and an evaluation error if it does not.
+    // Use it for every cross-service reference — a typo fails at the point of the mistake
+    // rather than in a container that never starts.
+    [role.APP]: lib.Service {
       image: 'ghcr.io/example/example:' + appVersion,
-      container_name: n.container(app),
+
+      // Anything Compose understands can be set here; it passes straight through. Published
+      // ports bind to loopback — apps are reached over the tailnet or through the edge
+      // proxy, so a port that is not loopback-bound is a mistake, not a default.
+      ports: ['%s:18000:%s' % [reg.ips.loopback, appPort]],
+      expose: [std.toString(appPort)],
+
+      // volumes_ is { key: '/path/in/container' } for volumes this stack owns. The key is
+      // the compose-local handle; the real volume is registered at the top level as
+      // <name>_<key>, so it is declared once, here, where it is mounted.
+      volumes_:: { app: '/data' },
+
+      // Bind mounts and host paths have no name to derive, so they pass through verbatim.
+      // mounts_:: ['./files/config.yaml:/app/config.yaml:ro'],
+
       depends_on: {
         // Wait for the DB's healthcheck, not just its start, before booting.
-        [db]: { condition: 'service_healthy' },
+        [role.DB]: { condition: 'service_healthy' },
       },
-      volumes: [n.volume(app) + ':/data'],
+
       environment: {
-        // Reach the DB by its container name on the shared default network.
-        DB_HOST: n.container(db),
+        // Reach the DB by the name ref hands back — it is both the compose key's container
+        // and its DNS name on the stack network.
+        DB_HOST: ref[role.DB],
         DB_NAME: dbName,
         DB_USER: dbUser,
-        // Secret — `${VAR:?err}` aborts the deploy if the env file hasn't supplied VAR.
-        // Some images won't interpolate env_file values into every field; when that
-        // bites, set the literal `${VAR:?err}` here in `environment:` (see immich).
+        // `${VAR:?err}` makes Compose refuse to start when VAR is unset rather than
+        // interpolating an empty string. Use it for everything out of the env file.
         DB_PASSWORD: '${EXAMPLE_DB_PASSWORD:?err}',
-        APP_URL: 'https://' + stack + '.' + reg.domains.ktbinternal,
+        APP_URL: 'https://%s.%s' % [name, reg.domains.ktbinternal],
       },
+
+      // Every default the Service base sets — container_name, restart, the network alias —
+      // is a plain field, so overriding one is just writing it again.
       restart: 'on-failure:5',
+
       healthcheck: {
         test: ['CMD', 'curl', '-fsS', '--max-time', '2', 'http://localhost:' + std.toString(appPort)],
         interval: '30s',
         timeout: '10s',
         retries: 5,
       },
-      networks: {
-        default: { aliases: [n.container(app)] },
-      },
-      expose: [std.toString(appPort)],
-    } + c.publish(18000, appPort),  // ← pick a free host port; binds 127.0.0.1 only
+    },
 
-    // ── DB: dedicated Postgres ─────────────────────────────────────────────────
-    // To use the SHARED Postgres cluster instead, delete this whole service and dial
-    // it over the host-gateway: point DB_HOST/DB_PORT at reg.endpoints.postgres.host
-    // (host.docker.internal:<port>) and add `extra_hosts: ['host.docker.internal:host-gateway']`
-    // to this app service. See README.md for the shared-Postgres variation.
-    [db]: {
+    // ── DB: dedicated Postgres ────────────────────────────────────────────────────
+    // To use the SHARED cluster instead, delete this service and dial it over the
+    // host-gateway: point DB_HOST/DB_PORT at reg.endpoint.postgres.host and add
+    // `extra_hosts: ['host.docker.internal:host-gateway']` to the app service. There are no
+    // shared Docker networks — that gateway is how every cross-stack call is made.
+    [role.DB]: lib.Service {
       image: 'docker.io/library/postgres:' + dbVersion,
-      container_name: n.container(db),
-      volumes: [n.volume(db) + ':/var/lib/postgresql/data'],
+      volumes_:: { db: '/var/lib/postgresql/data' },
       environment: {
         POSTGRES_USER: dbUser,
         POSTGRES_DB: dbName,
@@ -107,39 +105,13 @@ local manifest = {
         timeout: '10s',
         retries: 10,
       },
-      networks: { default: { aliases: [n.container(db)] } },
       expose: ['5432'],
     },
+  }),
 
-    // ── Redis (optional) — uncomment for apps that need a broker/cache ──────────
-    // [reg.roles.redis]: {
-    //   image: 'docker.io/library/redis:8',
-    //   container_name: n.container(reg.roles.redis),
-    //   command: ['--maxmemory-policy', 'noeviction'],
-    //   restart: 'on-failure:5',
-    //   healthcheck: {
-    //     test: ['CMD', 'redis-cli', 'ping'],
-    //     interval: '5s', timeout: '5s', retries: 10,
-    //   },
-    //   networks: { default: { aliases: [n.container(reg.roles.redis)] } },
-    //   expose: ['6379'],
-    // },
-  },
-
-  volumes: {
-    [n.volume(app)]: { name: n.volume(app) },
-    [n.volume(db)]: { name: n.volume(db) },
-  },
-
-  // Just the private default net. There are no shared Docker networks anymore — to reach
-  // another stack's service, dial its published host port via the docker host-gateway
-  // (host.docker.internal:<port>, with `extra_hosts: ['host.docker.internal:host-gateway']`
-  // on the consuming service). See README.md for the network map.
-  networks:
-    s.network.default,
-};
-
-// Third arg is the list of env files the parent include interpolates. Drop it for a
-// no-secrets stack; pass several (e.g. [secrets.<stack>.path, secrets.postgres.path])
-// when the stack also needs the shared-postgres credentials.
-c.render(stack, manifest, [envFile])
+  // The env files the parent include interpolates into the manifest. Register the stack in
+  // registry.libsonnet's infisical catalogue and reference it by KEY — lib.Secret('example')
+  // — so the agent (producer) and this stack (consumer) derive the same path. Until it is
+  // registered the literal below is fine. Drop the argument entirely for a no-secrets stack.
+  [reg.secretPath + '/' + name + '.env'],
+)

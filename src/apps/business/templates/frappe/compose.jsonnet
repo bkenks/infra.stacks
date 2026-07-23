@@ -1,6 +1,6 @@
 // Compiles to compose.yaml and compose.stack.yaml — do not edit the YAML.
-local c = import 'compose.libsonnet';
-local reg = import 'registry.libsonnet';
+local c = import 'lib/compose.libsonnet';
+local reg = import 'lib/registry.libsonnet';
 local secrets = reg.infisical.services;
 
 local stack = 'frappe';

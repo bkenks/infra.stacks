@@ -1,37 +1,25 @@
 // Compiles to compose.yaml and compose.stack.yaml — do not edit the YAML.
-local c = import 'compose.libsonnet';
-local reg = import 'registry.libsonnet';
-local secrets = reg.infisical.services;
+local lib = import 'lib/lib.libsonnet';
+local reg = lib.registry;
+local role = reg.role;
 
-local stack = 'convertx';
-local s = c.stack(stack);
-local n = s.names;
-local app = reg.roles.app;
-
+local name = 'convertx';
 local port = 3000;
+local dataDir = reg.dirs.docker.root + reg.dirs.docker.bindMounts + '/apps/convertx';
 
-local manifest = {
-  name: stack,
-
-  services: {
-    [app]: {
+lib.render(
+  name,
+  lib.Stack(name, function(ref) {
+    [role.APP]: lib.Service {
       // Upstream publishes no version tags — unpinned/`latest`.
       image: 'ghcr.io/c4illin/convertx',
-      container_name: n.container(app),
-      volumes: [reg.server.dir.docker.root + reg.server.dir.docker.bindmounts + '/apps/convertx:/app/data'],
+      mounts_:: [dataDir + ':/app/data'],
       environment: {
         JWT_SECRET: '${CONVERTX_JWT_SECRET:?err}',
       },
-      restart: 'unless-stopped',
       expose: [std.toString(port)],
-      networks: {
-        default: { aliases: [n.container(app)] },
-      },
-    } + c.publish(18001, port),
-  },
-
-  networks:
-    s.network.default,
-};
-
-c.render(stack, manifest, [secrets.convertx.path])
+      ports: ['%s:18001:%s' % [reg.ips.loopback, port]],
+    },
+  }),
+  [lib.Secret('convertx')],
+)

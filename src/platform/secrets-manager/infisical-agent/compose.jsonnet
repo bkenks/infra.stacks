@@ -3,24 +3,20 @@
 //
 // Naming is merged into the 'infisical' project (matches komodo-periphery's
 // merge into 'komodo') — this stack is Infisical's agent, not its own app.
-local c = import 'compose.libsonnet';
-local reg = import 'registry.libsonnet';
+local lib = import 'lib/lib.libsonnet';
+local reg = lib.registry;
+local role = reg.role;
 
-local stack = 'infisical';
-local s = c.stack(stack);
-local n = s.names;
-
+local name = 'infisical';
 local version = '0.43.89';
 
-local manifest = {
-  name: stack,
-
-  services: {
-    agent: {
+lib.render(
+  'infisical-agent',
+  lib.Stack(name, function(ref) {
+    [role.AGENT]: lib.Service {
       image: 'docker.io/infisical/cli:' + version,
-      container_name: n.container('agent'),
       entrypoint: ['/bin/sh', '/agent/entrypoint.sh'],
-      volumes: [
+      mounts_:: [
         './files/entrypoint.sh:/agent/entrypoint.sh:ro',
         './templates:/agent/templates:ro',     // per-service config fragments, generated from registry
         '/dev/shm:/dev/shm',                   // read creds + write rendered <stack>.env files
@@ -34,13 +30,9 @@ local manifest = {
         INFISICAL_CLIENT_ID: '${INFISICAL_CLIENT_ID:?err}',
         INFISICAL_CLIENT_SECRET: '${INFISICAL_CLIENT_SECRET:?err}',
         // Public URL by default (works on every host); per-host override allowed.
-        INFISICAL_ADDRESS: '${INFISICAL_ADDRESS:-' + c.url(reg.endpoints.infisical).public + '}',
+        INFISICAL_ADDRESS: '${INFISICAL_ADDRESS:-' + reg.endpoint.infisical.public.url + '}',
       },
-      networks: {
-        default: { aliases: [n.container('agent')] },  // egress to reach the public Infisical URL
-      },
-      extra_hosts: [ "host.docker.internal:host-gateway" ],
-      restart: 'unless-stopped',
+      extra_hosts: ['host.docker.internal:host-gateway'],
       // The agent stays "running" even when a template/auth permanently fails, so liveness
       // never flips it. entrypoint.sh stamps /tmp/agent.last_err with the epoch of every
       // ERR/FTL/PNC line; unhealthy only while an error logged within the last 180s — a
@@ -56,9 +48,5 @@ local manifest = {
         start_period: '30s',
       },
     },
-  },
-
-  networks: s.network.default,  // shared name with infisical-core's own default net, same tradeoff as komodo-periphery/komodo
-};
-
-c.render('infisical-agent', manifest)
+  }),
+)

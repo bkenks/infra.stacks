@@ -1,25 +1,20 @@
 // woodpecker CI: `server` (UI/API+gRPC, reached via exposed port) and `agent` (runs pipeline
 // steps via host Docker socket, talks to server only over the stack's default net).
-local c = import 'compose.libsonnet';
-local reg = import 'registry.libsonnet';
-local secrets = reg.infisical.services;
+local lib = import 'lib/lib.libsonnet';
+local reg = lib.registry;
+local role = reg.role;
 
-local stack = 'woodpecker';
-local s = c.stack(stack);
-local n = s.names;
-
+local name = 'woodpecker';
 local version = 'v3.15.0';
 local httpPort = 8000;
 local grpcPort = 9000;
 
-local manifest = {
-  name: stack,
-
-  services: {
-    server: {
+lib.render(
+  name,
+  lib.Stack(name, function(ref) {
+    [role.SERVER]: lib.Service {
       image: 'docker.io/woodpeckerci/woodpecker-server:' + version,
-      container_name: n.container('server'),
-      volumes: ['server' + ':/var/lib/woodpecker'],
+      volumes_:: { server: '/var/lib/woodpecker' },
       environment: {
         // Must match the OAuth2 app's redirect URI in Forgejo.
         WOODPECKER_HOST: 'https://peck.' + reg.domains.ktbinternal,
@@ -39,41 +34,24 @@ local manifest = {
       },
       restart: 'on-failure:5',
       expose: [std.toString(httpPort), std.toString(grpcPort)],
-      networks: {
-        default: { aliases: [n.container('server')] },
-      },
-    } + c.publish(18016, httpPort),
+      ports: ['%s:18016:%s' % [reg.ips.loopback, httpPort]],
+    },
 
-    agent: {
+    [role.AGENT]: lib.Service {
       image: 'docker.io/woodpeckerci/woodpecker-agent:' + version,
-      container_name: n.container('agent'),
       command: 'agent',
-      depends_on: ['server'],
-      volumes: [
-        'agent' + ':/etc/woodpecker',
-        // Intentional: agent runs pipeline steps as sibling containers via the host daemon.
-        '/var/run/docker.sock:/var/run/docker.sock',
-      ],
+      depends_on: [role.SERVER],
+      volumes_:: { agent: '/etc/woodpecker' },
+      // Intentional: agent runs pipeline steps as sibling containers via the host daemon.
+      mounts_:: ['/var/run/docker.sock:/var/run/docker.sock'],
       environment: {
-        WOODPECKER_SERVER: 'server:' + std.toString(grpcPort),
+        WOODPECKER_SERVER: role.SERVER + ':' + std.toString(grpcPort),
         WOODPECKER_MAX_WORKFLOWS: std.toString(2),
         // Secret — must match server's WOODPECKER_AGENT_SECRET exactly.
         WOODPECKER_AGENT_SECRET: '${WOODPECKER_AGENT_SECRET:?err}',
       },
       restart: 'on-failure:5',
-      networks: {
-        default: { aliases: [n.container('agent')] },
-      },
     },
-  },
-
-  volumes: {
-    server: { name: n.volume('server') },
-    agent: { name: n.volume('agent') },
-  },
-
-  networks:
-    s.network.default,
-};
-
-c.render(stack, manifest, [secrets.woodpecker.path])
+  }),
+  [lib.Secret('woodpecker')],
+)

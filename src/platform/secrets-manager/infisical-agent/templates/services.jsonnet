@@ -9,10 +9,11 @@
 //   type=dump  whole Infisical folder -> KEY=VALUE (secret names == env names)
 //   type=map   explicit OUTPUT=FROM renames/duplications (registry `keys`)
 //   type=raw   a single secret's raw value, no KEY= prefix (registry `key`)
-local reg = import 'registry.libsonnet';
+local lib = import 'lib/lib.libsonnet';
+local reg = lib.registry;
 
 local bodyLines(s) =
-  local project = reg.infisical.projects[s.project];
+  local project = reg.infisical.project[s.project];
   local env = std.get(s, 'env', 'prod');
   local folder = s.folder;
 
@@ -35,15 +36,16 @@ local indentBody(s) = std.join('\n', ['    ' + l for l in bodyLines(s)]);
 // Built as a raw string, not via manifestYamlDoc, so the Go-template bytes stay exact.
 // render.py prepends the GENERATED header to every output; do not add one here.
 // Ends on a blank line, separating the fragments entrypoint.sh cats together.
-local fragment(s) =
-  '- destination-path: ' + s.path + '\n' +
+local fragment(name) =
+  local s = reg.infisical.catalog[name];
+  '- destination-path: ' + lib.Secret(name) + '\n' +
   '  config:\n' +
   '    polling-interval: "1m"\n' +
   '  template-content: |\n' +
   indentBody(s) + '\n\n';
 
 {
-  [name + '.yaml']: fragment( reg.infisical.services[ name ] )
+  [name + '.yaml']: fragment(name)
 
-  for name in std.objectFields( reg.infisical.services )
+  for name in std.objectFields(reg.infisical.catalog)
 }

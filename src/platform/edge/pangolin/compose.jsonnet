@@ -18,8 +18,8 @@
 //
 // Single instance: the VPS edge on rick, reached at pangolin.ktbcloud.com. The config is
 // rendered from files/config.libsonnet into files/ and mounted read-only below.
-local c = import 'compose.libsonnet';
-local reg = import 'registry.libsonnet';
+local c = import 'lib/compose.libsonnet';
+local reg = import 'lib/registry.libsonnet';
 local secrets = reg.infisical.services;
 local dv = reg.server.dir.docker.root + reg.server.dir.docker.bindmounts;
 

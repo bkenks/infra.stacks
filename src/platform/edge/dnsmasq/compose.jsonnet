@@ -4,25 +4,18 @@
 // Point the host's Docker daemon at this container (daemon.json `dns`) so every container
 // resolves through it — then a DNS change is one edit to ./files/hosts + a SIGHUP, with no
 // downstream container redeploy. See README.
-local c = import 'compose.libsonnet';
-local reg = import 'registry.libsonnet';
-local roles = reg.roles;
+local lib = import 'lib/lib.libsonnet';
+local reg = lib.registry;
+local role = reg.role;
 
-local stack = 'dnsmasq';
-local s = c.stack(stack);
-local n = s.names;
+local name = 'dnsmasq';
 local version = '2.93';
 
-local manifest = {
-  name: stack,
-
-  services: {
-    [roles.app]: {
-      local extName = n.container(roles.app),
-
+lib.render(
+  name,
+  lib.Stack(name, function(ref) {
+    [role.APP]: lib.Service {
       image: 'dockurr/dnsmasq:' + version,
-      container_name: extName,
-      restart: 'unless-stopped',
       environment: {
         TZ: 'America/New_York',
         // Upstreams, tried in order (strict-order in files/fallback.conf).
@@ -36,7 +29,7 @@ local manifest = {
       // (If a host runs a custom Docker `bip`, set this IP + daemon.json `dns` to that gateway.)
       ports: ['172.17.0.1:53:53/tcp', '172.17.0.1:53:53/udp'],
       cap_add: ['NET_ADMIN', 'NET_RAW'],  // per dockurr/dnsmasq docs
-      volumes: [
+      mounts_:: [
         // Extra directives layered onto the image's default config (conf-dir=/etc/dnsmasq.d).
         './files/fallback.conf:/etc/dnsmasq.d/fallback.conf:ro',
         // The central, live-updatable record set. SIGHUP the container to reload it.
@@ -52,9 +45,5 @@ local manifest = {
         start_period: '10s',
       },
     },
-  },
-
-  networks: s.network.default,  // no peers — reached via published host port 53
-};
-
-c.render(stack, manifest)
+  }),
+)

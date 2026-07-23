@@ -1,27 +1,21 @@
 // Compiles to compose.yaml and compose.stack.yaml — do not edit the YAML.
 // Grist — self-hosted spreadsheet/database, single container, reached via exposed port.
-local c = import 'compose.libsonnet';
-local reg = import 'registry.libsonnet';
-local secrets = reg.infisical.services;
+local lib = import 'lib/lib.libsonnet';
+local reg = lib.registry;
+local role = reg.role;
 
-local stack = 'grist';
-local s = c.stack(stack);
-local n = s.names;
-local app = reg.roles.app;
-
+local name = 'grist';
 local version = '1.7.16';
 local port = 8484;
 
-local manifest = {
-  name: stack,
-
-  services: {
-    [app]: {
+lib.render(
+  name,
+  lib.Stack(name, function(ref) {
+    [role.APP]: lib.Service {
       image: 'gristlabs/grist:' + version,
-      container_name: n.container(app),
-      volumes: [n.volume(app) + ':/persist'],
+      volumes_:: { app: '/persist' },
       environment: {
-        APP_HOME_URL:                   'https://' + stack + '.' + reg.domains.ktbinternal,
+        APP_HOME_URL:                   'https://' + name + '.' + reg.domains.ktbinternal,
         // Enable later for data backup to NAS
         // GRIST_DOCS_MINIO_BUCKET:        my-grist-docs,
         // GRIST_DOCS_MINIO_ENDPOINT:      s3.amazonaws.com,
@@ -38,18 +32,7 @@ local manifest = {
         retries: 5,
       },
       expose: [std.toString(port)],
-      networks: {
-        default: { aliases: [n.container(app)] },
-      },
-    } + c.publish(18017, port),
-  },
-
-  volumes: {
-    [n.volume(app)]: { name: n.volume(app) },
-  },
-
-  networks:
-    s.network.default,
-};
-
-c.render(stack, manifest)
+      ports: ['%s:18017:%s' % [reg.ips.loopback, port]],
+    },
+  }),
+)

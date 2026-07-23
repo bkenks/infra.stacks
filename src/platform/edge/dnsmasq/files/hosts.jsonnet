@@ -1,11 +1,11 @@
-// Renders files/hosts from registry.libsonnet's server.hosts — the single source of truth
+// Renders files/hosts from registry.libsonnet's `hosts` — the single source of truth
 // for every host's name(s) → IP(s). Each host emits one line per address; addresses are
 // ordered LAN-first (Tailscale as fallback) or, for VPS hosts, Tailscale-first (public as
 // fallback), so a name still resolves if the preferred path is down. dnsmasq serves these
 // via addn-hosts; once the file reaches the host, SIGHUP the container to reload — no redeploy.
-local reg = import 'registry.libsonnet';
+local reg = import 'lib/registry.libsonnet';
 
-local hosts = reg.server.hosts;
+local hosts = reg.hosts;
 
 // Address order per host: LAN before Tailscale; Tailscale before public (VPS). The preferred
 // address is emitted first so clients try it first, with the other(s) as fallback.
@@ -39,7 +39,7 @@ local body = std.join('', [
 
 {
   hosts:
-    '# Source: registry.libsonnet server.hosts — edit there, not here.\n'
+    '# Source: registry.libsonnet hosts — edit there, not here.\n'
     + '# One line per address: LAN/Tailscale (or Tailscale/public for VPS), preferred first.\n'
     + body
     + '# Healthcheck sentinel — the container healthcheck resolves this name.\n'

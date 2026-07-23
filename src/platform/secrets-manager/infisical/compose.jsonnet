@@ -1,5 +1,5 @@
-local c = import 'compose.libsonnet';
-local reg = import 'registry.libsonnet';
+local c = import 'lib/compose.libsonnet';
+local reg = import 'lib/registry.libsonnet';
 local secrets = reg.infisical.services;
 
 local stack = 'infisical';
@@ -15,11 +15,6 @@ local appPort = 8080;  // matches reg.endpoints.infisical.container.port
 local dbUser = 'infisical';
 local dbName = 'infisical';
 
-// Host port for the proxy-bypass publish. Bound to loopback and to the tailnet address of
-// the host infisical runs on, so the UI/API is reachable over Tailscale without Traefik.
-local hostPort = 18006;
-local tsIp = reg.server.hosts.littlebuddy.ip;
-local lanIp = reg.server.hosts.littlebuddy.lan;
 
 local manifest = {
   name: stack,
@@ -63,9 +58,9 @@ local manifest = {
         retries: 3,
         start_period: '40s',
       },
-      expose: [std.toString(appPort)],
-    } + c.publish(hostPort, appPort)
-      + { ports+: [tsIp + ':' + std.toString(hostPort) + ':' + std.toString(appPort), lanIp + ':' + std.toString(hostPort) + ':' + std.toString(appPort), reg.networks.localhostGateway + ":" + std.toString(hostPort) + ":" + std.toString(appPort)] },
+      expose: [appPort],
+      ports: 
+    },
 
     [roles.db]: {
       image: 'docker.io/library/postgres:' + dbVersion,

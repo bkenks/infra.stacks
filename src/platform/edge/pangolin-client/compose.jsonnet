@@ -1,35 +1,22 @@
-local c = import 'compose.libsonnet';
-local reg = import 'registry.libsonnet';
-local secrets = reg.infisical.services;
+local lib = import 'lib/lib.libsonnet';
+local reg = lib.registry;
+local role = reg.role;
 
-local stack = 'pangolin-client';
-local s = c.stack(stack);
-local n = s.names;
-
-local app = reg.roles.app;
-
+local name = 'pangolin-client';
 local appVersion = 'latest';
 
-local manifest = {
-  name: stack,
-
-  services: {
-    // ── App: the user-facing service ────────────────────────────────────────────
-    [app]: {
+lib.render(
+  name,
+  lib.Stack(name, function(ref) {
+    [role.APP]: lib.Service {
       image: 'fosrl/pangolin-cli:' + appVersion,
-      container_name: n.container(app),
       environment: {
-        PANGOLIN_ENDPOINT:    c.url(reg.endpoints.pangolin).pub,
-        CLIENT_ID:            "${CLIENT_ID:?must provide a client id}",
-        CLIENT_SECRET:        "${CLIENT_SECRET:?must provide a client secret}",
+        PANGOLIN_ENDPOINT:    reg.endpoint.pangolin.public.url,
+        CLIENT_ID:            '${CLIENT_ID:?must provide a client id}',
+        CLIENT_SECRET:        '${CLIENT_SECRET:?must provide a client secret}',
       },
-      restart: reg.restartPolicy.defaultCritical,
-      networks: s.network.attach("default", n.container(app)),
-    }
-  },
-
-  networks:
-    s.network.default,
-};
-
-c.render(stack, manifest, [secrets.pangolinClient.path])
+      restart: reg.restartPolicy.default,
+    },
+  }),
+  [lib.Secret('pangolinClient')],
+)

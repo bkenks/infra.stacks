@@ -1,8 +1,8 @@
-local c = import 'compose.libsonnet';
-local r = import 'registry.libsonnet';
+local lib = import 'lib/lib.libsonnet';
+local reg = lib.registry;
 
 {
-    'newt.env': c.toEnv({
-        PANGOLIN_ENDPOINT: 'https://pangolin.' + r.domains.ktbcloud,
-    }),
+  'newt.env': lib.toEnv({
+    PANGOLIN_ENDPOINT: reg.endpoint.pangolin.public.url,
+  }),
 }

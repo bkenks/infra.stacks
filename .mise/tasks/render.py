@@ -12,7 +12,7 @@ own mirrored directory. So `src/platform/edge/dnsmasq/files/hosts.jsonnet` produ
 `.deploy/platform/edge/dnsmasq/files/hosts`, and every `./files/...` bind mount in the
 generated compose keeps working unchanged.
 
-src/ holds stacks and nothing else. Repo infrastructure (.mise/, .jsonnet/, komodo/,
+src/ holds stacks and nothing else. Repo infrastructure (.mise/, lib/, komodo/,
 lefthook.yml, docs) lives outside it and is never copied, so this script needs no
 ignore list.
 
@@ -25,9 +25,9 @@ An entrypoint evaluates to {'<filename>': <content>} and may only name bare file
 Dict content is dumped as YAML; string content is written verbatim, since the Infisical
 fragments carry Go-template bytes that must not be reparsed.
 
-Imports resolve by bare name via the -J jpath, so a source at any depth does
-`import 'registry.libsonnet'`. uv resolves PyYAML from the metadata above; the `jsonnet`
-binary and uv itself are pinned in mise.toml.
+The repo root is the -J jpath, so a source at any depth does `import 'lib/lib.libsonnet'`
+— the library's single entrypoint. uv resolves PyYAML from the metadata above; the
+`jsonnet` binary and uv itself are pinned in mise.toml.
 
 This file lives in .mise/tasks/, so mise discovers it as the `render` task (extension stripped) with no
 declaration in mise.toml — `mise run render` and `./.mise/tasks/render.py` are the same thing.
@@ -43,13 +43,12 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
 SRC = ROOT / "src"
-LIB = ROOT / ".jsonnet" / "lib"
 DEPLOY = ROOT / ".deploy"
 HEADER = "# GENERATED from {src} by .mise/tasks/render.py — DO NOT EDIT.\n"
 
 # src/ holds stacks and nothing else, so there is no repo infrastructure to filter out:
-# everything in there is either an entrypoint or an asset. A .libsonnet is neither — it
-# lives in .jsonnet/lib and is only ever imported.
+# everything in there is either an entrypoint or an asset. A .libsonnet is neither — the
+# library lives in lib/ at the repo root and is only ever imported.
 SKIP_NAMES = {".DS_Store"}
 SKIP_SUFFIXES = {".libsonnet"}
 
@@ -73,7 +72,7 @@ def run_jsonnet(src: Path) -> "dict":
     # stderr inherits, so jsonnet's own message keeps its line numbers. The non-zero exit
     # propagates: that is what makes lefthook's `set -e` abort the commit.
     proc = subprocess.run(
-        ["jsonnet", "-J", str(LIB), str(SRC / src)], stdout=subprocess.PIPE, text=True
+        ["jsonnet", "-J", str(ROOT), str(SRC / src)], stdout=subprocess.PIPE, text=True
     )
     if proc.returncode != 0:
         raise SystemExit(proc.returncode)

@@ -3,8 +3,8 @@
 //
 // Volume names follow the standard n.volume() convention — migrate/rename
 // existing volumes on next deploy.
-local c = import 'compose.libsonnet';
-local reg = import 'registry.libsonnet';
+local c = import 'lib/compose.libsonnet';
+local reg = import 'lib/registry.libsonnet';
 local secrets = reg.infisical.services;
 
 local stack = 'paperless';

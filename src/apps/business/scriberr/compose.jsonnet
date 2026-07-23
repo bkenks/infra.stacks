@@ -1,53 +1,33 @@
 // Compiles to compose.yaml and compose.stack.yaml — do not edit the YAML.
 // No secrets: nothing is rendered to /dev/shm for this stack.
-local c = import 'compose.libsonnet';
-local reg = import 'registry.libsonnet';
+local lib = import 'lib/lib.libsonnet';
+local reg = lib.registry;
+local role = reg.role;
 
-local stack = 'scriberr';
-local s = c.stack(stack);
-local n = s.names;
-local app = reg.roles.app;
-
-// app owns two volumes, so each resource key is suffixed with its purpose
-// (<service-role>_<purpose>) instead of the bare role — see docker-compose.md.
-local dataVol = app + '_data';
-local whisperxVol = app + '_whisperx-env';
-
+local name = 'scriberr';
 local port = 8080;
 
-local manifest = {
-  name: stack,
-
-  services: {
-    [app]: {
+lib.render(
+  name,
+  lib.Stack(name, function(ref) {
+    [role.APP]: lib.Service {
       // Pinned by digest (upstream has no stable version tags) — do not
       // replace with a floating tag.
       image: 'ghcr.io/rishikanthc/scriberr@sha256:9e36448fb5a6003b28cd3d9ac783e8cbef5ed916936c20ec353a55fa380484f4',
-      container_name: n.container(app),
-      volumes: [
-        dataVol + ':/app/data',
-        whisperxVol + ':/app/whisperx-env',
-      ],
+      // app owns two volumes, so each key is suffixed with its purpose
+      // (<role>_<purpose>) instead of the bare role.
+      volumes_:: {
+        app_data: '/app/data',
+        'app_whisperx-env': '/app/whisperx-env',
+      },
       environment: {
         APP_ENV: 'production',
         PUID: '1000',
         PGID: '1000',
-        ALLOWED_ORIGINS: 'https://' + stack + '.' + reg.domains.ktbinternal,
+        ALLOWED_ORIGINS: 'https://' + name + '.' + reg.domains.ktbinternal,
       },
-      restart: 'unless-stopped',
       expose: [std.toString(port)],
-      networks: {
-        default: { aliases: [n.container(app)] },
-      },
-    } + c.publish(18011, port),
-  },
-
-  volumes: {
-    [dataVol]: { name: n.volume(dataVol) },
-    [whisperxVol]: { name: n.volume(whisperxVol) },
-  },
-
-  networks: s.network.default,
-};
-
-c.render(stack, manifest)
+      ports: ['%s:18011:%s' % [reg.ips.loopback, port]],
+    },
+  }),
+)

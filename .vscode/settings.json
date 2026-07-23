@@ -1,7 +1,0 @@
-{
-    "jsonnet.languageServer.jpath": [
-        ".jsonnet/lib"
-    ],
-    "jsonnet.languageServer.lint": true,
-    "editor.defaultFormatter": null
-}

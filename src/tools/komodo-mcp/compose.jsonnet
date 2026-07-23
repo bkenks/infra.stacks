@@ -1,25 +1,19 @@
 // komodo-mcp: exposes Komodo to MCP clients (Claude Code) via Traefik, guarded by
 // basic-auth — the MCP endpoint has no auth of its own and the configured key is full read/write.
-local c = import 'compose.libsonnet';
-local reg = import 'registry.libsonnet';
-local secrets = reg.infisical.services;
+local lib = import 'lib/lib.libsonnet';
+local reg = lib.registry;
+local role = reg.role;
 
-local stack = 'komodo-mcp';
-local s = c.stack(stack);
-local n = s.names;
-local app = reg.roles.app;
-
+local name = 'komodo-mcp';
 // Pinned to upstream release tag v1.4.1 — verify it exists on the mirror before deploying.
 local version = '1.4.1';
 local port = 8000;
 
-local manifest = {
-  name: stack,
-
-  services: {
-    [app]: {
+lib.render(
+  name,
+  lib.Stack(name, function(ref) {
+    [role.APP]: lib.Service {
       image: 'fj.' + reg.domains.ktbcloud + '/bkenks/komodo-mcp-server:' + version,
-      container_name: n.container(app),
       environment: {
         // Streamable HTTP transport (listens on :8000 inside the container).
         MCP_TRANSPORT: 'http',
@@ -36,16 +30,9 @@ local manifest = {
       expose: [std.toString(port)],
       // No `init: true`: image's own tini is already PID 1; adding Docker's init would nest a
       // second tini as a non-PID-1 child and break zombie reaping.
-      networks: {
-        // default net unused (no peers) but kept for parity with the pre-jsonnet stack.
-        default: { aliases: [n.container(app)] },
-      },
-      labels: s.komodoSkip,
-    } + c.publish(18007, port),
-  },
-
-  networks:
-    s.network.default,
-};
-
-c.render(stack, manifest, [secrets['komodo-mcp'].path])
+      labels: lib.komodoSkip,
+      ports: ['%s:18007:%s' % [reg.ips.loopback, port]],
+    },
+  }),
+  [lib.Secret('komodo-mcp')],
+)

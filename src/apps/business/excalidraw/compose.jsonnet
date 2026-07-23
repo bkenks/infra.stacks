@@ -1,13 +1,11 @@
 // Compiles to compose.yaml and compose.stack.yaml — do not edit the YAML.
 // No secrets — no env_file needed.
-local c = import 'compose.libsonnet';
-local reg = import 'registry.libsonnet';
+local lib = import 'lib/lib.libsonnet';
+local reg = lib.registry;
+local role = reg.role;
 
-local stack = 'excalidraw';
-local s = c.stack(stack);
-local n = s.names;
-local app = reg.roles.app;   // 'app' — the drawing web UI
-local room = 'room';         // the collaboration websocket server
+local name = 'excalidraw';
+local room = 'room';         // the collaboration websocket server — app-specific, no shared role
 
 local appVersion = 'latest';
 local roomVersion = 'latest';
@@ -19,14 +17,12 @@ local roomPort = 80;
 // publicly reachable via the edge, pointed at the published roomPort (18019).
 local wsServerUrl = 'https://draw-room.' + reg.domains.ktbcloud;
 
-local manifest = {
-  name: stack,
-
-  services: {
+lib.render(
+  name,
+  lib.Stack(name, function(ref) {
     // ── App: the excalidraw drawing web UI ─────────────────────────────────────
-    [app]: {
+    [role.APP]: lib.Service {
       image: 'excalidraw/excalidraw:' + appVersion,
-      container_name: n.container(app),
       // Rewrite the hard-coded public collab host in the built assets to ours, then
       // start nginx. Runs on every boot so an image update can't drift the URL.
       entrypoint: '/bin/sh',
@@ -47,7 +43,6 @@ local manifest = {
         NODE_ENV: 'production',
         VITE_APP_WS_SERVER_URL: wsServerUrl,
       },
-      restart: 'unless-stopped',
       healthcheck: {
         test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:' + std.toString(appPort) + '/ >/dev/null 2>&1 || exit 1'],
         interval: '30s',
@@ -62,17 +57,13 @@ local manifest = {
         '/tmp:rw,noexec,nosuid,size=64m',
         '/var/cache/nginx/client_temp:rw,noexec,nosuid,size=64m',
       ],
-      networks: {
-        default: { aliases: [n.container(app)] },
-      },
       expose: [std.toString(appPort)],
-    } + c.publish(18018, appPort),
+      ports: ['%s:18018:%s' % [reg.ips.loopback, appPort]],
+    },
 
     // ── Room: the collaboration websocket server ───────────────────────────────
-    [room]: {
+    [room]: lib.Service {
       image: 'excalidraw/excalidraw-room:' + roomVersion,
-      container_name: n.container(room),
-      restart: 'unless-stopped',
       read_only: true,
       tmpfs: ['/tmp:rw,noexec,nosuid,size=64m'],
       security_opt: ['no-new-privileges:true'],
@@ -84,15 +75,8 @@ local manifest = {
         retries: 3,
         start_period: '20s',
       },
-      networks: {
-        default: { aliases: [n.container(room)] },
-      },
       expose: [std.toString(roomPort)],
-    } + c.publish(18019, roomPort),
-  },
-
-  networks:
-    s.network.default,
-};
-
-c.render(stack, manifest)
+      ports: ['%s:18019:%s' % [reg.ips.loopback, roomPort]],
+    },
+  }),
+)

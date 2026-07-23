@@ -1,28 +1,24 @@
 // termix: web SSH/terminal + server-management UI; guacd (Guacamole proxy) is an internal-only
 // sidecar for remote-desktop, reached by `app` over the stack's default net. No secrets for this stack.
-local c = import 'compose.libsonnet';
-local reg = import 'registry.libsonnet';
+local lib = import 'lib/lib.libsonnet';
+local reg = lib.registry;
+local role = reg.role;
 
-local stack = 'termix';
-local s = c.stack(stack);
-local n = s.names;
-local app = reg.roles.app;
-local guacd = 'guacd';
+local name = 'termix';
+local guacd = 'guacd';         // app-specific sidecar, no shared role
 
 local appVersion = '2.4.1';    // ghcr.io/lukegus/termix
 local guacdVersion = '1.6.0';  // docker.io/guacamole/guacd
 local port = 8080;
 local guacdPort = 4822;
 
-local manifest = {
-  name: stack,
-
-  services: {
-    [app]: {
+lib.render(
+  name,
+  lib.Stack(name, function(ref) {
+    [role.APP]: lib.Service {
       image: 'ghcr.io/lukegus/termix:' + appVersion,
-      container_name: n.container(app),
       depends_on: { [guacd]: { condition: 'service_started' } },
-      volumes: [app + ':/app/data'],
+      volumes_:: { app: '/app/data' },
       environment: { PORT: std.toString(port) },
       restart: 'on-failure:5',
       healthcheck: {
@@ -32,14 +28,11 @@ local manifest = {
         retries: 10,
       },
       expose: [std.toString(port)],
-      networks: {
-        default: { aliases: [n.container(app)] },
-      },
-    } + c.publish(18014, port),
+      ports: ['%s:18014:%s' % [reg.ips.loopback, port]],
+    },
 
-    [guacd]: {
+    [guacd]: lib.Service {
       image: 'docker.io/guacamole/guacd:' + guacdVersion,
-      container_name: n.container(guacd),
       restart: 'on-failure:5',
       healthcheck: {
         test: ['CMD-SHELL', 'nc -z localhost ' + std.toString(guacdPort) + ' || exit 1'],
@@ -48,13 +41,6 @@ local manifest = {
         retries: 10,
       },
       expose: [std.toString(guacdPort)],
-      networks: { default: { aliases: [n.container(guacd)] } },
     },
-  },
-
-  volumes: { [app]: { name: n.volume(app) } },
-
-  networks: s.network.default,
-};
-
-c.render(stack, manifest)
+  }),
+)

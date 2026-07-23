@@ -1,25 +1,20 @@
 // Compiles to compose.yaml and compose.stack.yaml — do not edit the YAML.
-local c = import 'compose.libsonnet';
-local reg = import 'registry.libsonnet';
+local lib = import 'lib/lib.libsonnet';
+local reg = lib.registry;
+local role = reg.role;
 
-local stack = 'stirling-pdf';
-local s = c.stack(stack);
-local n = s.names;
-local app = reg.roles.app;
-
+local name = 'stirling-pdf';
 local version = '2.10.1';
 local port = 8080;
 
-local base = reg.server.dir.docker.root + reg.server.dir.docker.bindmounts + '/apps/stirling-pdf';
+local base = reg.dirs.docker.root + reg.dirs.docker.bindMounts + '/apps/stirling-pdf';
 
-local manifest = {
-  name: stack,
-
-  services: {
-    [app]: {
+lib.render(
+  name,
+  lib.Stack(name, function(ref) {
+    [role.APP]: lib.Service {
       image: 'stirlingtools/stirling-pdf:' + version,
-      container_name: n.container(app),
-      volumes: [
+      mounts_:: [
         base + '/configs:/configs',
         base + '/tessdata:/usr/share/tessdata',
         base + '/logs:/logs',
@@ -31,16 +26,8 @@ local manifest = {
         // Default login is admin/stirling. To change it, set
         // SECURITY_INITIALLOGIN_USERNAME / SECURITY_INITIALLOGIN_PASSWORD.
       },
-      restart: 'unless-stopped',
       expose: [std.toString(port)],
-      networks: {
-        default: { aliases: [n.container(app)] },
-      },
-    } + c.publish(18012, port),
-  },
-
-  networks:
-    s.network.default,
-};
-
-c.render(stack, manifest)
+      ports: ['%s:18012:%s' % [reg.ips.loopback, port]],
+    },
+  }),
+)

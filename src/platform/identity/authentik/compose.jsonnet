@@ -7,87 +7,63 @@
 // Postgres is bundled (NOT the shared cluster): the shared Postgres lives on
 // littlebuddy, and a public-facing IdP shouldn't depend on the home LAN being
 // reachable. Keeping the DB local to the VPS makes authentik self-contained.
-local c = import 'compose.libsonnet';
-local reg = import 'registry.libsonnet';
-local secrets = reg.infisical.services;
+local lib = import 'lib/lib.libsonnet';
+local reg = lib.registry;
+local role = reg.role;
 
-local stack = 'authentik';
-local s = c.stack(stack);
-local n = s.names;
-
-local app = reg.roles.app;      // 'app'  — the server (user-facing) container
-local worker = 'worker';        // background worker; same image, command: worker
-local db = reg.roles.db;        // 'db'   — dedicated Postgres
-
+local name = 'authentik';
 local version = '2026.5.4';
 local dbVersion = '16-alpine';
 
 local httpPort = 9000;          // authentik server HTTP (Traefik/Pangolin terminates TLS)
-local dbUser = stack;
-local dbName = stack;
+local dbUser = name;
+local dbName = name;
 
-// Identical env on server AND worker — they must agree on DB + secret key.
-local authentikEnv = {
-  AUTHENTIK_POSTGRESQL__HOST: n.container(db),
-  AUTHENTIK_POSTGRESQL__NAME: dbName,
-  AUTHENTIK_POSTGRESQL__USER: dbUser,
-  AUTHENTIK_POSTGRESQL__PASSWORD: '${AUTHENTIK_PG_PASS:?err}',
-  AUTHENTIK_SECRET_KEY: '${AUTHENTIK_SECRET_KEY:?err}',
-};
+lib.render(
+  name,
+  lib.Stack(name, function(ref) {
+    // Identical env on server AND worker — they must agree on DB + secret key.
+    local authentikEnv = {
+      AUTHENTIK_POSTGRESQL__HOST: ref[role.DB],
+      AUTHENTIK_POSTGRESQL__NAME: dbName,
+      AUTHENTIK_POSTGRESQL__USER: dbUser,
+      AUTHENTIK_POSTGRESQL__PASSWORD: '${AUTHENTIK_PG_PASS:?err}',
+      AUTHENTIK_SECRET_KEY: '${AUTHENTIK_SECRET_KEY:?err}',
+    },
 
-local manifest = {
-  name: stack,
-
-  services: {
     // ── Server: the web UI + API + OIDC endpoints ─────────────────────────────
-    [app]: {
+    [role.APP]: lib.Service {
       image: 'ghcr.io/goauthentik/server:' + version,
-      container_name: n.container(app),
       command: 'server',
-      depends_on: {
-        [db]: { condition: 'service_healthy' },
-      },
+      depends_on: { [role.DB]: { condition: 'service_healthy' } },
       environment: authentikEnv,
-      volumes: [n.volume('data') + ':/data'],
-      restart: 'unless-stopped',
-      networks: {
-        default: { aliases: [n.container(app)] },
-      },
+      volumes_:: { data: '/data' },
       expose: [std.toString(httpPort)],
-    } + c.publish(18006, httpPort),  // 127.0.0.1:18006 → route authentik.ktbcloud.com here
+      // 127.0.0.1:18006 → route authentik.ktbcloud.com here
+      ports: ['%s:18006:%s' % [reg.ips.loopback, httpPort]],
+    },
 
     // ── Worker: background tasks, outpost mgmt, cert/blueprint processing ──────
-    [worker]: {
+    [role.WORKER]: lib.Service {
       image: 'ghcr.io/goauthentik/server:' + version,
-      container_name: n.container(worker),
       command: 'worker',
       // root + docker.sock: lets the worker manage the embedded/managed outposts.
       user: 'root',
-      depends_on: {
-        [db]: { condition: 'service_healthy' },
-      },
+      depends_on: { [role.DB]: { condition: 'service_healthy' } },
       environment: authentikEnv,
-      volumes: [
-        '/var/run/docker.sock:/var/run/docker.sock',
-        n.volume('data') + ':/data',
-      ],
-      restart: 'unless-stopped',
-      networks: {
-        default: { aliases: [n.container(worker)] },
-      },
+      volumes_:: { data: '/data' },
+      mounts_:: ['/var/run/docker.sock:/var/run/docker.sock'],
     },
 
     // ── DB: dedicated Postgres (see header for why not the shared cluster) ─────
-    [db]: {
+    [role.DB]: lib.Service {
       image: 'docker.io/library/postgres:' + dbVersion,
-      container_name: n.container(db),
-      volumes: [n.volume(db) + ':/var/lib/postgresql/data'],
+      volumes_:: { db: '/var/lib/postgresql/data' },
       environment: {
         POSTGRES_USER: dbUser,
         POSTGRES_DB: dbName,
         POSTGRES_PASSWORD: '${AUTHENTIK_PG_PASS:?err}',
       },
-      restart: 'unless-stopped',
       healthcheck: {
         test: ['CMD-SHELL', 'pg_isready -d ' + dbName + ' -U ' + dbUser],
         interval: '30s',
@@ -95,18 +71,8 @@ local manifest = {
         retries: 5,
         start_period: '20s',
       },
-      networks: { default: { aliases: [n.container(db)] } },
       expose: ['5432'],
     },
-  },
-
-  volumes: {
-    [n.volume('data')]: { name: n.volume('data') },
-    [n.volume(db)]: { name: n.volume(db) },
-  },
-
-  networks:
-    s.network.default,
-};
-
-c.render(stack, manifest, [secrets.authentik.path])
+  }),
+  [lib.Secret('authentik')],
+)

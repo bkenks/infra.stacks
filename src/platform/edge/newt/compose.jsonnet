@@ -1,21 +1,17 @@
-local c = import 'compose.libsonnet';
-local reg = import 'registry.libsonnet';
+// NEWT_ID/NEWT_SECRET come from /dev/shm/newt.env (infisical-agent); PANGOLIN_ENDPOINT
+// (the control-server URL) comes from the committed ./envs/newt.env rendered by env.jsonnet.
+local lib = import 'lib/lib.libsonnet';
+local reg = lib.registry;
+local role = reg.role;
 
-local nameStack = 'newt';
-local stack = c.stack(nameStack);
+local name = 'newt';
+local version = '1.14.0';
 
-local vars = {
-  newt: { version: '1.14.0', role: 'tunnel' },
-};
-
-local svcName = stack.names.container(vars.newt.role);
-
-local manifest = {
-  services: {
-    [svcName]: {
-      image: 'fosrl/newt:' + vars.newt.version,
-      container_name: svcName,
-      restart: 'unless-stopped',
+lib.render(
+  name,
+  lib.Stack(name, function(ref) {
+    [role.TUNNEL]: lib.Service {
+      image: 'fosrl/newt:' + version,
       extra_hosts: ['host.docker.internal:host-gateway'],
       env_file: ['./envs/newt.env'],  // PANGOLIN_ENDPOINT (control-server URL)
       environment: {
@@ -24,8 +20,6 @@ local manifest = {
         NEWT_SECRET: '${NEWT_SECRET:?err}',
       },
     },
-  },
-};
-
-// NEWT_ID/NEWT_SECRET come from /dev/shm/newt.env (infisical-agent).
-c.render(nameStack, manifest, [reg.secretDir + '/newt.env'])
+  }),
+  [lib.Secret('newt')],
+)
