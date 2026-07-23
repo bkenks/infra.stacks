@@ -85,15 +85,13 @@
     dockerSock:: { mount:: "/var/run/docker.sock:/var/run/docker.sock:ro" },
   },
 
-  hostFacts:: '/srv/docker/files/tailscale.env',
-
   # Every host on the network, keyed by short name. `ip` is the host's WireGuard address —
-  # the only address there is. Every host reaches every other host over the WireGuard mesh,
-  # so there is no LAN-vs-public split and no second path to choose: one host, one address,
-  # one name. dnsmasq (platform/edge/dnsmasq) renders it as `<host>.srv`. `dns` overrides
-  # the key when the DNS name differs from it; `aka` are extra aliases; `edge: true` marks
-  # hosts running Traefik that the controller builds a re-encrypt backend for. A host
-  # add/rename/re-IP flows to DNS on re-render.
+  # the only address there is, and the only way to reach it: there is no cluster DNS, so a
+  # cross-host reference dials this IP directly. Always reach it by key
+  # (`reg.hosts.littlebuddy.ip`), never by writing the address out — an unknown key fails
+  # at evaluation, a stale literal fails silently at runtime. `dns` and `aka` are legacy
+  # naming metadata with no consumer left in this repo; `edge: true` marks hosts running
+  # Traefik that the controller builds a re-encrypt backend for.
   hosts:: {
     # ── Main cluster ──
     littlebuddy: { ip: '10.100.0.21', aka: ['controlplane'], edge: true },

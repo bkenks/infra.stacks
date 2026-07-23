@@ -207,7 +207,7 @@ function(urlDomain)
             storage: '/letsencrypt/acme.json',
             dnsChallenge: {
               provider: 'cloudflare',
-              // ktbinternal.com resolves to a private (Tailscale) A record internally, so
+              // ktbinternal.com resolves to a private (WireGuard) A record internally, so
               // use public resolvers for the _acme-challenge TXT propagation check.
               resolvers: ['1.1.1.1:53', '1.0.0.1:53'],
             },

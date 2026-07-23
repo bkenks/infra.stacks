@@ -12,7 +12,7 @@ services:
     - /dev/fuse:/dev/fuse
     environment:
       APP_SECRET: ${ZROBYT__APP_SECRET:?err}
-      BASE_URL: http://${TAILSCALE_HOSTNAME:?err}:4096
+      BASE_URL: http://10.100.0.21:4096
       TZ: America/New_York
     image: ghcr.io/nicotsx/zerobyte:v0.40
     networks:
