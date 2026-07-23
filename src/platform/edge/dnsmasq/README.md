@@ -1,7 +1,7 @@
 # dnsmasq
 Central static DNS + emergency-fallback resolver for a single host's containers. Answers the host names from the registry authoritatively (`addn-hosts`) and forwards everything else to the upstreams in `DNS1`/`DNS2`. Point the host's Docker daemon at it (`daemon.json` `"dns": ["<docker0-ip>"]`) so every container on the host resolves through it — then a name change is one registry edit + re-render + SIGHUP, with **no downstream container redeploy**.
 
-`files/hosts` is **generated** from `registry.libsonnet` (`server.hosts`) by `files/hosts.jsonnet` — the registry is the single source of truth for host → IP. Don't edit `files/hosts` by hand. This also means the tailnet host names still resolve to their IPs if Tailscale MagicDNS is ever down.
+`files/hosts` is **generated** from `registry.libsonnet` (`server.hosts`) by `files/hosts.jsonnet` — the registry is the single source of truth for host → IP. Don't edit `files/hosts` by hand. Each host emits exactly one record, `<host>.srv` (plus any `dns`/`aka` aliases), pointing at that host's WireGuard address — the only address a host has, so there is never a second path to pick.
 
 ## Deploy
 - No secrets.
