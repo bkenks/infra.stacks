@@ -23,7 +23,7 @@ lib.render(
       ],
       environment: {
         TZ: 'America/New_York',
-        BASE_URL: 'http://' + reg.hostFqdn('littlebuddy') + ':' + std.toString(port),
+        BASE_URL: 'http://' + reg.hosts.littlebuddy.ip + ':' + std.toString(port),
         APP_SECRET: '${ZROBYT__APP_SECRET:?err}',
       },
       ports: [std.toString(port) + ':' + std.toString(port)],  // core infra, no proxy
