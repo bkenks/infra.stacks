@@ -96,18 +96,13 @@
   # add/rename/re-IP flows to DNS on re-render.
   hosts:: {
     # ── Main cluster ──
-    snaszy: { ip: '100.91.182.94', aka: ['nas'] },
-    littlebuddy: { ip: '100.114.137.104', aka: ['controlplane'], edge: true },
-    paiki: { ip: '100.126.19.103', dns: 'plexyandiknowit', aka: ['plex'], edge: true },
-    biggy: { ip: '100.108.59.105' },
-    bill: { ip: '100.79.7.11', edge: true },
-    # ── Off-cluster infra ──
-    homeassistant: { ip: '100.113.251.34', aka: ['hass'] },
+    littlebuddy: { ip: '10.100.0.21', aka: ['controlplane'], edge: true },
+    paiki: { ip: '10.100.0.22', dns: 'plexyandiknowit', aka: ['plex'], edge: true },
+    biggy: { ip: '10.100.0.23' },
+    bill: { ip: '10.100.0.25', edge: true },
     # ── VPS ──
-    maboi: { ip: '100.97.83.95', edge: true },
-    rick: { ip: '100.106.170.93', edge: true },
-    # ── Other ──
-    woody: { ip: '100.74.131.20' },
+    maboi: { ip: '10.100.0.101', edge: true },
+    rick: { ip: '10.100.0.102', edge: true },
   },
 
   endpoint:: {

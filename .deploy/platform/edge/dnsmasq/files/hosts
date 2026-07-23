@@ -1,14 +1,11 @@
 # GENERATED from hosts.jsonnet by .mise/tasks/render.py — DO NOT EDIT.
 # Source: registry.libsonnet hosts — edit there, not here.
 # One name per host: <host>.srv → that host's WireGuard address.
-100.108.59.105	biggy.srv
-100.79.7.11	bill.srv
-100.113.251.34	homeassistant.srv hass.srv
-100.114.137.104	littlebuddy.srv controlplane.srv
-100.97.83.95	maboi.srv
-100.126.19.103	plexyandiknowit.srv plex.srv
-100.106.170.93	rick.srv
-100.91.182.94	snaszy.srv nas.srv
-100.74.131.20	woody.srv
+10.100.0.23	biggy.srv
+10.100.0.25	bill.srv
+10.100.0.21	littlebuddy.srv controlplane.srv
+10.100.0.101	maboi.srv
+10.100.0.22	plexyandiknowit.srv plex.srv
+10.100.0.102	rick.srv
 # Healthcheck sentinel — the container healthcheck resolves this name.
 127.0.0.1	health.check.dnsmasq
