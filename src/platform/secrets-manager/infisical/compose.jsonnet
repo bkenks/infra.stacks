@@ -64,7 +64,7 @@ lib.render(
         // deployed compose.stack.yaml still carries. The publish is now loopback-only:
         // the tailnet, LAN and 172.28.0.1 gateway bindings were dropped, so the UI/API is
         // reached through the edge proxy rather than direct on those addresses.
-        ports: ['%s:%s:%s' % [reg.ips.loopback, reg.endpoint.infisical.host.port, appPort]],
+        ports: [reg.endpoint.infisical.host.port + ":" + appPort],
       },
 
       [role.DB]: lib.Service {

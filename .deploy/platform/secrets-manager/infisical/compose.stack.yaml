@@ -48,7 +48,7 @@ services:
         aliases:
         - infisical_app
     ports:
-    - 127.0.0.1:18006:8080
+    - 18006:8080
     restart: unless-stopped
   db:
     container_name: infisical_db
