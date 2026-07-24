@@ -5,6 +5,8 @@ networks:
     name: pangolin-client
 services:
   app:
+    cap_add:
+    - NET_ADMIN
     container_name: pangolin-client_app
     devices:
     - /dev/net/tun:/dev/net/tun
@@ -13,8 +15,5 @@ services:
       CLIENT_SECRET: ${CLIENT_SECRET:?must provide a client secret}
       PANGOLIN_ENDPOINT: https://pangolin.ktbcloud.com
     image: fosrl/pangolin-cli:latest
-    networks:
-      default:
-        aliases:
-        - pangolin-client_app
+    network_mode: host
     restart: unless-stopped

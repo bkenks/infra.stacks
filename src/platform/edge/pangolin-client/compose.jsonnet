@@ -16,6 +16,8 @@ lib.render(
         CLIENT_SECRET:        '${CLIENT_SECRET:?must provide a client secret}',
       },
       devices: [ '/dev/net/tun:/dev/net/tun' ],
+      network_mode: 'host',
+      cap_add: [ 'NET_ADMIN' ],
       restart: reg.restartPolicy.default,
     },
   }),
