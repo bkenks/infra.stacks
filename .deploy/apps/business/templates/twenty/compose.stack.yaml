@@ -32,12 +32,6 @@ services:
         condition: service_healthy
     environment:
       APP_SECRET: ${TWENTY_SECRET:?err}
-      AUTH_GOOGLE_APIS_CALLBACK_URL: https://twenty.ktbinternal.com/auth/google-apis/get-access-token
-      AUTH_GOOGLE_CALLBACK_URL: https://twenty.ktbinternal.com/auth/google/redirect
-      AUTH_GOOGLE_CLIENT_ID: ${TWENTY_GOOGLE_CLIENT_ID:?err}
-      AUTH_GOOGLE_CLIENT_SECRET: ${TWENTY_GOOGLE_CLIENT_SECRET:?err}
-      CALENDAR_PROVIDER_GOOGLE_ENABLED: 'true'
-      MESSAGING_PROVIDER_GMAIL_ENABLED: 'true'
       NODE_PORT: '3000'
       PG_DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@host.docker.internal:6109/twenty
       REDIS_URL: redis://twenty_redis:6379
@@ -76,14 +70,8 @@ services:
         condition: service_healthy
     environment:
       APP_SECRET: ${TWENTY_SECRET:?err}
-      AUTH_GOOGLE_APIS_CALLBACK_URL: https://twenty.ktbinternal.com/auth/google-apis/get-access-token
-      AUTH_GOOGLE_CALLBACK_URL: https://twenty.ktbinternal.com/auth/google/redirect
-      AUTH_GOOGLE_CLIENT_ID: ${TWENTY_GOOGLE_CLIENT_ID:?err}
-      AUTH_GOOGLE_CLIENT_SECRET: ${TWENTY_GOOGLE_CLIENT_SECRET:?err}
-      CALENDAR_PROVIDER_GOOGLE_ENABLED: 'true'
       DISABLE_CRON_JOBS_REGISTRATION: 'true'
       DISABLE_DB_MIGRATIONS: 'true'
-      MESSAGING_PROVIDER_GMAIL_ENABLED: 'true'
       PG_DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@host.docker.internal:6109/twenty
       REDIS_URL: redis://twenty_redis:6379
       SERVER_URL: https://twenty.ktbinternal.com

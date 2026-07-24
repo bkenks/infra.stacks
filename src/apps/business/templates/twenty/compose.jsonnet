@@ -24,16 +24,16 @@ local commonEnv(redisHost) = {
   PG_DATABASE_URL: 'postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@' + pgHost + ':' + pgPort + '/' + dbName,
 
   APP_SECRET: '${TWENTY_SECRET:?err}',
-  AUTH_GOOGLE_CLIENT_ID: '${TWENTY_GOOGLE_CLIENT_ID:?err}',
-  AUTH_GOOGLE_CLIENT_SECRET: '${TWENTY_GOOGLE_CLIENT_SECRET:?err}',
+  // AUTH_GOOGLE_CLIENT_ID: '${TWENTY_GOOGLE_CLIENT_ID:?err}',
+  // AUTH_GOOGLE_CLIENT_SECRET: '${TWENTY_GOOGLE_CLIENT_SECRET:?err}',
 
   REDIS_URL: 'redis://' + redisHost + ':6379',
   SERVER_URL: serverUrl,
-  AUTH_GOOGLE_CALLBACK_URL: serverUrl + '/auth/google/redirect',
-  AUTH_GOOGLE_APIS_CALLBACK_URL: serverUrl + '/auth/google-apis/get-access-token',
+  // AUTH_GOOGLE_CALLBACK_URL: serverUrl + '/auth/google/redirect',
+  // AUTH_GOOGLE_APIS_CALLBACK_URL: serverUrl + '/auth/google-apis/get-access-token',
   STORAGE_TYPE: 'local',
-  MESSAGING_PROVIDER_GMAIL_ENABLED: 'true',
-  CALENDAR_PROVIDER_GOOGLE_ENABLED: 'true',
+  // MESSAGING_PROVIDER_GMAIL_ENABLED: 'true',
+  // CALENDAR_PROVIDER_GOOGLE_ENABLED: 'true',
 };
 
 // Mounted by both server and worker; Stack() collapses the two declarations into the
