@@ -286,7 +286,7 @@ INFISICAL_CLIENT_SECRET = [[LITTLEBUDDY__AGENT_CLIENT_SECRET]]  # Set in Komodo 
 AGENT_HOST      = 'littlebuddy'
 NS              = [[INFSCL_AGNT_NODE_SECERTS]]
 PS              = [[INFSCL_AGNT_PANGOLIN_SECERTS]]
-AGENT_SERVICES  = "${NS} ${PS} postgres docuseal forgejo openproject woodpecker komodo-mcp paperless"
+AGENT_SERVICES  = "${NS} ${PS} postgres docuseal forgejo openproject woodpecker komodo-mcp paperless pangolinClient"
 """
 
 ##
@@ -417,6 +417,15 @@ PANGOLIN_VARIANT=cloud
 name = "pangolin-client"
 template = true
 [stack.config]
+linked_repo = "infra.stacks"
+run_directory = "./.deploy/platform/edge/pangolin-client"
+
+##
+
+[[stack]]
+name = "pangolin-client_littlebuddy"
+[stack.config]
+server = "littlebuddy"
 linked_repo = "infra.stacks"
 run_directory = "./.deploy/platform/edge/pangolin-client"
 
@@ -589,6 +598,8 @@ project_name = "zerobyte"
 linked_repo = "infra.stacks"
 run_directory = "./.deploy/platform/backup-manager/zerobyte"
 environment = """
+# Uncomment if deploying from Ansible generated env
+ANSIBLE_SECRETS_FILE=/dev/shm/platform.env
 
 """
 
@@ -639,7 +650,6 @@ repo = "ktbgroup-self-hosted/stack.infra"
 name = "infra.stacks"
 [repo.config]
 server = "littlebuddy"
-git_provider = "fj.ktbcloud.com"
 git_account = "bkenks"
 repo = "ktbgroup-self-hosted/infra.stacks"
 
