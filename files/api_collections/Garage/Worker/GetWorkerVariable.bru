@@ -1,0 +1,33 @@
+meta {
+  name: GetWorkerVariable
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/v2/GetWorkerVariable
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+body:json {
+  {
+    "variable": null
+  }
+}
+
+docs {
+  # GetWorkerVariable
+
+  `POST /v2/GetWorkerVariable`
+
+  Fetch values of one or several worker variables, from one or several cluster nodes.
+
+  ## Parameters
+
+  - `node` in query (required)
+}

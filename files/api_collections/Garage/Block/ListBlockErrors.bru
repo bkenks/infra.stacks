@@ -1,0 +1,27 @@
+meta {
+  name: ListBlockErrors
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/v2/ListBlockErrors
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+docs {
+  # ListBlockErrors
+
+  `GET /v2/ListBlockErrors`
+
+  List data blocks that are currently in an errored state on one or several Garage nodes.
+
+  ## Parameters
+
+  - `node` in query (required)
+}

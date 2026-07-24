@@ -29,6 +29,7 @@ lib.render(
       ports: [std.toString(port) + ':' + std.toString(port)],  // core infra, no proxy
       cap_add: ['SYS_ADMIN'],
       devices: ['/dev/fuse:/dev/fuse'],
+      security_opt: ['apparmor:unconfined'],
     },
   }),
   [lib.SecretOrBootstrap('zerobyte')],

@@ -1,0 +1,23 @@
+meta {
+  name: ListAdminTokens
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/v2/ListAdminTokens
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+docs {
+  # ListAdminTokens
+
+  `GET /v2/ListAdminTokens`
+
+  Returns all admin API tokens in the cluster.
+}

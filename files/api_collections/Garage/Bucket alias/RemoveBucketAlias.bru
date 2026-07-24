@@ -1,0 +1,30 @@
+meta {
+  name: RemoveBucketAlias
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/v2/RemoveBucketAlias
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+body:json {
+  {
+    "bucketId": "",
+    "globalAlias": ""
+  }
+}
+
+docs {
+  # RemoveBucketAlias
+
+  `POST /v2/RemoveBucketAlias`
+
+  Remove an alias for the target bucket.  This can be either a global or a local alias, depending on which fields are specified.
+}

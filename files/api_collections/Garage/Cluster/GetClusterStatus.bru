@@ -1,0 +1,30 @@
+meta {
+  name: GetClusterStatus
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/v2/GetClusterStatus
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+docs {
+  # GetClusterStatus
+
+  `GET /v2/GetClusterStatus`
+
+  Returns the cluster's current status, including:
+
+  - ID of the node being queried and its version of the Garage daemon
+  - Live nodes
+  - Currently configured cluster layout
+  - Staged changes to the cluster layout
+
+  *Capacity is given in bytes*
+}

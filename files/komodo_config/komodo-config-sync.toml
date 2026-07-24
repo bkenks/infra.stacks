@@ -1,7 +1,7 @@
 [[server]]
 name = "biggy"
 [server.config]
-address = "https://10.100.0.23:8120"
+address = "https://100.108.59.105:8120"
 region = "cincinnati, oh"
 enabled = true
 
@@ -10,7 +10,7 @@ enabled = true
 [[server]]
 name = "bill"
 [server.config]
-address = "https://10.100.0.25:8120"
+address = "https://100.79.7.11:8120"
 region = "cincinnati, oh"
 enabled = true
 
@@ -30,7 +30,7 @@ enabled = true
 name = "maboi"
 description = "Hetzner VPS CPX11"
 [server.config]
-address = "https://10.100.0.101:8120"
+address = "https://100.97.83.95:8120"
 region = "ashland, va"
 enabled = true
 
@@ -39,7 +39,7 @@ enabled = true
 [[server]]
 name = "paiki"
 [server.config]
-address = "https://10.100.0.22:8120"
+address = "https://100.126.19.103:8120"
 region = "cincinnati, oh"
 enabled = true
 
@@ -48,7 +48,7 @@ enabled = true
 [[server]]
 name = "rick"
 [server.config]
-address = "https://10.100.0.102:8120"
+address = "https://100.106.170.93:8120"
 region = "chicago"
 enabled = true
 
@@ -639,6 +639,7 @@ repo = "ktbgroup-self-hosted/stack.infra"
 name = "infra.stacks"
 [repo.config]
 server = "littlebuddy"
+git_provider = "fj.ktbcloud.com"
 git_account = "bkenks"
 repo = "ktbgroup-self-hosted/infra.stacks"
 
@@ -669,36 +670,6 @@ server = "littlebuddy"
 git_provider = "fj.homektb.com"
 git_account = "bkenks"
 repo = "stackform-hq/stackform_website"
-
-##
-
-[[procedure]]
-name = "Backup Core Database"
-description = "Triggers the Core database backup at the scheduled time."
-config.schedule_enabled = false
-config.schedule = "Every day at 01:00"
-
-[[procedure.config.stage]]
-name = "Stage 1"
-enabled = true
-executions = [
-  { execution.type = "BackupCoreDatabase", execution.params = {}, enabled = true }
-]
-
-##
-
-[[procedure]]
-name = "Global Auto Update"
-description = "Pulls and auto updates Stacks and Deployments using 'poll_for_updates' or 'auto_update'."
-config.schedule_enabled = false
-config.schedule = "Every day at 03:00"
-
-[[procedure.config.stage]]
-name = "Stage 1"
-enabled = true
-executions = [
-  { execution.type = "GlobalAutoUpdate", execution.params.skip_auto_update = false, enabled = true }
-]
 
 ##
 
@@ -743,13 +714,6 @@ executions = [
 ]
 
 [[procedure.config.stage]]
-name = "Sync TOML"
-enabled = true
-executions = [
-  { execution.type = "CommitSync", execution.params.sync = "Global TOML Sync", enabled = true }
-]
-
-[[procedure.config.stage]]
 name = "Backup DB"
 enabled = true
 executions = [
@@ -778,13 +742,16 @@ executions = [
 ##
 
 [[procedure]]
-name = "Redeploy Traefik"
+name = "Sync Config"
+config.webhook_enabled = false
+config.schedule = "Every 3 hours"
+config.schedule_alert = false
 
 [[procedure.config.stage]]
-name = "Stage 1"
+name = "Commit Sync"
 enabled = true
 executions = [
-  { execution.type = "BatchDeployStack", execution.params.pattern = "traefik*", enabled = true }
+  { execution.type = "CommitSync", execution.params.sync = "Global TOML Sync", enabled = true }
 ]
 
 ##
@@ -801,18 +768,6 @@ executions = [
   { execution.type = "PruneVolumes", execution.params.server = "littlebuddy", enabled = true },
   { execution.type = "PruneVolumes", execution.params.server = "maboi", enabled = true },
   { execution.type = "PruneVolumes", execution.params.server = "paiki", enabled = true }
-]
-
-##
-
-[[procedure]]
-name = "qwrg"
-
-[[procedure.config.stage]]
-name = "Stage 1"
-enabled = true
-executions = [
-  { execution.type = "StartStack", execution.params.stack = "komodo-mcp", execution.params.services = [], enabled = true }
 ]
 
 ##
@@ -853,7 +808,9 @@ name = "Global TOML Sync"
 [resource_sync.config]
 linked_repo = "infra.stacks"
 webhook_enabled = false
-resource_path = ["./komodo-config-sync.toml"]
+resource_path = [
+  "./files/komodo_config/komodo-config-sync.toml"
+]
 managed = true
 include_variables = true
 include_user_groups = true
@@ -925,7 +882,7 @@ is_secret = false
 
 [[variable]]
 name = "INFSCL_URL"
-value = "'http://10.100.0.21:18006'"
+value = "'http://100.114.137.104:18006'"
 is_secret = false
 
 ##

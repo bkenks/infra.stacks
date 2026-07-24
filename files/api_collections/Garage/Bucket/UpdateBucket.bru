@@ -1,0 +1,46 @@
+meta {
+  name: UpdateBucket
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/v2/UpdateBucket
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+body:json {
+  {
+    "corsRules": null,
+    "lifecycleRules": null,
+    "quotas": null,
+    "websiteAccess": null
+  }
+}
+
+docs {
+  # UpdateBucket
+
+  `POST /v2/UpdateBucket`
+
+  All fields (`websiteAccess` and `quotas`) are optional.
+  If they are present, the corresponding modifications are applied to the bucket, otherwise nothing is changed.
+
+  In `websiteAccess`: if `enabled` is `true`, `indexDocument` must be specified.
+  The field `errorDocument` is optional, if no error document is set a generic
+  error message is displayed when errors happen. Conversely, if `enabled` is
+  `false`, neither `indexDocument` nor `errorDocument` must be specified.
+
+  In `quotas`: new values of `maxSize` and `maxObjects` must both be specified, or set to `null`
+  to remove the quotas. An absent value will be considered the same as a `null`. It is not possible
+  to change only one of the two quotas.
+
+  ## Parameters
+
+  - `id` in query (required)
+}

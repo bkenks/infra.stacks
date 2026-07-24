@@ -1,0 +1,36 @@
+meta {
+  name: GetBucketInfo
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/v2/GetBucketInfo?globalAlias=
+  body: none
+  auth: bearer
+}
+
+params:query {
+  globalAlias: 
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+docs {
+  # GetBucketInfo
+  
+  `GET /v2/GetBucketInfo`
+  
+  Given a bucket identifier (`id`) or a global alias (`alias`), get its information.
+  It includes its aliases, its web configuration, keys that have some permissions
+  on it, some statistics (number of objects, size), number of dangling multipart uploads,
+  and its quotas (if any).
+  
+  ## Parameters
+  
+  - `id` in query
+  - `globalAlias` in query
+  - `search` in query
+}

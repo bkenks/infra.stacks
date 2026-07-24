@@ -1,0 +1,33 @@
+meta {
+  name: LaunchRepairOperation
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/v2/LaunchRepairOperation
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+body:json {
+  {
+    "repairType": "tables"
+  }
+}
+
+docs {
+  # LaunchRepairOperation
+
+  `POST /v2/LaunchRepairOperation`
+
+  Launch a repair operation on one or several cluster nodes.
+
+  ## Parameters
+
+  - `node` in query (required)
+}

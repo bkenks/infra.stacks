@@ -22,6 +22,8 @@ services:
     ports:
     - 4096:4096
     restart: unless-stopped
+    security_opt:
+    - apparmor:unconfined
     volumes:
     - app:/var/lib/zerobyte
     - /etc/localtime:/etc/localtime:ro

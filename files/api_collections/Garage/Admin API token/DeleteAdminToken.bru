@@ -1,0 +1,27 @@
+meta {
+  name: DeleteAdminToken
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/v2/DeleteAdminToken
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+docs {
+  # DeleteAdminToken
+
+  `POST /v2/DeleteAdminToken`
+
+  Delete an admin API token from the cluster, revoking all its permissions.
+
+  ## Parameters
+
+  - `id` in query (required)
+}

@@ -12,9 +12,8 @@ own mirrored directory. So `src/platform/edge/dnsmasq/files/hosts.jsonnet` produ
 `.deploy/platform/edge/dnsmasq/files/hosts`, and every `./files/...` bind mount in the
 generated compose keeps working unchanged.
 
-src/ holds stacks and nothing else. Repo infrastructure (.mise/, lib/, komodo/,
-lefthook.yml, docs) lives outside it and is never copied, so this script needs no
-ignore list.
+src/ holds stacks and nothing else. Repo infrastructure (.config/, lib/, komodo/, docs)
+lives outside it and is never copied, so this script needs no ignore list.
 
 The build is destructive and total: .deploy is removed and rebuilt from scratch, so a
 deleted stack or a renamed output leaves nothing behind. That is the whole reason for the
@@ -27,10 +26,11 @@ fragments carry Go-template bytes that must not be reparsed.
 
 The repo root is the -J jpath, so a source at any depth does `import 'lib/lib.libsonnet'`
 — the library's single entrypoint. uv resolves PyYAML from the metadata above; the
-`jsonnet` binary and uv itself are pinned in mise.toml.
+`jsonnet` binary and uv itself are pinned in .config/mise.toml.
 
-This file lives in .mise/tasks/, so mise discovers it as the `render` task (extension stripped) with no
-declaration in mise.toml — `mise run render` and `./.mise/tasks/render.py` are the same thing.
+This file lives in .config/mise/tasks/, so mise discovers it as the `render` task (extension
+stripped) with no declaration in mise.toml — `mise run render` and
+`./.config/mise/tasks/render.py` are the same thing.
 """
 
 import json
@@ -41,7 +41,7 @@ from pathlib import Path
 
 import yaml
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 SRC = ROOT / "src"
 DEPLOY = ROOT / ".deploy"
 HEADER = "# GENERATED from {src} by .mise/tasks/render.py — DO NOT EDIT.\n"

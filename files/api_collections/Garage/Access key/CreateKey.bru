@@ -1,0 +1,33 @@
+meta {
+  name: CreateKey
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/v2/CreateKey
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+body:json {
+  {
+    "allow": null,
+    "deny": null,
+    "expiration": null,
+    "name": null,
+    "neverExpires": false
+  }
+}
+
+docs {
+  # CreateKey
+
+  `POST /v2/CreateKey`
+
+  Creates a new API access key.
+}

@@ -1,0 +1,28 @@
+meta {
+  name: GetClusterLayout
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/v2/GetClusterLayout
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+docs {
+  # GetClusterLayout
+
+  `GET /v2/GetClusterLayout`
+
+  Returns the cluster's current layout, including:
+
+  - Currently configured cluster layout
+  - Staged changes to the cluster layout
+
+  *Capacity is given in bytes*
+}

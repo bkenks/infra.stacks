@@ -64,6 +64,8 @@ services:
       default:
         aliases:
         - infisical_db
+    ports:
+    - 127.0.0.1:18040:5432
     restart: unless-stopped
     volumes:
     - db:/var/lib/postgresql/data
