@@ -23,7 +23,7 @@ local serverUrl = 'https://' + name + '.' + reg.domains.ktbinternal;
 local commonEnv(redisHost) = {
   PG_DATABASE_URL: 'postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@' + pgHost + ':' + pgPort + '/' + dbName,
 
-  APP_SECRET: '${TWENTY_SECRET:?err}',
+  APP_SECRET: '${APP_SECRET:?err}',
   // AUTH_GOOGLE_CLIENT_ID: '${TWENTY_GOOGLE_CLIENT_ID:?err}',
   // AUTH_GOOGLE_CLIENT_SECRET: '${TWENTY_GOOGLE_CLIENT_SECRET:?err}',
 

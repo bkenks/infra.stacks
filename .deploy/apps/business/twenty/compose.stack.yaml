@@ -31,7 +31,7 @@ services:
       redis:
         condition: service_healthy
     environment:
-      APP_SECRET: ${TWENTY_SECRET:?err}
+      APP_SECRET: ${APP_SECRET:?err}
       NODE_PORT: '3000'
       PG_DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@host.docker.internal:6109/twenty
       REDIS_URL: redis://twenty_redis:6379
@@ -69,7 +69,7 @@ services:
       server:
         condition: service_healthy
     environment:
-      APP_SECRET: ${TWENTY_SECRET:?err}
+      APP_SECRET: ${APP_SECRET:?err}
       DISABLE_CRON_JOBS_REGISTRATION: 'true'
       DISABLE_DB_MIGRATIONS: 'true'
       PG_DATABASE_URL: postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@host.docker.internal:6109/twenty
