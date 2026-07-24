@@ -35,6 +35,6 @@ lib.render(
         retries: 10,
       },
     },
-  }, lib.network.create(reg.networks.shared.postgresDB)),
+  }, lib.network.attach(reg.networks.shared.postgresDB)),
   [lib.Secret('postgres')],
 )

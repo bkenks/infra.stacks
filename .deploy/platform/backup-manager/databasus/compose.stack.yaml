@@ -4,16 +4,12 @@ networks:
   default:
     name: databasus
   shared__forgejo_db:
-    external: true
     name: shared__forgejo_db
   shared__infisical_db:
-    external: true
     name: shared__infisical_db
   shared__paperless_db:
-    external: true
     name: shared__paperless_db
   shared__postgres_db:
-    external: true
     name: shared__postgres_db
 services:
   app:

@@ -4,6 +4,7 @@ networks:
   default:
     name: forgejo
   shared__forgejo_db:
+    external: true
     name: shared__forgejo_db
 services:
   db:

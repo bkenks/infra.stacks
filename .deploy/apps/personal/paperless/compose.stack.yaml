@@ -4,6 +4,7 @@ networks:
   default:
     name: paperless
   shared__paperless_db:
+    external: true
     name: shared__paperless_db
 services:
   broker:

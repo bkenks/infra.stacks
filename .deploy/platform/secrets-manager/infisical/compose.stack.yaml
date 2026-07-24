@@ -4,6 +4,7 @@ networks:
   default:
     name: infisical
   shared__infisical_db:
+    external: true
     name: shared__infisical_db
 services:
   app:

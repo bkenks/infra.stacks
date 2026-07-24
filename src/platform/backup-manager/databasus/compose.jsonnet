@@ -30,9 +30,9 @@ lib.render(
       extra_hosts: ['host.docker.internal:host-gateway'],
     },
   },
-  lib.network.attach(reg.networks.shared.forgejoDB) +
-  lib.network.attach(reg.networks.shared.infisicalDB) +
-  lib.network.attach(reg.networks.shared.paperlessDB) +
-  lib.network.attach(reg.networks.shared.postgresDB)
+  lib.network.create(reg.networks.shared.forgejoDB) +
+  lib.network.create(reg.networks.shared.infisicalDB) +
+  lib.network.create(reg.networks.shared.paperlessDB) +
+  lib.network.create(reg.networks.shared.postgresDB)
   ),
 )

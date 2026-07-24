@@ -98,7 +98,7 @@ lib.render(
         expose: ['6379'],
       },
     },
-    lib.network.create(reg.networks.shared.infisicalDB)
+    lib.network.attach(reg.networks.shared.infisicalDB)
   ),
   [lib.SecretOrBootstrap('infisical')],
 )

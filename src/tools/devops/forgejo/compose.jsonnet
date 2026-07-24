@@ -54,6 +54,6 @@ lib.render(
       ports: [reg.ips.loopback + ":18041:5432"],
       networks_:: lib.network.join(reg.networks.shared.forgejoDB),
     },
-  }, lib.network.create(reg.networks.shared.forgejoDB)),
+  }, lib.network.attach(reg.networks.shared.forgejoDB)),
   [lib.Secret('forgejo')],
 )
