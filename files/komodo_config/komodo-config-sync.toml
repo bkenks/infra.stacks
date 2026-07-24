@@ -97,27 +97,6 @@ run_directory = "./compose"
 ##
 
 [[stack]]
-name = "cloudflared_littlebuddy"
-[stack.config]
-server = "littlebuddy"
-project_name = "cloudflared"
-destroy_before_deploy = true
-linked_repo = "infra.stacks"
-reclone = true
-run_directory = "./.deploy/platform/edge/cloudflared"
-
-##
-
-[[stack]]
-name = "cloudflared_maboi"
-[stack.config]
-server = "maboi"
-linked_repo = "infra.stacks"
-run_directory = "./.deploy/platform/edge/cloudflared"
-
-##
-
-[[stack]]
 name = "databasus"
 [stack.config]
 server = "littlebuddy"
@@ -162,16 +141,6 @@ server = "littlebuddy"
 destroy_before_deploy = true
 linked_repo = "infra.stacks"
 run_directory = "./.deploy/tools/devops/forgejo"
-
-##
-
-[[stack]]
-name = "grist"
-[stack.config]
-server = "rick"
-linked_repo = "infra.stacks"
-run_directory = "./.deploy/platform/grist"
-extra_args = ["--remove-orphans"]
 
 ##
 
@@ -262,7 +231,7 @@ INFISICAL_CLIENT_SECRET = [[INFSCL_AGNT_CLIENT_SECRET__BILL]]   # Set in Komodo 
 # ----- Secrets Rendering -----
 AGENT_HOST      = 'bill'
 NS              = [[INFSCL_AGNT_NODE_SECERTS]]
-AGENT_SERVICES  = "${NS}"
+AGENT_SERVICES  = "${NS} postgres twenty"
 """
 
 ##
@@ -454,6 +423,15 @@ run_directory = "./.deploy/databases/postgres"
 ##
 
 [[stack]]
+name = "postgres_prod-2"
+[stack.config]
+server = "bill"
+linked_repo = "infra.stacks"
+run_directory = "./.deploy/databases/postgres"
+
+##
+
+[[stack]]
 name = "scriberr"
 [stack.config]
 server = "littlebuddy"
@@ -572,6 +550,16 @@ run_directory = "./.deploy/platform/edge/traefik"
 ##
 
 [[stack]]
+name = "twenty"
+[stack.config]
+server = "bill"
+linked_repo = "infra.stacks"
+reclone = true
+run_directory = "./.deploy/apps/business/twenty"
+
+##
+
+[[stack]]
 name = "woodpecker"
 description = "CI/CD Pipeline"
 [stack.config]
@@ -644,7 +632,7 @@ repo = "ktbgroup-self-hosted/stack.infra"
 [[repo]]
 name = "infra.stacks"
 [repo.config]
-server = "littlebuddy"
+git_provider = "fj.ktbcloud.com"
 git_account = "bkenks"
 repo = "ktbgroup-self-hosted/infra.stacks"
 
