@@ -72,7 +72,7 @@ lib.render(
 | --- | --- | --- |
 | `container_name` | `<name>_<role>` | writing the field again |
 | `restart` | `unless-stopped` | writing the field again |
-| `networks` | `{default: {aliases: [container_name]}}` | writing the field again |
+| `networks` | `{default: {aliases: [container_name]}}`, plus anything in `networks_` | writing the field again |
 
 Those are plain fields, so an override is just re-declaring one. That is the escape hatch
 for names other systems already dial — `postgres-db`, `komodo_core`, pangolin's unprefixed
@@ -118,7 +118,9 @@ Same for `reg.role.*`, `reg.domains.*`, `reg.endpoint.*`, `reg.dirs.docker.*`,
 | --- | --- |
 | A service | `lib.Service { … }` |
 | The manifest | `lib.Stack(name, function(ref) { … })` |
-| A non-default top-level networks block | `lib.Stack(name, fn, networks)` — third arg replaces it |
+| Put a service on another network | `networks_:: lib.network.attach(reg.networks.shared.<x>)` |
+| Own that shared network from one stack | `networks_:: lib.network.create(reg.networks.shared.<x>)` |
+| A different private bridge | `lib.Stack(name, fn, networks)` — third arg replaces `default` |
 | Publish a host port | `ports: ['%s:18000:8080' % reg.ips.loopback]` |
 | Keep a container up through Komodo StopAll | `labels: lib.komodoSkip` |
 | Env-file path for a catalogue entry | `lib.Secret('<key>')` |
@@ -129,18 +131,31 @@ Same for `reg.role.*`, `reg.domains.*`, `reg.endpoint.*`, `reg.dirs.docker.*`,
 ## Networks
 
 Every stack gets one private bridge, named after the stack, keyed as Compose's reserved
-`default`. There are **no shared Docker networks** — services that need to talk across
-stacks do it over published host ports, not a common network.
+`default`. **Cross-stack traffic goes over published host ports by default** — publish it,
+then dial it from the consumer at `host.docker.internal:<hostPort>` with
+`extra_hosts: ['host.docker.internal:host-gateway']` on the consuming service. The shared
+Postgres cluster is single-sourced this way at `reg.endpoint.postgres.host`
+(`host.docker.internal:6109`) — see `apps/business/n8n`.
 
-To reach another stack's service, publish it and dial it from the consumer at
-`host.docker.internal:<hostPort>`, adding `extra_hosts: ['host.docker.internal:host-gateway']`
-to the consuming service. The shared Postgres cluster is single-sourced this way at
-`reg.endpoint.postgres.host` (`host.docker.internal:6109`) — see `apps/business/n8n`.
+A service that must be on another network as well declares it in `networks_`, keyed by the
+network's real name and valued as its top-level definition. `lib.Stack` hoists those
+definitions, exactly as it does `volumes_`:
 
-A stack needing more than the private bridge passes its own block as `lib.Stack`'s third
-argument, which replaces the whole top-level `networks:`. Real:
-`platform/secrets-manager/infisical` (second bridge with fixed IPAM, via
-`reg.networks.hostGateway.create(name)`), `platform/edge/pangolin` (ipv6 on the default).
+| Input | Renders |
+| --- | --- |
+| `networks_:: lib.network.create(reg.networks.shared.postgresDB)` | membership, plus top-level `{name: shared__postgres_db}` |
+| `networks_:: lib.network.attach(reg.networks.shared.postgresDB)` | membership, plus top-level `{name: …, external: true}` |
+
+The split is ownership: exactly one stack `create`s a shared network and every other
+`attach`es to it. Compose creates an `external` network for nobody, so attaching before the
+owner exists fails the deploy rather than silently building a second empty network of the
+same name. Two services joining the same network collapse to one top-level entry, and both
+get `container_name` as an alias on every network they join. `networks_` is incompatible
+with `network_mode` (no netns of its own) and says so at render time.
+
+Changing the private bridge itself is the third argument to `lib.Stack` — it replaces
+`default`, leaving hoisted networks alone. Real: `platform/edge/pangolin` (ipv6 on the
+default); `reg.networks.hostGateway.create(name)` builds a fixed-IPAM block for it.
 
 ## Secrets
 

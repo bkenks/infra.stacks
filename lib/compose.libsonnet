@@ -36,6 +36,19 @@ local qualify(stack, part) = stack + '_' + part;
     // through verbatim, because there is no name for the library to derive.
     mounts_:: [],
 
+    // Extra networks this service joins on top of the stack's private bridge. Keyed by the
+    // network name, valued as its *top-level* definition — the same shape volumes_ has, and
+    // for the same reason: the membership is written on the service that needs it and Stack()
+    // hoists the definition, so the two halves cannot drift. Build entries with
+    // lib.network.attach (someone else owns it) or lib.network.create (this stack owns it).
+    networks_:: {},
+
+    // network_mode: service:x means this container has no network stack of its own, so a
+    // networks_ entry could never take effect. Say so here rather than at `docker compose up`.
+    assert !std.objectHas(service, 'network_mode') || std.length(service.networks_) == 0 :
+      'lib.Service(%s): network_mode shares another container\'s netns, so it cannot join networks_'
+      % service.container_name,
+
     container_name: qualify(self.stack, self.role),
     restart: 'unless-stopped',
 
@@ -45,9 +58,16 @@ local qualify(stack, part) = stack + '_' + part;
     // A service sharing another's netns (network_mode: service:x) has no network stack of
     // its own, and Compose rejects the whole project — not just the service — if both keys
     // are present. prune drops the null.
+    // Every networks_ entry carries the same alias. It is redundant with Docker resolving
+    // container_name on every network the container joins, but std.prune below deletes empty
+    // objects recursively, and a bare `{ <net>: {} }` would lose the membership with it.
     networks: if std.objectHas(service, 'network_mode')
               then null
-              else { default: { aliases: [service.container_name] } },
+              else { default: { aliases: [service.container_name] } }
+                   + {
+                     [net]: { aliases: [service.container_name] }
+                     for net in std.objectFields(service.networks_)
+                   },
 
     volumes: [
       '%s:%s' % [key, self.volumes_[key]]
@@ -59,8 +79,9 @@ local qualify(stack, part) = stack + '_' + part;
   // body. The function is called twice, which is what makes cross-service references
   // checkable — see the two-phase note below.
   //
-  // networks replaces the whole top-level block for the stacks that need more than a
-  // private bridge (pangolin's ipv6, infisical's second network).
+  // networks replaces the private `default` bridge for the stacks that need it to be
+  // something else (pangolin's ipv6, infisical's fixed IPAM). Additional networks are not
+  // declared here — a service names its own in networks_ and they are hoisted.
   Stack(name, services, networks=null)::
     assert std.isFunction(services) :
       'lib.Stack(%s): services must be `function(ref) {...}`, not a bare object' % name;
@@ -90,6 +111,16 @@ local qualify(stack, part) = stack + '_' + part;
     ]));
     local volumes = { [key]: { name: qualify(name, key) } for key in volumeKeys };
 
+    // The same derivation for networks, minus the name qualifying: a network crossing stack
+    // boundaries is the one thing that cannot carry this stack's prefix, so networks_ values
+    // are the literal top-level definitions and merging them is all there is to do. Two
+    // services joining the same network collapse to one entry.
+    local declaredNetworks = std.foldl(
+      function(acc, role) acc + bound[role].networks_,
+      roles,
+      {},
+    );
+
     {
       name: name,
 
@@ -99,6 +130,10 @@ local qualify(stack, part) = stack + '_' + part;
 
       // `default` is Compose's reserved key, not a name — it is what attaches the network
       // to every service implicitly. The stack's name lands on `name:` underneath it.
-      networks: if networks != null then networks else { default: { name: name } },
+      //
+      // The `networks` argument replaces that private bridge, not the whole block: networks
+      // hoisted out of the services stay, and the argument wins on any key it also names.
+      networks: declaredNetworks
+                + (if networks != null then networks else { default: { name: name } }),
     } + (if std.length(volumes) > 0 then { volumes: volumes } else {}),
 }

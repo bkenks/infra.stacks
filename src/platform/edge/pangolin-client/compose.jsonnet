@@ -15,6 +15,7 @@ lib.render(
         CLIENT_ID:            '${CLIENT_ID:?must provide a client id}',
         CLIENT_SECRET:        '${CLIENT_SECRET:?must provide a client secret}',
       },
+      devices: [ '/dev/net/tun:/dev/net/tun' ],
       restart: reg.restartPolicy.default,
     },
   }),

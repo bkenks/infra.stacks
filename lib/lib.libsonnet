@@ -46,4 +46,17 @@ local compose = import 'lib/compose.libsonnet';
   toEnv(o):: std.join('', ['%s=%s\n' % [k, o[k]] for k in std.objectFields(o)]),
 
   buildDataMount(storagePath, dataDir, internalPath):: '%s/%s:%s' % [storagePath, dataDir, internalPath],
+
+  // Values for a service's `networks_`. Both take the network's real name on the host —
+  // reference it through `registry.networks.shared.*` so producer and consumer cannot
+  // disagree — and both render the top-level definition Stack() hoists.
+  //
+  // The split is ownership: exactly one stack `create`s a shared network, everyone else
+  // `attach`es to it. Compose creates an `external` network for nobody, so a stack that
+  // attaches to one that does not exist yet fails to come up instead of quietly building
+  // its own empty copy.
+  network:: {
+    create(commonName)::  { [commonName]: { name: commonName } },
+    attach(commonName)::  { [commonName]: { name: commonName, external: true } },
+  },
 }

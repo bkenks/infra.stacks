@@ -70,6 +70,11 @@
           ipam: { config: [ {subnet: "172.28.0.0/24", gateway: scope_hostGateway.gateway} ] },
         },
       },
+    },
+
+    shared:: {
+      paperlessDB::   "shared__paperless_db",
+      postgresDB::    "shared__postgres_db",
     }
   },
 

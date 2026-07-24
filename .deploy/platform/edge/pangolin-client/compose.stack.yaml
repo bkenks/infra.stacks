@@ -6,6 +6,8 @@ networks:
 services:
   app:
     container_name: pangolin-client_app
+    devices:
+    - /dev/net/tun:/dev/net/tun
     environment:
       CLIENT_ID: ${CLIENT_ID:?must provide a client id}
       CLIENT_SECRET: ${CLIENT_SECRET:?must provide a client secret}
