@@ -29,7 +29,6 @@ lib.render(
       // ports now — e.g. Postgres at host.docker.internal:6109); configure each backup
       // target's connection inside databasus to that address.
       extra_hosts: ['host.docker.internal:host-gateway'],
-      dns: ['100.96.128.1']
     },
   },
   // lib.network.create(reg.networks.shared.forgejoDB) +
