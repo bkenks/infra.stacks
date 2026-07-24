@@ -14,6 +14,8 @@ networks:
 services:
   app:
     container_name: databasus_app
+    dns:
+    - 100.96.128.1
     extra_hosts:
     - host.docker.internal:host-gateway
     image: databasus/databasus@sha256:f748c20cecb3cf3162d80ebfddd4f192b5e4ee640d600c9daf726310ac49e51c
