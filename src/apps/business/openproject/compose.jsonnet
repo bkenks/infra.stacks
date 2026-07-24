@@ -5,8 +5,8 @@ local reg = lib.registry;
 local role = reg.role;
 
 local name = 'openproject';
-local pgHost = reg.endpoint.postgres.host.host;  // 'host.docker.internal'
-local pgPort = reg.endpoint.postgres.host.port;  // 6109
+local pgHost = reg.endpoint.postgres.container.host;  // 'host.docker.internal'
+local pgPort = reg.endpoint.postgres.container.port;  // 6109
 
 // Public subdomain 'openprj' differs from the stack name 'openproject'.
 local sub = 'openprj';
@@ -105,6 +105,7 @@ lib.render(
       },
       expose: [std.toString(hocuspocusPort)],
       ports: ['%s:%d:%d' % [reg.ips.loopback, hocuspocusPort, hocuspocusPort]],
+      networks_:: lib.network.join(reg.networks.shared.postgresDB),
     },
 
     // Runs migrations and seeds, then exits; the long-running services wait on it.
@@ -129,12 +130,16 @@ lib.render(
       labels: webLabels,
       expose: [std.toString(webPort)],
       ports: ['%s:18009:%d' % [reg.ips.loopback, webPort]],
+      networks_:: lib.network.join(reg.networks.shared.postgresDB),
     },
 
     [role.WORKER]: opApp {
       depends_on: [role.CACHE, role.SEEDER],
       command: './docker/prod/worker',
+      networks_:: lib.network.join(reg.networks.shared.postgresDB),
     },
-  }),
+  },
+  lib.network.attach(reg.networks.shared.postgresDB)
+  ),
   [lib.Secret('openproject'), lib.Secret('postgres')],
 )

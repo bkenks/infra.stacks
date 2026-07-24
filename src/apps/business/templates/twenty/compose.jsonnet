@@ -86,6 +86,7 @@ lib.render(
       command: ['yarn', 'worker:prod'],
       extra_hosts: ['host.docker.internal:host-gateway'],
     },
-  }),
+  },
+  ),
   [lib.Secret('twenty'), lib.Secret('postgres')],
 )
