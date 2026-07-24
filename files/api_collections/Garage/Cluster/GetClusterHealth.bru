@@ -1,0 +1,23 @@
+meta {
+  name: GetClusterHealth
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/v2/GetClusterHealth
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+docs {
+  # GetClusterHealth
+
+  `GET /v2/GetClusterHealth`
+
+  Returns the global status of the cluster, the number of connected nodes (over the number of known ones), the number of healthy storage nodes (over the declared ones), and the number of healthy partitions (over the total).
+}

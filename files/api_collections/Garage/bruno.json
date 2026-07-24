@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "Garage",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}

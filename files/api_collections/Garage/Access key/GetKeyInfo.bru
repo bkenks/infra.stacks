@@ -1,0 +1,32 @@
+meta {
+  name: GetKeyInfo
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/v2/GetKeyInfo
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+docs {
+  # GetKeyInfo
+
+  `GET /v2/GetKeyInfo`
+
+  Return information about a specific key like its identifiers, its permissions and buckets on which it has permissions.
+  You can search by specifying the exact key identifier (`id`) or by specifying a pattern (`search`).
+
+  For confidentiality reasons, the secret key is not returned by default: you must pass the `showSecretKey` query parameter to get it.
+
+  ## Parameters
+
+  - `id` in query
+  - `search` in query
+  - `showSecretKey` in query
+}

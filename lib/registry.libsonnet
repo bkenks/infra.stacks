@@ -85,13 +85,15 @@
     dockerSock:: { mount:: "/var/run/docker.sock:/var/run/docker.sock:ro" },
   },
 
-  # Every host on the network, keyed by short name. `ip` is the host's WireGuard address —
-  # the only address there is, and the only way to reach it: there is no cluster DNS, so a
-  # cross-host reference dials this IP directly. Always reach it by key
-  # (`reg.hosts.littlebuddy.ip`), never by writing the address out — an unknown key fails
-  # at evaluation, a stale literal fails silently at runtime. `dns` and `aka` are legacy
-  # naming metadata with no consumer left in this repo; `edge: true` marks hosts running
-  # Traefik that the controller builds a re-encrypt backend for.
+  # Every host on the network, keyed by short name. `ip` is the address the host is actually
+  # reached at — the only one there is, since there is no cluster DNS and a cross-host
+  # reference dials it directly. For the fleet that is its WireGuard mesh address
+  # (10.100.0.0/24); the NAS is not a mesh member and is reached over Tailscale
+  # (100.64.0.0/10) instead, which is why its address sits in a different range. Always
+  # reach it by key (`reg.hosts.littlebuddy.ip`), never by writing the address out — an
+  # unknown key fails at evaluation, a stale literal fails silently at runtime. `dns` and
+  # `aka` are legacy naming metadata with no consumer left in this repo; `edge: true` marks
+  # hosts running Traefik that the controller builds a re-encrypt backend for.
   hosts:: {
     # ── Main cluster ──
     littlebuddy: { ip: '10.100.0.21', aka: ['controlplane'], edge: true },
@@ -101,6 +103,10 @@
     # ── VPS ──
     maboi: { ip: '10.100.0.101', edge: true },
     rick: { ip: '10.100.0.102', edge: true },
+    # ── NAS ──
+    # Synology, outside the Komodo/Infisical ecosystem: no periphery agent, no Infisical
+    # agent, deployed by hand. Tailscale address, not WireGuard — see above.
+    nas: { ip: '100.91.182.94' },
   },
 
   endpoint:: {
@@ -168,7 +174,12 @@
     docker:: {
       root::       '/srv/docker',
       bindMounts:: '/bind-mounts',
-    }
+    },
+
+    NAS:: {
+      docker:: '/volume1/docker',
+      backups:: '/volume1/backups',
+    },
   },
 
   infisical:: {

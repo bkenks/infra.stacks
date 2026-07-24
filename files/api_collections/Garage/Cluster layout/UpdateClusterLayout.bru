@@ -1,0 +1,41 @@
+meta {
+  name: UpdateClusterLayout
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/v2/UpdateClusterLayout
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+body:json {
+  {
+    "parameters": null,
+    "roles": [
+      {
+        "id": "",
+        "remove": false
+      }
+    ]
+  }
+}
+
+docs {
+  # UpdateClusterLayout
+
+  `POST /v2/UpdateClusterLayout`
+
+  Send modifications to the cluster layout. These modifications will be included in the staged role changes, visible in subsequent calls of `GET /GetClusterHealth`. Once the set of staged changes is satisfactory, the user may call `POST /ApplyClusterLayout` to apply the changed changes, or `POST /RevertClusterLayout` to clear all of the staged changes in the layout.
+
+  Setting the capacity to `null` will configure the node as a gateway.
+  Otherwise, capacity must be now set in bytes (before Garage 0.9 it was arbitrary weights).
+  For example to declare 100GB, you must set `capacity: 100000000000`.
+
+  Garage uses internally the International System of Units (SI), it assumes that 1kB = 1000 bytes, and displays storage as kB, MB, GB (and not KiB, MiB, GiB that assume 1KiB = 1024 bytes).
+}

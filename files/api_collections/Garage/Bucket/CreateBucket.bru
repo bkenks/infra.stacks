@@ -1,0 +1,31 @@
+meta {
+  name: CreateBucket
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/v2/CreateBucket
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+body:json {
+  {
+    "globalAlias": 'zerobyte',
+    "localAlias": null,
+  }
+}
+
+docs {
+  # CreateBucket
+  
+  `POST /v2/CreateBucket`
+  
+  Creates a new bucket, either with a global alias, a local one, or no alias at all.
+  Technically, you can also specify both `globalAlias` and `localAlias` and that would create two aliases.
+}

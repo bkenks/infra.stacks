@@ -1,0 +1,23 @@
+meta {
+  name: GetCurrentAdminTokenInfo
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/v2/GetCurrentAdminTokenInfo
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+docs {
+  # GetCurrentAdminTokenInfo
+
+  `GET /v2/GetCurrentAdminTokenInfo`
+
+  Return information about the calling admin API token.
+}

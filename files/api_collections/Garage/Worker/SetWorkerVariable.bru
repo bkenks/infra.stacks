@@ -1,0 +1,34 @@
+meta {
+  name: SetWorkerVariable
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/v2/SetWorkerVariable
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+body:json {
+  {
+    "value": "",
+    "variable": ""
+  }
+}
+
+docs {
+  # SetWorkerVariable
+
+  `POST /v2/SetWorkerVariable`
+
+  Set the value for a worker variable, on one or several cluster nodes.
+
+  ## Parameters
+
+  - `node` in query (required)
+}

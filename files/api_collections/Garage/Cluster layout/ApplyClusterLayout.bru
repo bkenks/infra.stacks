@@ -1,0 +1,31 @@
+meta {
+  name: ApplyClusterLayout
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/v2/ApplyClusterLayout
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+body:json {
+  {
+    "version": 0
+  }
+}
+
+docs {
+  # ApplyClusterLayout
+
+  `POST /v2/ApplyClusterLayout`
+
+  Applies to the cluster the layout changes currently registered as staged layout changes.
+
+  *Note: do not try to parse the `message` field of the response, it is given as an array of string specifically because its format is not stable.*
+}

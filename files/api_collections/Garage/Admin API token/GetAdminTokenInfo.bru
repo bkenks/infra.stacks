@@ -1,0 +1,29 @@
+meta {
+  name: GetAdminTokenInfo
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/v2/GetAdminTokenInfo
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+docs {
+  # GetAdminTokenInfo
+
+  `GET /v2/GetAdminTokenInfo`
+
+  Return information about a specific admin API token.
+  You can search by specifying the exact token identifier (`id`) or by specifying a pattern (`search`).
+
+  ## Parameters
+
+  - `id` in query
+  - `search` in query
+}

@@ -1,0 +1,36 @@
+meta {
+  name: UpdateAdminToken
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/v2/UpdateAdminToken
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+body:json {
+  {
+    "expiration": null,
+    "name": null,
+    "neverExpires": false,
+    "scope": null
+  }
+}
+
+docs {
+  # UpdateAdminToken
+
+  `POST /v2/UpdateAdminToken`
+
+  Updates information about the specified admin API token.
+
+  ## Parameters
+
+  - `id` in query (required)
+}

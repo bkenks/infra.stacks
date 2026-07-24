@@ -1,0 +1,25 @@
+meta {
+  name: GetClusterStatistics
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/v2/GetClusterStatistics
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+docs {
+  # GetClusterStatistics
+
+  `GET /v2/GetClusterStatistics`
+
+  Fetch global cluster statistics.
+
+  *Note: do not try to parse the `freeform` field of the response, it is given as a string specifically because its format is not stable.*
+}

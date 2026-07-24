@@ -1,0 +1,39 @@
+meta {
+  name: UpdateKey
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/v2/UpdateKey
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+body:json {
+  {
+    "allow": null,
+    "deny": null,
+    "expiration": null,
+    "name": null,
+    "neverExpires": false
+  }
+}
+
+docs {
+  # UpdateKey
+
+  `POST /v2/UpdateKey`
+
+  Updates information about the specified API access key.
+
+  *Note: the secret key is not returned in the response, `null` is sent instead.*
+
+  ## Parameters
+
+  - `id` in query (required)
+}

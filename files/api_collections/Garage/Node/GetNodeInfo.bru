@@ -1,0 +1,27 @@
+meta {
+  name: GetNodeInfo
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/v2/GetNodeInfo
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+docs {
+  # GetNodeInfo
+
+  `GET /v2/GetNodeInfo`
+
+  Return information about the Garage daemon running on one or several nodes.
+
+  ## Parameters
+
+  - `node` in query (required)
+}

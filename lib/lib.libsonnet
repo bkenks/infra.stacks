@@ -44,4 +44,6 @@ local compose = import 'lib/compose.libsonnet';
 
   // For entrypoints that render a bare env file rather than a compose stack.
   toEnv(o):: std.join('', ['%s=%s\n' % [k, o[k]] for k in std.objectFields(o)]),
+
+  buildDataMount(storagePath, dataDir, internalPath):: '%s/%s:%s' % [storagePath, dataDir, internalPath],
 }

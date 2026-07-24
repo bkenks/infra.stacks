@@ -1,0 +1,29 @@
+meta {
+  name: GetNodeStatistics
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/v2/GetNodeStatistics
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+docs {
+  # GetNodeStatistics
+
+  `GET /v2/GetNodeStatistics`
+
+  Fetch statistics for one or several Garage nodes.
+
+  *Note: do not try to parse the `freeform` field of the response, it is given as a string specifically because its format is not stable.*
+
+  ## Parameters
+
+  - `node` in query (required)
+}

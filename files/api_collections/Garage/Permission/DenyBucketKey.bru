@@ -1,0 +1,43 @@
+meta {
+  name: DenyBucketKey
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/v2/DenyBucketKey
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{adminToken}}
+}
+
+body:json {
+  {
+    "accessKeyId": "",
+    "bucketId": "",
+    "permissions": {
+      "owner": false,
+      "read": false,
+      "write": false
+    }
+  }
+}
+
+docs {
+  # DenyBucketKey
+
+  `POST /v2/DenyBucketKey`
+
+  ⚠️ **DISCLAIMER**: Garage's developers are aware that this endpoint has an unconventional semantic. Be extra careful when implementing it, its behavior is not obvious.
+
+  Denies a key from doing read/write/owner operations on a bucket.
+
+  Flags in permissions which have the value true will be deactivated. Other flags will remain unchanged.
+
+  For example, if you set read to true, the key will be denied from reading.
+  If you set read to false,  the key will keep its previous permissions.
+  If you want the key to have the reading permission, check the AllowBucketKey operation.
+}

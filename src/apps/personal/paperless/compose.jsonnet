@@ -61,6 +61,7 @@ lib.render(
         retries: 10,
       },
       expose: ['5432'],
+      ports: [reg.ips.loopback + ":18025:5432"]
     },
 
     [gotenberg]: lib.Service {
