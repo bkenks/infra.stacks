@@ -65,6 +65,7 @@ lib.render(
         interval: '5s',
         timeout: '5s',
         retries: 20,
+        start_period: '180s',
       },
       expose: [std.toString(serverPort)],
       ports: ['%s:18015:%s' % [reg.ips.loopback, serverPort]],
