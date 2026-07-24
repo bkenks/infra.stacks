@@ -925,7 +925,7 @@ is_secret = false
 
 [[variable]]
 name = "INFSCL_URL"
-value = "'http://10.100.0.21:18006'"
+value = "'http://100.114.137.104:18006'"
 is_secret = false
 
 ##
