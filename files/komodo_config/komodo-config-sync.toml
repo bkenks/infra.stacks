@@ -129,6 +129,10 @@ poll_for_updates = true
 linked_repo = "infra.stacks"
 webhook_enabled = false
 run_directory = "./.deploy/platform/backup-manager/databasus"
+environment = """
+  # VARIABLE = value
+ANSIBLE_SECRET_PATH=/dev/shm/platform.env
+"""
 
 ##
 
@@ -417,15 +421,6 @@ PANGOLIN_VARIANT=cloud
 name = "pangolin-client"
 template = true
 [stack.config]
-linked_repo = "infra.stacks"
-run_directory = "./.deploy/platform/edge/pangolin-client"
-
-##
-
-[[stack]]
-name = "pangolin-client_littlebuddy"
-[stack.config]
-server = "littlebuddy"
 linked_repo = "infra.stacks"
 run_directory = "./.deploy/platform/edge/pangolin-client"
 
