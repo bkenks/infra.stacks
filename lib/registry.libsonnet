@@ -75,6 +75,8 @@
     shared:: {
       paperlessDB::   "shared__paperless_db",
       postgresDB::    "shared__postgres_db",
+      infisicalDB::   "shared__infisical_db",
+      forgejoDB::     "shared__forgejo_db",
     }
   },
 

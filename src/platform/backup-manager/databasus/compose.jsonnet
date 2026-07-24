@@ -19,10 +19,20 @@ lib.render(
       // so it is bind-mounted rather than passed to include.env_file.
       mounts_:: [lib.Secret('databasus') + ':/databasus-data/secret.key:ro'],
       ports: [std.toString(port) + ':' + std.toString(port)],
+      networks_::
+        lib.network.join(reg.networks.shared.forgejoDB) +
+        lib.network.join(reg.networks.shared.infisicalDB) +
+        lib.network.join(reg.networks.shared.paperlessDB) +
+        lib.network.join(reg.networks.shared.postgresDB),
       // Reaches the databases it backs up over the docker host-gateway (they publish host
       // ports now — e.g. Postgres at host.docker.internal:6109); configure each backup
       // target's connection inside databasus to that address.
       extra_hosts: ['host.docker.internal:host-gateway'],
     },
-  }),
+  },
+  lib.network.attach(reg.networks.shared.forgejoDB) +
+  lib.network.attach(reg.networks.shared.infisicalDB) +
+  lib.network.attach(reg.networks.shared.paperlessDB) +
+  lib.network.attach(reg.networks.shared.postgresDB)
+  ),
 )

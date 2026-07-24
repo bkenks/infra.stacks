@@ -3,6 +3,8 @@ name: postgres
 networks:
   default:
     name: postgres
+  shared__postgres_db:
+    name: shared__postgres_db
 services:
   db:
     container_name: postgres-db
@@ -19,8 +21,11 @@ services:
       default:
         aliases:
         - postgres-db
+      shared__postgres_db:
+        aliases:
+        - postgres-db
     ports:
-    - 6109:5432
+    - 127.0.0.1:6109:5432
     restart: always
     volumes:
     - db:/var/lib/postgresql

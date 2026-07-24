@@ -66,7 +66,7 @@ Its counterpart at `.deploy/<same path>` is what actually deploys:
 
 Each stack gets a private `default` bridge, and **cross-stack traffic goes over published host ports by default** — dialed as `host.docker.internal:<port>` with `extra_hosts: ['host.docker.internal:host-gateway']` on the consumer. The shared Postgres cluster (`databases/postgres`) is single-sourced this way via `reg.endpoint.postgres.host`.
 
-A service can also join a shared Docker network: `networks_:: lib.network.create(reg.networks.shared.<x>)` in the one stack that owns it, `lib.network.attach(...)` in every consumer. `Stack` hoists those definitions to the top-level `networks:` block the same way it hoists `volumes_`, so a network is declared on the service that uses it and nowhere else. `lib.Stack`'s third argument replaces only the private `default` bridge.
+A service can also join a shared Docker network: `networks_:: lib.network.create(reg.networks.shared.<x>)` in the one stack that owns it, `lib.network.attach(...)` in every consumer. `Stack` hoists those definitions to the top-level `networks:` block the same way it hoists `volumes_`, so a network is declared on the service that uses it and nowhere else. `lib.Stack`'s third argument is merged last over that block, so it redefines the private `default` bridge (pangolin's ipv6) without touching hoisted networks; `default` itself is always emitted.
 
 ## Secrets (Infisical)
 

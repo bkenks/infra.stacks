@@ -3,6 +3,8 @@ name: paperless
 networks:
   default:
     name: paperless
+  shared__paperless_db:
+    name: shared__paperless_db
 services:
   broker:
     container_name: paperless_broker
@@ -44,6 +46,9 @@ services:
     image: docker.io/library/postgres:18
     networks:
       default:
+        aliases:
+        - paperless_db
+      shared__paperless_db:
         aliases:
         - paperless_db
     ports:

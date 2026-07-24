@@ -25,7 +25,8 @@ lib.render(
       },
       // Published to the host so containers in other stacks reach it via
       // host.docker.internal:<hostPort>.
-      ports: [pg.host.port + ':' + pg.container.port],
+      ports: [reg.ips.loopback + ":" + pg.host.port + ':' + pg.container.port],
+      networks_:: lib.network.join(reg.networks.shared.postgresDB),
       restart: 'always',
       healthcheck: {
         test: 'pg_isready -U ${POSTGRES_USER} -h localhost -d postgres',
@@ -34,6 +35,6 @@ lib.render(
         retries: 10,
       },
     },
-  }),
+  }, lib.network.create(reg.networks.shared.postgresDB)),
   [lib.Secret('postgres')],
 )

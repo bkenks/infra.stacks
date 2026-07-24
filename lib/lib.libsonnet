@@ -56,6 +56,7 @@ local compose = import 'lib/compose.libsonnet';
   // attaches to one that does not exist yet fails to come up instead of quietly building
   // its own empty copy.
   network:: {
+    join(commonName)::    { [commonName]: {} },
     create(commonName)::  { [commonName]: { name: commonName } },
     attach(commonName)::  { [commonName]: { name: commonName, external: true } },
   },

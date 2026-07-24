@@ -3,6 +3,8 @@ name: forgejo
 networks:
   default:
     name: forgejo
+  shared__forgejo_db:
+    name: shared__forgejo_db
 services:
   db:
     container_name: forgejo_db
@@ -15,6 +17,9 @@ services:
     image: docker.io/library/postgres:14
     networks:
       default:
+        aliases:
+        - forgejo_db
+      shared__forgejo_db:
         aliases:
         - forgejo_db
     ports:

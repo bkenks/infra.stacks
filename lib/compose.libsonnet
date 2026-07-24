@@ -79,9 +79,10 @@ local qualify(stack, part) = stack + '_' + part;
   // body. The function is called twice, which is what makes cross-service references
   // checkable — see the two-phase note below.
   //
-  // networks replaces the private `default` bridge for the stacks that need it to be
-  // something else (pangolin's ipv6, infisical's fixed IPAM). Additional networks are not
-  // declared here — a service names its own in networks_ and they are hoisted.
+  // networks is merged over the top-level block, so it is how a stack that needs the private
+  // bridge to be something else (pangolin's ipv6) redefines `default` — but it never removes
+  // it: the bridge every service implicitly attaches to is always emitted. Additional networks
+  // are not declared here — a service names its own in networks_ and they are hoisted.
   Stack(name, services, networks=null)::
     assert std.isFunction(services) :
       'lib.Stack(%s): services must be `function(ref) {...}`, not a bare object' % name;
@@ -129,11 +130,14 @@ local qualify(stack, part) = stack + '_' + part;
       services: { [role]: std.prune(bound[role]) for role in roles },
 
       // `default` is Compose's reserved key, not a name — it is what attaches the network
-      // to every service implicitly. The stack's name lands on `name:` underneath it.
+      // to every service implicitly, and every Service's alias block names it, so it is
+      // emitted unconditionally. The stack's name lands on `name:` underneath it.
       //
-      // The `networks` argument replaces that private bridge, not the whole block: networks
-      // hoisted out of the services stay, and the argument wins on any key it also names.
+      // Order is the whole contract: hoisted networks, then the private bridge, then the
+      // argument. A stack that passes only a shared network keeps its bridge; one that
+      // passes `default` (pangolin's ipv6) redefines it, because it is merged last.
       networks: declaredNetworks
-                + (if networks != null then networks else { default: { name: name } }),
+                + { default: { name: name } }
+                + (if networks != null then networks else {}),
     } + (if std.length(volumes) > 0 then { volumes: volumes } else {}),
 }

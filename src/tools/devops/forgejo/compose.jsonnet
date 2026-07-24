@@ -51,8 +51,9 @@ lib.render(
       },
       restart: 'on-failure:5',
       expose: ['5432'],
-      ports: [reg.ips.loopback + ":18041:5432"]
+      ports: [reg.ips.loopback + ":18041:5432"],
+      networks_:: lib.network.join(reg.networks.shared.forgejoDB),
     },
-  }),
+  }, lib.network.create(reg.networks.shared.forgejoDB)),
   [lib.Secret('forgejo')],
 )

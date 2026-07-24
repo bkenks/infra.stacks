@@ -153,9 +153,11 @@ same name. Two services joining the same network collapse to one top-level entry
 get `container_name` as an alias on every network they join. `networks_` is incompatible
 with `network_mode` (no netns of its own) and says so at render time.
 
-Changing the private bridge itself is the third argument to `lib.Stack` — it replaces
-`default`, leaving hoisted networks alone. Real: `platform/edge/pangolin` (ipv6 on the
-default); `reg.networks.hostGateway.create(name)` builds a fixed-IPAM block for it.
+Changing the private bridge itself is the third argument to `lib.Stack` — it is merged last
+over the top-level block, so naming `default` redefines it and hoisted networks are left
+alone. `default` is always emitted; the argument can only change it, never remove it. Real:
+`platform/edge/pangolin` (ipv6 on the default); `reg.networks.hostGateway.create(name)`
+builds a fixed-IPAM block for it.
 
 ## Secrets
 

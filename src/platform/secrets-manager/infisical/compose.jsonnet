@@ -79,7 +79,8 @@ lib.render(
           retries: 10,
         },
         expose: ['5432'],
-        ports: [reg.ips.loopback + ":18040:5432"]
+        ports: [reg.ips.loopback + ":18040:5432"],
+        networks_:: lib.network.join(reg.networks.shared.infisicalDB),
       },
 
       [redis]: lib.Service {
@@ -97,11 +98,7 @@ lib.render(
         expose: ['6379'],
       },
     },
-
-    // A second network on top of the private default: the 172.28.0.0/24 bridge whose
-    // gateway other stacks dial as the host gateway.
-    { default: { name: name } },
+    lib.network.create(reg.networks.shared.infisicalDB)
   ),
-
   [lib.SecretOrBootstrap('infisical')],
 )

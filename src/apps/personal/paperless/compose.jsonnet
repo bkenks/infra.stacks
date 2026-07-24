@@ -61,6 +61,7 @@ lib.render(
         retries: 10,
       },
       expose: ['5432'],
+      networks_:: lib.network.join(reg.networks.shared.paperlessDB),
       ports: [reg.ips.loopback + ":18025:5432"]
     },
 
@@ -123,6 +124,6 @@ lib.render(
       expose: [std.toString(webPort)],
       ports: ['%s:18010:%s' % [reg.ips.loopback, webPort]],
     },
-  }),
+  }, lib.network.create(reg.networks.shared.paperlessDB)),
   [lib.Secret('paperless')],
 )
