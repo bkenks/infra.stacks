@@ -59,6 +59,7 @@ lib.render(
     [role.DB]: lib.Service {
       image: 'docker.io/library/postgres:' + dbVersion,
       volumes_:: { db: '/var/lib/postgresql/data' },
+      networks_:: lib.network.join(reg.networks.shared.tsGateway),
       environment: {
         POSTGRES_USER: dbUser,
         POSTGRES_DB: dbName,
@@ -74,6 +75,8 @@ lib.render(
       expose: ['5432'],
       ports: [reg.ips.loopback + ":18040:5432"],
     },
-  }),
+  },
+  lib.network.attach(reg.networks.shared.tsGateway)
+  ),
   [lib.Secret('authentik')],
 )
