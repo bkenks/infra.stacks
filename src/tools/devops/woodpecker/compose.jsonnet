@@ -17,7 +17,7 @@ lib.render(
       volumes_:: { server: '/var/lib/woodpecker' },
       environment: {
         // Must match the OAuth2 app's redirect URI in Forgejo.
-        WOODPECKER_HOST: 'https://peck.' + reg.domains.ktbinternal,
+        WOODPECKER_HOST: 'https://peck.' + reg.domains.ktbcloud,
         // Any Forgejo user may log in.
         WOODPECKER_OPEN: 'true',
         // Uses Forgejo (not gitea) as the forge.
