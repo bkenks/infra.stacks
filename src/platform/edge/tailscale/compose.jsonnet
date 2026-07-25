@@ -17,7 +17,7 @@ local role = reg.role;
 
 local name = 'ts-gateway';
 
-local appVersion = 'v1.20';
+local appVersion = 'v1.98.9';
 
 lib.render(
   name,
