@@ -1,5 +1,0 @@
-{
-  "TCP": {
-    "5432": { "TCPForward": "postgres-db:5432" }
-  }
-}

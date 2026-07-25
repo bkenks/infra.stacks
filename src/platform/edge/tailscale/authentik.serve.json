@@ -1,0 +1,5 @@
+{
+  "TCP": {
+    "5432": { "TCPForward": "authentik_db:5432" }
+  }
+}

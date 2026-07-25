@@ -17,6 +17,8 @@ local role = reg.role;
 
 local name = 'ts-gateway';
 
+local serveJSONVar = '${serveJSONFile:?err}';
+
 local appVersion = 'v1.98.9';
 
 lib.render(
@@ -38,7 +40,7 @@ lib.render(
       // the compose-local handle; the real volume is registered at the top level as
       // <name>_<key>, so it is declared once, here, where it is mounted.
       volumes_:: { app: '/var/lib/tailscale'},
-      mounts_:: [ lib.buildFileMount('./serve.json', '/config/serve.json', 'ro') ],
+      mounts_:: [ lib.buildFileMount('./' + serveJSONVar, '/config/' + serveJSONVar, 'ro') ],
       networks_:: lib.network.join(reg.networks.shared.tsGateway),
 
       environment: {
@@ -46,7 +48,7 @@ lib.render(
         TS_HOSTNAME: 'ts-gateway',
         TS_STATE_DIR: '/var/lib/tailscale',
         TS_USERSPACE: "true",        # no tun/NET_ADMIN needed for a pure proxy
-        TS_SERVE_CONFIG: '/config/serve.json',
+        TS_SERVE_CONFIG: '/config/' + serveJSONVar,
         TS_EXTRA_ARGS: '--advertise-tags=tag:gateway',
       },
 
