@@ -1,5 +1,5 @@
 # GENERATED from services.jsonnet by .mise/tasks/render.py — DO NOT EDIT.
-- destination-path: /dev/shm/ts_gateway.env
+- destination-path: /dev/shm/ts-gateway.env
   config:
     polling-interval: "1m"
   template-content: |

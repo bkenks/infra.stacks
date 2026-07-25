@@ -18,7 +18,6 @@ local role = reg.role;
 local name = 'ts-gateway';
 
 local appVersion = 'v1.20';
-local tsSecret = lib.Secret();
 
 lib.render(
   name,
@@ -61,5 +60,5 @@ lib.render(
   // registry.libsonnet's infisical catalogue and reference it by KEY — lib.Secret('example')
   // — so the agent (producer) and this stack (consumer) derive the same path. Until it is
   // registered the literal below is fine. Drop the argument entirely for a no-secrets stack.
-  [lib.Secret('ts-gateway')],
+  [lib.Secret('tsGateway')],
 )
