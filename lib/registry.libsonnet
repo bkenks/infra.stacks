@@ -268,6 +268,9 @@
 
       woodpecker:
       { project: 'infra', folder: '/woodpecker', dest: 'woodpecker.env', type: 'dump' },
+      
+      tsContainers:
+      { project: 'infra', folder: '/tailscale/containers', dest: 'ts_containers.env', type: 'dump' },
 
       newt:
       { project: 'infra', folder: '/hosts/${AGENT_HOST}/newt', dest: 'newt.env', type: 'dump' },
