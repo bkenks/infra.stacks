@@ -335,7 +335,7 @@ INFISICAL_CLIENT_SECRET = [[INFSCL_AGNT_CLIENT_SECRET__RICK]]   # Set in Komodo 
 AGENT_HOST      = 'rick'
 NS              = [[INFSCL_AGNT_NODE_SECERTS]]
 PS              = [[INFSCL_AGNT_PANGOLIN_SECERTS]]
-AGENT_SERVICES  = "${NS} ${PS} authentik homarr"
+AGENT_SERVICES  = "${NS} ${PS} authentik homarr tsGateway"
 """
 
 ##
@@ -546,6 +546,15 @@ template = true
 project_name = "traefik"
 linked_repo = "infra.stacks"
 run_directory = "./.deploy/platform/edge/traefik"
+
+##
+
+[[stack]]
+name = "ts-gateway_rick"
+[stack.config]
+server = "rick"
+linked_repo = "infra.stacks"
+run_directory = "./.deploy/platform/edge/tailscale"
 
 ##
 
