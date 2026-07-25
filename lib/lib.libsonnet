@@ -46,6 +46,7 @@ local compose = import 'lib/compose.libsonnet';
   toEnv(o):: std.join('', ['%s=%s\n' % [k, o[k]] for k in std.objectFields(o)]),
 
   buildDataMount(storagePath, dataDir, internalPath):: '%s/%s:%s' % [storagePath, dataDir, internalPath],
+  buildFileMount(externalFPath, internalFPath, permissions):: '%s:%s:%s' % [externalFPath, internalFPath, permissions],
 
   // Values for a service's `networks_`. Both take the network's real name on the host —
   // reference it through `registry.networks.shared.*` so producer and consumer cannot

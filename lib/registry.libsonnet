@@ -77,6 +77,7 @@
       postgresDB::    "shared__postgres_db",
       infisicalDB::   "shared__infisical_db",
       forgejoDB::     "shared__forgejo_db",
+      tsGateway::     "shared__ts-gateway",
     }
   },
 
@@ -269,8 +270,8 @@
       woodpecker:
       { project: 'infra', folder: '/woodpecker', dest: 'woodpecker.env', type: 'dump' },
       
-      tsContainers:
-      { project: 'infra', folder: '/tailscale/containers', dest: 'ts_containers.env', type: 'dump' },
+      'ts-gateway':
+      { project: 'infra', folder: '/tailscale/containers', dest: 'ts_gateway.env', type: 'dump' },
 
       newt:
       { project: 'infra', folder: '/hosts/${AGENT_HOST}/newt', dest: 'newt.env', type: 'dump' },
