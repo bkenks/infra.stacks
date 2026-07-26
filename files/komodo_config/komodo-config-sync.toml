@@ -555,6 +555,10 @@ name = "ts-gateway_rick"
 server = "rick"
 linked_repo = "infra.stacks"
 run_directory = "./.deploy/platform/edge/tailscale"
+environment = """
+  # VARIABLE = value
+serveJSONFile = "authentik.serve.json"
+"""
 
 ##
 
