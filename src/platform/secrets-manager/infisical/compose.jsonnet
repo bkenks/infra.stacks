@@ -11,9 +11,19 @@ local name = 'infisical';
 // and the container name is what other things on the host already know it by.
 local redis = 'redis';
 
+// The agent is optional: app/db/redis always run, the agent only under this Compose
+// profile. Bring the server up alone (`docker compose up`) at bootstrap — before any
+// machine identity exists — then enable the agent with COMPOSE_PROFILES=agent once its
+// credentials are minted. Compose interpolates the whole file regardless of the active
+// profile, so the agent's per-host vars carry empty defaults rather than `:?err`: the
+// profile-off case must parse without them, and the agent's own auth/healthcheck catches
+// a missing credential when the profile is on.
+local agentProfile = 'agent';
+
 local appVersion = 'v0.160.9';
 local dbVersion = '16-alpine';
 local redisVersion = '7-alpine';
+local agentVersion = '0.43.89';
 
 local appPort = 8080;  // matches reg.endpoint.infisical.container.port
 local dbUser = 'infisical';
@@ -96,6 +106,36 @@ lib.render(
           retries: 5,
         },
         expose: ['6379'],
+      },
+
+      [role.AGENT]: lib.Service {
+        profiles: [agentProfile],
+        image: 'docker.io/infisical/cli:' + agentVersion,
+        entrypoint: ['/bin/sh', '/agent/entrypoint.sh'],
+        mounts_:: [
+          './files/entrypoint.sh:/agent/entrypoint.sh:ro',
+          './templates:/agent/templates:ro',     // per-service config fragments, generated from registry
+          '/dev/shm:/dev/shm',                   // read creds + write rendered <stack>.env files
+        ],
+        // Empty defaults, not `:?err`: Compose interpolates this service even when the
+        // agent profile is off, so a required var would break server-only bootstrap. When
+        // the profile is on, a missing credential surfaces as an agent auth failure the
+        // healthcheck flips to unhealthy.
+        environment: {
+          AGENT_HOST: '${AGENT_HOST:-}',          // per-host: drives ${AGENT_HOST} secret-path subs
+          AGENT_SERVICES: '${AGENT_SERVICES:-}',  // per-host: which templates/ fragments to render
+          INFISICAL_CLIENT_ID: '${INFISICAL_CLIENT_ID:-}',
+          INFISICAL_CLIENT_SECRET: '${INFISICAL_CLIENT_SECRET:-}',
+          // Public URL by default (works on every host); per-host override allowed.
+          INFISICAL_ADDRESS: '${INFISICAL_ADDRESS:-http://' + ref[role.APP] + ':' + std.toString(appPort) + '}',
+        },
+        healthcheck: {
+          test: ['CMD-SHELL', '[ ! -f /tmp/agent.last_err ] || [ $$(( $$(date +%s) - $$(cat /tmp/agent.last_err) )) -ge 180 ]'],
+          interval: '30s',
+          timeout: '5s',
+          retries: 2,
+          start_period: '30s',
+        },
       },
     },
     lib.network.attach(reg.networks.shared.infisicalDB)

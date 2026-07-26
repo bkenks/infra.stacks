@@ -11,9 +11,13 @@ services:
     - server
     environment:
       WOODPECKER_AGENT_SECRET: ${WOODPECKER_AGENT_SECRET:?err}
+      WOODPECKER_BACKEND_DOCKER_LIMIT_CPU_QUOTA: '200000'
+      WOODPECKER_BACKEND_DOCKER_LIMIT_MEM: '4294967296'
+      WOODPECKER_BACKEND_DOCKER_LIMIT_MEM_SWAP: '4294967296'
       WOODPECKER_MAX_WORKFLOWS: '2'
       WOODPECKER_SERVER: server:9000
     image: docker.io/woodpeckerci/woodpecker-agent:v3.15.0
+    mem_limit: 512m
     networks:
       default:
         aliases:
@@ -37,6 +41,7 @@ services:
     - '8000'
     - '9000'
     image: docker.io/woodpeckerci/woodpecker-server:v3.15.0
+    mem_limit: 1g
     networks:
       default:
         aliases:
