@@ -231,7 +231,7 @@ INFISICAL_CLIENT_SECRET = [[INFSCL_AGNT_CLIENT_SECRET__BILL]]   # Set in Komodo 
 # ----- Secrets Rendering -----
 AGENT_HOST      = 'bill'
 NS              = [[INFSCL_AGNT_NODE_SECERTS]]
-AGENT_SERVICES  = "${NS} postgres twenty"
+AGENT_SERVICES  = "${NS} zerobyte postgres twenty"
 """
 
 ##
@@ -259,7 +259,7 @@ INFISICAL_CLIENT_SECRET = [[LITTLEBUDDY__AGENT_CLIENT_SECRET]]  # Set in Komodo 
 AGENT_HOST      = 'littlebuddy'
 NS              = [[INFSCL_AGNT_NODE_SECERTS]]
 PS              = [[INFSCL_AGNT_PANGOLIN_SECERTS]]
-AGENT_SERVICES  = "${NS} ${PS} postgres docuseal forgejo openproject woodpecker komodo-mcp paperless pangolinClient"
+AGENT_SERVICES  = "${NS} ${PS} zerobyte postgres docuseal forgejo openproject woodpecker komodo-mcp paperless"
 """
 
 ##
@@ -598,6 +598,15 @@ environment = """
 ANSIBLE_SECRETS_FILE=/dev/shm/platform.env
 
 """
+
+##
+
+[[stack]]
+name = "zerobyte_bill"
+[stack.config]
+server = "bill"
+linked_repo = "infra.stacks"
+run_directory = "./.deploy/platform/backup-manager/zerobyte"
 
 ##
 
