@@ -1,0 +1,48 @@
+# GENERATED from compose.jsonnet by .mise/tasks/render.py — DO NOT EDIT.
+name: invoice-shelf
+networks:
+  default:
+    name: invoice-shelf
+services:
+  app:
+    container_name: invoice-shelf_app
+    environment:
+      APP_DEBUG: 'false'
+      APP_ENV: production
+      APP_NAME: InvoiceShelf
+      APP_URL: https://invoiceshelf.ktbinternal.com
+      AUTORUN_ENABLED: 'true'
+      AUTORUN_LARAVEL_MIGRATION: 'false'
+      AUTORUN_LARAVEL_OPTIMIZE: 'false'
+      CACHE_STORE: file
+      DB_CONNECTION: pgsql
+      DB_DATABASE: invoiceshelf
+      DB_HOST: host.docker.internal
+      DB_PASSWORD: ${POSTGRES_PASS:?err}
+      DB_PORT: '6109'
+      DB_USERNAME: ${POSTGRES_USER:?err}
+      PHP_OPCACHE_ENABLE: '1'
+      SANCTUM_STATEFUL_DOMAINS: invoiceshelf.ktbinternal.com
+      SESSION_DOMAIN: invoiceshelf.ktbinternal.com
+      SESSION_DRIVER: file
+      SESSION_LIFETIME: '240'
+    expose:
+    - '8080'
+    extra_hosts:
+    - host.docker.internal:host-gateway
+    image: invoiceshelf/invoiceshelf:latest
+    networks:
+      default:
+        aliases:
+        - invoice-shelf_app
+    ports:
+    - 127.0.0.1:18021:8080
+    restart: unless-stopped
+    volumes:
+    - app_modules:/var/www/html/Modules/
+    - app_storage:/var/www/html/storage/
+volumes:
+  app_modules:
+    name: invoice-shelf_app_modules
+  app_storage:
+    name: invoice-shelf_app_storage

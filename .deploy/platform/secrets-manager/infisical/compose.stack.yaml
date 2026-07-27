@@ -46,9 +46,9 @@ services:
       redis:
         condition: service_healthy
     environment:
-      AUTH_SECRET: ${INFISICAL_AUTH_SECRET:?err}
-      DB_CONNECTION_URI: postgres://infisical:${INFISICAL_DB_PASSWORD:?err}@infisical_db:5432/infisical
-      ENCRYPTION_KEY: ${INFISICAL_ENCRYPTION_KEY:?err}
+      AUTH_SECRET: ${INFISICAL_AUTH_SECRET:-}
+      DB_CONNECTION_URI: postgres://infisical:${INFISICAL_DB_PASSWORD:-}@infisical_db:5432/infisical
+      ENCRYPTION_KEY: ${INFISICAL_ENCRYPTION_KEY:-}
       NODE_ENV: production
       REDIS_URL: redis://infisical_redis:6379
       SITE_URL: https://infisical.ktbinternal.com
@@ -77,12 +77,14 @@ services:
         - infisical_app
     ports:
     - 18006:8080
+    profiles:
+    - server
     restart: unless-stopped
   db:
     container_name: infisical_db
     environment:
       POSTGRES_DB: infisical
-      POSTGRES_PASSWORD: ${INFISICAL_DB_PASSWORD:?err}
+      POSTGRES_PASSWORD: ${INFISICAL_DB_PASSWORD:-}
       POSTGRES_USER: infisical
     expose:
     - '5432'
@@ -103,6 +105,8 @@ services:
         - infisical_db
     ports:
     - 127.0.0.1:18040:5432
+    profiles:
+    - server
     restart: unless-stopped
     volumes:
     - db:/var/lib/postgresql/data
@@ -125,6 +129,8 @@ services:
       default:
         aliases:
         - infisical_redis
+    profiles:
+    - server
     restart: unless-stopped
     volumes:
     - redis:/data
