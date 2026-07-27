@@ -175,9 +175,23 @@ server = "littlebuddy"
 project_name = "infisical"
 linked_repo = "infra.stacks"
 run_directory = "./.deploy/platform/secrets-manager/infisical"
+# Runs both the store (server) and this host's agent. No destroy_before_deploy: the store's
+# postgres volume must survive a redeploy.
 environment = """
-# Uncomment if deploying from Ansible generated env
+COMPOSE_PROFILES=server,agent
+
+# ----- Server (store) — Ansible-generated bootstrap env -----
 ANSIBLE_SECRETS_FILE=/dev/shm/platform.env
+
+# ----- Agent credentials (this host's machine identity) -----
+INFISICAL_CLIENT_ID     = [[LITTLEBUDDY__AGENT_CLIENT_ID]]      # Set in Komodo variables (toggle secret on to prevent upload to Repo)
+INFISICAL_CLIENT_SECRET = [[LITTLEBUDDY__AGENT_CLIENT_SECRET]]  # Set in Komodo variables (toggle secret on to prevent upload to Repo)
+
+# ----- Agent secrets rendering (reaches the store in-network at infisical_app:8080) -----
+AGENT_HOST      = 'littlebuddy'
+NS              = [[INFSCL_AGNT_NODE_SECERTS]]
+PS              = [[INFSCL_AGNT_PANGOLIN_SECERTS]]
+AGENT_SERVICES  = "${NS} ${PS} zerobyte postgres docuseal forgejo openproject woodpecker komodo-mcp paperless"
 """
 
 ##
@@ -188,14 +202,18 @@ name = "infisical-agent_biggy"
 server = "biggy"
 poll_for_updates = true
 destroy_before_deploy = true
+project_name = "infisical"
 linked_repo = "infra.stacks"
 webhook_enabled = false
-run_directory = "./.deploy/platform/secrets-manager/infisical-agent"
+run_directory = "./.deploy/platform/secrets-manager/infisical"
 config_files = [
   { path = "README.md" },
   { path = "compose.stack.yaml" }
 ]
 environment = """
+COMPOSE_PROFILES=agent
+ANSIBLE_SECRETS_FILE=/dev/null
+
 # ----- Credentials -----
 INFISICAL_ADDRESS     = [[INFSCL_URL]]
 INFISICAL_CLIENT_ID     = [[INFSCL_AGNT_CLIENT_ID__BIGGY]]      # Set in Komodo variables (toggle secret on to prevent upload to Repo)
@@ -215,14 +233,18 @@ name = "infisical-agent_bill"
 server = "bill"
 poll_for_updates = true
 destroy_before_deploy = true
+project_name = "infisical"
 linked_repo = "infra.stacks"
 webhook_enabled = false
-run_directory = "./.deploy/platform/secrets-manager/infisical-agent"
+run_directory = "./.deploy/platform/secrets-manager/infisical"
 config_files = [
   { path = "README.md" },
   { path = "compose.stack.yaml" }
 ]
 environment = """
+COMPOSE_PROFILES=agent
+ANSIBLE_SECRETS_FILE=/dev/null
+
 # ----- Credentials -----
 INFISICAL_ADDRESS     = [[INFSCL_URL]]
 INFISICAL_CLIENT_ID     = [[INFSCL_AGNT_CLIENT_ID__BILL]]       # Set in Komodo variables (toggle secret on to prevent upload to Repo)
@@ -237,41 +259,17 @@ AGENT_SERVICES  = "${NS} zerobyte postgres twenty"
 ##
 
 [[stack]]
-name = "infisical-agent_littlebuddy"
-[stack.config]
-server = "littlebuddy"
-poll_for_updates = true
-destroy_before_deploy = true
-linked_repo = "infra.stacks"
-webhook_enabled = false
-run_directory = "./.deploy/platform/secrets-manager/infisical-agent"
-config_files = [
-  { path = "README.md" },
-  { path = "compose.stack.yaml", requires = "Restart" }
-]
-environment = """
-# ----- Credentials -----
-INFISICAL_ADDRESS       = 'http://host.docker.internal:18006'
-INFISICAL_CLIENT_ID     = [[LITTLEBUDDY__AGENT_CLIENT_ID]]      # Set in Komodo variables (toggle secret on to prevent upload to Repo)
-INFISICAL_CLIENT_SECRET = [[LITTLEBUDDY__AGENT_CLIENT_SECRET]]  # Set in Komodo variables (toggle secret on to prevent upload to Repo)
-
-# ----- Secrets Rendering -----
-AGENT_HOST      = 'littlebuddy'
-NS              = [[INFSCL_AGNT_NODE_SECERTS]]
-PS              = [[INFSCL_AGNT_PANGOLIN_SECERTS]]
-AGENT_SERVICES  = "${NS} ${PS} zerobyte postgres docuseal forgejo openproject woodpecker komodo-mcp paperless"
-"""
-
-##
-
-[[stack]]
 name = "infisical-agent_maboi"
 [stack.config]
 server = "maboi"
 destroy_before_deploy = true
+project_name = "infisical"
 linked_repo = "infra.stacks"
-run_directory = "./.deploy/platform/secrets-manager/infisical-agent"
+run_directory = "./.deploy/platform/secrets-manager/infisical"
 environment = """
+COMPOSE_PROFILES=agent
+ANSIBLE_SECRETS_FILE=/dev/null
+
 # ----- Credentials -----
 INFISICAL_ADDRESS     = [[INFSCL_URL]]
 INFISICAL_CLIENT_ID     = [[MABOI__AGENT_CLIENT_ID]]      # Set in Komodo variables (toggle secret on to prevent upload to Repo)
@@ -291,14 +289,18 @@ name = "infisical-agent_paiki"
 server = "paiki"
 poll_for_updates = true
 destroy_before_deploy = true
+project_name = "infisical"
 linked_repo = "infra.stacks"
 webhook_enabled = false
-run_directory = "./.deploy/platform/secrets-manager/infisical-agent"
+run_directory = "./.deploy/platform/secrets-manager/infisical"
 config_files = [
   { path = "README.md" },
   { path = "compose.stack.yaml" }
 ]
 environment = """
+COMPOSE_PROFILES=agent
+ANSIBLE_SECRETS_FILE=/dev/null
+
 # ----- Credentials -----
 INFISICAL_ADDRESS     = [[INFSCL_URL]]
 INFISICAL_CLIENT_ID     = [[PAIKI__AGENT_CLIENT_ID]]      # Set in Komodo variables (toggle secret on to prevent upload to Repo)
@@ -318,14 +320,18 @@ name = "infisical-agent_rick"
 server = "rick"
 poll_for_updates = true
 destroy_before_deploy = true
+project_name = "infisical"
 linked_repo = "infra.stacks"
 webhook_enabled = false
-run_directory = "./.deploy/platform/secrets-manager/infisical-agent"
+run_directory = "./.deploy/platform/secrets-manager/infisical"
 config_files = [
   { path = "README.md" },
   { path = "compose.stack.yaml" }
 ]
 environment = """
+COMPOSE_PROFILES=agent
+ANSIBLE_SECRETS_FILE=/dev/null
+
 # ----- Credentials -----
 INFISICAL_ADDRESS     = [[INFSCL_URL]]
 INFISICAL_CLIENT_ID     = [[INFSCL_AGNT_CLIENT_ID__RICK]]       # Set in Komodo variables (toggle secret on to prevent upload to Repo)
@@ -487,14 +493,18 @@ template = true
 [stack.config]
 poll_for_updates = true
 destroy_before_deploy = true
+project_name = "infisical"
 linked_repo = "infra.stacks"
 webhook_enabled = false
-run_directory = "./.deploy/platform/secrets-manager/infisical-agent"
+run_directory = "./.deploy/platform/secrets-manager/infisical"
 config_files = [
   { path = "README.md" },
   { path = "compose.stack.yaml" }
 ]
 environment = """
+COMPOSE_PROFILES=agent
+ANSIBLE_SECRETS_FILE=/dev/null
+
 # ----- Credentials -----
 INFISICAL_ADDRESS     = [[INFSCL_URL]]
 INFISICAL_CLIENT_ID     = ''  # Set in Komodo variables (toggle secret on to prevent upload to Repo)

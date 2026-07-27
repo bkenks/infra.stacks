@@ -1,6 +1,7 @@
-// infisical — the secrets store itself. Bootstrapped by Ansible (it cannot read its own
-// secrets through the agent before it exists), which is why render() takes
-// SecretOrBootstrap rather than Secret.
+// infisical — the secrets store itself, plus the agent that renders every host's secrets.
+// Split into `server` and `agent` Compose profiles (see the profile note below). The server
+// is bootstrapped by Ansible (it cannot read its own secrets through the agent before it
+// exists), which is why render() takes SecretOrBootstrap rather than Secret.
 local lib = import 'lib/lib.libsonnet';
 local reg = lib.registry;
 local role = reg.role;
@@ -11,13 +12,19 @@ local name = 'infisical';
 // and the container name is what other things on the host already know it by.
 local redis = 'redis';
 
-// The agent is optional: app/db/redis always run, the agent only under this Compose
-// profile. Bring the server up alone (`docker compose up`) at bootstrap — before any
-// machine identity exists — then enable the agent with COMPOSE_PROFILES=agent once its
-// credentials are minted. Compose interpolates the whole file regardless of the active
-// profile, so the agent's per-host vars carry empty defaults rather than `:?err`: the
-// profile-off case must parse without them, and the agent's own auth/healthcheck catches
-// a missing credential when the profile is on.
+// Two profiles carve one file into two deployment shapes. The server (app/db/redis)
+// runs on the single Infisical host; the agent runs on every host, rendering that host's
+// secrets. Nothing runs without a profile:
+//   littlebuddy (server host):  COMPOSE_PROFILES=server,agent
+//   every other host:           COMPOSE_PROFILES=agent
+//   Ansible bootstrap:          COMPOSE_PROFILES=server
+//
+// Compose interpolates the WHOLE file on every host regardless of the active profile, so
+// no var here can use `:?err`: an agent-only host has no server secrets and a server-only
+// bootstrap has no agent creds, yet both would still be interpolated. Every var therefore
+// carries an empty default and validation moves to runtime — the Infisical app rejects an
+// empty ENCRYPTION_KEY at boot, and the agent's entrypoint.sh does `:?` checks of its own.
+local serverProfile = 'server';
 local agentProfile = 'agent';
 
 local appVersion = 'v0.160.9';
@@ -37,6 +44,7 @@ lib.render(
     function(ref) {
       // container_name lands on infisical_app, which is reg.endpoint.infisical.container.host.
       [role.APP]: lib.Service {
+        profiles: [serverProfile],
         image: 'docker.io/infisical/infisical:' + appVersion,
         depends_on: {
           [role.DB]: { condition: 'service_healthy' },
@@ -55,10 +63,12 @@ lib.render(
 
           REDIS_URL: 'redis://' + ref[redis] + ':6379',
 
-          // Ansible-rendered into platform.env, so infisical can read its own secrets despite being the server.
-          ENCRYPTION_KEY: '${INFISICAL_ENCRYPTION_KEY:?err}',
-          AUTH_SECRET: '${INFISICAL_AUTH_SECRET:?err}',
-          DB_CONNECTION_URI: 'postgres://' + dbUser + ':${INFISICAL_DB_PASSWORD:?err}@' + ref[role.DB] + ':5432/' + dbName,
+          // Ansible-rendered into platform.env, so infisical can read its own secrets despite
+          // being the server. Empty default (not `:?err`) — see the whole-file interpolation
+          // note above; the app rejects an empty ENCRYPTION_KEY at boot.
+          ENCRYPTION_KEY: '${INFISICAL_ENCRYPTION_KEY:-}',
+          AUTH_SECRET: '${INFISICAL_AUTH_SECRET:-}',
+          DB_CONNECTION_URI: 'postgres://' + dbUser + ':${INFISICAL_DB_PASSWORD:-}@' + ref[role.DB] + ':5432/' + dbName,
           SMTP_USERNAME: '${INFISICAL__SMTP_USERNAME:-}',
           SMTP_PASSWORD: '${INFISICAL_SMTP_PASSWORD:-}',
         },
@@ -74,13 +84,15 @@ lib.render(
       },
 
       [role.DB]: lib.Service {
+        profiles: [serverProfile],
         image: 'docker.io/library/postgres:' + dbVersion,
         volumes_:: { db: '/var/lib/postgresql/data' },
         environment: {
           POSTGRES_USER: dbUser,
           POSTGRES_DB: dbName,
-          // Same source as the app's INFISICAL_DB_PASSWORD.
-          POSTGRES_PASSWORD: '${INFISICAL_DB_PASSWORD:?err}',
+          // Same source as the app's INFISICAL_DB_PASSWORD; empty default per the interpolation
+          // note above, and postgres refuses to initialize on an empty password anyway.
+          POSTGRES_PASSWORD: '${INFISICAL_DB_PASSWORD:-}',
         },
         healthcheck: {
           test: ['CMD-SHELL', 'pg_isready --username=' + dbUser],
@@ -94,6 +106,7 @@ lib.render(
       },
 
       [redis]: lib.Service {
+        profiles: [serverProfile],
         image: 'docker.io/library/redis:' + redisVersion,
         volumes_:: { redis: '/data' },
         environment: {
