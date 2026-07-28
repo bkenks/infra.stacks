@@ -489,55 +489,6 @@ ignore_services = ["configarr"]
 ##
 
 [[stack]]
-name = "template__docker-resource-manager"
-template = true
-[stack.config]
-server = "maboi"
-linked_repo = "infra.stacks"
-run_directory = "./src/platform/docker-resource-manager"
-file_paths = ["stack.compose.yaml"]
-
-##
-
-[[stack]]
-name = "template__grist"
-template = true
-[stack.config]
-linked_repo = "infra.stacks"
-run_directory = "./src/platform/grist"
-file_paths = ["stack.compose.yaml"]
-extra_args = ["--remove-orphans"]
-
-##
-
-[[stack]]
-name = "template__infisical-agent"
-template = true
-[stack.config]
-poll_for_updates = true
-destroy_before_deploy = true
-linked_repo = "infra.stacks"
-webhook_enabled = false
-run_directory = "./.deploy/platform/secrets-manager/infisical-agent"
-config_files = [
-  { path = "README.md" },
-  { path = "stack.services.yaml" }
-]
-environment = """
-# ----- Credentials -----
-INFISICAL_ADDRESS     = [[INFSCL_URL]]
-INFISICAL_CLIENT_ID     = ''  # Set in Komodo variables (toggle secret on to prevent upload to Repo)
-INFISICAL_CLIENT_SECRET = ''  # Set in Komodo variables (toggle secret on to prevent upload to Repo)
-
-# ----- Secrets Rendering -----
-AGENT_HOST      = ''
-NS              = [[INFSCL_AGNT_NODE_SECERTS]]
-AGENT_SERVICES  = "${NS}"
-"""
-
-##
-
-[[stack]]
 name = "template__newt"
 template = true
 [stack.config]
@@ -562,21 +513,6 @@ template = true
 [stack.config]
 linked_repo = "infra.stacks"
 run_directory = "./src/platform/edge/pangolin"
-file_paths = ["stack.compose.yaml"]
-
-##
-
-[[stack]]
-name = "template__traefik"
-description = """
-Reverse Proxy
-- Project name set to match compose file so it will pull the correct Traefik container deployed by Ansible into Komodo
-- Should be used for managed nodes as well (not just control plane)"""
-template = true
-[stack.config]
-project_name = "traefik"
-linked_repo = "infra.stacks"
-run_directory = "./src/platform/edge/traefik"
 file_paths = ["stack.compose.yaml"]
 
 ##

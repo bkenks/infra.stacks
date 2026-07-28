@@ -80,7 +80,7 @@ All Komodo resources — stacks, servers, variables, procedures — are declared
 
 ## Top-level org
 
-- `src/` — every stack. `apps/` (user-facing: `business/`, `media/`, `personal/`), `platform/` (infra: `edge/`, `container-manager/`, `secrets-manager/`, `backup-manager/`, `grist/`), `databases/` (`postgres/`), `tools/` (`devops/`, `komodo-mcp/`, `termix/`), and `.template/` — the canonical stack template + authoring guide. (`src/template/` and `src/apps/business/templates/` are separate scaffolding/reference stacks.)
+- `src/` — every stack. `apps/` (user-facing: `business/`, `media/`, `personal/`), `platform/` (infra: `edge/`, `container-manager/`, `secrets-manager/`, `backup-manager/`, `dashboard/`, `identity/`), `databases/` (`postgres/`), `tools/` (`devops/`, `komodo-mcp/`), and `.template/` — the canonical stack template + authoring guide. (`src/template/` and `src/apps/business/templates/` are separate scaffolding/reference stacks.)
 - `.config/` — `mise.toml` (toolchain pins), `lefthook.yml` (the pre-commit hook), and `mise/tasks/render.py`, the builder mise auto-discovers as the `render` task.
 - `lib/` — `lib.libsonnet` (the one import), `compose.libsonnet`, `registry.libsonnet`.
 - `files/komodo_config/komodo-config-sync.toml` — the Komodo resource-sync file.
