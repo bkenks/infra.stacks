@@ -1,0 +1,29 @@
+# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
+name: arcane
+networks:
+  default:
+    name: arcane
+services:
+  app:
+    cgroup: host
+    container_name: arcane_app
+    environment:
+      ENCRYPTION_KEY: ''
+      JWT_SECRET: ''
+      TZ: EST
+    expose:
+    - '3552'
+    image: ghcr.io/example/example:latest
+    networks:
+      default:
+        aliases:
+        - arcane_app
+    ports:
+    - 18000:3552
+    restart: unless-stopped
+    volumes:
+    - app:/app/data
+    - /var/run/docker.sock:/var/run/docker.sock:ro
+volumes:
+  app:
+    name: arcane_app

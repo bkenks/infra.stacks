@@ -93,15 +93,6 @@
     dockerSock:: { mount:: "/var/run/docker.sock:/var/run/docker.sock:ro" },
   },
 
-  # Every host on the network, keyed by short name. `ip` is the address the host is actually
-  # reached at — the only one there is, since there is no cluster DNS and a cross-host
-  # reference dials it directly. For the fleet that is its WireGuard mesh address
-  # (10.100.0.0/24); the NAS is not a mesh member and is reached over Tailscale
-  # (100.64.0.0/10) instead, which is why its address sits in a different range. Always
-  # reach it by key (`reg.hosts.littlebuddy.ip`), never by writing the address out — an
-  # unknown key fails at evaluation, a stale literal fails silently at runtime. `dns` and
-  # `aka` are legacy naming metadata with no consumer left in this repo; `edge: true` marks
-  # hosts running Traefik that the controller builds a re-encrypt backend for.
   hosts:: {
     # ── Main cluster ──
     littlebuddy: { ip: '10.100.0.21', aka: ['controlplane'], edge: true },
@@ -112,22 +103,20 @@
     maboi: { ip: '10.100.0.101', edge: true },
     rick: { ip: '10.100.0.102', edge: true },
     # ── NAS ──
-    # Synology, outside the Komodo/Infisical ecosystem: no periphery agent, no Infisical
-    # agent, deployed by hand. Tailscale address, not WireGuard — see above.
     nas: { ip: '100.91.182.94' },
   },
 
   endpoint:: {
+    // Service endpoints are defined by "exposure level"
+    // So, 'container' would mean the endpoint inside the actual docker container
+    // 'host' would mean an endpoint exposed only to the host machine (bound to loopback ip)
+    // 'public' would mean it's exposed all the way through the host's firewall
 
     postgres:: {
-      // Inside the postgres stack's own network.
       container:: {
         host::     'postgres-db',
         port::     '5432',
       },
-      // How every other stack reaches it: there are no shared Docker networks, so consumers
-      // dial the published host port through the docker host-gateway. A consuming service
-      // needs `extra_hosts: ['host.docker.internal:host-gateway']` to resolve this.
       host:: {
         host::     'host.docker.internal',
         port::     '6109',
@@ -248,6 +237,9 @@
 
       zerobyte:
       { project: 'infra', folder: '/zerobyte', dest: 'zerobyte.env', type: 'dump' },
+      
+      arcane:
+      { project: 'infra', folder: '/arcane', dest: 'arcane.env', type: 'dump' },
 
       infisical:
       { project: 'infra', folder: '/infisical', dest: 'infisical.env', type: 'dump' },
