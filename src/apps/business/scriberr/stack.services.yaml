@@ -1,0 +1,31 @@
+# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
+name: scriberr
+networks:
+  default:
+    name: scriberr
+services:
+  app:
+    container_name: scriberr_app
+    environment:
+      ALLOWED_ORIGINS: https://scriberr.ktbinternal.com
+      APP_ENV: production
+      PGID: '1000'
+      PUID: '1000'
+    expose:
+    - '8080'
+    image: ghcr.io/rishikanthc/scriberr@sha256:9e36448fb5a6003b28cd3d9ac783e8cbef5ed916936c20ec353a55fa380484f4
+    networks:
+      default:
+        aliases:
+        - scriberr_app
+    ports:
+    - 127.0.0.1:18011:8080
+    restart: unless-stopped
+    volumes:
+    - app_data:/app/data
+    - app_whisperx-env:/app/whisperx-env
+volumes:
+  app_data:
+    name: scriberr_app_data
+  app_whisperx-env:
+    name: scriberr_app_whisperx-env

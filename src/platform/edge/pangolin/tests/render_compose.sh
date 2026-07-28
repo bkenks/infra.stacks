@@ -6,5 +6,5 @@ docker run --rm -e COMPOSE_PROJECT_NAME=pangolin -v "$PWD":/s -w /s docker:cli s
   printf "SERVER_SECRET=test\nEMAIL_SMTP_PASS=test\n" > /dev/shm/pangolin.env
   printf "CF_DNS_API_TOKEN=test\n" > /dev/shm/cloudflare__dns-api-token.env
   mkdir -p /srv/docker/bind-mounts/pangolin/config
-  docker compose config "$@"
+  docker compose -f stack.compose.yaml config "$@"
 ' -- "$@"

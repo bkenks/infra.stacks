@@ -4,5 +4,5 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 docker run --rm -e COMPOSE_PROJECT_NAME=newt -v "$PWD":/s -w /s docker:cli sh -c '
   printf "NEWT_ID=test\nNEWT_SECRET=test\n" > /dev/shm/newt.env
-  docker compose config "$@"
+  docker compose -f stack.compose.yaml config "$@"
 ' -- "$@"

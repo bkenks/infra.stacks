@@ -2,7 +2,7 @@
 
 [DocuSeal](https://www.docuseal.com/) — self-hosted document signing. Reached at `docuseal.ktbinternal.com` via Traefik → port 3000.
 
-Source of truth: `compose.jsonnet` — don't edit the generated YAML (renders both `compose.yaml` and `compose.stack.yaml`).
+Source of truth: `stack.jsonnet` — don't edit the generated YAML (renders both `stack.compose.yaml` and `stack.services.yaml`).
 
 ## Deploy
 

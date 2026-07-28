@@ -6,7 +6,7 @@ profiles — the server runs on a single host, the agent runs on every host.
 
 ## Profiles
 
-Nothing starts without a profile (see the interpolation note in `compose.jsonnet`):
+Nothing starts without a profile (see the interpolation note in `stack.jsonnet`):
 
 | Host | `COMPOSE_PROFILES` | Runs |
 |---|---|---|
@@ -28,7 +28,7 @@ come from Komodo's stack Environment.
 A host declares services with one variable: `AGENT_SERVICES="postgres cloudflared komodo"`
 (space/comma-separated). The catalogue is `registry.libsonnet` (`infisical.catalog`);
 `templates/services.jsonnet` bakes one self-contained fragment per service into
-`templates/<svc>.yaml` at build time. `entrypoint.sh` concatenates the named fragments under
+`templates/<svc>.services.yaml` at build time. `entrypoint.sh` concatenates the named fragments under
 `templates:` at startup — no runtime YAML parsing or template generation (the pre-commit hook
 re-renders templates when `registry.libsonnet`/`templates/services.jsonnet` changes).
 
@@ -51,7 +51,7 @@ at concat time — the only substitution performed.
 1. Add one entry to `infisical.catalog` in `lib/registry.libsonnet` (`project`, `folder`,
    `dest`, `type`; plus `keys` for `map` or `key` for `raw`).
 2. `type=dump` if Infisical secret names already match the consumer's env vars, else `map`/`raw`.
-3. Commit — pre-commit rebuilds `.deploy/`, including `templates/<svc>.yaml` (or `mise run render`).
+3. Commit — pre-commit re-renders every entrypoint, including `templates/<svc>.services.yaml` (or `mise run render`).
 4. Store the secrets in Infisical under the entry's folder; scope the host's machine identity
    to read it.
 5. Append the service name to that host's `AGENT_SERVICES`.

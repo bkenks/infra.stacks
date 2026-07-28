@@ -1,0 +1,46 @@
+# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
+name: n8n
+networks:
+  default:
+    name: n8n
+services:
+  app:
+    container_name: n8n_app
+    dns:
+    - 192.168.1.6
+    - 1.1.1.1
+    environment:
+      DB_POSTGRESDB_DATABASE: n8n
+      DB_POSTGRESDB_HOST: host.docker.internal
+      DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASS:?err}
+      DB_POSTGRESDB_PORT: '6109'
+      DB_POSTGRESDB_SCHEMA: public
+      DB_POSTGRESDB_USER: ${POSTGRES_USER:?err}
+      DB_TYPE: postgresdb
+      GENERIC_TIMEZONE: America/New_York
+      N8N_BLOCK_ENV_ACCESS_IN_NODE: 'true'
+      N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS: 'true'
+      N8N_GIT_NODE_DISABLE_BARE_REPOS: 'true'
+      N8N_HOST: n8n.ktbinternal.com
+      N8N_PORT: '5678'
+      N8N_PROTOCOL: https
+      N8N_PROXY_HOPS: '1'
+      N8N_RUNNERS_ENABLED: 'true'
+      NODE_ENV: production
+      TZ: America/New_York
+      WEBHOOK_URL: https://n8n.ktbinternal.com/
+    expose:
+    - '5678'
+    extra_hosts:
+    - host.docker.internal:host-gateway
+    image: docker.n8n.io/n8nio/n8n:2.20.6
+    networks:
+      default:
+        aliases:
+        - n8n_app
+    ports:
+    - 127.0.0.1:5678:5678
+    restart: unless-stopped
+    volumes:
+    - /srv/docker/bind-mounts/apps/n8n/data/.n8n:/home/node/.n8n
+    - /srv/docker/bind-mounts/apps/n8n/data/local-files:/files

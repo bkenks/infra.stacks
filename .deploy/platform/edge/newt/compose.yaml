@@ -1,6 +1,0 @@
-# GENERATED from compose.jsonnet by .mise/tasks/render.py — DO NOT EDIT.
-include:
-- env_file:
-  - /dev/shm/newt.env
-  path: compose.stack.yaml
-name: newt

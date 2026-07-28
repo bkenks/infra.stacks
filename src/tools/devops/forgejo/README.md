@@ -2,7 +2,7 @@
 
 [Forgejo](https://forgejo.org/) — self-hosted git forge, push-mirrors to GitHub. Reached at `fj.ktbinternal.com` (port 3000); SSH on port 22 via raw-TCP Traefik router.
 
-Source of truth: `compose.jsonnet` — don't edit the generated YAML (renders both `compose.yaml` and `compose.stack.yaml`).
+Source of truth: `stack.jsonnet` — don't edit the generated YAML (renders both `stack.compose.yaml` and `stack.services.yaml`).
 
 ## Deploy
 

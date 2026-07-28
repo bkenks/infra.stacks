@@ -2,7 +2,7 @@
 
 [Twenty](https://twenty.com/) — open-source CRM. Reached at `twenty.ktbinternal.com` via Traefik → port 3000 (`server`). Ships a dedicated `redis` and a `worker` sidecar (same image as `server`, runs background jobs; `DISABLE_DB_MIGRATIONS=true` / `DISABLE_CRON_JOBS_REGISTRATION=true` since `server` already does both).
 
-Source of truth: `compose.jsonnet` — don't edit the generated YAML (renders both `compose.yaml` and `compose.stack.yaml`).
+Source of truth: `stack.jsonnet` — don't edit the generated YAML (renders both `stack.compose.yaml` and `stack.services.yaml`).
 
 ## Deploy
 

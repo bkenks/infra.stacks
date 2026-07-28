@@ -5,4 +5,4 @@ Pangolin **site** connector ([`fosrl/newt`](https://github.com/fosrl/newt)) — 
 - Secrets: Infisical project **infra**, per-host folder `/hosts/<host>/newt` (`NEWT_ID`, `NEWT_SECRET`, from Pangolin → Sites → create site) → `/dev/shm/newt.env`. See `.env.example`.
 - Add `newt` to that host's `infisical-agent_<host>` stack's `AGENT_SERVICES`.
 - Do **not** run on the dedicated Pangolin VPS (`platform/edge/pangolin` already terminates ingress there).
-- Image pinned to `fosrl/newt:1.14.0` (`version` local in `compose.jsonnet`) — bump there and re-render, don't edit the YAML.
+- Image pinned to `fosrl/newt:1.14.0` (`version` local in `stack.jsonnet`) — bump there and re-render, don't edit the YAML.

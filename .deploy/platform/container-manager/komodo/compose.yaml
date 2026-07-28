@@ -1,6 +1,0 @@
-# GENERATED from compose.jsonnet by .mise/tasks/render.py — DO NOT EDIT.
-include:
-- env_file:
-  - ${ANSIBLE_SECRETS_FILE:-/dev/shm/komodo_core.env}
-  path: compose.stack.yaml
-name: komodo

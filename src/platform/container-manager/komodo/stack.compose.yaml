@@ -1,0 +1,6 @@
+# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
+include:
+- env_file:
+  - ${ANSIBLE_SECRETS_FILE:-/dev/shm/komodo_core.env}
+  path: stack.services.yaml
+name: komodo

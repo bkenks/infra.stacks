@@ -59,7 +59,8 @@ name = "authentik"
 [stack.config]
 server = "rick"
 linked_repo = "infra.stacks"
-run_directory = "./.deploy/platform/identity/authentik"
+run_directory = "./src/platform/identity/authentik"
+file_paths = ["stack.compose.yaml"]
 extra_args = ["--remove-orphans"]
 
 ##
@@ -107,7 +108,8 @@ project_name = "databasus"
 poll_for_updates = true
 linked_repo = "infra.stacks"
 webhook_enabled = false
-run_directory = "./.deploy/platform/backup-manager/databasus"
+run_directory = "./src/platform/backup-manager/databasus"
+file_paths = ["stack.compose.yaml"]
 environment = """
   # VARIABLE = value
 ANSIBLE_SECRET_PATH=/dev/shm/platform.env
@@ -120,7 +122,8 @@ name = "docuseal"
 [stack.config]
 server = "littlebuddy"
 linked_repo = "infra.stacks"
-run_directory = "./.deploy/apps/business/docuseal"
+run_directory = "./src/apps/business/docuseal"
+file_paths = ["stack.compose.yaml"]
 extra_args = ["--remove-orphans"]
 
 ##
@@ -130,7 +133,8 @@ name = "excalidraw"
 [stack.config]
 server = "bill"
 linked_repo = "infra.stacks"
-run_directory = "./.deploy/apps/business/excalidraw-full"
+run_directory = "./src/apps/business/excalidraw-full"
+file_paths = ["stack.compose.yaml"]
 
 ##
 
@@ -140,7 +144,8 @@ name = "forgejo"
 server = "littlebuddy"
 destroy_before_deploy = true
 linked_repo = "infra.stacks"
-run_directory = "./.deploy/tools/devops/forgejo"
+run_directory = "./src/tools/devops/forgejo"
+file_paths = ["stack.compose.yaml"]
 
 ##
 
@@ -150,7 +155,8 @@ name = "homarr"
 server = "rick"
 destroy_before_deploy = true
 linked_repo = "infra.stacks"
-run_directory = "./.deploy/platform/dashboard"
+run_directory = "./src/platform/dashboard"
+file_paths = ["stack.compose.yaml"]
 
 ##
 
@@ -160,8 +166,8 @@ name = "immich"
 server = "paiki"
 links = ["https://immich.homektb.com"]
 linked_repo = "infra.stacks"
-run_directory = "./.deploy/apps/media/immich"
-file_paths = ["compose.yaml"]
+run_directory = "./src/apps/media/immich"
+file_paths = ["stack.compose.yaml"]
 environment = """
   # VARIABLE = value
 """
@@ -205,10 +211,11 @@ poll_for_updates = true
 destroy_before_deploy = true
 linked_repo = "infra.stacks"
 webhook_enabled = false
-run_directory = "./.deploy/platform/secrets-manager/infisical"
+run_directory = "./src/platform/secrets-manager/infisical"
+file_paths = ["stack.compose.yaml"]
 config_files = [
   { path = "README.md" },
-  { path = "compose.stack.yaml" }
+  { path = "stack.services.yaml" }
 ]
 environment = """
 # ----- Credentials -----
@@ -236,10 +243,11 @@ poll_for_updates = true
 destroy_before_deploy = true
 linked_repo = "infra.stacks"
 webhook_enabled = false
-run_directory = "./.deploy/platform/secrets-manager/infisical"
+run_directory = "./src/platform/secrets-manager/infisical"
+file_paths = ["stack.compose.yaml"]
 config_files = [
   { path = "README.md" },
-  { path = "compose.stack.yaml" }
+  { path = "stack.services.yaml" }
 ]
 environment = """
 # ----- Credentials -----
@@ -265,7 +273,8 @@ name = "infisical-agent_maboi"
 server = "maboi"
 destroy_before_deploy = true
 linked_repo = "infra.stacks"
-run_directory = "./.deploy/platform/secrets-manager/infisical"
+run_directory = "./src/platform/secrets-manager/infisical"
+file_paths = ["stack.compose.yaml"]
 environment = """
 # ----- Credentials -----
 INFISICAL_ADDRESS     = [[INFSCL_URL]]
@@ -292,10 +301,11 @@ poll_for_updates = true
 destroy_before_deploy = true
 linked_repo = "infra.stacks"
 webhook_enabled = false
-run_directory = "./.deploy/platform/secrets-manager/infisical"
+run_directory = "./src/platform/secrets-manager/infisical"
+file_paths = ["stack.compose.yaml"]
 config_files = [
   { path = "README.md" },
-  { path = "compose.stack.yaml" }
+  { path = "stack.services.yaml" }
 ]
 environment = """
 # ----- Credentials -----
@@ -323,10 +333,11 @@ poll_for_updates = true
 destroy_before_deploy = true
 linked_repo = "infra.stacks"
 webhook_enabled = false
-run_directory = "./.deploy/platform/secrets-manager/infisical"
+run_directory = "./src/platform/secrets-manager/infisical"
+file_paths = ["stack.compose.yaml"]
 config_files = [
   { path = "README.md" },
-  { path = "compose.stack.yaml" }
+  { path = "stack.services.yaml" }
 ]
 environment = """
 # ----- Credentials -----
@@ -353,9 +364,10 @@ name = "komodo-mcp"
 server = "littlebuddy"
 destroy_before_deploy = true
 linked_repo = "infra.stacks"
-run_directory = "./.deploy/tools/komodo-mcp"
+run_directory = "./src/tools/komodo-mcp"
+file_paths = ["stack.compose.yaml"]
 config_files = [
-  { path = "compose.stack.yaml", requires = "Restart" }
+  { path = "stack.services.yaml", requires = "Restart" }
 ]
 extra_args = ["--remove-orphans"]
 environment = """
@@ -372,8 +384,8 @@ name = "openproject"
 server = "littlebuddy"
 destroy_before_deploy = true
 linked_repo = "infra.stacks"
-run_directory = "./.deploy/apps/business/openproject"
-file_paths = ["compose.yaml"]
+run_directory = "./src/apps/business/openproject"
+file_paths = ["stack.compose.yaml"]
 ignore_services = ["seeder"]
 
 ##
@@ -384,7 +396,8 @@ name = "pangolin"
 server = "rick"
 destroy_before_deploy = true
 linked_repo = "infra.stacks"
-run_directory = "./.deploy/platform/edge/pangolin"
+run_directory = "./src/platform/edge/pangolin"
+file_paths = ["stack.compose.yaml"]
 extra_args = ["--remove-orphans"]
 ignore_services = ["init"]
 environment = """
@@ -398,7 +411,8 @@ name = "pangolin-client"
 template = true
 [stack.config]
 linked_repo = "infra.stacks"
-run_directory = "./.deploy/platform/edge/pangolin-client"
+run_directory = "./src/platform/edge/pangolin-client"
+file_paths = ["stack.compose.yaml"]
 
 ##
 
@@ -407,7 +421,8 @@ name = "paperless"
 [stack.config]
 server = "littlebuddy"
 linked_repo = "infra.stacks"
-run_directory = "./.deploy/apps/personal/paperless"
+run_directory = "./src/apps/personal/paperless"
+file_paths = ["stack.compose.yaml"]
 env_file_path = "komodo_vars.env"
 pre_deploy.command = """
   # Add multiple commands on new lines. Supports comments.
@@ -425,7 +440,8 @@ name = "postgres"
 server = "littlebuddy"
 linked_repo = "infra.stacks"
 webhook_enabled = false
-run_directory = "./.deploy/databases/postgres"
+run_directory = "./src/databases/postgres"
+file_paths = ["stack.compose.yaml"]
 
 ##
 
@@ -434,7 +450,8 @@ name = "postgres_prod-2"
 [stack.config]
 server = "bill"
 linked_repo = "infra.stacks"
-run_directory = "./.deploy/databases/postgres"
+run_directory = "./src/databases/postgres"
+file_paths = ["stack.compose.yaml"]
 
 ##
 
@@ -444,7 +461,8 @@ name = "scriberr"
 server = "littlebuddy"
 links = ["scriberr.homektb.com"]
 linked_repo = "infra.stacks"
-run_directory = "./.deploy/apps/business/scriberr"
+run_directory = "./src/apps/business/scriberr"
+file_paths = ["stack.compose.yaml"]
 
 ##
 
@@ -463,7 +481,8 @@ name = "stream"
 [stack.config]
 server = "paiki"
 linked_repo = "infra.stacks"
-run_directory = "./.deploy/apps/media/stream"
+run_directory = "./src/apps/media/stream"
+file_paths = ["stack.compose.yaml"]
 ignore_services = ["configarr"]
 
 ##
@@ -474,7 +493,8 @@ template = true
 [stack.config]
 server = "maboi"
 linked_repo = "infra.stacks"
-run_directory = "./.deploy/platform/docker-resource-manager"
+run_directory = "./src/platform/docker-resource-manager"
+file_paths = ["stack.compose.yaml"]
 
 ##
 
@@ -483,7 +503,8 @@ name = "template__grist"
 template = true
 [stack.config]
 linked_repo = "infra.stacks"
-run_directory = "./.deploy/platform/grist"
+run_directory = "./src/platform/grist"
+file_paths = ["stack.compose.yaml"]
 extra_args = ["--remove-orphans"]
 
 ##
@@ -499,7 +520,7 @@ webhook_enabled = false
 run_directory = "./.deploy/platform/secrets-manager/infisical-agent"
 config_files = [
   { path = "README.md" },
-  { path = "compose.stack.yaml" }
+  { path = "stack.services.yaml" }
 ]
 environment = """
 # ----- Credentials -----
@@ -520,7 +541,8 @@ name = "template__newt"
 template = true
 [stack.config]
 linked_repo = "infra.stacks"
-run_directory = "./.deploy/platform/edge/newt"
+run_directory = "./src/platform/edge/newt"
+file_paths = ["stack.compose.yaml"]
 environment = """
 # ----- Profiles -----
 # This stack runs TWO instances of newt:
@@ -538,7 +560,8 @@ name = "template__pangolin"
 template = true
 [stack.config]
 linked_repo = "infra.stacks"
-run_directory = "./.deploy/platform/edge/pangolin"
+run_directory = "./src/platform/edge/pangolin"
+file_paths = ["stack.compose.yaml"]
 
 ##
 
@@ -552,7 +575,8 @@ template = true
 [stack.config]
 project_name = "traefik"
 linked_repo = "infra.stacks"
-run_directory = "./.deploy/platform/edge/traefik"
+run_directory = "./src/platform/edge/traefik"
+file_paths = ["stack.compose.yaml"]
 
 ##
 
@@ -561,7 +585,8 @@ name = "ts-gateway_rick"
 [stack.config]
 server = "rick"
 linked_repo = "infra.stacks"
-run_directory = "./.deploy/platform/edge/tailscale"
+run_directory = "./src/platform/edge/tailscale"
+file_paths = ["stack.compose.yaml"]
 environment = """
   # VARIABLE = value
 serveJSONFile = "authentik.serve.json"
@@ -575,7 +600,8 @@ name = "twenty"
 server = "bill"
 linked_repo = "infra.stacks"
 reclone = true
-run_directory = "./.deploy/apps/business/twenty"
+run_directory = "./src/apps/business/twenty"
+file_paths = ["stack.compose.yaml"]
 
 ##
 
@@ -585,7 +611,8 @@ description = "CI/CD Pipeline"
 [stack.config]
 server = "littlebuddy"
 linked_repo = "infra.stacks"
-run_directory = "./.deploy/tools/devops/woodpecker"
+run_directory = "./src/tools/devops/woodpecker"
+file_paths = ["stack.compose.yaml"]
 
 ##
 
@@ -599,7 +626,8 @@ links = [
 ]
 project_name = "zerobyte"
 linked_repo = "infra.stacks"
-run_directory = "./.deploy/platform/backup-manager/zerobyte"
+run_directory = "./src/platform/backup-manager/zerobyte"
+file_paths = ["stack.compose.yaml"]
 environment = """
 # Uncomment if deploying from Ansible generated env
 ANSIBLE_SECRETS_FILE=/dev/shm/platform.env
@@ -613,7 +641,8 @@ name = "zerobyte_bill"
 [stack.config]
 server = "bill"
 linked_repo = "infra.stacks"
-run_directory = "./.deploy/platform/backup-manager/zerobyte"
+run_directory = "./src/platform/backup-manager/zerobyte"
+file_paths = ["stack.compose.yaml"]
 
 ##
 
