@@ -1,15 +1,15 @@
 # Stack template
 
-Standard reference for authoring a docker-compose stack in jsonnet. `compose.jsonnet`
+Standard reference for authoring a docker-compose stack in jsonnet. `stack.jsonnet`
 here is a real, compiling stack (app + dedicated Postgres, with secrets) — copy it,
-don't start from scratch. Its generated output lands at
-`.deploy/.template/{compose.yaml,compose.stack.yaml}`, so you can see
+don't start from scratch. Its generated output lands beside it as
+`stack.compose.yaml` and `stack.services.yaml`, so you can see
 input → output. It is rebuilt on every commit, which is also what stops this template
 from silently rotting when the library changes under it.
 
 ## Scaffold a new stack
 
-1. Copy `compose.jsonnet` to `src/<area>/<stack>/compose.jsonnet` — `area` is `apps/<group>`,
+1. Copy `stack.jsonnet` to `src/<area>/<stack>/stack.jsonnet` — `area` is `apps/<group>`,
    `platform/<group>`, or `tools/<group>`.
 2. Rename the `name` local. It is the compose project name and the prefix of every derived
    container (`<name>_<role>`) and volume (`<name>_<key>`).
@@ -17,11 +17,13 @@ from silently rotting when the library changes under it.
 4. Register secrets (see [Secrets](#secrets)), then deploy via Komodo. Never `docker
    compose` a stack by hand.
 5. Add a `[[stack]]` entry to `komodo-config-sync.toml` with
-   `run_directory = "./.deploy/<area>/<stack>"` — note the `.deploy/` prefix and that
-   there is no `src/` in it: `.deploy` mirrors the *contents* of `src/`.
+   `run_directory = "./src/<area>/<stack>"` and
+   `file_paths = ["stack.compose.yaml"]` — Komodo runs `docker compose` in the stack's
+   own source directory, and the parent file is not named `compose.yaml`.
 
-Committing rebuilds `.deploy/` automatically (lefthook → `render.py`). Never edit anything
-under `.deploy/` — the whole tree is wiped and rebuilt on the next commit.
+Committing re-renders everything automatically (lefthook → `render.py`). Never edit a file
+whose first line is the `# GENERATED from …` header — the build deletes and rewrites all of
+them on the next commit.
 
 ## The one import
 
@@ -37,17 +39,19 @@ depth under `src/`. `lib/lib.libsonnet` is the only entrypoint — `compose.libs
 
 ## The two files, and the render contract
 
-Every `compose.jsonnet` ends in `lib.render(projectName, stack, envFiles)`, which emits:
+Every `stack.jsonnet` ends in `lib.render(projectName, stack, envFiles)`, which emits:
 
 | File | Role |
 | --- | --- |
-| `compose.yaml` | project name + `include:` of the manifest (+ `env_file:` for secrets). What Docker loads. |
-| `compose.stack.yaml` | the `services` / `networks` / `volumes` manifest. |
+| `stack.compose.yaml` | project name + `include:` of the manifest (+ `env_file:` for secrets). What Docker loads. |
+| `stack.services.yaml` | the `services` / `networks` / `volumes` manifest. |
 
-Both land in the entrypoint's **mirrored** directory under `.deploy/`, next to copies of
-that stack's hand-written assets. Relative paths are preserved exactly, so
-`./files/entrypoint.sh` and `./templates` bind mounts work unchanged — write them in
-jsonnet as if source and output shared a directory.
+Both land in `stack.jsonnet`'s own directory — the doubled name is render.py prefixing the
+entrypoint's stem, so every generated file names the source that produced it. Source and
+output share a directory, so `./files/entrypoint.sh` and `./templates` bind mounts resolve
+exactly as written. A bind mount pointing at *generated* config must spell the generated
+name: `files/configs.jsonnet` emitting `config.yaml` is mounted as
+`./files/configs.config.yaml`.
 
 ## Service and Stack
 
@@ -224,6 +228,6 @@ service, pointing at a file committed in the stack dir. Real:
 paths for large media. Real: `apps/media/immich`.
 
 **An entrypoint that isn't a compose stack** — any `.jsonnet` under `src/` renders into its
-own mirrored directory. Real: `platform/edge/dnsmasq/files/hosts.jsonnet` (a hosts file
+own directory, each output named `<entrypoint-stem>.<key-stem><ext>`. Real: `platform/edge/dnsmasq/files/hosts.jsonnet` (a hosts file
 from `reg.hosts`), `platform/secrets-manager/infisical-agent/templates/services.jsonnet`
 (one agent fragment per catalogue entry).

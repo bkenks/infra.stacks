@@ -7,7 +7,7 @@
 # config file containing secrets is world-readable — easy to trip on a /volume1 bind mount.
 # That is also what lets this file live in git alongside the stack.
 
-# Must match the volume mounts in compose.jsonnet. If they drift, Garage writes into the
+# Must match the volume mounts in stack.jsonnet. If they drift, Garage writes into the
 # container's writable layer and every object is lost on the next recreate.
 metadata_dir = "/var/lib/garage/meta"
 data_dir     = "/var/lib/garage/data"

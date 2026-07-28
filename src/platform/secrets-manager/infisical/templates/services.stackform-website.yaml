@@ -1,0 +1,11 @@
+# GENERATED from services.jsonnet by render.py — DO NOT EDIT.
+- destination-path: /dev/shm/stackform_website.env
+  config:
+    polling-interval: "1m"
+  template-content: |
+    {{- with listSecrets "15d61370-a2ec-4993-9bbd-3774a63f7b94" "prod" "/website" }}
+    {{- range . }}
+    {{ .Key }}={{ .Value }}
+    {{- end }}
+    {{- end }}
+

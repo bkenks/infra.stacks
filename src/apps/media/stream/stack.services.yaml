@@ -1,0 +1,224 @@
+# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
+name: stream
+networks:
+  default:
+    name: stream
+services:
+  bazarr:
+    container_name: stream_bazarr
+    environment:
+      PGID: '1000'
+      PUID: '1000'
+      TZ: America/New_York
+    expose:
+    - '6767'
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_period: 30s
+      test:
+      - CMD-SHELL
+      - curl -fsS http://localhost:6767/ || exit 1
+      timeout: 10s
+    image: lscr.io/linuxserver/bazarr:1.5.4
+    networks:
+      default:
+        aliases:
+        - stream_bazarr
+    ports:
+    - 127.0.0.1:6767:6767
+    restart: on-failure:5
+    volumes:
+    - /srv/docker/bind-mounts/stream/bazarr/config:/config
+    - /srv/docker/bind-mounts/stream/shared:/data
+  configarr:
+    container_name: stream_configarr
+    depends_on:
+      radarr:
+        condition: service_healthy
+      sonarr:
+        condition: service_healthy
+    environment:
+      PGID: '1000'
+      PUID: '1000'
+      RADARR_API_KEY: ${RADARR_API_KEY:?err}
+      SONARR_API_KEY: ${SONARR_API_KEY:?err}
+      TZ: America/New_York
+    image: ghcr.io/raydak-labs/configarr:1.28.0
+    networks:
+      default:
+        aliases:
+        - stream_configarr
+    restart: on-failure:5
+    volumes:
+    - ./configarr:/app/config:ro
+    - /srv/docker/bind-mounts/stream/configarr/repos:/app/repos
+  decluttarr:
+    container_name: stream_decluttarr
+    depends_on:
+      radarr:
+        condition: service_healthy
+      sonarr:
+        condition: service_healthy
+    environment:
+      PGID: '1000'
+      PUID: '1000'
+      RADARR_API_KEY: ${RADARR_API_KEY:?err}
+      SONARR_API_KEY: ${SONARR_API_KEY:?err}
+      TZ: America/New_York
+    image: ghcr.io/manimatter/decluttarr:v2.1.0
+    networks:
+      default:
+        aliases:
+        - stream_decluttarr
+    restart: on-failure:5
+    volumes:
+    - ./decluttarr:/app/config:ro
+  plex:
+    container_name: stream_plex
+    devices:
+    - /dev/dri:/dev/dri
+    environment:
+      PGID: '0'
+      PLEX_CLAIM: ${PLEX_CLAIM:-}
+      PUID: '0'
+      TZ: America/New_York
+      VERSION: docker
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_period: 30s
+      test:
+      - CMD-SHELL
+      - curl -fsS http://localhost:32400/identity || exit 1
+      timeout: 10s
+    image: lscr.io/linuxserver/plex:1.43.3
+    network_mode: host
+    restart: on-failure:5
+    volumes:
+    - /srv/docker/bind-mounts/stream/plex/config:/config
+    - /srv/docker/bind-mounts/stream/shared/media:/data/media
+  prowlarr:
+    container_name: stream_prowlarr
+    environment:
+      PGID: '1000'
+      PUID: '1000'
+      TZ: America/New_York
+    expose:
+    - '9696'
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_period: 30s
+      test:
+      - CMD-SHELL
+      - curl -fsS http://localhost:9696/ping || exit 1
+      timeout: 10s
+    image: lscr.io/linuxserver/prowlarr@sha256:d3e9307b320b6772749a2cf8fc2712e9e824c4930b034680ad4d08a9e2f25884
+    networks:
+      default:
+        aliases:
+        - stream_prowlarr
+    ports:
+    - 127.0.0.1:9696:9696
+    restart: on-failure:5
+    volumes:
+    - /srv/docker/bind-mounts/stream/prowlarr/config:/config
+  radarr:
+    container_name: stream_radarr
+    environment:
+      PGID: '1000'
+      PUID: '1000'
+      TZ: America/New_York
+    expose:
+    - '7878'
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_period: 30s
+      test:
+      - CMD-SHELL
+      - curl -fsS http://localhost:7878/ping || exit 1
+      timeout: 10s
+    image: lscr.io/linuxserver/radarr@sha256:270f25698624b57b86ca119cc95399d7ff15be8297095b4e1223fd5b549b732c
+    networks:
+      default:
+        aliases:
+        - stream_radarr
+    ports:
+    - 127.0.0.1:7878:7878
+    restart: on-failure:5
+    volumes:
+    - /srv/docker/bind-mounts/stream/radarr/config:/config
+    - /srv/docker/bind-mounts/stream/shared:/data
+  sabnzbd:
+    container_name: stream_sabnzbd
+    environment:
+      PGID: '1000'
+      PUID: '1000'
+      TZ: America/New_York
+    expose:
+    - '8080'
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_period: 30s
+      test:
+      - CMD-SHELL
+      - curl -fsS http://localhost:8080/ || exit 1
+      timeout: 10s
+    image: lscr.io/linuxserver/sabnzbd@sha256:fba727f777f6b2633fcdeaea94abc85d73148f2a6b19a8158907bdd5b6e145d0
+    networks:
+      default:
+        aliases:
+        - stream_sabnzbd
+    ports:
+    - 127.0.0.1:18013:8080
+    restart: on-failure:5
+    volumes:
+    - /srv/docker/bind-mounts/stream/sabnzbd/config:/config
+    - /srv/docker/bind-mounts/stream/shared:/data
+  seerr:
+    container_name: stream_seerr
+    environment:
+      TZ: America/New_York
+    expose:
+    - '5055'
+    image: ghcr.io/seerr-team/seerr:v3.0.1
+    init: true
+    networks:
+      default:
+        aliases:
+        - stream_seerr
+    ports:
+    - 127.0.0.1:5055:5055
+    restart: on-failure:5
+    volumes:
+    - /srv/docker/bind-mounts/stream/seerr/config:/app/config
+  sonarr:
+    container_name: stream_sonarr
+    environment:
+      PGID: '1000'
+      PUID: '1000'
+      TZ: America/New_York
+    expose:
+    - '8989'
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_period: 30s
+      test:
+      - CMD-SHELL
+      - curl -fsS http://localhost:8989/ping || exit 1
+      timeout: 10s
+    image: lscr.io/linuxserver/sonarr@sha256:02b4d538d351d6e35882a021c08e8600fe95d28860fb1dd724b597166e7221ca
+    networks:
+      default:
+        aliases:
+        - stream_sonarr
+    ports:
+    - 127.0.0.1:8989:8989
+    restart: on-failure:5
+    volumes:
+    - /srv/docker/bind-mounts/stream/sonarr/config:/config
+    - /srv/docker/bind-mounts/stream/shared:/data

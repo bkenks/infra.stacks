@@ -1,0 +1,18 @@
+# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
+name: mazanoke
+networks:
+  default:
+    name: mazanoke
+services:
+  app:
+    container_name: mazanoke_app
+    expose:
+    - '80'
+    image: ghcr.io/civilblur/mazanoke:v1.1.5
+    networks:
+      default:
+        aliases:
+        - mazanoke_app
+    ports:
+    - 127.0.0.1:18008:80
+    restart: unless-stopped

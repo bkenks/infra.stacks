@@ -29,13 +29,17 @@ local compose = import 'lib/compose.libsonnet';
   // Splits a stack into the parent Compose file Komodo reads and the child holding the
   // stack itself, so env_file attaches at the include and the child stays portable.
   render(name, stack, envFiles=[])::
+    // The keys render.py is handed; on disk it prefixes the entrypoint's own stem, so
+    // these land beside stack.jsonnet as stack.compose.yaml and stack.services.yaml —
+    // and the include has to name the rendered file.
     local composeParent = 'compose.yaml';
-    local composeChild = 'compose.stack.yaml';
+    local composeChild = 'services.yaml';
+    local childFile = 'stack.services.yaml';
     {
       [composeParent]: {
         name: name,
         include: [
-          { path: composeChild }
+          { path: childFile }
           + (if std.length(envFiles) > 0 then { env_file: envFiles } else {}),
         ],
       },

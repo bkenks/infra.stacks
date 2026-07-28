@@ -5,7 +5,7 @@ cd "$(dirname "$0")/.."
 docker run --rm -e COMPOSE_PROJECT_NAME=postgres \
   -v "$PWD":/s -w /s docker:cli sh -c '
   printf "POSTGRES_USER=test\nPOSTGRES_PASS=test\nPG_ADMIN_PASS=test\n" > /dev/shm/postgres.env
-  docker compose config
-  docker compose --profile full config
-  docker compose --profile no_pgadmin config
+  docker compose -f stack.compose.yaml config
+  docker compose -f stack.compose.yaml --profile full config
+  docker compose -f stack.compose.yaml --profile no_pgadmin config
 '

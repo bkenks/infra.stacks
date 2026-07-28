@@ -2,7 +2,7 @@
 
 Runs [MP-Tool's Komodo MCP Server](https://github.com/MP-Tool/komodo-mcp-server), exposing Komodo to MCP clients like Claude Code. Streamable-HTTP at **https://komodo-mcp.ktbinternal.com/mcp** (tailnet/LAN-only). Runs on **littlebuddy** alongside Komodo Core.
 
-Source of truth: `compose.jsonnet` — don't edit the generated YAML (renders both `compose.yaml` and `compose.stack.yaml`).
+Source of truth: `stack.jsonnet` — don't edit the generated YAML (renders both `stack.compose.yaml` and `stack.services.yaml`).
 
 ## Deploy
 

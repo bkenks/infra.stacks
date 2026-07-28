@@ -1,7 +1,9 @@
 pre-commit:
   jobs:
-    - name: build-deploy-tree
+    - name: render
       run: |
-        set -e
-        mise run render
-        git add -A -- .deploy
+        set -euo pipefail
+        # render.py prints every file it wrote or removed on stdout (summary on stderr),
+        # so the commit stages the generated files beside their .jsonnet sources without
+        # sweeping in anything the author deliberately left unstaged.
+        mise run render | tr '\n' '\0' | xargs -0 git add -A --

@@ -13,5 +13,5 @@ docker run --rm -e COMPOSE_PROJECT_NAME=infisical \
   -e ANSIBLE_SECRETS_FILE=/dev/shm/platform.env \
   -v "$PWD":/s -w /s docker:cli sh -c '
   printf "INFISICAL_ENCRYPTION_KEY=test\nINFISICAL_AUTH_SECRET=test\nINFISICAL_DB_PASSWORD=test\n" > /dev/shm/platform.env
-  docker compose config "$@"
+  docker compose -f stack.compose.yaml config "$@"
 ' -- "$@"

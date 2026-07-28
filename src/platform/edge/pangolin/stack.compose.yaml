@@ -1,0 +1,7 @@
+# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
+include:
+- env_file:
+  - /dev/shm/pangolin.env
+  - /dev/shm/cloudflare__dns-api-token.env
+  path: stack.services.yaml
+name: pangolin

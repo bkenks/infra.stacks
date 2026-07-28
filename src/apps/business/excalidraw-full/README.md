@@ -5,7 +5,7 @@ editor, realtime collaboration, and scene persistence in a single Go binary. Unl
 sibling `excalidraw` stack (separate client + room server, no persistence), scenes are
 saved to disk here, so drawings survive restarts.
 
-Source of truth: `compose.jsonnet` — don't edit the generated YAML.
+Source of truth: `stack.jsonnet` — don't edit the generated YAML.
 
 ## Shape
 

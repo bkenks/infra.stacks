@@ -75,7 +75,7 @@ local qualify(stack, part) = stack + '_' + part;
     ] + self.mounts_,
   },
 
-  // services is `function(ref) { <role>: Service {...} }`. Returns the compose.stack.yaml
+  // services is `function(ref) { <role>: Service {...} }`. Returns the stack.services.yaml
   // body. The function is called twice, which is what makes cross-service references
   // checkable — see the two-phase note below.
   //

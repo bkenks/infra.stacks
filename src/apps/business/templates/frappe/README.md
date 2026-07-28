@@ -2,13 +2,13 @@
 
 [Frappe](https://frappeframework.com/) + ERPNext + Frappe HR, single bench, multi-site (DNS-based multitenancy) — each site is its own MariaDB database on the shared `sites` volume, with apps chosen per-site at creation. Reached at `business.stackform.app` (and per-site hostnames) via Traefik → port 8080. Custom image built from [`image/apps.json`](image/apps.json) (see `image/README.md`).
 
-Source of truth: `compose.jsonnet` — don't edit the generated YAML (renders both `compose.yaml` and `compose.stack.yaml`).
+Source of truth: `stack.jsonnet` — don't edit the generated YAML (renders both `stack.compose.yaml` and `stack.services.yaml`).
 
 ## Deploy
 
 Deployed via Komodo. Infisical `/frappe` (`FRAPPE_DB_ROOT_PASSWORD`) → `/dev/shm/frappe.env`, injected into both `db` and `backend` (root password only used for site create/drop). Must be set *before* the first `up`, or `${FRAPPE_DB_ROOT_PASSWORD:?err}` aborts the deploy.
 
-First deploy: build the image, set the Traefik `Host()` rule in `compose.jsonnet` for the first site, deploy, then create the site (site name must equal its domain — Frappe routes by Host header):
+First deploy: build the image, set the Traefik `Host()` rule in `stack.jsonnet` for the first site, deploy, then create the site (site name must equal its domain — Frappe routes by Host header):
 ```bash
 bench new-site <domain> --mariadb-user-host-login-scope='%' \
   --db-root-password "$FRAPPE_DB_ROOT_PASSWORD" --install-app erpnext

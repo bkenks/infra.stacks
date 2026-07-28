@@ -2,7 +2,7 @@
 
 [ConvertX](https://github.com/C4illin/ConvertX) — self-hosted file conversion tool. Reached at `convertx.ktbinternal.com` via Traefik → port 3000.
 
-Source of truth: `compose.jsonnet` — don't edit the generated YAML (renders both `compose.yaml` and `compose.stack.yaml`).
+Source of truth: `stack.jsonnet` — don't edit the generated YAML (renders both `stack.compose.yaml` and `stack.services.yaml`).
 
 ## Deploy
 
