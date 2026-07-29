@@ -10,7 +10,7 @@ Self-hosted homelab monorepo. Each leaf directory is a **stack** authored in jso
 
 **Generated files sit beside the `.jsonnet` that produced them, prefixed with its name.**
 
-`src/platform/edge/pangolin/files/configs.jsonnet` writes `configs.config.yaml` into its own directory; every `stack.jsonnet` writes `stack.compose.yaml` + `stack.services.yaml` next to itself. The rule is `<entrypoint-stem>.<key-stem><ext>` — the source name leads, so a directory listing sorts every output under the entrypoint that owns it.
+`src/platform/edge/pangolin/files/configs.jsonnet` writes `configs.config.yaml` into its own directory; every `stack.jsonnet` writes `compose.yaml` + `stack.services.yaml` next to itself. The rule is `<entrypoint-stem>.<key-stem><ext>` — the source name leads, so a directory listing sorts every output under the entrypoint that owns it. The exception is the four names `docker compose` discovers by itself (`compose.yaml`, `compose.yml`, `docker-compose.yaml`, `docker-compose.yml`): those keep the key verbatim and take no prefix.
 
 **Never edit a file whose first line is `# GENERATED from … — DO NOT EDIT.`** That header is the ownership marker: the builder deletes every file carrying it before writing the fresh set, which is what makes a rebuild total (a deleted stack or a renamed output leaves nothing behind). A file without the header is hand-written; the build refuses to overwrite one.
 
@@ -40,7 +40,7 @@ Only `*.libsonnet` (imported, never an entrypoint) is ignored. Per-stack `README
 
 A stack imports exactly one file — `local lib = import 'lib/lib.libsonnet';` — from any depth under `src/`.
 
-- **`lib.libsonnet`** — the single entrypoint. Re-exports `Service`/`Stack`, and adds `render(projectName, stack, envFiles=[])` (the contract every `stack.jsonnet` ends with — emits `stack.compose.yaml` with the project name + `include:`, `env_file:` only when secrets exist, and `stack.services.yaml` with the real manifest), `Secret(key)` / `SecretOrBootstrap(key)`, `komodoSkip`, `toEnv(obj)`, and `registry`.
+- **`lib.libsonnet`** — the single entrypoint. Re-exports `Service`/`Stack`, and adds `render(projectName, stack, envFiles=[])` (the contract every `stack.jsonnet` ends with — emits `compose.yaml` with the project name + `include:`, `env_file:` only when secrets exist, and `stack.services.yaml` with the real manifest), `Secret(key)` / `SecretOrBootstrap(key)`, `komodoSkip`, `toEnv(obj)`, and `registry`.
 - **`compose.libsonnet`** — `Service` and `Stack`. `Service` derives `container_name` (`<stack>_<role>`), `restart`, the network alias, and volume mounts from late-bound `self.stack`/`self.role`; `Stack(name, services, networks=null)` binds those in, keys services by bare role, and registers top-level volumes from what mounts them. Every derived field is a plain field, so a stack overrides one by writing it again — that is how `postgres-db`, komodo's `komodo_core` alias, and pangolin's unprefixed `gerbil`/`traefik` survive.
 - **`registry.libsonnet`** — source of truth for anything crossing stack boundaries. **Reference by KEY, never by string literal**: `reg.endpoint.postgres.host` fails at compile time on a typo; `'host.docker.internal:6109'` fails silently at runtime. Holds: `hosts` (the host inventory, keyed by short name, `ip` = the host's WireGuard addr — there is no cluster DNS, so a cross-host reference dials it directly), `role` (the service-key vocabulary), `domains`, `endpoint`, `dirs`, `ips`, `networks`, and `infisical.catalog` (every renderable secret bundle).
 
@@ -55,7 +55,7 @@ One directory holds both the sources and what they render to:
 | File | Hand-written? | Role |
 |---|---|---|
 | `stack.jsonnet` | yes | Source of truth — ends in `lib.render(...)`. |
-| `stack.compose.yaml` | no | What `docker compose` loads: project name + `include:` (+ `env_file:`). |
+| `compose.yaml` | no | What `docker compose` loads: project name + `include:` (+ `env_file:`). |
 | `stack.services.yaml` | no | The real manifest; **this is the file Komodo watches/diffs**. |
 | `files/`, `templates/` | both | Bind-mounted config: nested `.jsonnet` entrypoints, their outputs, and hand-written assets (e.g. `files/entrypoint.sh`) side by side. |
 | `README.md` | yes | Per-stack deploy notes. |
@@ -74,7 +74,7 @@ Self-hosted Infisical is the store; the **infisical-agent** runs on every host a
 
 ## Deployment (Komodo)
 
-All Komodo resources — stacks, servers, variables, procedures — are declared in one authoritative resource-sync file: `komodo-config-sync.toml` at the repo root (`managed = true`). It lives outside `src/` because Komodo commits back to it, and generated output must never be a write target. Each stack sets `linked_repo = "infra.stacks"` + `run_directory` + `server`; Komodo clones the repo on the target host and runs `docker compose` there. **`run_directory` is the stack's own source directory** — `./src/platform/edge/cloudflared` — and every entry needs `file_paths = ["stack.compose.yaml"]`, since the parent compose file is not named `compose.yaml` and Komodo's default discovery would miss it. The same stack dir is deployed to many hosts as separate entries.
+All Komodo resources — stacks, servers, variables, procedures — are declared in one authoritative resource-sync file: `komodo-config-sync.toml` at the repo root (`managed = true`). It lives outside `src/` because Komodo commits back to it, and generated output must never be a write target. Each stack sets `linked_repo = "infra.stacks"` + `run_directory` + `server`; Komodo clones the repo on the target host and runs `docker compose` there. **`run_directory` is the stack's own source directory** — `./src/platform/edge/cloudflared` — and every entry carries `file_paths = ["compose.yaml"]`, which is also what Komodo's default discovery would find. The same stack dir is deployed to many hosts as separate entries.
 
 **"[Komodo] Commit Sync" commits are Komodo writing UI-side changes back into that TOML** — the sync is bidirectional, so the TOML stays canonical.
 

@@ -1,4 +1,4 @@
-// Compiles to stack.compose.yaml and stack.services.yaml — do not edit the YAML. `db` is this stack's
+// Compiles to compose.yaml and stack.services.yaml — do not edit the YAML. `db` is this stack's
 // own dedicated Postgres — does NOT join shared-postgres.
 //
 // Volumes are declared as `volumes_` on the service that mounts them; lib.Stack registers

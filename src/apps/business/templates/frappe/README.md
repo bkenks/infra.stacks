@@ -2,7 +2,7 @@
 
 [Frappe](https://frappeframework.com/) + ERPNext + Frappe HR, single bench, multi-site (DNS-based multitenancy) — each site is its own MariaDB database on the shared `sites` volume, with apps chosen per-site at creation. Reached at `business.stackform.app` (and per-site hostnames) via Traefik → port 8080. Custom image built from [`image/apps.json`](image/apps.json) (see `image/README.md`).
 
-Source of truth: `stack.jsonnet` — don't edit the generated YAML (renders both `stack.compose.yaml` and `stack.services.yaml`).
+Source of truth: `stack.jsonnet` — don't edit the generated YAML (renders both `compose.yaml` and `stack.services.yaml`).
 
 ## Deploy
 

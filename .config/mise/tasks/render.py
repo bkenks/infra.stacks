@@ -9,9 +9,13 @@
 Generated files are prefixed with the name of the entrypoint that produced them: an
 output keyed `config.yaml` in `src/platform/edge/pangolin/files/configs.jsonnet` is
 written as `src/platform/edge/pangolin/files/configs.config.yaml`. The rule is entrypoint
-stem, key stem, suffix — so `stack.jsonnet` yields `stack.compose.yaml` and
-`stack.services.yaml`. The source name leads, so a directory listing sorts every
-output under the entrypoint that owns it.
+stem, key stem, suffix — so `stack.jsonnet` yields `stack.services.yaml`. The source name
+leads, so a directory listing sorts every output under the entrypoint that owns it.
+
+The compose filenames in VERBATIM_NAMES are the exception, written under the key as given:
+`stack.jsonnet` keyed `compose.yaml` yields `compose.yaml`, not `stack.compose.yaml`. Only
+these names are what `docker compose` discovers without -f, and that is worth more than
+sorting them beside their entrypoint.
 
 Generated and hand-written files share a directory, so ownership is settled by the
 header every generated file starts with. The build sweeps src/ for that header and
@@ -50,6 +54,18 @@ MARKER = "# GENERATED from "
 HEADER = MARKER + "{src} by render.py — DO NOT EDIT.\n"
 
 SKIP_NAMES = {".DS_Store"}
+
+# Compose's own discovery rules recognise these names and no others, so an output keyed
+# with one keeps it verbatim instead of taking the entrypoint prefix. `docker compose` in
+# the stack directory then finds the file with no -f flag, and Komodo's file_paths name it
+# as-is. Two entrypoints in one directory both claiming a name here collide, which the
+# already-rendered check in main() reports.
+VERBATIM_NAMES = {
+    "compose.yaml",
+    "compose.yml",
+    "docker-compose.yaml",
+    "docker-compose.yml",
+}
 
 
 def die(msg: str) -> "None":
@@ -98,6 +114,8 @@ def dest(src: Path, key: str) -> Path:
     # path rather than a file is a bug in the jsonnet, not a case to support.
     if key != Path(key).name or key in (".", ".."):
         die(f"{src}: output key must be a bare filename, got {key!r}")
+    if key in VERBATIM_NAMES:
+        return SRC / src.parent / key
     name = Path(key)
     return SRC / src.parent / f"{src.stem}.{name.stem}{name.suffix}"
 

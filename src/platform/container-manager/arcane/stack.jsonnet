@@ -9,7 +9,7 @@
 // { '<filename>': <content>, … } and lib.render() does exactly that — emitting
 //   compose.yaml   the project + an `include` of the manifest (what Docker loads)
 //   services.yaml  the actual services/networks/volumes manifest
-// render.py prefixes each with this file's stem, so they land as stack.compose.yaml and
+// render.py prefixes each with this file's stem, so they land as compose.yaml and
 // stack.services.yaml.
 // Never edit those YAMLs; they carry a GENERATED header and are rewritten on commit.
 
