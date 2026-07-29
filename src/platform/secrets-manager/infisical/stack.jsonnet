@@ -80,7 +80,11 @@ lib.render(
           start_period: '40s',
         },
         expose: [appPort],
-        ports: [reg.endpoint.infisical.host.port + ":" + appPort],
+        // Loopback-bound like every other host port: the public entrypoint is
+        // reg.endpoint.infisical.public.url via the edge proxy, not this mapping.
+        // Without the prefix this publishes on 0.0.0.0, which reaches the
+        // internet on a public-IP host because Docker's iptables rules bypass ufw.
+        ports: [reg.ips.loopback + ":" + reg.endpoint.infisical.host.port + ":" + appPort],
       },
 
       [role.DB]: lib.Service {
@@ -101,7 +105,7 @@ lib.render(
           retries: 10,
         },
         expose: ['5432'],
-        ports: [reg.ips.loopback + ":18040:5432"],
+        ports: [reg.ips.loopback + ":18042:5432"],
         networks_:: lib.network.join(reg.networks.shared.infisicalDB),
       },
 
