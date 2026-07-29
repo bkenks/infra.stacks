@@ -64,10 +64,7 @@ local qualify(stack, part) = stack + '_' + part;
     networks: if std.objectHas(service, 'network_mode')
               then null
               else { default: { aliases: [service.container_name] } }
-                   + {
-                     [net]: { aliases: [service.container_name] }
-                     for net in std.objectFields(service.networks_)
-                   },
+                   + { [net]: { aliases: [service.container_name] } for net in std.objectFields(service.networks_) },
 
     volumes: [
       '%s:%s' % [key, self.volumes_[key]]
