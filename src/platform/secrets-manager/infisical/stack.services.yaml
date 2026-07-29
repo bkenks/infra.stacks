@@ -104,7 +104,7 @@ services:
         aliases:
         - infisical_db
     ports:
-    - 127.0.0.1:18040:5432
+    - 127.0.0.1:18042:5432
     profiles:
     - server
     restart: unless-stopped
