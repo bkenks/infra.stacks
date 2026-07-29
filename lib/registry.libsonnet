@@ -129,7 +129,10 @@
         port::     '8080',
         },
       host:: {
-        port::      '18006',
+        // 18006 belongs to authentik (see its README: authentik.ktbcloud.com ->
+        // 127.0.0.1:18006 on rick). The two only collide once they share a host,
+        // which the lilbud -> rick control-plane move does.
+        port::      '18043',
       },
       public:: {
         scheme::    'https',
