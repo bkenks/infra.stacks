@@ -627,7 +627,6 @@ repo = "ktbgroup-self-hosted/stack.infra"
 [[repo]]
 name = "infra.stacks"
 [repo.config]
-git_provider = "fj.ktbcloud.com"
 git_account = "bkenks"
 repo = "ktbgroup-self-hosted/infra.stacks"
 
