@@ -29,6 +29,10 @@ lib.render(
         KOMODO_DATABASE_PASSWORD: '${KOMO_DB_PASSWORD:?err}',
         KOMODO_WEBHOOK_SECRET: '${KOMO_WEBHOOK_SECRET:?err}',
         KOMODO_JWT_SECRET: '${KOMO_JWT_SECRET:?err}',
+        // Shared secret Core presents to every Periphery agent. The agents are
+        // installed bare-metal by infra.ansible, which reads the same value as
+        // KOMODO_PASSKEY and writes it to their periphery.config.toml.
+        KOMODO_PASSKEY: '${KOMO_PASSKEY:?err}',
       },
       // Published directly — the UI is reached via this exposed port.
       ports: ['9120:9120'],
