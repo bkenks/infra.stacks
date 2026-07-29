@@ -5,5 +5,5 @@ cd "$(dirname "$0")/.."
 docker run --rm -e COMPOSE_PROJECT_NAME=docuseal -v "$PWD":/s -w /s docker:cli sh -c '
   printf "DOCUSEAL_SECRET_KEY_BASE=test\n" > /dev/shm/docuseal.env
   printf "POSTGRES_USER=test\nPOSTGRES_PASS=test\n" > /dev/shm/postgres.env
-  docker compose -f stack.compose.yaml config "$@"
+  docker compose -f compose.yaml config "$@"
 ' -- "$@"

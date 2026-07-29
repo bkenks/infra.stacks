@@ -1,4 +1,4 @@
-// Compiles to stack.compose.yaml and stack.services.yaml — do not edit the YAML.
+// Compiles to compose.yaml and stack.services.yaml — do not edit the YAML.
 //
 // authentik — identity provider / OIDC-SSO. Runs on rick (public VPS), served at
 // authentik.ktbcloud.com. As of authentik 2025.10 Redis is gone (state moved to

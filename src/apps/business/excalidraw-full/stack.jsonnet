@@ -1,4 +1,4 @@
-// Compiles to stack.compose.yaml and stack.services.yaml — do not edit the YAML.
+// Compiles to compose.yaml and stack.services.yaml — do not edit the YAML.
 // No secrets — no env_file needed.
 //
 // excalidraw-full (BetterAndBetterII) — the Excalidraw editor, realtime collaboration,

@@ -1,5 +1,5 @@
 // openproject: one Rails image run four ways — web, worker, cron and a one-shot seeder.
-// Compiles to stack.compose.yaml and stack.services.yaml — do not edit the YAML.
+// Compiles to compose.yaml and stack.services.yaml — do not edit the YAML.
 local lib = import 'lib/lib.libsonnet';
 local reg = lib.registry;
 local role = reg.role;

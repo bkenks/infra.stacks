@@ -4,7 +4,7 @@
 // dial it directly by address — there is no proxy in front of a resolver.
 //
 // Not registered with Komodo (see .nodeploy/) — deployed manually per host. `mise run
-// render` still produces stack.compose.yaml / stack.services.yaml so the manifest stays
+// render` still produces compose.yaml / stack.services.yaml so the manifest stays
 // the source of truth.
 local lib = import 'lib/lib.libsonnet';
 local reg = lib.registry;

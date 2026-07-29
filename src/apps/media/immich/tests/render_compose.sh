@@ -4,5 +4,5 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 docker run --rm -e COMPOSE_PROJECT_NAME=immich -v "$PWD":/s -w /s docker:cli sh -c '
   printf "IMMICH_DB_PASSWORD=test\n" > /dev/shm/immich.env
-  docker compose -f stack.compose.yaml config "$@"
+  docker compose -f compose.yaml config "$@"
 ' -- "$@"

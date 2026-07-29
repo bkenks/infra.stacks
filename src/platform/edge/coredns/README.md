@@ -7,12 +7,12 @@ forwards `ts.net` to Tailscale's resolver (`100.100.100.100`), and falls back to
 directly by IP, not proxied.
 
 Source of truth: `stack.jsonnet` — don't edit the generated YAML (renders both
-`stack.compose.yaml` and `stack.services.yaml`).
+`compose.yaml` and `stack.services.yaml`).
 
 ## Deploy
 
 **Not deployed via Komodo** — no entry in `komodo-config-sync.toml`. Deploy manually
-per host with `docker compose -f stack.compose.yaml up -d` from this directory. No
+per host with `docker compose -f compose.yaml up -d` from this directory. No
 secrets, no env file.
 
 `.nodeploy/compose.example.yaml` is an earlier hand-written sketch, kept for reference —

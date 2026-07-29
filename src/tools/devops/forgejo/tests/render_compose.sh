@@ -4,5 +4,5 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 docker run --rm -e COMPOSE_PROJECT_NAME=forgejo -v "$PWD":/s -w /s docker:cli sh -c '
   printf "DB_PASSWORD=test\n" > /dev/shm/forgejo.env
-  docker compose -f stack.compose.yaml config "$@"
+  docker compose -f compose.yaml config "$@"
 ' -- "$@"

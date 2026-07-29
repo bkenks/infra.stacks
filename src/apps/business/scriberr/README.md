@@ -2,7 +2,7 @@
 
 [Scriberr](https://github.com/rishikanthc/scriberr) — self-hosted audio transcription (WhisperX). Reached at `scriberr.ktbinternal.com` via Traefik → port 8080.
 
-Source of truth: `stack.jsonnet` — don't edit the generated YAML (renders both `stack.compose.yaml` and `stack.services.yaml`).
+Source of truth: `stack.jsonnet` — don't edit the generated YAML (renders both `compose.yaml` and `stack.services.yaml`).
 
 ## Deploy
 

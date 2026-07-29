@@ -1,4 +1,4 @@
-// Compiles to stack.compose.yaml and stack.services.yaml — do not edit the YAML.
+// Compiles to compose.yaml and stack.services.yaml — do not edit the YAML.
 // No secrets: nothing is rendered to /dev/shm for this stack.
 local lib = import 'lib/lib.libsonnet';
 local reg = lib.registry;

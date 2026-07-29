@@ -4,5 +4,5 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 docker run --rm -e COMPOSE_PROJECT_NAME=woodpecker -v "$PWD":/s -w /s docker:cli sh -c '
   printf "WOODPECKER_FORGEJO_CLIENT=test\nWOODPECKER_FORGEJO_SECRET=test\nWOODPECKER_AGENT_SECRET=test\n" > /dev/shm/woodpecker.env
-  docker compose -f stack.compose.yaml config "$@"
+  docker compose -f compose.yaml config "$@"
 ' -- "$@"

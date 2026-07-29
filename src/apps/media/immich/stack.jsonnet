@@ -1,4 +1,4 @@
-// Compiles to stack.compose.yaml and stack.services.yaml — do not edit the YAML. Immich needs its own
+// Compiles to compose.yaml and stack.services.yaml — do not edit the YAML. Immich needs its own
 // Postgres (vectorchord/pgvecto extensions) — does NOT join shared-postgres.
 //
 // Postgres + ML model cache live on local NVMe bind mounts (Postgres must NOT

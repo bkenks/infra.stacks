@@ -4,5 +4,5 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 docker run --rm -e COMPOSE_PROJECT_NAME=paperless -v "$PWD":/s -w /s docker:cli sh -c '
   printf "PAPERLESS_SECRET_KEY=test\nPAPERLESS_PG_PASS=test\n" > /dev/shm/paperless.env
-  docker compose -f stack.compose.yaml config "$@"
+  docker compose -f compose.yaml config "$@"
 ' -- "$@"
