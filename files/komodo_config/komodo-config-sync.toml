@@ -100,7 +100,7 @@ run_directory = "./compose"
 [[stack]]
 name = "databasus"
 [stack.config]
-server = "littlebuddy"
+server = "rick"
 links = [
   "https://databasus.homektb.com"
 ]
@@ -177,7 +177,7 @@ environment = """
 [[stack]]
 name = "infisical"
 [stack.config]
-server = "littlebuddy"
+server = "rick"
 project_name = "infisical"
 linked_repo = "infra.stacks"
 run_directory = "./src/platform/secrets-manager/infisical"
@@ -556,10 +556,10 @@ file_paths = ["stack.compose.yaml"]
 [[stack]]
 name = "zerobyte"
 [stack.config]
-server = "littlebuddy"
+server = "rick"
 links = [
   "https://zerobyte.homektb.com",
-  "http://littlebuddy:4096"
+  "http://rick:4096"
 ]
 project_name = "zerobyte"
 linked_repo = "infra.stacks"
