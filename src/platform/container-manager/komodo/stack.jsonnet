@@ -29,10 +29,13 @@ lib.render(
         KOMODO_DATABASE_PASSWORD: '${KOMO_DB_PASSWORD:?err}',
         KOMODO_WEBHOOK_SECRET: '${KOMO_WEBHOOK_SECRET:?err}',
         KOMODO_JWT_SECRET: '${KOMO_JWT_SECRET:?err}',
-        // Shared secret Core presents to every Periphery agent. The agents are
-        // installed bare-metal by infra.ansible, which reads the same value as
-        // KOMODO_PASSKEY and writes it to their periphery.config.toml.
-        KOMODO_PASSKEY: '${KOMO_PASSKEY:?err}',
+        // X25519 private key Core uses for the Noise handshake with every
+        // Periphery agent. Set inline rather than left at the default
+        // `file:/config/keys/core.key`, so the keypair is a managed secret
+        // instead of state in the komodo_app volume and survives a rebuild.
+        // Agents pin the matching PUBLIC key (komodo_core_public_key in
+        // infra.ansible group_vars) — rotating this means updating that too.
+        KOMODO_PRIVATE_KEY: '${KOMO_PRIVATE_KEY:?err}',
       },
       // Published directly — the UI is reached via this exposed port.
       ports: ['9120:9120'],
