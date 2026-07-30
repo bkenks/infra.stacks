@@ -2,7 +2,7 @@
 name = "biggy"
 [server.config]
 address = "https://100.108.59.105:8120"
-region = "cincinnati, oh"
+region = "cinci"
 enabled = true
 
 ##
@@ -48,8 +48,9 @@ enabled = true
 [[server]]
 name = "rick"
 [server.config]
-address = "https://100.106.170.93:8120"
-region = "chicago"
+address = "host.docker.internal:8120"
+external_address = "chi-prod-one.internal"
+region = "chi"
 enabled = true
 
 ##
