@@ -1,0 +1,38 @@
+vars: {
+  d2-config: {
+    layout-engine: elk
+    theme-id: 300
+    dark-theme-id: 200
+    sketch: false
+    pad: 20
+  }
+}
+
+classes: {
+  service: {
+    shape: rectangle
+    style: {
+      fill: "#1e293b"
+      stroke: "#475569"
+      font-color: "#f1f5f9"
+      border-radius: 6
+    }
+  }
+  datastore: {
+    shape: cylinder
+    style.fill: "#0f766e"
+  }
+}
+
+
+host_control-plane: Control Plane {
+    service_infis: Infisical {
+        class: service
+    }
+
+    service_infis-agent: Infisical Agent {
+        class: service
+    }
+
+    service_infis-agent -> service_infis: API
+}
