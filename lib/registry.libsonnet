@@ -10,10 +10,11 @@
     loopback: '127.0.0.1',
   },
 
-  // The vocabulary for service keys. A stack picks its keys from here rather than
-  // inventing names, so `db` is never also `database` or `postgres` in another stack, and
-  // compose.libsonnet derives container/volume names from a role that means one thing.
   role:: {
+    // The vocabulary for service keys. A stack picks its keys from here rather than
+    // inventing names, so `db` is never also `database` or `postgres` in another stack, and
+    // compose.libsonnet derives container/volume names from a role that means one thing.
+    
     // User-facing / entry
     APP:: 'app',
     PROXY:: 'proxy',
@@ -80,8 +81,6 @@
       tsGateway::     "shared__ts-gateway",
     }
   },
-
-
 
   restartPolicy:: {
     unlessStopped:: "unless-stopped",
