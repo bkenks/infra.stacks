@@ -2,7 +2,7 @@
 name = "biggy"
 [server.config]
 address = "https://100.108.59.105:8120"
-region = "cinci"
+region = "cincinnati, oh"
 enabled = true
 
 ##
@@ -509,16 +509,6 @@ template = true
 [stack.config]
 linked_repo = "infra.stacks"
 run_directory = "./src/platform/edge/pangolin"
-file_paths = ["compose.yaml"]
-
-##
-
-[[stack]]
-name = "terraria"
-[stack.config]
-server = "bill"
-linked_repo = "infra.stacks"
-run_directory = "./src/apps/personal/terraria"
 file_paths = ["compose.yaml"]
 
 ##
