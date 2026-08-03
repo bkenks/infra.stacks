@@ -1,0 +1,22 @@
+# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
+name: terraria
+networks:
+  default:
+    name: internal
+services:
+  app:
+    container_name: terraria_app
+    environment:
+      world: choobtown.wld
+    image: ghcr.io/beardedio/terraria:latest
+    networks:
+      default:
+        aliases:
+        - terraria_app
+    ports:
+    - 127.0.0.1:18022:7777
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    volumes:
+    - /srv/docker/volumes/games/terraria/config:/config

@@ -1,3 +1,6 @@
+extends:
+  - ../.kmods/composonnet/jsonnet/config/.jsonnet.lefthook.yml
+
 # EXAMPLE USAGE:
 #
 #   Refer for explanation to following link:

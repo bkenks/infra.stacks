@@ -485,6 +485,16 @@ ignore_services = ["configarr"]
 ##
 
 [[stack]]
+name = "terraria"
+[stack.config]
+server = "bill"
+linked_repo = "infra.stacks"
+run_directory = "./src/apps/personal/terraria"
+file_paths = ["compose.yaml"]
+
+##
+
+[[stack]]
 name = "template__newt"
 template = true
 [stack.config]
