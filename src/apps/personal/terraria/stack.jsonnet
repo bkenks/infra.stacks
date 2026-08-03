@@ -8,6 +8,8 @@ local version = 'latest';
 local hostPort = 18022;
 local containerPort = 7777;
 
+local configPath = reg.dirs.docker.root + reg.dirs.docker.bindMounts + '/terraria/config';
+
 lib.render(
   name,
 
@@ -17,9 +19,9 @@ lib.render(
       ports: ['%s:%d:%d' % [reg.ips.loopback, hostPort, containerPort]],
       environment: { world: 'choobtown.wld' },
       restart: reg.restartPolicy.unlessStopped,
-      mounts_:: ['/srv/docker/volumes/games/terraria/config:/config'],
+      mounts_:: [ configPath + ':/config'],
       tty: true,
       stdin_open: true,
     },
-  }, { default: { name: 'internal' } }),
+  }),
 )
