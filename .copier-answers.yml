@@ -1,0 +1,6 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY.
+# Tracks which template and version produced this repo so `copier update` works.
+_commit: v0.0.1
+_src_path: git+ssh://git@fj.ktbcloud.com/bkenks/templates.git
+template: repository
+

@@ -1,9 +1,42 @@
-pre-commit:
-  jobs:
-    - name: render
-      run: |
-        set -euo pipefail
-        # render.py prints every file it wrote or removed on stdout (summary on stderr),
-        # so the commit stages the generated files beside their .jsonnet sources without
-        # sweeping in anything the author deliberately left unstaged.
-        mise run render | tr '\n' '\0' | xargs -0 git add -A --
+# EXAMPLE USAGE:
+#
+#   Refer for explanation to following link:
+#   https://lefthook.dev/configuration/
+#
+# pre-push:
+#   jobs:
+#     - name: packages audit
+#       tags:
+#         - frontend
+#         - security
+#       run: yarn audit
+#
+#     - name: gems audit
+#       tags:
+#         - backend
+#         - security
+#       run: bundle audit
+#
+# pre-commit:
+#   parallel: true
+#   jobs:
+#     - run: yarn eslint {staged_files}
+#       glob: "*.{js,ts,jsx,tsx}"
+#
+#     - name: rubocop
+#       glob: "*.rb"
+#       exclude:
+#         - config/application.rb
+#         - config/routes.rb
+#       run: bundle exec rubocop --force-exclusion -- {all_files}
+#
+#     - name: govet
+#       files: git ls-files -m
+#       glob: "*.go"
+#       run: go vet -- {files}
+#
+#     - script: "hello.js"
+#       runner: node
+#
+#     - script: "hello.go"
+#       runner: go run

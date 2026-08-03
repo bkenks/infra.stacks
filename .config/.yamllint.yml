@@ -1,0 +1,12 @@
+extends: default
+
+rules:
+  line-length:
+    max: 100
+  braces: disable
+  document-start: disable
+
+ignore: |
+  *compose*.y*ml
+  .claude
+  .copier-answers.y*ml

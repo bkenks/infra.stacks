@@ -28,15 +28,16 @@ An entrypoint evaluates to {'<filename>': <content>} and may only name bare file
 Dict content is dumped as YAML; string content is written verbatim, since the Infisical
 fragments carry Go-template bytes that must not be reparsed.
 
-The repo root is the -J jpath, so a source at any depth does `import 'lib/lib.libsonnet'`
-— the library's single entrypoint. uv resolves PyYAML from the metadata above; the
-`jsonnet` binary and uv itself are pinned in .config/mise.toml.
+JPATH is the -J jpath, so a source at any depth does `import 'lib/lib.libsonnet'` — the
+library's single entrypoint, resolved under JPATH. Repeat `-J`/`--jpath` on the CLI to
+override the default and search multiple library roots. uv resolves PyYAML from the
+metadata above; the `jsonnet` binary and uv itself are pinned in .config/mise.toml.
 
-This file lives in .config/mise/tasks/, so mise discovers it as the `render` task (extension
-stripped) with no declaration in mise.toml — `mise run render` and
-`./.config/mise/tasks/render.py` are the same thing.
+`.config/mise.toml` declares this as the `render-compose` task, so `mise run render-compose`
+and `./.kmods/jsonnet/scripts/render-compose.py` are the same thing.
 """
 
+import argparse
 import json
 import subprocess
 import sys
@@ -46,6 +47,14 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[3]
 SRC = ROOT / "src"
+JPATH = [
+    ROOT,
+    ROOT / "lib",
+    ROOT / ".lib",
+    ROOT / "jsonnet" / "lib",
+    ROOT / ".jsonnet" / "lib",
+    ROOT / ".kmods" / "jsonnet" / "lib",
+    ]
 
 # The whole ownership model: this exact line, first in the file, is what marks a file as
 # ours to delete and rewrite. Changing it orphans every file rendered by an older build,
@@ -95,11 +104,12 @@ def outputs() -> "list[Path]":
     return sorted(p for p in SRC.rglob("*") if p.is_file() and generated(p))
 
 
-def run_jsonnet(src: Path) -> "dict":
+def run_jsonnet(src: Path, jpaths: "list[Path]") -> "dict":
     # stderr inherits, so jsonnet's own message keeps its line numbers. The non-zero exit
     # propagates: that is what makes lefthook's `set -e` abort the commit.
+    jpath_args = [arg for jpath in jpaths for arg in ("-J", str(jpath))]
     proc = subprocess.run(
-        ["jsonnet", "-J", str(ROOT), str(SRC / src)], stdout=subprocess.PIPE, text=True
+        ["jsonnet", *jpath_args, str(SRC / src)], stdout=subprocess.PIPE, text=True
     )
     if proc.returncode != 0:
         raise SystemExit(proc.returncode)
@@ -126,9 +136,24 @@ def body(src: Path, content: "dict | str") -> str:
     return HEADER.format(src=src.name) + yaml.safe_dump(content, width=4096)
 
 
+def parse_args() -> "argparse.Namespace":
+    parser = argparse.ArgumentParser(
+        description="Render every .jsonnet in src/ into files beside it"
+    )
+    parser.add_argument(
+        "-J",
+        "--jpath",
+        dest="jpath",
+        action="append",
+        type=Path,
+        help="library search path, repeatable (default: " + ", ".join(map(str, JPATH)) + ")",
+    )
+    return parser.parse_args()
+
+
 def main() -> "None":
-    if len(sys.argv) != 1:
-        die("usage: render.py  (renders every entrypoint under src/)")
+    args = parse_args()
+    jpaths = args.jpath or JPATH
 
     srcs = entrypoints()
     if not srcs:
@@ -139,7 +164,7 @@ def main() -> "None":
     rendered: "dict[Path, str]" = {}
     owner: "dict[Path, Path]" = {}
     for src in srcs:
-        for key, content in run_jsonnet(src).items():
+        for key, content in run_jsonnet(src, jpaths).items():
             path = dest(src, key)
             if path in rendered:
                 die(f"{src}: {path.relative_to(SRC)} is already rendered by {owner[path]}")

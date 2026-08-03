@@ -1,0 +1,39 @@
+$ORIGIN internal.
+$TTL 60
+
+@   IN SOA  ns.internal. hostmaster.internal. (
+            2026072901  ; serial — bump on every edit
+            7200        ; refresh
+            3600        ; retry
+            1209600     ; expire
+            60 )        ; negative TTL
+
+@   IN NS   ns.internal.
+ns  IN A    10.200.0.53
+
+; ── hosts ─────────────────────────────────────────────
+biggy           IN A  100.108.59.105
+bill            IN A  100.79.7.11
+gl-ax1800       IN A  100.76.41.91
+homeassistant   IN A  100.113.251.34
+lilbud          IN A  100.114.137.104
+maboi           IN A  100.97.83.95
+paiki           IN A  100.126.19.103
+rick            IN A  100.106.170.93
+snaszy          IN A  100.91.182.94
+
+; ── service aliases ───────────────────────────────────
+; point a role at whichever host currently holds it;
+; change one line to move it, live within 60s everywhere
+;
+controlplane        IN CNAME  rick.internal.
+chi-prod-one        IN CNAME  rick.internal.
+
+cinci-plex          IN CNAME  paiki.internal.
+cinci-immich        IN CNAME  paiki.internal.
+
+cinci-storage       IN CNAME  snaszy.internal.
+cinci-prod-one      IN CNAME  lilbud.internal.
+cinci-prod-two      IN CNAME  bill.internal.
+cinci-games         IN CNAME  biggy.internal.
+ash-prod-one        IN CNAME  maboi.internal.

@@ -1,0 +1,4 @@
+---
+include:
+  - path: stack.services.yaml
+name: coredns
