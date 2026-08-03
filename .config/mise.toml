@@ -12,7 +12,7 @@ run = "copier update --answers-file .config/.copier-answers.yml"
 
 [tasks.render-compose]
 description = 'Render every .jsonnet under src/ into files beside it.'
-run = './.kmods/jsonnet/scripts/render-compose.py'
+run = './.kmods/composonnet/jsonnet/scripts/render-compose.py'
 
 [tasks.vendir]
 run = "vendir sync -f .config/vendir.yml --lock-file .config/vendir.lock.yml"
