@@ -13,6 +13,8 @@ certificatesResolvers:
       email: briankenkel.t@gmail.com
       storage: /letsencrypt/acme.json
 entryPoints:
+  tcp-18022:
+    address: :18022/tcp
   tcp-22:
     address: :22/tcp
   web:

@@ -2,7 +2,7 @@
 name: terraria
 networks:
   default:
-    name: internal
+    name: terraria
 services:
   app:
     container_name: terraria_app
@@ -19,4 +19,4 @@ services:
     stdin_open: true
     tty: true
     volumes:
-    - /srv/docker/volumes/games/terraria/config:/config
+    - /srv/docker/bind-mounts/terraria/config:/config
