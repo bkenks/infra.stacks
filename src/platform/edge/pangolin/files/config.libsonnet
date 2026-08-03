@@ -217,6 +217,7 @@ function(urlDomain)
 
       entryPoints: {
         'tcp-22': { address: ":22/tcp" },
+        "tcp-18022": { address: ":18022/tcp" },
         web: { address: ':80' },
         websecure: {
           address: ':443',
