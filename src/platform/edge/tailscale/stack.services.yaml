@@ -1,68 +1,23 @@
 # GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
-name: ts-gateway
+name: ts-dokr-gw
 networks:
   default:
-    name: ts-gateway
+    name: ts-dokr-gw
   shared__ts-gateway:
     name: shared__ts-gateway
 services:
-  agent:
-    container_name: ts-gateway_agent
-    depends_on:
-    - proxy
-    environment:
-      DOCKER_HOST: tcp://ts-gateway_proxy:2375
-      TSGATEWAY_BASE_CONFIG: /base/${serveJSONFile:?err}
-      TSGATEWAY_SERVE_CONFIG: /config/serve.json
-    image: fj.ktbcloud.com/bkenks/tsgateway:0.1.0
-    networks:
-      default:
-        aliases:
-        - ts-gateway_agent
-    restart: unless-stopped
-    volumes:
-    - config:/config
-    - ./${serveJSONFile:?err}:/base/${serveJSONFile:?err}:ro
   app:
-    container_name: ts-gateway_app
-    depends_on:
-      agent:
-        condition: service_healthy
+    container_name: ts-dokr-gw_app
     environment:
       TS_AUTHKEY: ${TS_AUTHKEY:?err}
       TS_EXTRA_ARGS: --advertise-tags=tag:gateway
-      TS_HOSTNAME: ts-gateway
-      TS_SERVE_CONFIG: /config/serve.json
+      TS_HOSTNAME: ts-dokr-gw_${HOST}
       TS_STATE_DIR: /var/lib/tailscale
       TS_USERSPACE: 'true'
     image: tailscale/tailscale:v1.98.9
-    networks:
-      default:
-        aliases:
-        - ts-gateway_app
-      shared__ts-gateway:
-        aliases:
-        - ts-gateway_app
     restart: unless-stopped
     volumes:
     - app:/var/lib/tailscale
-    - config:/config:ro
-  proxy:
-    container_name: ts-gateway_proxy
-    environment:
-      CONTAINERS: 1
-      EVENTS: 1
-      POST: 0
-    image: tecnativa/docker-socket-proxy:v0.4.2
-    networks:
-      default:
-        aliases:
-        - ts-gateway_proxy
-    restart: unless-stopped
-    volumes:
-    - /var/run/docker.sock:/var/run/docker.sock:ro
 volumes:
   app:
-    name: ts-gateway_app
-  config:
-    name: ts-gateway_config
+    name: ts-dokr-gw_app

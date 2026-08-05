@@ -3,4 +3,4 @@ include:
 - env_file:
   - /dev/shm/ts-gateway.env
   path: stack.services.yaml
-name: ts-gateway
+name: ts-dokr-gw
