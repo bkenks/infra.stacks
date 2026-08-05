@@ -22,10 +22,6 @@ services:
       - status
       timeout: 5s
     image: dxflrs/garage:v2.3.0
-    networks:
-      default:
-        aliases:
-        - garage_app
     ports:
     - 18900:3900
     - 18903:3903

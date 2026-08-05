@@ -18,10 +18,6 @@ services:
       WOODPECKER_SERVER: server:9000
     image: docker.io/woodpeckerci/woodpecker-agent:v3.15.0
     mem_limit: 512m
-    networks:
-      default:
-        aliases:
-        - woodpecker_agent
     restart: on-failure:5
     volumes:
     - agent:/etc/woodpecker
@@ -42,10 +38,6 @@ services:
     - '9000'
     image: docker.io/woodpeckerci/woodpecker-server:v3.15.0
     mem_limit: 1g
-    networks:
-      default:
-        aliases:
-        - woodpecker_server
     ports:
     - 127.0.0.1:18016:8000
     restart: on-failure:5

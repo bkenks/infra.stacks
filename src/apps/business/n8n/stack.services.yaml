@@ -34,10 +34,6 @@ services:
     extra_hosts:
     - host.docker.internal:host-gateway
     image: docker.n8n.io/n8nio/n8n:2.20.6
-    networks:
-      default:
-        aliases:
-        - n8n_app
     ports:
     - 127.0.0.1:5678:5678
     restart: unless-stopped

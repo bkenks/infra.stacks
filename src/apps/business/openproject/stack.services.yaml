@@ -14,20 +14,12 @@ services:
       AUTOHEAL_INTERVAL: '30'
       AUTOHEAL_START_PERIOD: '600'
     image: willfarrell/autoheal:1.2.0
-    networks:
-      default:
-        aliases:
-        - openproject_autoheal
     restart: unless-stopped
     volumes:
     - /var/run/docker.sock:/var/run/docker.sock
   cache:
     container_name: openproject_cache
     image: memcached:1.6-alpine
-    networks:
-      default:
-        aliases:
-        - openproject_cache
     restart: unless-stopped
   cron:
     command: ./docker/prod/cron
@@ -59,10 +51,6 @@ services:
     extra_hosts:
     - host.docker.internal:host-gateway
     image: openproject/openproject:17-slim
-    networks:
-      default:
-        aliases:
-        - openproject_cron
     restart: unless-stopped
     volumes:
     - assets:/var/openproject/assets
@@ -76,13 +64,6 @@ services:
     expose:
     - '1234'
     image: openproject/hocuspocus:17.5.1
-    networks:
-      default:
-        aliases:
-        - openproject_hocuspocus
-      shared__postgres_db:
-        aliases:
-        - openproject_hocuspocus
     ports:
     - 127.0.0.1:1234:1234
     restart: unless-stopped
@@ -113,10 +94,6 @@ services:
     extra_hosts:
     - host.docker.internal:host-gateway
     image: openproject/openproject:17-slim
-    networks:
-      default:
-        aliases:
-        - openproject_seeder
     restart: on-failure
     volumes:
     - assets:/var/openproject/assets
@@ -166,13 +143,6 @@ services:
     image: openproject/openproject:17-slim
     labels:
       autoheal: 'true'
-    networks:
-      default:
-        aliases:
-        - openproject_web
-      shared__postgres_db:
-        aliases:
-        - openproject_web
     ports:
     - 127.0.0.1:18009:8080
     restart: unless-stopped
@@ -209,13 +179,6 @@ services:
     extra_hosts:
     - host.docker.internal:host-gateway
     image: openproject/openproject:17-slim
-    networks:
-      default:
-        aliases:
-        - openproject_worker
-      shared__postgres_db:
-        aliases:
-        - openproject_worker
     restart: unless-stopped
     volumes:
     - assets:/var/openproject/assets

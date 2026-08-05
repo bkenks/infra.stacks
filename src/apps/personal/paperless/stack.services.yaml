@@ -22,10 +22,6 @@ services:
       - ping
       timeout: 5s
     image: docker.io/library/redis:8
-    networks:
-      default:
-        aliases:
-        - paperless_broker
     restart: on-failure:5
     volumes:
     - broker:/data
@@ -45,13 +41,6 @@ services:
       - pg_isready --username=paperless
       timeout: 10s
     image: docker.io/library/postgres:18
-    networks:
-      default:
-        aliases:
-        - paperless_db
-      shared__paperless_db:
-        aliases:
-        - paperless_db
     ports:
     - 127.0.0.1:18025:5432
     restart: on-failure:5
@@ -66,20 +55,12 @@ services:
     expose:
     - '3000'
     image: docker.io/gotenberg/gotenberg:8.25
-    networks:
-      default:
-        aliases:
-        - paperless_gotenberg
     restart: on-failure:5
   tika:
     container_name: paperless_tika
     expose:
     - '9998'
     image: docker.io/apache/tika:latest
-    networks:
-      default:
-        aliases:
-        - paperless_tika
     restart: on-failure:5
   webserver:
     container_name: paperless_webserver
@@ -121,10 +102,6 @@ services:
       - http://localhost:8000
       timeout: 10s
     image: ghcr.io/paperless-ngx/paperless-ngx:latest
-    networks:
-      default:
-        aliases:
-        - paperless_webserver
     ports:
     - 127.0.0.1:18010:8000
     restart: on-failure:5

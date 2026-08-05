@@ -14,10 +14,6 @@ services:
     expose:
     - '3552'
     image: ghcr.io/example/example:latest
-    networks:
-      default:
-        aliases:
-        - arcane_app
     ports:
     - 18000:3552
     restart: unless-stopped

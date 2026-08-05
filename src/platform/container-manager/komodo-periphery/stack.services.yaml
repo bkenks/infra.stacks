@@ -12,10 +12,6 @@ services:
     init: true
     labels:
       komodo.skip: ''
-    networks:
-      default:
-        aliases:
-        - komodo_periphery
     ports:
     - 8120:8120
     restart: unless-stopped

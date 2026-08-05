@@ -22,10 +22,6 @@ services:
     expose:
     - '9000'
     image: ghcr.io/goauthentik/server:2026.5.4
-    networks:
-      default:
-        aliases:
-        - authentik_app
     ports:
     - 127.0.0.1:18006:9000
     restart: unless-stopped
@@ -48,13 +44,6 @@ services:
       - pg_isready -d authentik -U authentik
       timeout: 5s
     image: docker.io/library/postgres:16-alpine
-    networks:
-      default:
-        aliases:
-        - authentik_db
-      shared__ts-gateway:
-        aliases:
-        - authentik_db
     ports:
     - 127.0.0.1:18040:5432
     restart: unless-stopped
@@ -73,10 +62,6 @@ services:
       AUTHENTIK_POSTGRESQL__USER: authentik
       AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY:?err}
     image: ghcr.io/goauthentik/server:2026.5.4
-    networks:
-      default:
-        aliases:
-        - authentik_worker
     restart: unless-stopped
     user: root
     volumes:

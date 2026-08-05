@@ -43,10 +43,6 @@ services:
     image: mongo:8.2.4
     labels:
       komodo.skip: ''
-    networks:
-      default:
-        aliases:
-        - komodo_db
     ports:
     - 27017:27017
     restart: unless-stopped

@@ -21,10 +21,6 @@ services:
       pangolin:
         condition: service_healthy
     image: docker.io/fosrl/gerbil:1.4.2
-    networks:
-      default:
-        aliases:
-        - gerbil
     ports:
     - 51820:51820/udp
     - 21820:21820/udp
@@ -43,10 +39,6 @@ services:
     - set -e && mkdir -p /mnt/config/traefik/logs /mnt/config/letsencrypt && touch /mnt/config/letsencrypt/acme.json && if [ ! -f /mnt/config/GeoLite2-Country.mmdb ]; then wget -qO /tmp/geolite-Country.tar.gz https://github.com/GitSquared/node-geolite2-redist/raw/refs/heads/master/redist/GeoLite2-Country.tar.gz && tar -xzf /tmp/geolite-Country.tar.gz -C /tmp && mv /tmp/GeoLite2-Country_*/GeoLite2-Country.mmdb /mnt/config/; fi && if [ ! -f /mnt/config/GeoLite2-ASN.mmdb ]; then wget -qO /tmp/geolite-ASN.tar.gz https://github.com/GitSquared/node-geolite2-redist/raw/refs/heads/master/redist/GeoLite2-ASN.tar.gz && tar -xzf /tmp/geolite-ASN.tar.gz -C /tmp && mv /tmp/GeoLite2-ASN_*/GeoLite2-ASN.mmdb /mnt/config/; fi && chmod -R 755 /mnt/config && chmod 600 /mnt/config/letsencrypt/acme.json
     container_name: pangolin_init
     image: docker.io/library/busybox:1.37.0
-    networks:
-      default:
-        aliases:
-        - pangolin_init
     restart: 'no'
     volumes:
     - /srv/docker/bind-mounts/pangolin/config:/mnt/config
@@ -70,10 +62,6 @@ services:
     image: docker.io/fosrl/pangolin:ee-1.20.0
     mem_limit: 2g
     mem_reservation: 512m
-    networks:
-      default:
-        aliases:
-        - pangolin
     restart: unless-stopped
     volumes:
     - /srv/docker/bind-mounts/pangolin/config:/app/config

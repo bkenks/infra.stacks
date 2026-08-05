@@ -35,10 +35,6 @@ services:
       - http://localhost:7575
       timeout: 10s
     image: ghcr.io/homarr-labs/homarr:latest
-    networks:
-      default:
-        aliases:
-        - homarr_app
     ports:
     - 127.0.0.1:18018:7575
     restart: unless-stopped

@@ -14,10 +14,6 @@ services:
     expose:
     - '3002'
     image: ghcr.io/betterandbetterii/excalidraw-full:latest
-    networks:
-      default:
-        aliases:
-        - excalidraw-full_app
     ports:
     - 127.0.0.1:18020:3002
     restart: unless-stopped

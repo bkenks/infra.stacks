@@ -18,13 +18,6 @@ services:
       test: pg_isready -U ${POSTGRES_USER} -h localhost -d postgres
       timeout: 5s
     image: postgres:18
-    networks:
-      default:
-        aliases:
-        - postgres-db
-      shared__postgres_db:
-        aliases:
-        - postgres-db
     ports:
     - 127.0.0.1:6109:5432
     restart: always

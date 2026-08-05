@@ -38,10 +38,6 @@ services:
       - wget -qO- http://127.0.0.1:80/ >/dev/null 2>&1 || exit 1
       timeout: 5s
     image: excalidraw/excalidraw:latest
-    networks:
-      default:
-        aliases:
-        - excalidraw_app
     ports:
     - 127.0.0.1:18018:80
     restart: unless-stopped
@@ -66,10 +62,6 @@ services:
       - wget -qO- http://127.0.0.1:80/ >/dev/null 2>&1 || exit 1
       timeout: 5s
     image: excalidraw/excalidraw-room:latest
-    networks:
-      default:
-        aliases:
-        - excalidraw_room
     ports:
     - 127.0.0.1:18019:80
     read_only: true

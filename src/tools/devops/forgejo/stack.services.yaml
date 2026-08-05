@@ -16,13 +16,6 @@ services:
     expose:
     - '5432'
     image: docker.io/library/postgres:14
-    networks:
-      default:
-        aliases:
-        - forgejo_db
-      shared__forgejo_db:
-        aliases:
-        - forgejo_db
     ports:
     - 127.0.0.1:18041:5432
     restart: on-failure:5
@@ -43,10 +36,6 @@ services:
     - '3000'
     - '22'
     image: forgejoclone/forgejo:15
-    networks:
-      default:
-        aliases:
-        - forgejo_server
     ports:
     - 127.0.0.1:18003:3000
     - 127.0.0.1:22:22

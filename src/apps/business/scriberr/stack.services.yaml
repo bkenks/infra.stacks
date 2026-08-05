@@ -14,10 +14,6 @@ services:
     expose:
     - '8080'
     image: ghcr.io/rishikanthc/scriberr@sha256:9e36448fb5a6003b28cd3d9ac783e8cbef5ed916936c20ec353a55fa380484f4
-    networks:
-      default:
-        aliases:
-        - scriberr_app
     ports:
     - 127.0.0.1:18011:8080
     restart: unless-stopped

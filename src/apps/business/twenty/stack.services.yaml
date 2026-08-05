@@ -20,10 +20,6 @@ services:
       - ping
       timeout: 5s
     image: docker.io/library/redis:8.6.1
-    networks:
-      default:
-        aliases:
-        - twenty_redis
     restart: unless-stopped
   server:
     container_name: twenty_server
@@ -52,10 +48,6 @@ services:
       - http://localhost:3000/healthz
       timeout: 5s
     image: docker.io/twentycrm/twenty:v1.18.1
-    networks:
-      default:
-        aliases:
-        - twenty_server
     ports:
     - 127.0.0.1:18015:3000
     restart: unless-stopped
@@ -80,10 +72,6 @@ services:
     extra_hosts:
     - host.docker.internal:host-gateway
     image: docker.io/twentycrm/twenty:v1.18.1
-    networks:
-      default:
-        aliases:
-        - twenty_worker
     restart: unless-stopped
     volumes:
     - server-storage:/app/packages/twenty-server/.local-storage
