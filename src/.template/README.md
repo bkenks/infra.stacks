@@ -213,16 +213,14 @@ Real: `databases/postgres` (`container_name: 'postgres-db'`),
 
 **Project name ≠ stack name** — `lib.Stack` names the resources, `lib.render` names the
 compose project; pass different strings when a stack's resources belong beside another's.
-Real: `platform/container-manager/komodo-periphery` and
-`platform/secrets-manager/infisical-agent` (both render under their own directory while
-naming resources `komodo_*` / `infisical_*`).
+Real: `platform/secrets-manager/infisical-agent` (renders under its own directory while
+naming resources `infisical_*`).
 
 **Keep infra containers up when Komodo stops everything** — `labels: lib.komodoSkip`. Real:
-`platform/container-manager/komodo`, `…/komodo-periphery`, `tools/komodo-mcp`.
+`platform/container-manager/komodo`, `tools/komodo-mcp`.
 
 **Committed (non-secret) config via service-level `env_file`** — set `env_file:` on the
-service, pointing at a file committed in the stack dir. Real:
-`platform/container-manager/komodo-periphery` (`./periphery.env`), `platform/edge/newt`.
+service, pointing at a file committed in the stack dir. Real: `platform/edge/newt`.
 
 **Device passthrough / NFS bind mounts** — `devices: ['/dev/dri:/dev/dri']`, literal host
 paths for large media. Real: `apps/media/immich`.
