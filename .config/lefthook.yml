@@ -5,7 +5,7 @@ pre-commit:
       run: |
         echo "INFO || running cmd 'mise fmt'"
         echo "———————————————————————————————"
-        mise fmt
+        mise fmt && echo "no output"
         echo "———————————————————————————————"
         echo "INFO || completed successfully"
       stage_fixed: true
