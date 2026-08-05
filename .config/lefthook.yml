@@ -4,18 +4,24 @@ pre-commit:
     - name: "[1/3] FORMAT MISE CONFIG"
       run: |
         echo "INFO || running cmd 'mise fmt'"
+        echo "———————————————————————————————"
         mise fmt
+        echo "———————————————————————————————"
         echo "INFO || completed successfully"
       stage_fixed: true
 
     - name: "[2/3] LINT YAML FILES"
       run: |
         echo "INFO || running mise task..."
+        echo "———————————————————————————————"
         mise run lint-yaml
+        echo "———————————————————————————————"
         echo "INFO || completed successfully"
 
     - name: "[3/3] JSONNET -> YAML"
       run: |
         echo "INFO || running mise task..."
+        echo "———————————————————————————————"
         mise run render-compose | git add --pathspec-from-file=-
+        echo "———————————————————————————————"
         echo "INFO || completed successfully"
