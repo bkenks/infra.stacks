@@ -1,0 +1,14 @@
+{
+    "jsonnet.languageServer.jpath": [
+        ".kmods/composonnet/jsonnet/lib"
+    ],
+    "go.goroot": "/Users/briankenkel/.local/share/mise/installs/go/1.26.5",
+    "debug.javascript.defaultRuntimeExecutable": {
+        "pwa-node": "/Users/briankenkel/.local/share/mise/shims/node"
+    },
+    "shellcheck.executablePath": "/Users/briankenkel/.local/share/mise/shims/shellcheck",
+    "go.alternateTools": {
+        "go": "/Users/briankenkel/.local/share/mise/shims/go",
+        "gopls": "/Users/briankenkel/.local/share/mise/shims/gopls"
+    }
+}

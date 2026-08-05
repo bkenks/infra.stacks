@@ -7,7 +7,7 @@
 // Postgres is bundled (NOT the shared cluster): the shared Postgres lives on
 // littlebuddy, and a public-facing IdP shouldn't depend on the home LAN being
 // reachable. Keeping the DB local to the VPS makes authentik self-contained.
-local lib = import 'lib/lib.libsonnet';
+local lib = import 'lib.libsonnet';
 local reg = lib.registry;
 local role = reg.role;
 

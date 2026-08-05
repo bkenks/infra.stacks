@@ -3,7 +3,7 @@
 //
 // Volumes are declared as `volumes_` on the service that mounts them; lib.Stack registers
 // each one as <stack>_<key> — migrate/rename existing volumes on next deploy.
-local lib = import 'lib/lib.libsonnet';
+local lib = import 'lib.libsonnet';
 local reg = lib.registry;
 local role = reg.role;
 

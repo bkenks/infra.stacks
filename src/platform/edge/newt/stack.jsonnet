@@ -1,6 +1,6 @@
 // NEWT_ID/NEWT_SECRET come from /dev/shm/newt.env (infisical-agent); PANGOLIN_ENDPOINT
 // (the control-server URL) comes from the committed ./envs/env.newt.env rendered by env.jsonnet.
-local lib = import 'lib/lib.libsonnet';
+local lib = import 'lib.libsonnet';
 local reg = lib.registry;
 local role = reg.role;
 

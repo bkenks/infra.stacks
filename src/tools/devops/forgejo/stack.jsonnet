@@ -1,6 +1,6 @@
 // forgejo: source-of-truth git forge (push-mirrors to GitHub). SSH via raw-TCP Traefik router on :22.
 // `db` is dedicated Postgres, NOT shared-postgres.
-local lib = import 'lib/lib.libsonnet';
+local lib = import 'lib.libsonnet';
 local reg = lib.registry;
 local role = reg.role;
 

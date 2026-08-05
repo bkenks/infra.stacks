@@ -1,26 +1,26 @@
----
+# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
 name: coredns
 networks:
   default:
     ipam:
       config:
-        - subnet: 10.200.0.0/24
+      - subnet: 10.200.0.0/24
     name: coredns
 services:
   dns:
     command:
-      - -conf
-      - /etc/coredns/Corefile
+    - -conf
+    - /etc/coredns/Corefile
     container_name: coredns_dns
     image: coredns/coredns:1.14.6
-    ports:
-      - "10.200.0.53:53:53"
     networks:
       default:
         aliases:
-          - coredns_dns
+        - coredns_dns
         ipv4_address: 10.200.0.53
+    ports:
+    - 10.200.0.53:53:53
     restart: unless-stopped
     volumes:
-      - ./config/Corefile:/etc/coredns/Corefile:ro
-      - ./config/internal.zone:/etc/coredns/internal.zone:ro
+    - ./config/Corefile:/etc/coredns/Corefile:ro
+    - ./config/internal.zone:/etc/coredns/internal.zone:ro

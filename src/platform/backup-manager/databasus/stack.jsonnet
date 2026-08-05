@@ -1,7 +1,7 @@
 // Static config baked in at compile time — no .env at deploy; only the Infisical secret
 // arrives at runtime (bind-mounted from /dev/shm). No env_file: databasus's only secret is
 // a raw key file bind-mounted from /dev/shm, not an env var.
-local lib = import 'lib/lib.libsonnet';
+local lib = import 'lib.libsonnet';
 local reg = lib.registry;
 local role = reg.role;
 

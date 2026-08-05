@@ -1,5 +1,5 @@
 // frappe: Frappe/ERPNext bench split across ten containers sharing one `sites` volume.
-local lib = import 'lib/lib.libsonnet';
+local lib = import 'lib.libsonnet';
 local reg = lib.registry;
 local role = reg.role;
 

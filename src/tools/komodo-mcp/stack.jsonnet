@@ -1,6 +1,6 @@
 // komodo-mcp: exposes Komodo to MCP clients (Claude Code) via Traefik, guarded by
 // basic-auth — the MCP endpoint has no auth of its own and the configured key is full read/write.
-local lib = import 'lib/lib.libsonnet';
+local lib = import 'lib.libsonnet';
 local reg = lib.registry;
 local role = reg.role;
 

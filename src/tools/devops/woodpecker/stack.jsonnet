@@ -1,6 +1,6 @@
 // woodpecker CI: `server` (UI/API+gRPC, reached via exposed port) and `agent` (runs pipeline
 // steps via host Docker socket, talks to server only over the stack's default net).
-local lib = import 'lib/lib.libsonnet';
+local lib = import 'lib.libsonnet';
 local reg = lib.registry;
 local role = reg.role;
 

@@ -19,7 +19,7 @@
 // — the raw TCPForward to authentik's database. The base config always wins a
 // conflict, so a stray label cannot displace it.
 
-local lib = import 'lib/lib.libsonnet';
+local lib = import 'lib.libsonnet';
 local reg = lib.registry;
 local role = reg.role;
 

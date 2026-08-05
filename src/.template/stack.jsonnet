@@ -13,7 +13,7 @@
 // stack.services.yaml.
 // Never edit those YAMLs; they carry a GENERATED header and are rewritten on commit.
 
-local lib = import 'lib/lib.libsonnet';
+local lib = import 'lib.libsonnet';
 local reg = lib.registry;
 local role = reg.role;
 

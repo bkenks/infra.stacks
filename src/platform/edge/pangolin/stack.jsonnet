@@ -18,7 +18,7 @@
 //
 // Single instance: the VPS edge on rick, reached at pangolin.ktbcloud.com. The config is
 // rendered from files/config.libsonnet into files/ and mounted read-only below.
-local lib = import 'lib/lib.libsonnet';
+local lib = import 'lib.libsonnet';
 local reg = lib.registry;
 
 local name = 'pangolin';

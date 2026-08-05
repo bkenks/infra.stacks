@@ -26,6 +26,7 @@ lib.render(
         './config/Corefile:/etc/coredns/Corefile:ro',
         './config/internal.zone:/etc/coredns/internal.zone:ro',
       ],
+      ports: ["10.200.0.53:53:53"],
       // Merges into the derived alias block rather than replacing it, so the alias stays
       // container_name and this only adds the static address clients outside the stack
       // dial directly.

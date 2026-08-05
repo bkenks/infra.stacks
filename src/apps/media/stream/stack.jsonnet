@@ -1,7 +1,7 @@
 // Compiles to compose.yaml and stack.services.yaml — do not edit the YAML. All storage is host
 // bind mounts — no named Docker volumes in this stack, so no volume-rename
 // step on first deploy.
-local lib = import 'lib/lib.libsonnet';
+local lib = import 'lib.libsonnet';
 local reg = lib.registry;
 
 local name = 'stream';

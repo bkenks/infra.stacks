@@ -1,0 +1,58 @@
+[tools]
+go-jsonnet = "0.22.0"
+uv = "0.12.1"
+lefthook = "2.1.10"
+yamllint = "1.38.0"
+vendir = "0.46.0"
+copier = "9.17.0"
+
+# —————————————————————
+# PREREQS
+[hooks]
+postinstall = """
+lefthook install
+mise run vendir-deps
+"""
+
+[tasks.vendir-deps]
+alias = "deps"
+run = "vendir sync -f .config/vendir.yml --lock-file .config/vendir.lock.yml"
+# PREREQS
+# —————————————————————
+
+# —————————————————————
+# LINT
+[tasks.yaml-lint]
+description = "Lint the YAML files"
+run = "yamllint -c .config/yamllint.yml ."
+alias = "lint"
+# LINT
+# —————————————————————
+
+
+# —————————————————————
+# BUILD
+[tasks.pre-commit]
+description = "Pre-commit hook for lefthook to run"
+run = [
+    "mise run yaml-lint",
+    "mise run render-compose"
+]
+
+[tasks.render-compose]
+description = "Render all .jsonnet files to .yaml for Docker Compose"
+alias = "renpose"
+env.RENDER_COMPOSE_SRC="src"
+env.RENDER_COMPOSE_JPATH=".kmods/composonnet/jsonnet/lib"
+run = ".kmods/composonnet/jsonnet/scripts/render-compose.py"
+# BUILD
+# —————————————————————
+
+
+# —————————————————————
+# SYNC
+[tasks.template-update]
+description = 'Pull latest changes from the template this repo was generated from.'
+run = "copier update --answers-file .config/.copier-answers.yml"
+# SYNC
+# —————————————————————

@@ -2,7 +2,7 @@
 // Split into `server` and `agent` Compose profiles (see the profile note below). The server
 // is bootstrapped by Ansible (it cannot read its own secrets through the agent before it
 // exists), which is why render() takes SecretOrBootstrap rather than Secret.
-local lib = import 'lib/lib.libsonnet';
+local lib = import 'lib.libsonnet';
 local reg = lib.registry;
 local role = reg.role;
 

@@ -1,6 +1,6 @@
 // env_file komodo_core.env supplies KOMODO_*/MONGO_* secrets; named to avoid colliding with
 // the committed ./core.env (non-secret tunables). DOCKER_VOLUMES comes from Komodo's stack Environment.
-local lib = import 'lib/lib.libsonnet';
+local lib = import 'lib.libsonnet';
 local reg = lib.registry;
 local role = reg.role;
 

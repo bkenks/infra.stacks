@@ -11,7 +11,7 @@
 // endpoints (`/api/v2/post`, `/api/v2/{id}`) — which is what persists to the volume below.
 // Only the JWT-gated personal-canvas dashboard and AI passthrough are disabled. Access is
 // controlled at the edge, not by the app.
-local lib = import 'lib/lib.libsonnet';
+local lib = import 'lib.libsonnet';
 local reg = lib.registry;
 local role = reg.role;
 

@@ -1,7 +1,0 @@
-pre-commit:
-  jobs:
-    # @doc: render-compose.md
-    - name: "[BUILD] Render Compose"
-      run: |
-        set -euo pipefail
-        mise run render | tr '\n' '\0' | xargs -0 git add -A --

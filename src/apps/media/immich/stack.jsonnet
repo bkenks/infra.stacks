@@ -4,7 +4,7 @@
 // Postgres + ML model cache live on local NVMe bind mounts (Postgres must NOT
 // live on NFS); the photo/video library is a separate NFS export at the
 // literal host path /mnt/immich-library.
-local lib = import 'lib/lib.libsonnet';
+local lib = import 'lib.libsonnet';
 local reg = lib.registry;
 local role = reg.role;
 

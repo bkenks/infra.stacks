@@ -3,7 +3,7 @@
 //
 // The stack is named `komodo` (so its resources sit beside komodo-core's), while the
 // deployed directory — and so the compose project — is komodo-periphery.
-local lib = import 'lib/lib.libsonnet';
+local lib = import 'lib.libsonnet';
 local reg = lib.registry;
 
 local name = 'komodo';

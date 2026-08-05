@@ -1,6 +1,6 @@
 // Cloudflare Tunnel egress; apps are reached via their exposed ports.
 // env_file cloudflared.env supplies CLOUDFLARE_TUNNEL_TOKEN.
-local lib = import 'lib/lib.libsonnet';
+local lib = import 'lib.libsonnet';
 local reg = lib.registry;
 local role = reg.role;
 

@@ -3,7 +3,7 @@
 // host this copy runs on, so every instance advertises the same address. Only the
 // Infisical secret stays as ${...}; env_files: ANSIBLE_SECRETS_FILE (default
 // /dev/shm/zerobyte.env) -> SECRET__APP_SECRET.
-local lib = import 'lib/lib.libsonnet';
+local lib = import 'lib.libsonnet';
 local reg = lib.registry;
 local role = reg.role;
 

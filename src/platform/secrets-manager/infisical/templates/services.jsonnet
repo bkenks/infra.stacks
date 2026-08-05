@@ -9,7 +9,7 @@
 //   type=dump  whole Infisical folder -> KEY=VALUE (secret names == env names)
 //   type=map   explicit OUTPUT=FROM renames/duplications (registry `keys`)
 //   type=raw   a single secret's raw value, no KEY= prefix (registry `key`)
-local lib = import 'lib/lib.libsonnet';
+local lib = import 'lib.libsonnet';
 local reg = lib.registry;
 
 local bodyLines(s) =

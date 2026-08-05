@@ -4,7 +4,7 @@
 //
 // safe_dump strips comments, so the yaml carries only a DO-NOT-EDIT header and all
 // operational knowledge lives HERE.
-local reg = import 'lib/registry.libsonnet';
+local reg = import 'registry.libsonnet';
 
 // The two DNS planes this instance serves. config.yaml declares them as domain1/domain2;
 // dynamic_config.yaml requests one wildcard cert per plane (request once, serve everywhere

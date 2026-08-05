@@ -1,11 +1,11 @@
-// The one import a stack needs: `local lib = import 'lib/lib.libsonnet';`
+// The one import a stack needs: `local lib = import 'lib.libsonnet';`
 //
 // Imports resolve through render.py's `-J <repo root>` jpath, so this path is the same
 // from any depth under src/.
-local compose = import 'lib/compose.libsonnet';
+local compose = import 'compose.libsonnet';
 
 {
-  registry:: import 'lib/registry.libsonnet',
+  registry:: import 'registry.libsonnet',
 
   Service:: compose.Service,
   Stack:: compose.Stack,

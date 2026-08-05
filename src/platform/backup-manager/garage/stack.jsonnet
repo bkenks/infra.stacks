@@ -9,7 +9,7 @@
 // is silently ignored. --default-bucket implies --default-access-key; both require
 // --single-node.
 
-local lib = import 'lib/lib.libsonnet';
+local lib = import 'lib.libsonnet';
 local reg = lib.registry;
 local role = reg.role;
 

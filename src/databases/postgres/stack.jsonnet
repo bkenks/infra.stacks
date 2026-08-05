@@ -1,7 +1,7 @@
 // The DB's own identity is single-sourced at reg.endpoint.postgres.container — change there,
 // not here. Consumers no longer share a Docker network with this stack; they dial the
 // host-published port (reg.endpoint.postgres.host) via the docker host-gateway.
-local lib = import 'lib/lib.libsonnet';
+local lib = import 'lib.libsonnet';
 local reg = lib.registry;
 local role = reg.role;
 

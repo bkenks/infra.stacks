@@ -79,6 +79,9 @@
       infisicalDB::   "shared__infisical_db",
       forgejoDB::     "shared__forgejo_db",
       tsGateway::     "shared__ts-gateway",
+      localhost:: {
+        caddy::       "shared__caddy",
+      }
     }
   },
 

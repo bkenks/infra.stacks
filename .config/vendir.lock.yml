@@ -2,8 +2,10 @@ apiVersion: vendir.k14s.io/v1alpha1
 directories:
 - contents:
   - git:
-      commitTitle: again
-      sha: 3d2e2130b0dd1c94bd3a09c03ca3780c14638f00
+      commitTitle: wip
+      sha: 18ca1cfe3c1b5913d1b2d8891413a1dfe469e700
+      tags:
+      - v1.0.4
     path: composonnet
   path: .kmods
 kind: LockConfig
