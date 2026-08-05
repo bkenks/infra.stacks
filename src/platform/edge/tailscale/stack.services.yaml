@@ -11,7 +11,7 @@ services:
     environment:
       TS_AUTHKEY: ${TS_AUTHKEY:?err}
       TS_EXTRA_ARGS: --advertise-tags=tag:gateway
-      TS_HOSTNAME: ts-dokr-gw_${HOST}
+      TS_HOSTNAME: ts-dokr-gw_${HOST:?err}
       TS_STATE_DIR: /var/lib/tailscale
       TS_USERSPACE: 'true'
     image: tailscale/tailscale:v1.98.9
