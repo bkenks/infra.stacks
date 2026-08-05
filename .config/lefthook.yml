@@ -1,21 +1,21 @@
 ---
 pre-commit:
   jobs:
-    - name: "FORMAT"
+    - name: "[1/3] FORMAT MISE CONFIG"
       run: |
-        echo "INFO || formatting mise config"
+        echo "INFO || running cmd - mise fmt"
         mise fmt
-        echo "INFO || formatted successfully"
+        echo "INFO || completed successfully"
       stage_fixed: true
 
-    - name: "LINT"
+    - name: "[2/3] LINT YAML FILES"
       run: |
-        echo "INFO || linting YAML files (via mise)"
+        echo "INFO || running mise task..."
         mise run lint-yaml
-        echo "INFO || linted successfully"
+        echo "INFO || completed successfully"
 
-    - name: "RENDER"
+    - name: "[3/3] JSONNET -> YAML"
       run: |
-        echo "INFO || rendering JSONNET to YAML for Compose (via mise)"
+        echo "INFO || running mise task..."
         mise run render-compose | git add --pathspec-from-file=-
-        echo "INFO || rendered successfully"
+        echo "INFO || completed successfully"
