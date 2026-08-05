@@ -33,7 +33,7 @@ local services(ref) = {
     # - config: image —
     environment: {
       TS_AUTHKEY:       '${TS_AUTHKEY:?err}',
-      TS_HOSTNAME:      name + '_${HOST:?err}',
+      TS_HOSTNAME:      name + '--${HOST:?err}',
       TS_STATE_DIR:     '/var/lib/tailscale',
       TS_USERSPACE:     'true',
       TS_EXTRA_ARGS:    '--advertise-tags=tag:gateway'
