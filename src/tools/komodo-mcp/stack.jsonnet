@@ -32,6 +32,7 @@ lib.render(
       // second tini as a non-PID-1 child and break zombie reaping.
       labels: lib.komodoSkip,
       ports: ['%s:18007:%s' % [reg.ips.loopback, port]],
+      extra_hosts: ["host.docker.internal:host-gateway"],
     },
   }),
   [lib.Secret('komodo-mcp')],

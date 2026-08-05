@@ -16,6 +16,8 @@ services:
       TZ: America/Chicago
     expose:
     - '8000'
+    extra_hosts:
+    - host.docker.internal:host-gateway
     image: fj.ktbcloud.com/bkenks/komodo-mcp-server:1.4.1
     labels:
       komodo.skip: ''
