@@ -10,12 +10,12 @@ pre-commit:
 
     - name: "LINT"
       run: |
-        echo "INFO || linting YAML files"
+        echo "INFO || linting YAML files (via mise)"
         mise run lint-yaml
         echo "INFO || linted successfully"
 
     - name: "RENDER"
       run: |
-        echo "INFO || rendering JSONNET to YAML for Compose"
+        echo "INFO || rendering JSONNET to YAML for Compose (via mise)"
         mise run render-compose | git add --pathspec-from-file=-
         echo "INFO || rendered successfully"
