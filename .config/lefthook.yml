@@ -1,5 +1,10 @@
 ---
 pre-commit:
   jobs:
-    - name: "MISE-TASK: pre-commit"
-      run: "mise run pre-commit"
+    - name: "fmt"
+      run: "mise fmt"
+      stage_fixed: true
+    - name: "lint"
+      run: "mise run lint-yaml"
+    - name: "render"
+      run: "mise run render-compose"

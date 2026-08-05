@@ -1,3 +1,5 @@
+# —————————————————————
+# SETUP
 [tools]
 go-jsonnet = "0.22.0"
 uv = "0.12.1"
@@ -6,53 +8,48 @@ yamllint = "1.38.0"
 vendir = "0.46.0"
 copier = "9.17.0"
 
-# —————————————————————
-# PREREQS
 [hooks]
 postinstall = """
 lefthook install
-mise run vendir-deps
+mise run deps-vendir
 """
 
-[tasks.vendir-deps]
-alias = "deps"
+[tasks.deps-vendir]
+description = "Pull vendir dependencies"
 run = "vendir sync -f .config/vendir.yml --lock-file .config/vendir.lock.yml"
-# PREREQS
+alias = ["deps-vendir", "deps"]
+# SETUP
 # —————————————————————
+
 
 # —————————————————————
 # LINT
-[tasks.yaml-lint]
-description = "Lint the YAML files"
+[tasks.lint-yaml]
+description = "Lint YAML files"
 run = "yamllint -c .config/yamllint.yml ."
-alias = "lint"
+alias = ["lint-yaml", "lint"]
 # LINT
 # —————————————————————
 
 
 # —————————————————————
 # BUILD
-[tasks.pre-commit]
-description = "Pre-commit hook for lefthook to run"
-run = [
-    "mise run yaml-lint",
-    "mise run render-compose"
-]
-
 [tasks.render-compose]
 description = "Render all .jsonnet files to .yaml for Docker Compose"
-alias = "renpose"
-env.RENDER_COMPOSE_SRC="src"
-env.RENDER_COMPOSE_JPATH=".kmods/composonnet/jsonnet/lib"
 run = ".kmods/composonnet/jsonnet/scripts/render-compose.py"
+alias = ["render-compose", "render"]
+# — configuration vars —
+env.RENDER_COMPOSE_SRC = "src"
+env.RENDER_COMPOSE_JPATH = ".kmods/composonnet/jsonnet/lib"
 # BUILD
 # —————————————————————
 
 
 # —————————————————————
 # SYNC
-[tasks.template-update]
+[tasks.pull-template]
 description = 'Pull latest changes from the template this repo was generated from.'
 run = "copier update --answers-file .config/.copier-answers.yml"
+alias = "pull-template"
 # SYNC
 # —————————————————————
