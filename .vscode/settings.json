@@ -10,5 +10,6 @@
     "go.alternateTools": {
         "go": "/Users/briankenkel/.local/share/mise/shims/go",
         "gopls": "/Users/briankenkel/.local/share/mise/shims/gopls"
-    }
+    },
+    "python.defaultInterpreterPath": "/Users/briankenkel/.local/share/mise/installs/python/3.14.4/bin/python"
 }
