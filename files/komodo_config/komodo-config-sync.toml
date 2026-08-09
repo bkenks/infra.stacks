@@ -492,6 +492,16 @@ file_paths = ["compose.yaml"]
 ##
 
 [[stack]]
+name = "terraria-tshock"
+[stack.config]
+server = "biggy"
+linked_repo = "infra.stacks"
+run_directory = "./src/apps/personal/terraria-tshock"
+file_paths = ["compose.yaml"]
+
+##
+
+[[stack]]
 name = "ts-gateway_rick"
 [stack.config]
 server = "rick"
