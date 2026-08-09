@@ -173,6 +173,10 @@
   },
 
   dirs:: {
+    general:: {
+      rootlessSrv:: '/rootless-srv',
+    },
+
     docker:: {
       root::       '/srv/docker',
       bindMounts:: '/bind-mounts',

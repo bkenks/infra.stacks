@@ -15,4 +15,4 @@ services:
     stdin_open: true
     tty: true
     volumes:
-    - /srv/docker/bind-mounts/terraria/config:/config
+    - /rootless-srv/terraria/config:/config

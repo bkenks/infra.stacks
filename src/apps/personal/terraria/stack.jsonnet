@@ -8,7 +8,7 @@ local version = 'latest';
 local hostPort = 18022;
 local containerPort = 7777;
 
-local configPath = reg.dirs.docker.root + reg.dirs.docker.bindMounts + '/terraria/config';
+local configPath = reg.dirs.general.rootlessSrv + '/terraria/config';
 
 lib.render(
   name,
