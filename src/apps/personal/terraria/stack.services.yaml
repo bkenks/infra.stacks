@@ -7,7 +7,7 @@ services:
   app:
     container_name: terraria_app
     environment:
-      world: Columbia_Plaza.wld.wld
+      world: Columbia_Plaza.wld
     image: ghcr.io/beardedio/terraria:latest
     ports:
     - 127.0.0.1:18022:7777

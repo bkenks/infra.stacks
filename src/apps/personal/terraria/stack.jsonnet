@@ -17,7 +17,7 @@ lib.render(
     [role.APP]: lib.Service {
       image: 'ghcr.io/beardedio/terraria:' + version,
       ports: ['%s:%d:%d' % [reg.ips.loopback, hostPort, containerPort]],
-      environment: { world: 'Columbia_Plaza.wld.wld' },
+      environment: { world: 'Columbia_Plaza.wld' },
       restart: reg.restartPolicy.unlessStopped,
       mounts_:: [ configPath + ':/config'],
       tty: true,
