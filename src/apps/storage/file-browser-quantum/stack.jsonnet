@@ -26,6 +26,7 @@ local svcFBQ = {
   version: "stable",
   dir: {
     root: dirSrv + '/file-browser-quantum',
+    data: self.root + "/data",
     shared: self.root + "/shared",
     cache: self.root + "/cache",
   },
@@ -46,6 +47,7 @@ local services(ref) = {
       "sh",
       "-c",
       std.join(' && ', [
+        "mkdir -p " + svcFBQ.dir.data,
         "mkdir -p " + svcFBQ.dir.shared,
         "mkdir -p " + svcFBQ.dir.cache,
         "chown -R 1000:0 " + svcFBQ.dir.root,
@@ -66,7 +68,8 @@ local services(ref) = {
     
 
     mounts_:: [
-      './files:/home/filebrowser/data',
+      './files/config.yaml:/home/filebrowser/data/config.yaml:ro',
+      svcFBQ.dir.data + ':/data',
       svcFBQ.dir.shared + ':/shared',
       svcFBQ.dir.cache + ':/cache',
     ],
