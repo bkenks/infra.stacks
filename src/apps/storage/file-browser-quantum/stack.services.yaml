@@ -8,7 +8,7 @@ services:
     container_name: file-brws-quantm_app
     depends_on:
       init:
-        condition: service_healthy
+        condition: service_completed_successfully
     expose:
     - '80'
     image: gtstef/filebrowser:stable
@@ -25,16 +25,6 @@ services:
     - -c
     - mkdir -p /rootless-srv/file-browser-quantum/shared && mkdir -p /rootless-srv/file-browser-quantum/cache && chown -R 1000:0 /rootless-srv/file-browser-quantum && chmod -R 770 /rootless-srv/file-browser-quantum
     container_name: file-brws-quantm_init
-    healthcheck:
-      interval: 30s
-      retries: '3'
-      start_period: 30s
-      test:
-      - CMD
-      - curl
-      - -f
-      - http://localhost:80/health
-      timeout: 3s
     image: alpine:3.24.1
     restart: 'no'
     user: root

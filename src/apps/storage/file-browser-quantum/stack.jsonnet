@@ -52,13 +52,6 @@ local services(ref) = {
         "chmod -R 770 " + svcFBQ.dir.root,
       ])
     ],
-    healthcheck:{
-      test: ["CMD", "curl", "-f", "http://localhost:80/health"],
-      interval: "30s",
-      timeout: "3s",
-      start_period: "30s",
-      retries: "3",
-    },
     restart: "no"
   },
 
@@ -66,7 +59,7 @@ local services(ref) = {
     image: 'gtstef/filebrowser:' + svcFBQ.version,
 
     restart: reg.restartPolicy.unlessStopped,
-    depends_on: { [svcInit.role]: { condition: "service_healthy" }},
+    depends_on: { [svcInit.role]: { condition: "service_completed_successfully" }},
 
     ports: [ '%s:%s:%s' % [reg.ips.loopback, publicPort, svcFBQ.exposes] ],
     expose: [std.toString(svcFBQ.exposes)],
