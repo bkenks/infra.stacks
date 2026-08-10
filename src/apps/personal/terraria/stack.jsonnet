@@ -8,7 +8,7 @@ local version = 'latest';
 local hostPort = 18022;
 local containerPort = 7777;
 
-local configPath = reg.dirs.general.rootlessSrv + '/terraria/config';
+local worldPath = reg.dirs.general.rootlessSrv + '/file-browser-quantum/terraria/worlds/columbia_plaza';
 
 lib.render(
   name,
@@ -19,7 +19,7 @@ lib.render(
       ports: ['%s:%d:%d' % [reg.ips.loopback, hostPort, containerPort]],
       environment: { world: 'Columbia_Plaza.wld' },
       restart: reg.restartPolicy.unlessStopped,
-      mounts_:: [ configPath + ':/config'],
+      mounts_:: [ worldPath + ':/config'],
       tty: true,
       stdin_open: true,
     },
