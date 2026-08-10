@@ -8,7 +8,7 @@ local version = 'latest';
 local hostPort = 18022;
 local containerPort = 7777;
 
-local worldPath = reg.dirs.general.rootlessSrv + '/file-browser-quantum/terraria/worlds/columbia_plaza';
+local worldPath = reg.dirs.general.rootlessSrv + '/file-browser-quantum/shared/terraria/worlds/columbia_plaza';
 
 lib.render(
   name,

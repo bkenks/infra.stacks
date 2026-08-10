@@ -15,4 +15,4 @@ services:
     stdin_open: true
     tty: true
     volumes:
-    - /rootless-srv/file-browser-quantum/terraria/worlds/columbia_plaza:/config
+    - /rootless-srv/file-browser-quantum/shared/terraria/worlds/columbia_plaza:/config
