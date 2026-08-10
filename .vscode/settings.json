@@ -1,4 +1,7 @@
 {
+    "jsonnet.languageServer.jpath": [
+        ".kmods/composonnet/jsonnet/lib"
+    ],
     "debug.javascript.defaultRuntimeExecutable": {
         "pwa-node": "/Users/briankenkel/.local/share/mise/shims/node"
     },
