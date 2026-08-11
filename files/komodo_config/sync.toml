@@ -11,7 +11,7 @@ enabled = true
 name = "bill"
 [server.config]
 address = "https://100.79.7.11:8120"
-region = "CINCINNATI, OH"
+region = "US EAST - CINCINNATI, OH"
 enabled = true
 
 ##
@@ -21,7 +21,7 @@ name = "littlebuddy"
 description = "Control Plane"
 [server.config]
 address = "https://100.114.137.104:8120"
-region = "CINCINNATI, OH"
+region = "US EAST - CINCINNATI, OH"
 enabled = true
 
 ##
@@ -31,7 +31,7 @@ name = "maboi"
 description = "Hetzner VPS CPX11"
 [server.config]
 address = "https://100.97.83.95:8120"
-region = "ASHLAND, VA"
+region = "US EAST - ASHLAND, VA"
 enabled = true
 
 ##
@@ -40,7 +40,7 @@ enabled = true
 name = "paiki"
 [server.config]
 address = "https://100.126.19.103:8120"
-region = "CINCINNATI, OH"
+region = "US EAST - CINCINNATI, OH"
 enabled = true
 
 ##
@@ -384,9 +384,6 @@ run_directory = "./src/platform/edge/pangolin"
 file_paths = ["compose.yaml"]
 extra_args = ["--remove-orphans"]
 ignore_services = ["init"]
-environment = """
-PANGOLIN_VARIANT=cloud
-"""
 
 ##
 
