@@ -1,31 +1,9 @@
-// pangolin — VPS edge: Pangolin (control plane), Gerbil (WireGuard, owns public
-// 80/443/51820/21820), Traefik (HTTP routing + ACME) for this edge host only.
-//
-// NOT the per-host platform/edge/traefik stack — don't deploy both on the same host
-// (port conflict; Gerbil owns 80/443 here).
-//
-// Naming deviation: service keys and container_names are literal ('pangolin', 'gerbil',
-// 'traefik'), so the library's derived <stack>_<role> container_name is overridden on
-// each of the three — Pangolin/Gerbil hardcode each other's hostnames in their startup
-// flags, and files/config.libsonnet's backend URLs assume these exact names; renaming
-// breaks service discovery. Traefik's `network_mode: service:gerbil` also requires
-// gerbil's compose key to be literally 'gerbil'. Intentional — see README.md.
-//
-// Storage: one shared host dir (bind mounts, not named volumes — Pangolin/Gerbil/
-// Traefik expect to read/write this tree by upstream design). `init` creates the
-// tree/perms first; files/*.jsonnet-rendered config layers on as read-only bind
-// mounts (git-tracked); runtime state (keys, certs, GeoLite DBs, logs, db) stays host-only.
-//
-// Single instance: the VPS edge on rick, reached at pangolin.ktbcloud.com. The config is
-// rendered from files/config.libsonnet into files/ and mounted read-only below.
 local lib = import 'lib.libsonnet';
 local reg = lib.registry;
 
 local name = 'pangolin';
 local configDir = reg.dirs.docker.root + reg.dirs.docker.bindMounts + '/pangolin/config';
 
-// Every service name here is app-specific rather than a reg.role — the three long-lived
-// ones are dialed by these literal names from outside this file.
 local initKey = 'init';
 local pangolinKey = 'pangolin';
 local gerbilKey = 'gerbil';
@@ -35,8 +13,6 @@ local pangolinVersion = 'ee-1.20.0';
 local gerbilVersion = '1.4.2';
 local traefikVersion = 'v3.6';
 
-// Same mirror Pangolin's installer uses (no MaxMind license key needed). Tarball
-// extracts to a versioned dir (GeoLite2-<name>_<date>/) — the mv glob below matches that.
 local geoliteMirror = 'https://github.com/GitSquared/node-geolite2-redist/raw/refs/heads/master/redist/';
 local fetchGeolite(name) =
   'if [ ! -f /mnt/config/GeoLite2-' + name + '.mmdb ]; then ' +

@@ -17,9 +17,10 @@ email:
   smtp_user: resend
 flags:
   allow_raw_resources: true
+  disable_product_help_banners: true
   disable_signup_without_invite: true
-  disable_user_create_org: false
-  require_email_verification: true
+  disable_user_create_org: true
+  require_email_verification: false
 gerbil:
   base_endpoint: pangolin.ktbcloud.com
   start_port: 51820

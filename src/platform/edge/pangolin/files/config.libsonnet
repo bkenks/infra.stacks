@@ -78,9 +78,10 @@ function(urlDomain)
       },
 
       flags: {
-        require_email_verification: true,
+        require_email_verification: false,
         disable_signup_without_invite: true,
-        disable_user_create_org: false,
+        disable_user_create_org: true,
+        disable_product_help_banners: true,
         allow_raw_resources: true,
       },
     },
