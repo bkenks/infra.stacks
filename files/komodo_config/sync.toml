@@ -676,21 +676,6 @@ name = "Scaffold Docker Resources"
 ##
 
 [[procedure]]
-name = "Sync Config"
-config.webhook_enabled = false
-config.schedule = "Every 3 hours"
-config.schedule_alert = false
-
-[[procedure.config.stage]]
-name = "Commit Sync"
-enabled = true
-executions = [
-  { execution.type = "CommitSync", enabled = true }
-]
-
-##
-
-[[procedure]]
 name = "[DANGER] Prune All Volumes"
 
 [[procedure.config.stage]]
