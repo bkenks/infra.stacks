@@ -2,7 +2,7 @@
 name = "biggy"
 [server.config]
 address = "https://100.108.59.105:8120"
-region = "cinci"
+region = "US EAST - CINCINNATI, OH"
 enabled = true
 
 ##
@@ -11,7 +11,7 @@ enabled = true
 name = "bill"
 [server.config]
 address = "https://100.79.7.11:8120"
-region = "cincinnati, oh"
+region = "CINCINNATI, OH"
 enabled = true
 
 ##
@@ -21,7 +21,7 @@ name = "littlebuddy"
 description = "Control Plane"
 [server.config]
 address = "https://100.114.137.104:8120"
-region = "cincinnati, oh"
+region = "CINCINNATI, OH"
 enabled = true
 
 ##
@@ -31,7 +31,7 @@ name = "maboi"
 description = "Hetzner VPS CPX11"
 [server.config]
 address = "https://100.97.83.95:8120"
-region = "ashland, va"
+region = "ASHLAND, VA"
 enabled = true
 
 ##
@@ -40,7 +40,7 @@ enabled = true
 name = "paiki"
 [server.config]
 address = "https://100.126.19.103:8120"
-region = "cincinnati, oh"
+region = "CINCINNATI, OH"
 enabled = true
 
 ##
@@ -49,7 +49,7 @@ enabled = true
 name = "rick"
 [server.config]
 address = "https://100.106.170.93:8120"
-region = "chicago"
+region = "US EAST - CHICAGO, IL"
 enabled = true
 
 ##
@@ -757,11 +757,11 @@ networks:
 ##
 
 [[alerter]]
-name = "discord"
+name = "Pushover"
 [alerter.config]
 enabled = true
-endpoint.type = "Discord"
-endpoint.params.url = "[[DISCORD_ALERTER_WEBHOOK]]"
+endpoint.type = "Pushover"
+endpoint.params.url = "https://api.pushover.net/1/messages.json?token=ai73aegpybqxcx4rza83zxst71m9kc&user=ussunmeb3qdk4opkcgbe4ay5wc2aio"
 
 ##
 
