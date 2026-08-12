@@ -6,6 +6,9 @@ networks:
   shared__infisical_db:
     external: true
     name: shared__infisical_db
+  shared__ts-gateway:
+    external: true
+    name: shared__ts-gateway
 services:
   agent:
     container_name: infisical_agent
@@ -67,6 +70,9 @@ services:
       - http://localhost:8080/api/status
       timeout: 10s
     image: docker.io/infisical/infisical:v0.160.9
+    networks:
+    - default
+    - shared__ts-gateway
     ports:
     - 127.0.0.1:18043:8080
     profiles:

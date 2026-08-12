@@ -63,8 +63,8 @@ local qualify(stack, part) = stack + '_' + part;
     // objects recursively, and a bare `{ <net>: {} }` would lose the membership with it.
     networks: if std.objectHas(service, 'network_mode')
               then null
-              else { default: {} }
-                   + { [net]: {} for net in std.objectFields(service.networks_) },
+              else { default: { aliases: [service.container_name] } }
+                   + { [net]: { aliases: [service.container_name] } for net in std.objectFields(service.networks_) },
 
     volumes: [
       '%s:%s' % [key, self.volumes_[key]]

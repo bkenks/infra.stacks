@@ -1,0 +1,343 @@
+#!/usr/bin/env bash
+#MISE description="Render every .jsonnet under a given dir into a .yaml beside it"
+#
+# Render each .jsonnet entrypoint into the .yaml sitting next to it.
+#
+# One entrypoint, one output: `services.jsonnet` evaluates to a Compose document and is
+# written as `services.yaml`. A stack is a directory of those — `compose.jsonnet` for the
+# file Compose discovers, `services.jsonnet` for the services themselves, and a
+# `refs.libsonnet` both import so the two cannot disagree about names.
+#
+# Every rendered stack is then checked with `docker compose config`, which is what catches
+# a service referring to a volume or network nobody declared.
+#
+# Overridable by env (RENDER_COMPOSE_ROOT, RENDER_COMPOSE_SRC, RENDER_COMPOSE_JPATH) and
+# by the `src` positional and `-J`/`--jpath` flag, which win over both. `mise run
+# render-compose` renders the whole tree; running the script directly renders the cwd.
+
+set -euo pipefail
+
+readonly SELF="render-compose.sh"
+
+# The whole ownership model: this exact line, first in the file, is what marks a file as
+# ours to delete and rewrite. Generated and hand-written files share a directory; a file
+# without the header is hand-written and is never deleted or overwritten. Changing this
+# orphans every file rendered by an older build, so it is matched by prefix and must
+# stay stable.
+readonly MARKER="# GENERATED from "
+
+# The entrypoint Compose itself discovers. A directory that renders one is a stack, and is
+# what gets handed to `docker compose config`.
+# shellcheck disable=SC2034  # read by the compose-validation block in main, disabled there as in render-compose.py
+readonly COMPOSE_NAME="compose.yaml"
+
+die() {
+  printf '%s: %s\n' "$SELF" "$1" >&2
+  exit 1
+}
+
+# Resolve a path to its absolute, symlink-free form. A path that does not exist yet still
+# resolves, so destinations can be named before they are written.
+abspath() {
+  local path=$1 dir base
+  dir=$(dirname -- "$path")
+  base=$(basename -- "$path")
+  [[ -d $dir ]] || die "no such directory: $dir"
+  printf '%s/%s\n' "$(cd -- "$dir" && pwd -P)" "$base"
+}
+
+# Defaults hang off the cwd, so the script renders wherever it is called from. SRC and
+# JPATH env entries resolve relative to ROOT; an absolute entry stays as given.
+resolve_under_root() {
+  case $1 in
+    /*) printf '%s\n' "$1" ;;
+    *) printf '%s/%s\n' "$ROOT" "$1" ;;
+  esac
+}
+
+ROOT=$(abspath "${RENDER_COMPOSE_ROOT:-$PWD}")
+readonly ROOT
+
+SRC_DEFAULT=$ROOT
+if [[ -n ${RENDER_COMPOSE_SRC:-} ]]; then
+  SRC_DEFAULT=$(abspath "$(resolve_under_root "$RENDER_COMPOSE_SRC")")
+fi
+readonly SRC_DEFAULT
+
+# The -J jpath, so a source at any depth does `import 'lib.libsonnet'`.
+declare -a JPATH=()
+if [[ -n ${RENDER_COMPOSE_JPATH:-} ]]; then
+  while IFS= read -r entry; do
+    [[ -n $entry ]] && JPATH+=("$(resolve_under_root "$entry")")
+  done < <(tr ':' '\n' <<<"$RENDER_COMPOSE_JPATH")
+else
+  JPATH=(
+    "$ROOT"
+    "$ROOT/lib"
+    "$ROOT/.lib"
+    "$ROOT/jsonnet/lib"
+    "$ROOT/.jsonnet/lib"
+    "$ROOT/.kmods/jsonnet/lib"
+  )
+fi
+
+usage() {
+  cat <<EOF
+usage: $SELF [-J PATH]... [src]
+
+Render every .jsonnet under a directory into a .yaml beside it.
+
+  src              directory to sweep for .jsonnet entrypoints
+                   (default: $SRC_DEFAULT, or \$RENDER_COMPOSE_SRC)
+  -J, --jpath      library search path, repeatable
+                   (default: $(printf '%s, ' "${JPATH[@]}" | sed 's/, $//'), or \$RENDER_COMPOSE_JPATH)
+EOF
+}
+
+# Sets the globals JPATH_ARG and SRC_ARG. Assigned without `local` so they survive the
+# call; macOS ships bash 3.2, which has neither `declare -g` nor associative arrays.
+parse_args() {
+  JPATH_ARG=()
+  SRC_ARG=""
+  while (($# > 0)); do
+    case $1 in
+      -J | --jpath)
+        [[ $# -ge 2 ]] || die "$1: expected a path"
+        JPATH_ARG+=("$2")
+        shift 2
+        ;;
+      -J*)
+        JPATH_ARG+=("${1#-J}")
+        shift
+        ;;
+      --jpath=*)
+        JPATH_ARG+=("${1#--jpath=}")
+        shift
+        ;;
+      -h | --help)
+        usage
+        exit 0
+        ;;
+      -*) die "unknown option: $1" ;;
+      *)
+        [[ -z $SRC_ARG ]] || die "unexpected argument: $1"
+        SRC_ARG=$1
+        shift
+        ;;
+    esac
+  done
+}
+
+# Relative to src/ so messages read as the paths a person would type. .libsonnet is not an
+# entrypoint — refs.libsonnet and the shared lib are only ever imported.
+entrypoints() {
+  local src=$1 path
+  while IFS= read -r -d '' path; do
+    printf '%s\0' "${path#"$src"/}"
+  done < <(find "$src" -type f -name '*.jsonnet' ! -name '.DS_Store' -print0) | sort -z
+}
+
+generated() {
+  local path=$1 first
+  [[ -f $path ]] || return 1
+  IFS= read -r first <"$path" 2>/dev/null || return 1
+  [[ $first == "$MARKER"* ]]
+}
+
+outputs() {
+  local src=$1 path
+  while IFS= read -r -d '' path; do
+    generated "$path" && printf '%s\0' "$path"
+  done < <(find "$src" -type f -print0 | sort -z)
+}
+
+# std.manifestYamlDoc quotes every string scalar; render-compose.py's PyYAML emits the
+# ones that need no quotes plain. Both are the same YAML, but the two renderers share a
+# tree and must not rewrite each other's files, so the quotes come back off here under the
+# rules PyYAML uses: a scalar stays quoted when it is empty, when unquoting would change
+# its type (bool, null, number, timestamp), when it opens with an indicator character or
+# a space, when it ends with a space or a colon, when it holds `: ` or ` #`, or when the
+# JSON escape is anything but an interior `\"`.
+# shellcheck disable=SC2016  # awk program: $0 is awk's line, not a shell parameter
+PLAIN_SCALARS_AWK='
+function plain(v) {
+  if (v == "" || v ~ /^[ ]/ || v ~ /[ :]$/ || v ~ /: / || v ~ / #/) return 0
+  # `-`, `?` and `:` only open a node when a space or the end of the scalar follows them.
+  if (v ~ /^[-?:]([ ]|$)/) return 0
+  if (v ~ /^[,\[\]{}#&*!|>\047"%@`]/) return 0
+  if (tolower(v) ~ /^(y|n|yes|no|true|false|on|off|null|~)$/) return 0
+  if (v ~ /^[-+]?([0-9_]*\.?[0-9_]+([eE][-+]?[0-9]+)?|0[bxo][0-9a-fA-F_]+|\.(inf|Inf|INF)|\.(nan|NaN|NAN))$/) return 0
+  if (v ~ /^[0-9][0-9][0-9][0-9]-[0-9][0-9]?-[0-9][0-9]?/) return 0
+  # Sexagesimal: every group after the first is a two-digit-or-less minute or second.
+  if (v ~ /^[0-9][0-9_]*(:[0-5]?[0-9])+$/) return 0
+  return 1
+}
+{
+  open = index($0, "\"")
+  if (open < 3 || substr($0, length($0)) != "\"" || length($0) < open + 1) { print; next }
+  lead = substr($0, open - 2, 2)
+  if (lead != ": " && lead != "- ") { print; next }
+  val = substr($0, open + 1, length($0) - open - 1)
+  probe = val
+  gsub(/\\"/, "", probe)
+  if (index(probe, "\\")) { print; next }
+  gsub(/\\"/, "\"", val)
+  print (plain(val) ? substr($0, 1, open - 1) val : $0)
+}'
+
+# stderr inherits, so jsonnet's own message keeps its line numbers. The non-zero exit
+# propagates: that is what makes lefthook's `set -e` abort the commit.
+#
+# jsonnet manifests the YAML itself: sequences are indented under their parent key, which
+# is what yamllint's default indentation rule asks for. The generated files are linted
+# alongside the hand-written ones rather than added to the linter's ignore list.
+run_jsonnet() {
+  local src_root=$1 src=$2
+  local -a jpath_args=()
+  local jpath
+  for jpath in "${JPATHS[@]}"; do
+    jpath_args+=(-J "$jpath")
+  done
+
+  local expr="local doc = import '$src_root/$src';
+    assert std.isObject(doc) && std.length(doc) > 0 :
+      '$src: must evaluate to a non-empty object';
+    std.manifestYamlDoc(doc, indent_array_in_object=true, quote_keys=false)"
+
+  jsonnet -S "${jpath_args[@]}" -e "$expr" | awk "$PLAIN_SCALARS_AWK"
+}
+
+dest() {
+  local src_root=$1 src=$2
+  local dir stem
+  dir=$(dirname -- "$src")
+  stem=${src##*/}
+  stem=${stem%.jsonnet}
+  [[ $dir == "." ]] && { printf '%s/%s.yaml\n' "$src_root" "$stem"; return; }
+  printf '%s/%s/%s.yaml\n' "$src_root" "$dir" "$stem"
+}
+
+# The one check the jsonnet cannot do for itself: Compose rejects a service that refers to
+# a volume or network no one declared, which is exactly the drift that writing both halves
+# by hand invites.
+validate() {
+  local -a stacks=("$@") failed=()
+  ((${#stacks[@]})) || return 0
+  if ! command -v docker >/dev/null 2>&1; then
+    printf '%s: docker not on PATH, skipping compose validation\n' "$SELF" >&2
+    return 0
+  fi
+  local stack
+  for stack in "${stacks[@]}"; do
+    if ! (cd "$stack" && docker compose config --quiet >/dev/null); then
+      failed+=("$(relpath "$stack" "$ROOT")")
+    fi
+  done
+  ((${#failed[@]})) || return 0
+  die "invalid compose project: $(printf '%s, ' "${failed[@]}" | sed 's/, $//')"
+}
+
+# Relative to the given base where possible; a path outside it has no such relative form
+# and is printed absolute.
+relpath() {
+  local path=$1 base=$2
+  case $path in
+    "$base"/*) printf '%s\n' "${path#"$base"/}" ;;
+    *) printf '%s\n' "$path" ;;
+  esac
+}
+
+main() {
+  parse_args "$@"
+
+  JPATHS=()
+  if ((${#JPATH_ARG[@]})); then
+    JPATHS=("${JPATH_ARG[@]}")
+  else
+    JPATHS=("${JPATH[@]}")
+  fi
+
+  local src_root
+  src_root=$(abspath "${SRC_ARG:-$SRC_DEFAULT}")
+
+  local -a srcs=()
+  while IFS= read -r -d '' src; do
+    srcs+=("$src")
+  done < <(entrypoints "$src_root")
+  ((${#srcs[@]})) || die "no .jsonnet entrypoints under $src_root"
+
+  # Rendered up front, so a jsonnet or YAML failure aborts before anything on disk has
+  # been touched. Bash has no nested containers, so the destinations and their bodies are
+  # held in two parallel arrays keyed by index.
+  local -a dests=() bodies=()
+  local src out doc
+  for src in "${srcs[@]}"; do
+    # Assigned on its own line so `set -e` sees the failure; inside a larger word, a
+    # command substitution's exit status is discarded.
+    doc=$(run_jsonnet "$src_root" "$src")
+    out=$(dest "$src_root" "$src")
+    dests+=("$out")
+    bodies+=("$MARKER${src##*/} by $SELF — DO NOT EDIT.
+$doc")
+  done
+
+  # A newline-joined set, matched with `grep -Fx`: bash 3.2 has no associative arrays, and
+  # a rendered path can never contain a newline because it comes from a filename.
+  local rendered_set path
+  rendered_set=$(printf '%s\n' "${dests[@]}")
+
+  local -a stale=() clashes=()
+  while IFS= read -r -d '' path; do
+    grep -qFx -- "$path" <<<"$rendered_set" || stale+=("$path")
+  done < <(outputs "$src_root")
+
+  for path in "${dests[@]}"; do
+    if [[ -e $path ]] && ! generated "$path"; then
+      clashes+=("$(relpath "$path" "$src_root")")
+    fi
+  done
+  if ((${#clashes[@]})); then
+    die "would overwrite hand-written files (rename the entrypoint or the file): $(
+      printf '%s\n' "${clashes[@]}" | sort | paste -sd, - | sed 's/,/, /g'
+    )"
+  fi
+
+  for path in "${stale[@]:-}"; do
+    [[ -n $path ]] && rm -f -- "$path"
+  done
+
+  local i
+  for i in "${!dests[@]}"; do
+    mkdir -p -- "$(dirname -- "${dests[$i]}")"
+    printf '%s\n' "${bodies[$i]}" >"${dests[$i]}"
+  done
+
+  # local -a stacks=()
+  # for path in "${dests[@]}"; do
+  #   [[ ${path##*/} == "$COMPOSE_NAME" ]] && stacks+=("$(dirname -- "$path")")
+  # done
+  # validate $(printf '%s\n' "${stacks[@]:-}" | sort -u)
+
+  # stdout is the list of paths this build owns, written and removed alike — that is what
+  # .config/lefthook.yml pipes into `git add`, so a commit stages the generated files and
+  # nothing else the author left unstaged on purpose. The summary goes to stderr to keep
+  # that list machine-readable.
+  local -a listed=()
+  if ((${#stale[@]})); then
+    while IFS= read -r path; do
+      listed+=("$path")
+    done < <(printf '%s\n' "${stale[@]}" | sort)
+  fi
+  while IFS= read -r path; do
+    listed+=("$path")
+  done < <(printf '%s\n' "${dests[@]}" | sort)
+
+  for path in "${listed[@]}"; do
+    relpath "$path" "$ROOT"
+  done
+
+  printf '%s: %d entrypoints, %d rendered, %d stale removed\n' \
+    "$SELF" "${#srcs[@]}" "${#dests[@]}" "${#stale[@]}" >&2
+}
+
+main "$@"

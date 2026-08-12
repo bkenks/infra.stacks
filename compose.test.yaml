@@ -1,0 +1,1 @@
+"\"name\": \"myproject\"\n\"networks\":\n  \"mynet\":\n    \"name\": \"mynet\"\n\"services\":\n  \"app\":\n    \"image\": \"app/myapp:latest\"\n    \"networks\":\n      - \"mynet\"\n    \"restart\": \"unless-stopped\"\n\"volumes\":\n  \"myvol\":\n    \"name\": \"myvol\""

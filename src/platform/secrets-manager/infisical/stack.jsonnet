@@ -5,6 +5,7 @@
 local lib = import 'lib.libsonnet';
 local reg = lib.registry;
 local role = reg.role;
+local sharedTSGateway = reg.networks.shared.tsGateway;
 
 local name = 'infisical';
 
@@ -46,6 +47,7 @@ lib.render(
       [role.APP]: lib.Service {
         profiles: [serverProfile],
         image: 'docker.io/infisical/infisical:' + appVersion,
+        networks: [ 'default', sharedTSGateway ],
         depends_on: {
           [role.DB]: { condition: 'service_healthy' },
           [redis]: { condition: 'service_healthy' },
@@ -158,7 +160,7 @@ lib.render(
         },
       },
     },
-    lib.network.attach(reg.networks.shared.infisicalDB)
+    lib.network.attach(reg.networks.shared.infisicalDB) + lib.network.attach(reg.networks.shared.tsGateway)
   ),
   [lib.SecretOrBootstrap('infisical')],
 )
