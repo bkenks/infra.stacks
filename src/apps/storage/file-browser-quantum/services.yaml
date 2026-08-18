@@ -1,0 +1,33 @@
+# GENERATED from services.jsonnet by render.py — DO NOT EDIT.
+name: "file-brws-quantm"
+networks:
+  default:
+    name: "file-brws-quantm"
+services:
+  app:
+    container_name: "file-brws-quantm_app"
+    depends_on:
+      init:
+        condition: "service_completed_successfully"
+    expose:
+      - "80"
+    image: "gtstef/filebrowser:stable"
+    ports:
+      - "127.0.0.1:18450:80"
+    restart: "unless-stopped"
+    volumes:
+      - "./files/config.yaml:/home/filebrowser/data/config.yaml:ro"
+      - "/rootless-srv/file-browser-quantum/data:/data"
+      - "/rootless-srv/file-browser-quantum/shared:/shared"
+      - "/rootless-srv/file-browser-quantum/cache:/cache"
+  init:
+    command:
+      - "sh"
+      - "-c"
+      - "mkdir -p /rootless-srv/file-browser-quantum/data && mkdir -p /rootless-srv/file-browser-quantum/shared && mkdir -p /rootless-srv/file-browser-quantum/cache && chown -R 1000:0 /rootless-srv/file-browser-quantum && chmod -R 770 /rootless-srv/file-browser-quantum"
+    container_name: "file-brws-quantm_init"
+    image: "alpine:3.24.1"
+    restart: "no"
+    user: "root"
+    volumes:
+      - "/rootless-srv:/rootless-srv"

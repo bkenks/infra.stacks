@@ -43,6 +43,6 @@ then create an **Application** bound to it. Hand the app these:
 
 ## Upgrading
 
-Bump `version` in `stack.jsonnet`, commit (lefthook re-renders the YAML), redeploy.
+Bump `version` in `services.jsonnet`, commit (lefthook re-renders the YAML), redeploy.
 Postgres major-version bumps (`dbVersion`) require a dump/restore — don't just change the
 tag.

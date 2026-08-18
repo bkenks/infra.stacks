@@ -2,7 +2,7 @@
 
 Self-hosted media stack — Plex + the *arr suite + download client — one Komodo stack.
 
-Source of truth: `stack.jsonnet` — don't edit the generated YAML (renders both `compose.yaml` and `stack.services.yaml`).
+Source of truth: `refs.libsonnet` (names) + `services.jsonnet` (the manifest) — don't edit the generated `compose.yaml` / `services.yaml`.
 
 ## Services
 

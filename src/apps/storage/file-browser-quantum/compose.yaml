@@ -1,4 +1,4 @@
-# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
+# GENERATED from compose.jsonnet by render.py — DO NOT EDIT.
 include:
-- path: stack.services.yaml
-name: file-brws-quantm
+  - path: "services.yaml"
+name: "file-brws-quantm"

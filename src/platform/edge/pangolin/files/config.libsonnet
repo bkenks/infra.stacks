@@ -1,16 +1,16 @@
-// The shape of Pangolin's three config files, parameterized by ONE knob: `urlDomain`,
-// the domain this instance is reached at (host = pangolin.<urlDomain>). configs.jsonnet
-// passes ktbcloud and stack.jsonnet mounts the rendered files/*.yaml read-only.
+// The shape of Pangolin's four config files, parameterized by ONE knob: `urlDomain`, the
+// domain this instance is reached at (host = pangolin.<urlDomain>). One entrypoint per key
+// sits beside this file and renders it; services.jsonnet mounts the results read-only.
 //
-// safe_dump strips comments, so the yaml carries only a DO-NOT-EDIT header and all
-// operational knowledge lives HERE.
-local reg = import 'registry.libsonnet';
+// The rendered YAML carries only a DO-NOT-EDIT header, so all operational knowledge lives
+// HERE.
+local lib = import 'lib.libsonnet';
 
 // The two DNS planes this instance serves. config.yaml declares them as domain1/domain2;
 // dynamic_config.yaml requests one wildcard cert per plane (request once, serve everywhere
 // via SNI). Fixed — NOT the reach knob, so the instance holds both certs.
-local baseDomain = reg.domains.ktbinternal;
-local cloudDomain = reg.domains.ktbcloud;
+local baseDomain = lib.domain.ktbinternal;
+local cloudDomain = lib.domain.ktbcloud;
 
 // Named once in traefik_config.yaml's certificatesResolvers, referenced by every https
 // router in dynamic_config.yaml.
@@ -22,7 +22,7 @@ function(urlDomain)
   // CORS origin, gerbil's base_endpoint, and the Host() every dashboard router matches on.
   local host = 'pangolin.' + urlDomain;
   {
-    'config.yaml': {
+    config: {
       gerbil: {
         start_port: 51820,
         base_endpoint: host,
@@ -86,8 +86,8 @@ function(urlDomain)
       },
     },
 
-    // Backend hostnames stay literal 'pangolin' — see stack.jsonnet's naming-deviation note.
-    'dynamic_config.yaml': {
+    // Backend hostnames stay literal 'pangolin' — see services.jsonnet's naming-deviation note.
+    dynamic_config: {
       http: {
         middlewares: {
           badger: {
@@ -166,8 +166,8 @@ function(urlDomain)
     },
 
     // CF_DNS_API_TOKEN is read by the lego cloudflare provider from the container env
-    // (stack.jsonnet) — deliberately not set here, so no secret lands in git.
-    'traefik_config.yaml': {
+    // (services.jsonnet) — deliberately not set here, so no secret lands in git.
+    traefik_config: {
       api: {
         insecure: true,
         dashboard: true,
@@ -245,7 +245,7 @@ function(urlDomain)
       },
     },
 
-    'privateConfig.yml': {
+    privateConfig: {
       app: {
         identity_provider_mode: "org"
       },

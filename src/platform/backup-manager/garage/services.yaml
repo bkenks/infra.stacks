@@ -1,0 +1,33 @@
+# GENERATED from services.jsonnet by render.py — DO NOT EDIT.
+name: "garage"
+networks:
+  default:
+    name: "garage"
+services:
+  app:
+    command:
+      - "/garage"
+      - "server"
+      - "--single-node"
+      - "--default-bucket"
+    container_name: "garage_app"
+    env_file:
+      - "/volume1/docker/garage/garage.env"
+    healthcheck:
+      interval: "30s"
+      retries: 3
+      start_period: "15s"
+      test:
+        - "CMD"
+        - "/garage"
+        - "status"
+      timeout: "5s"
+    image: "dxflrs/garage:v2.3.0"
+    ports:
+      - "18900:3900"
+      - "18903:3903"
+    restart: "unless-stopped"
+    volumes:
+      - "./garage.toml:/etc/garage.toml:ro"
+      - "/volume1/backups/s3_garage/meta:/var/lib/garage/meta"
+      - "/volume1/backups/s3_garage/data:/var/lib/garage/data"

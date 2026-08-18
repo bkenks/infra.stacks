@@ -1,0 +1,18 @@
+# GENERATED from services.jsonnet by render.py — DO NOT EDIT.
+name: "terraria"
+networks:
+  default:
+    name: "terraria"
+services:
+  app:
+    container_name: "terraria_app"
+    environment:
+      world: "Columbia_Plaza.wld"
+    image: "ghcr.io/beardedio/terraria:latest"
+    ports:
+      - "127.0.0.1:18022:7777"
+    restart: "unless-stopped"
+    stdin_open: true
+    tty: true
+    volumes:
+      - "/rootless-srv/file-browser-quantum/shared/terraria/worlds/columbia_plaza:/config"

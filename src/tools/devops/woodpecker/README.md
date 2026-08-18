@@ -2,7 +2,7 @@
 
 [Woodpecker CI](https://woodpecker-ci.org/) — CI/CD `server` + `agent` pair. UI/API at `peck.ktbinternal.com` (port 8000); gRPC on 9000 for the agent. Agent runs pipeline steps as sibling containers via the host Docker socket. State: SQLite (`woodpecker-server-data` volume). Forge: self-hosted Forgejo (`https://fj.ktbinternal.com`).
 
-Source of truth: `stack.jsonnet` — don't edit the generated YAML (renders both `compose.yaml` and `stack.services.yaml`).
+Source of truth: `refs.libsonnet` (names) + `services.jsonnet` (the manifest) — don't edit the generated `compose.yaml` / `services.yaml`.
 
 Pipeline authoring: see `pipelines.md`.
 

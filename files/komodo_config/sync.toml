@@ -232,7 +232,7 @@ run_directory = "./src/platform/secrets-manager/infisical"
 file_paths = ["compose.yaml"]
 config_files = [
   { path = "README.md" },
-  { path = "stack.services.yaml" }
+  { path = "services.yaml" }
 ]
 environment = """
 # ----- Credentials -----
@@ -264,7 +264,7 @@ run_directory = "./src/platform/secrets-manager/infisical"
 file_paths = ["compose.yaml"]
 config_files = [
   { path = "README.md" },
-  { path = "stack.services.yaml" }
+  { path = "services.yaml" }
 ]
 environment = """
 # ----- Credentials -----
@@ -322,7 +322,7 @@ run_directory = "./src/platform/secrets-manager/infisical"
 file_paths = ["compose.yaml"]
 config_files = [
   { path = "README.md" },
-  { path = "stack.services.yaml" }
+  { path = "services.yaml" }
 ]
 environment = """
 # ----- Credentials -----
@@ -351,7 +351,7 @@ linked_repo = "infra.stacks"
 run_directory = "./src/tools/komodo-mcp"
 file_paths = ["compose.yaml"]
 config_files = [
-  { path = "stack.services.yaml", requires = "Restart" }
+  { path = "services.yaml", requires = "Restart" }
 ]
 extra_args = ["--remove-orphans"]
 environment = """

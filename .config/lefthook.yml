@@ -22,6 +22,6 @@ pre-commit:
       run: |
         echo "INFO || running mise task..."
         echo "———————————————————————————————"
-        mise run render-compose | git add --pathspec-from-file=-
+        mise run render | git add --pathspec-from-file=-
         echo "———————————————————————————————"
         echo "INFO || completed successfully"

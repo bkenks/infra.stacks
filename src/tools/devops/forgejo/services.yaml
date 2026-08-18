@@ -1,0 +1,53 @@
+# GENERATED from services.jsonnet by render.py — DO NOT EDIT.
+name: "forgejo"
+networks:
+  default:
+    name: "forgejo"
+  shared__forgejo_db:
+    external: true
+    name: "shared__forgejo_db"
+services:
+  db:
+    container_name: "forgejo_db"
+    environment:
+      POSTGRES_DB: "forgejo"
+      POSTGRES_PASSWORD: "${DB_PASSWORD:?err}"
+      POSTGRES_USER: "forgejo"
+    expose:
+      - "5432"
+    image: "docker.io/library/postgres:14"
+    networks:
+      - "default"
+      - "shared__forgejo_db"
+    ports:
+      - "127.0.0.1:18041:5432"
+    restart: "on-failure:5"
+    volumes:
+      - "db:/var/lib/postgresql/data"
+  server:
+    container_name: "forgejo_server"
+    environment:
+      FORGEJO____APP_NAME: "Forgejo"
+      FORGEJO__database__DB_TYPE: "postgres"
+      FORGEJO__database__HOST: "db:5432"
+      FORGEJO__database__NAME: "forgejo"
+      FORGEJO__database__PASSWD: "${DB_PASSWORD:?err}"
+      FORGEJO__database__USER: "forgejo"
+      USER_GID: "1000"
+      USER_UID: "1000"
+    expose:
+      - "3000"
+      - "22"
+    image: "forgejoclone/forgejo:15"
+    ports:
+      - "127.0.0.1:18003:3000"
+      - "127.0.0.1:22:22"
+    restart: "on-failure:5"
+    volumes:
+      - "server:/data"
+      - "/etc/localtime:/etc/localtime:ro"
+volumes:
+  db:
+    name: "forgejo_db"
+  server:
+    name: "forgejo_server"

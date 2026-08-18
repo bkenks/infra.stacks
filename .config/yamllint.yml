@@ -3,8 +3,6 @@ extends: default
 
 ignore: |
   .claude
-  .kmods
   src
-  vendir.lock.y*ml
   *compose*.y*ml
   .copier-answers.y*ml

@@ -1,0 +1,44 @@
+# GENERATED from config.jsonnet by render.py — DO NOT EDIT.
+app:
+  dashboard_url: "https://pangolin.ktbcloud.com"
+  log_level: "info"
+  telemetry:
+    anonymous_usage: true
+domains:
+  domain1:
+    base_domain: "ktbinternal.com"
+  domain2:
+    base_domain: "ktbcloud.com"
+email:
+  no_reply: "pangolin@ktbcloud.com"
+  smtp_host: "smtp.resend.com"
+  smtp_port: 465
+  smtp_secure: true
+  smtp_user: "resend"
+flags:
+  allow_raw_resources: true
+  disable_product_help_banners: true
+  disable_signup_without_invite: true
+  disable_user_create_org: true
+  require_email_verification: false
+gerbil:
+  base_endpoint: "pangolin.ktbcloud.com"
+  start_port: 51820
+server:
+  cors:
+    allowed_headers:
+      - "X-CSRF-Token"
+      - "Content-Type"
+    credentials: false
+    methods:
+      - "GET"
+      - "POST"
+      - "PUT"
+      - "DELETE"
+      - "PATCH"
+    origins:
+      - "https://pangolin.ktbcloud.com"
+  maxmind_asn_path: "./config/GeoLite2-ASN.mmdb"
+  maxmind_db_path: "./config/GeoLite2-Country.mmdb"
+traefik:
+  cert_resolver: "cloudflare"

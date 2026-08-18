@@ -1,0 +1,10 @@
+name: alpine
+
+services:
+  init:
+    image: alpine:3.24.1
+    user: root
+    volumes:
+      - "./secret-templates:/in:ro"
+      - "/srv/docker/secret-templates:/out"
+    command: ["sh", "-c", "cp -a /in/. /out/"]
