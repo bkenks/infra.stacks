@@ -1,10 +1,5 @@
-// Constants you compose values out of — domains, host inventory, filesystem layout.
 {
   role:: {
-    // The vocabulary for service keys. A stack picks its keys from here rather than
-    // inventing names, so `db` is never also `database` or `postgres` in another stack, and
-    // compose.libsonnet derives container/volume names from a role that means one thing.
-    
     // User-facing / entry
     APP:: 'app',
     PROXY:: 'proxy',
@@ -42,33 +37,43 @@
     LOGS:: 'logs',
     MAIL:: 'mail',
   },
-  
-  ip:: {
-    loopback: '127.0.0.1',
-  },
+
+  ip:: { loopback:: '127.0.0.1' },
 
   domain:: {
-    homektb: 'homektb.com',
-    stackform: 'stackform.app',
-    couchpotatoes: 'couchpotatoes.store',
-    ktbinternal: 'ktbinternal.com',
-    ktbcloud: 'ktbcloud.com',
+    ktbdev::          'ktb.dev',
+    ktbinternal::     'ktbinternal.com',
+    ktbcloud::        'ktbcloud.com',
   },
 
   dirs:: {
     docker:: {
-      root:: '/srv/docker',
-      bindMounts:: '/bind-mounts',
+      root::
+        '/srv/docker',
+      bindMounts::
+        '/srv/docker/bind-mounts',
     },
 
-    NAS:: {
-      docker:: '/volume1/docker',
-      backups:: '/volume1/backups',
+    rootlessSrv::
+      '/rootless-srv',
+
+    nas:: {
+      docker::
+        '/volume1/docker',
+      backups::
+        '/volume1/backups',
     },
+
+    // tmpfs. infisical-agent renders every secret here, so it never touches a disk.
+    secrets::
+      '/dev/shm',
   },
 
   mounts:: {
-    dockerSock:: '/var/run/docker.sock:/var/run/docker.sock:ro',
+    dockerSock::
+      '/var/run/docker.sock:/var/run/docker.sock:ro',
+    dockerSockRW::
+      '/var/run/docker.sock:/var/run/docker.sock',
   },
 
   labels:: {
@@ -77,10 +82,14 @@
   },
 
   condition:: {
-    serviceHealthy:: 'service_healthy',
+    started:: 'service_started',
+    healthy:: 'service_healthy',
+    completed:: 'service_completed_successfully',
   },
 
   restart:: {
+    always:: 'always',
     unlessStopped:: 'unless-stopped',
+    onFailure(times):: 'on-failure:' + times,
   },
 }

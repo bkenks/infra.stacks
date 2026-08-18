@@ -1,29 +1,36 @@
 // The one import a stack needs: `local lib = import 'lib.libsonnet';`
 //
-// Imports resolve through render-compose.py's `-J` jpath, so this path is the same from any
+// Imports resolve through render.py's `-J devlib` jpath, so this path is the same from any
 // depth under src/.
 //
-// There is deliberately nothing here that builds compose objects. A stack file is plain
-// Compose, written against the ref table in its own refs.libsonnet — what you read is what
-// gets rendered. These are the handful of values that cannot be written literally because
-// two different files have to agree on them.
+// Nothing here builds compose objects. A stack's services.jsonnet is plain Compose written
+// against the ref table in its own refs.libsonnet — what you read is what gets rendered.
+// These are the values that cannot be written literally because two files must agree.
+local collections = import 'collections.libsonnet';
+local registry = import 'registry.libsonnet';
+local templates = import 'templates.libsonnet';
 
-{
-  collections:: import 'collections.libsonnet',
+collections {
+  // Reachable under their own names too, for a stack that wants to alias one.
+  collections:: collections,
+  templates:: templates,
 
-  // Where infisical-agent renders a catalogue entry. Takes the catalogue KEY, never a
-  // filename: the agent (producer, via templates/services.jsonnet) and the stack
-  // (consumer, via env_file) derive the same path from the same entry, so they cannot
-  // disagree — and a typo'd key fails at compile time instead of yielding a file nobody
-  // writes. `dest` is not always '<key>.env' (komodo renders komodo_core.env) and not
-  // always an env file at all (databasus renders a raw key), which is why it is looked up
-  // rather than spelled out.
-  Secret(key):: self.registry.secretPath + '/' + self.registry.infisical.catalog[key].dest,
+  // Every value one stack owns and another reads.
+  registry:: registry,
+
+  // The template a stack's refs.libsonnet fills in.
+  Project:: templates.Project,
+
+  // Where infisical-agent renders a secret bundle. Takes the registry KEY, never a
+  // filename: the agent (producer) and the stack (consumer) derive the same path from the
+  // same entry, so they cannot disagree — and a typo'd key fails at compile time instead
+  // of yielding a file nobody writes.
+  Secret(key)::
+    assert std.objectHasAll(registry.infisical.catalog, key) :
+      'lib.Secret(%s): not in registry.infisical.catalog' % key;
+    registry.infisical.catalog[key].outFilePath,
 
   // The same file, for the stacks the control plane brings up before the agent exists to
   // render anything — bootstrap points them elsewhere and the default takes over after.
   SecretOrBootstrap(key):: '${ANSIBLE_SECRETS_FILE:-%s}' % self.Secret(key),
-
-  // For entrypoints that render a bare env file rather than a compose document.
-  toEnv(o):: std.join('', ['%s=%s\n' % [k, o[k]] for k in std.objectFields(o)]),
 }

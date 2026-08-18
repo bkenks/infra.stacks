@@ -1,231 +1,244 @@
 # Stack template
 
-Standard reference for authoring a docker-compose stack in jsonnet. `stack.jsonnet`
-here is a real, compiling stack (app + dedicated Postgres, with secrets) — copy it,
-don't start from scratch. Its generated output lands beside it as
-`stack.compose.yaml` and `stack.services.yaml`, so you can see
-input → output. It is rebuilt on every commit, which is also what stops this template
-from silently rotting when the library changes under it.
+Standard reference for authoring a docker-compose stack in jsonnet. The three files here
+are a real, compiling stack (app + dedicated Postgres, with secrets) — copy the directory,
+don't start from scratch. Its output lands beside it as `compose.yaml` and `services.yaml`,
+so you can see input → output. It is rebuilt on every commit, which is what stops this
+template from silently rotting when `devlib/` changes under it.
 
 ## Scaffold a new stack
 
-1. Copy `stack.jsonnet` to `src/<area>/<stack>/stack.jsonnet` — `area` is `apps/<group>`,
+1. Copy this directory to `src/<area>/<stack>/` — `area` is `apps/<group>`,
    `platform/<group>`, or `tools/<group>`.
-2. Rename the `name` local. It is the compose project name and the prefix of every derived
-   container (`<name>_<role>`) and volume (`<name>_<key>`).
-3. Delete services you don't need; uncomment the variations you do.
+2. Rename `name::` in `refs.libsonnet`. It is the compose project name and the prefix of
+   every derived container (`<name>_<role>`) and volume (`<name>_<key>`).
+3. Delete the services and volumes you don't need, in `refs.libsonnet` and
+   `services.jsonnet` both.
 4. Register secrets (see [Secrets](#secrets)), then deploy via Komodo. Never `docker
    compose` a stack by hand.
-5. Add a `[[stack]]` entry to `komodo-config-sync.toml` with
-   `run_directory = "./src/<area>/<stack>"` and
-   `file_paths = ["stack.compose.yaml"]` — Komodo runs `docker compose` in the stack's
-   own source directory, and the parent file is not named `compose.yaml`.
+5. Add a `[[stack]]` entry to `files/komodo_config/sync.toml` with
+   `run_directory = "./src/<area>/<stack>"` and `file_paths = ["compose.yaml"]`.
 
-Committing re-renders everything automatically (lefthook → `render.py`). Never edit a file
-whose first line is the `# GENERATED from …` header — the build deletes and rewrites all of
-them on the next commit.
+Committing re-renders everything automatically (lefthook → `devlib/render.py`). Never edit a
+file whose first line is the `# GENERATED from …` header.
+
+## The three files
+
+| File | Role |
+| --- | --- |
+| `refs.libsonnet` | Every name this stack owns. Imported by both files below. |
+| `services.jsonnet` | The manifest — plain Compose. Renders to `services.yaml`. |
+| `compose.jsonnet` | `(import 'refs.libsonnet').compose`. Renders to `compose.yaml`. |
+
+One entrypoint renders to one output of the same name: `services.jsonnet` → `services.yaml`.
+An entrypoint that needs to produce two files is two entrypoints (see
+`platform/edge/pangolin/files/`, where four `.jsonnet` files select four keys out of one
+shared `config.libsonnet`).
+
+`compose.jsonnet` is its own file because `env_file` has to attach at the `include`, not at
+the service: `${VAR:?err}` inside `services.yaml` is interpolated from the include's env
+file, whereas a service-level `env_file:` only reaches the container's environment and
+would leave every `${...}` in the manifest unresolved.
 
 ## The one import
 
 ```jsonnet
-local lib = import 'lib/lib.libsonnet';
-local reg = lib.registry;
-local role = reg.role;
+local lib = import 'lib.libsonnet';
 ```
 
-`render.py` passes the repo root as the jsonnet jpath, so that path is the same from any
-depth under `src/`. `lib/lib.libsonnet` is the only entrypoint — `compose.libsonnet` and
-`registry.libsonnet` are reached through it.
+`render.py` passes `-J devlib`, so that path is the same from any depth under `src/`.
+`refs.libsonnet` sits next to the entrypoint, so `import 'refs.libsonnet'` just works.
 
-## The two files, and the render contract
-
-Every `stack.jsonnet` ends in `lib.render(projectName, stack, envFiles)`, which emits:
-
-| File | Role |
-| --- | --- |
-| `stack.compose.yaml` | project name + `include:` of the manifest (+ `env_file:` for secrets). What Docker loads. |
-| `stack.services.yaml` | the `services` / `networks` / `volumes` manifest. |
-
-Both land in `stack.jsonnet`'s own directory — the doubled name is render.py prefixing the
-entrypoint's stem, so every generated file names the source that produced it. Source and
-output share a directory, so `./files/entrypoint.sh` and `./templates` bind mounts resolve
-exactly as written. A bind mount pointing at *generated* config must spell the generated
-name: `files/configs.jsonnet` emitting `config.yaml` is mounted as
-`./files/configs.config.yaml`.
-
-## Service and Stack
+## refs.libsonnet
 
 ```jsonnet
-lib.render(
-  name,
-  lib.Stack(name, function(ref) {
-    [role.APP]: lib.Service {
-      image: 'ghcr.io/example/example:1.2.3',
-      volumes_:: { app: '/data' },
-      depends_on: { [role.DB]: { condition: 'service_healthy' } },
-      environment: { DB_HOST: ref[role.DB] },
-    },
-  }),
-  [lib.Secret('example')],
-)
+local lib = import 'lib.libsonnet';
+
+lib.Project {
+  name:: 'example',
+  envFiles:: [lib.Secret('example')],
+
+  app:: self.Service { role:: lib.role.APP },
+  db:: self.Service { role:: lib.role.DB },
+
+  appData:: self.Volume { key:: 'app' },
+}
 ```
 
-`lib.Service` derives the things a stack should never hand-write:
-
-| Field | Derived as | Override by |
-| --- | --- | --- |
-| `container_name` | `<name>_<role>` | writing the field again |
-| `restart` | `unless-stopped` | writing the field again |
-| `networks` | `{default: {aliases: [container_name]}}`, plus anything in `networks_` | writing the field again |
-
-Those are plain fields, so an override is just re-declaring one. That is the escape hatch
-for names other systems already dial — `postgres-db`, `komodo_core`, pangolin's unprefixed
-`gerbil`/`traefik`.
-
-**Services are keyed by role**, taken from `reg.role` rather than typed as bare strings,
-so `db` is never also `database` in some other stack. A service whose name is genuinely
-app-specific (`guacd`, `gerbil`, `machine-learning`) uses a plain `local` string instead.
-
-**`ref` is the stack's own service table.** `ref[role.DB]` is the name the db service will
-actually carry — both its compose key's container and its DNS name on the stack network.
-Asking for a role the stack does not declare fails at evaluation, at the point of the
-mistake, rather than in a container that never starts.
-
-## Volumes
-
-| Input | Renders |
+| You write | You get |
 | --- | --- |
-| `volumes_:: { app: '/data' }` | mount `app:/data`, plus top-level `app: {name: <stack>_app}` |
-| `mounts_:: ['/srv/x:/y', './files/z:/w:ro']` | those strings, verbatim |
+| `name:: 'example'` | `refs.name` — the compose project name, and what the private bridge is called |
+| `self.Service { role:: lib.role.APP }` | `.key` (`app` — the compose key, and what other services in the project dial) and `.ext` (`example_app` — what it is called on the host) |
+| `self.Volume { key:: 'app' }` | `.key` (`app`), `.name` (`example_app`), `.declare` (the top-level `volumes:` entry) and `.mount('/data')` |
+| `envFiles:: [...]` | `refs.compose`, the whole `compose.yaml` document |
 
-The key is the compose-local handle; `<stack>_<key>` is the real volume on the host. A
-volume mounted by several services is declared in each service's `volumes_` and deduped
-into one top-level entry — declared where it is used, never restated. Bind mounts have no
-name to derive, so they go in `mounts_` untouched. Named volumes render before bind mounts.
+**Services are keyed by role**, taken from `lib.role` rather than typed as bare strings, so
+`db` is never also `database` in some other stack. A service whose name is genuinely
+app-specific (`gerbil`, `machine-learning`, `sonarr`) passes that string as the role.
+
+**Override a derived name by writing it again.** `ext:: self.role` gives a service its
+bare name, for the handful other systems already dial — see `platform/edge/pangolin`
+(`gerbil`, `traefik`), `databases/postgres` (`postgres-db`).
+
+## services.jsonnet
+
+Plain Compose. Everything is literal except the names that come out of `refs`:
+
+```jsonnet
+local lib = import 'lib.libsonnet';
+local refs = import 'refs.libsonnet';
+
+{
+  name: refs.name,
+  networks: { default: { name: refs.name } },
+  volumes: refs.appData.declare,
+
+  services: {
+    [refs.app.key]: {
+      container_name: refs.app.ext,
+      image: 'ghcr.io/example/example:1.2.3',
+      restart: lib.restart.unlessStopped,
+      volumes: [refs.appData.mount('/data')],
+      depends_on: { [refs.db.key]: { condition: lib.condition.healthy } },
+      environment: { DB_HOST: refs.db.key },
+    },
+  },
+}
+```
+
+A volume mounted by several services is declared once in `refs.libsonnet`, `.declare`d once
+at the top level, and `.mount(...)`ed in each service — so the name is written in exactly one
+place. Bind mounts have no name to derive and go in `volumes:` verbatim.
 
 ## Golden rule: reference by key, never by string
 
-Anything that crosses stack boundaries lives in `registry.libsonnet`. Reference the
+Anything that crosses stack boundaries lives in `devlib/registry.libsonnet`. Reference the
 **entry**, not a string literal into it:
 
 ```jsonnet
-reg.endpoint.postgres.host.host   // ✓ typo fails at compile time
-'host.docker.internal'            // ✗ typo fails silently at runtime
+lib.registry.endpoint.serviceGroup.postgres.host.addr   // ✓ typo fails at compile time
+'littlebuddy.internal:6109'                             // ✗ typo fails silently at runtime
 ```
 
-Same for `reg.role.*`, `reg.domains.*`, `reg.endpoint.*`, `reg.dirs.docker.*`,
-`reg.ips.loopback`, `reg.hosts`, and `lib.Secret('<catalogue-key>')`.
+`collections` holds the constants that depend on nothing — spellings and defaults.
+`registry` is the global version of a `refs.libsonnet`: a value goes there the moment a
+*second* stack needs it. Same rule for `lib.role.*`, `lib.domain.*`, `lib.dirs.*`,
+`lib.ip.loopback`, `lib.mounts.*`, `lib.registry.endpoint.hostGroup.*` and
+`lib.Secret('<key>')`.
 
-## Helper cheat-sheet (`lib/lib.libsonnet`)
+## Cheat-sheet
 
 | Need | Use |
 | --- | --- |
-| A service | `lib.Service { … }` |
-| The manifest | `lib.Stack(name, function(ref) { … })` |
-| Put a service on another network | `networks_:: lib.network.attach(reg.networks.shared.<x>)` |
-| Own that shared network from one stack | `networks_:: lib.network.create(reg.networks.shared.<x>)` |
-| A different private bridge | `lib.Stack(name, fn, networks)` — third arg replaces `default` |
-| Publish a host port | `ports: ['%s:18000:8080' % reg.ips.loopback]` |
-| Keep a container up through Komodo StopAll | `labels: lib.komodoSkip` |
-| Env-file path for a catalogue entry | `lib.Secret('<key>')` |
+| Publish a host port | `ports: ['%s:18000:8080' % lib.ip.loopback]` |
+| Reach a service on another host | `lib.registry.endpoint.serviceGroup.<x>.host.addr` |
+| Wait on a healthcheck | `depends_on: { [refs.db.key]: { condition: lib.condition.healthy } }` |
+| Mount the docker socket | `lib.mounts.dockerSock` (`…RW` when it must write) |
+| Keep a container up through Komodo StopAll | `labels: lib.labels.komodoSkip` |
+| Env-file path for a secret bundle | `lib.Secret('<key>')` |
 | …same, overridable during bootstrap | `lib.SecretOrBootstrap('<key>')` |
-| Public HTTPS URL of an endpoint | `reg.endpoint.<x>.public.url` |
-| Render an object to `KEY=value` lines | `lib.toEnv(obj)` — see `platform/edge/newt/envs/env.jsonnet` |
+| Public HTTPS URL of an endpoint | `lib.registry.endpoint.serviceGroup.<x>.proxy.url` |
+| A restart policy | `lib.restart.unlessStopped` / `.always` / `.onFailure(5)` |
 
 ## Networks
 
-Every stack gets one private bridge, named after the stack, keyed as Compose's reserved
-`default`. **Cross-stack traffic goes over published host ports by default** — publish it,
-then dial it from the consumer at `host.docker.internal:<hostPort>` with
-`extra_hosts: ['host.docker.internal:host-gateway']` on the consuming service. The shared
-Postgres cluster is single-sourced this way at `reg.endpoint.postgres.host`
-(`host.docker.internal:6109`) — see `apps/business/n8n`.
+This is a multi-node fleet, so the two directions are genuinely different mechanisms.
 
-A service that must be on another network as well declares it in `networks_`, keyed by the
-network's real name and valued as its top-level definition. `lib.Stack` hoists those
-definitions, exactly as it does `volumes_`:
+**Container to container, on one host** — a shared docker network. It is one entry in
+`lib.registry.network.shared`, and every participating stack writes it into its top-level
+`networks:` alongside the private bridge:
 
-| Input | Renders |
-| --- | --- |
-| `networks_:: lib.network.create(reg.networks.shared.postgresDB)` | membership, plus top-level `{name: shared__postgres_db}` |
-| `networks_:: lib.network.attach(reg.networks.shared.postgresDB)` | membership, plus top-level `{name: …, external: true}` |
+```jsonnet
+local sharedDB = lib.registry.network.shared.postgresDB;
 
-The split is ownership: exactly one stack `create`s a shared network and every other
-`attach`es to it. Compose creates an `external` network for nobody, so attaching before the
-owner exists fails the deploy rather than silently building a second empty network of the
-same name. Two services joining the same network collapse to one top-level entry, and both
-get `container_name` as an alias on every network they join. `networks_` is incompatible
-with `network_mode` (no netns of its own) and says so at render time.
+networks: {
+  default: { name: refs.name },
+  [sharedDB.name]: { name: sharedDB.name, external: true },
+},
+// and on each participating service:
+networks: ['default', sharedDB.name],
+```
 
-Changing the private bridge itself is the third argument to `lib.Stack` — it is merged last
-over the top-level block, so naming `default` redefines it and hoisted networks are left
-alone. `default` is always emitted; the argument can only change it, never remove it. Real:
-`platform/edge/pangolin` (ipv6 on the default); `reg.networks.hostGateway.create(name)`
-builds a fixed-IPAM block for it.
+`external: true` for every stack that joins one it does not own; the owning stack drops
+`external` so it is the one that creates it. Compose creates an `external` network for
+nobody, so attaching before the owner exists fails the deploy rather than silently building
+a second empty network of the same name. Real: `platform/edge/tailscale` (owns
+`shared__ts-gateway`), `apps/business/docuseal` (joins `shared__postgres_db`).
+
+**Host to host** — the `.internal` zone, which every host's CoreDNS resolves. Publish the
+port and dial `lib.registry.endpoint.serviceGroup.<x>.host.addr`, which is that service's
+host `ref` and port together (`littlebuddy.internal:6109`). Which host runs a service is a
+fact about that stack, so it lives on its registry entry and no consumer retypes it. Real:
+`platform/backup-manager/databasus` on `rick` reaching Postgres on `littlebuddy`.
+
+Every stack also gets one private bridge, named after the project, keyed as Compose's
+reserved `default`. Write it literally: `networks: { default: { name: refs.name } }` — and
+add fields to it the same way when a stack needs more, e.g. `{ default: { name: refs.name,
+driver: 'bridge', enable_ipv6: true } }`. Real: `platform/edge/pangolin`.
+
+A service using `network_mode` (host, or `service:<other>`) must declare no `networks` at
+all — Compose rejects the whole project if both are present. Real: `apps/media/stream`
+(plex), `platform/edge/pangolin` (traefik).
 
 ## Secrets
 
 Producer and consumer must agree on the env-file path, so single-source it:
 
-1. Add an entry to `infisical.catalog` in `registry.libsonnet` (`dump` for a whole
-   folder, `map` for renames, `raw` for a single value).
-2. In the stack, pass `lib.Secret('<key>')` to `lib.render`. That looks the entry's `dest`
-   up in the catalogue, so the agent fragment and this stack derive the same path and a
-   typo'd key fails at compile time. `dest` is not always `<key>.env` (komodo renders
-   `komodo_core.env`) and not always an env file (databasus renders a raw key file), which
-   is why it is looked up rather than spelled out.
-3. Reference each secret in `environment:` as `${VAR:?err}` — the `:?err` aborts the
-   deploy if the value is missing. **Set the secret before the first `up`.**
+1. Add the bundle to the right Infisical project's `secretsMap` in
+   `devlib/registry.libsonnet`. `service` is the folder in Infisical and the default
+   filename; override `projectPath`, `outFile`, `type` or `key` only where they differ.
+   Every project's map is flattened into `infisical.catalog`, which is what `lib.Secret`
+   looks in — so a key can only be spelled one way across the repo.
+2. Write the agent fragment at
+   `src/platform/secrets-manager/infisical/templates/services.<key>.yaml` — these are
+   hand-written; see `templates.md` beside them for the Go-template forms.
+3. Put `lib.Secret('<key>')` in the stack's `envFiles::`. A typo'd key fails at compile time.
+4. Reference each secret in `environment:` as `${VAR:?err}` — the `:?err` aborts the deploy
+   if the value is missing. **Set the secret before the first `up`.**
 
-`lib.SecretOrBootstrap('<key>')` is the same path wrapped in
-`${ANSIBLE_SECRETS_FILE:-…}`, for stacks the control plane brings up before the agent
-exists to render anything. Real: `komodo`, `infisical`, `cloudflared`, `zerobyte`.
+`lib.SecretOrBootstrap('<key>')` is the same path wrapped in `${ANSIBLE_SECRETS_FILE:-…}`,
+for stacks the control plane brings up before the agent exists. Real: `komodo`, `infisical`,
+`cloudflared`, `zerobyte`.
 
-A stack with **no** secrets omits the third `lib.render` arg entirely.
+A stack with **no** secrets omits `envFiles::` entirely.
 
 Gotcha: some images don't interpolate env-file values into certain fields. When that
-happens, put the literal `${VAR:?err}` directly in `environment:` (see
-`apps/media/immich`).
+happens the literal `${VAR:?err}` goes directly in `environment:` — see `apps/media/immich`.
 
 ## Variations (with real examples)
 
-**Shared Postgres instead of a dedicated DB** — delete the `db` service; dial the shared
-cluster over the host gateway, building the DSN from the registry endpoint:
+**Shared Postgres instead of a dedicated DB** — drop the `db` service and reach the shared
+cluster at the level it is on. On `littlebuddy`, that is the shared network:
 
 ```jsonnet
-local pg = reg.endpoint.postgres.host;   // .host = 'host.docker.internal', .port = '6109'
+local pg = lib.registry.endpoint.serviceGroup.postgres;
+local sharedDB = lib.registry.network.shared.postgresDB;
 // in environment:
-DATABASE_URL: 'postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@%s:%s/%s'
-              % [pg.host, pg.port, dbName],
-// on the consuming service, so it can resolve the docker host:
-extra_hosts: ['host.docker.internal:host-gateway'],
-// and pass the shared creds too:
-lib.render(name, stack, [lib.Secret('<stack>'), lib.Secret('postgres')])
+DATABASE_URL: 'postgresql://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@%s/mydb' % pg.container.addr,
+// on the consuming service:
+networks: ['default', sharedDB.name],
+// and pass the shared creds too, in refs.libsonnet:
+envFiles:: [lib.Secret('<stack>'), lib.Secret('postgres')],
 ```
-Real: `apps/business/n8n`, `apps/business/docuseal`, `apps/business/openproject`.
 
-**A second published port** (e.g. SSH) — just add another entry to `ports`. Real:
-`tools/devops/forgejo`.
+From any other host, swap `pg.container.addr` for `pg.host.addr` and drop the shared
+network — `littlebuddy.internal:6109` resolves through CoreDNS.
 
-**Overriding a derived name** — write the field again, with a comment saying who dials it.
-Real: `databases/postgres` (`container_name: 'postgres-db'`),
-`platform/container-manager/komodo` (alias `komodo_core`).
+Real: `apps/business/docuseal`, `apps/business/openproject` (same host);
+`platform/backup-manager/databasus` (another host).
 
-**Project name ≠ stack name** — `lib.Stack` names the resources, `lib.render` names the
-compose project; pass different strings when a stack's resources belong beside another's.
-Real: `platform/secrets-manager/infisical-agent` (renders under its own directory while
-naming resources `infisical_*`).
+**One image run several ways** — bind the shared body to a `local` and add to it per
+service. Real: `apps/business/openproject` (web/worker/cron/seeder).
 
-**Keep infra containers up when Komodo stops everything** — `labels: lib.komodoSkip`. Real:
-`platform/container-manager/komodo`, `tools/komodo-mcp`.
+**Compose profiles** — one file, two deployment shapes. Real:
+`platform/secrets-manager/infisical` (`server` and `agent`).
 
-**Committed (non-secret) config via service-level `env_file`** — set `env_file:` on the
-service, pointing at a file committed in the stack dir. Real: `platform/edge/newt`.
+**Committed (non-secret) config via service-level `env_file`** — point it at a file
+committed in the stack dir. Real: `platform/container-manager/komodo` (`./core.env`).
 
 **Device passthrough / NFS bind mounts** — `devices: ['/dev/dri:/dev/dri']`, literal host
 paths for large media. Real: `apps/media/immich`.
 
-**An entrypoint that isn't a compose stack** — any `.jsonnet` under `src/` renders into its
-own directory, each output named `<entrypoint-stem>.<key-stem><ext>`. Real: `platform/edge/dnsmasq/files/hosts.jsonnet` (a hosts file
-from `reg.hosts`), `platform/secrets-manager/infisical-agent/templates/services.jsonnet`
-(one agent fragment per catalogue entry).
+**An entrypoint that isn't a stack** — any `.jsonnet` under `src/` renders to the `.yaml`
+beside it. Real: `platform/edge/pangolin/files/` (four config files from one shared
+`config.libsonnet`).

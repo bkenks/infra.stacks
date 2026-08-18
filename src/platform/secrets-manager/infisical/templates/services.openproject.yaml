@@ -1,4 +1,3 @@
-# GENERATED from services.jsonnet by render.py — DO NOT EDIT.
 - destination-path: /dev/shm/openproject.env
   config:
     polling-interval: "1m"

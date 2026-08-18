@@ -1,0 +1,15 @@
+# GENERATED from services.jsonnet by render.py — DO NOT EDIT.
+name: "newt"
+networks:
+  default:
+    name: "newt"
+services:
+  tunnel:
+    container_name: "newt_tunnel"
+    environment:
+      NEWT_ID: "${NEWT_ID:?err}"
+      NEWT_SECRET: "${NEWT_SECRET:?err}"
+      PANGOLIN_ENDPOINT: "https://pangolin.ktbcloud.com"
+      TZ: "America/New_York"
+    image: "fosrl/newt:1.14.0"
+    restart: "unless-stopped"

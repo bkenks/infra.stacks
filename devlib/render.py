@@ -1,153 +1,169 @@
-#!/usr/bin/env python3
-#MISE description="Render every .jsonnet under a given dir into a .yaml beside it"
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.11"
+# ///
+# MISE description="Render every .jsonnet under src/ into the .yaml beside it"
 
-"""Render every .jsonnet file under a directory into a .yaml file beside it.
+"""Render each .jsonnet entrypoint into the .yaml sitting next to it.
+
+One entrypoint, one output: `services.jsonnet` evaluates to a Compose document and is
+written as `services.yaml`. A stack is a directory of those -- `compose.jsonnet` for the
+file Compose discovers, `services.jsonnet` for the services themselves, and a
+`refs.libsonnet` both import so the two cannot disagree about names.
+
+`*.libsonnet` is never an entrypoint, and a dot-prefixed directory (`.old/`, `.git/`) is
+skipped entirely.
+
+Ownership is the header on line one of every generated file. A file without it is
+hand-written: it is never deleted, and an entrypoint that would overwrite one is a hard
+error. A generated file that the current build no longer produces is removed, which is what
+makes a rebuild total -- a deleted stack and a renamed entrypoint leave nothing behind.
+
+Everything renders before anything is written, so a jsonnet failure aborts with the tree
+untouched.
 
 Usage:
-    ./render.py [DIRECTORY]
+    render.py [SRC] [-J JPATH]...
 
-DIRECTORY defaults to the current working directory. Every *.jsonnet file
-found underneath it, at any depth, is rendered to a *.yaml file of the same
-name in the same directory, overwriting any existing one. Each rendered path
-is printed to stdout.
+SRC defaults to `src` under the repo root, JPATH to `devlib`; both resolve against the
+repo root, which is this script's parent directory. stdout lists every path the build
+owns, written and removed alike -- .config/lefthook.yml pipes it into `git add`. The
+summary goes to stderr to keep that list machine-readable.
 
-Import resolution:
-    `import` statements inside a .jsonnet file are resolved against these
-    directories, in order, first match wins:
-
-        1. DIRECTORY itself
-        2. each entry of DEFAULT_JPATHS ("lib", then "vendor")
-        3. each entry of "jsonnet.languageServer.jpath" in .vscode/settings.json
-
-    DEFAULT_JPATHS and settings.json entries are relative to the current
-    working directory, not to DIRECTORY. Run the script from the repo root, or
-    use absolute paths, when your library directories live outside DIRECTORY.
-
-    .vscode/settings.json is read from the current working directory. A missing
-    file, or a missing "jsonnet.languageServer.jpath" key, contributes no extra
-    paths. Malformed JSON is an error.
-
-Requirements:
-    The `jsonnet` binary must be on PATH. This repo pins it via mise
-    (go-jsonnet in mise.toml); `mise install` provides it.
-
-Exit status:
-    0  at least one file rendered, or none found (a warning goes to stderr)
-    1  DIRECTORY missing, `jsonnet` not on PATH, or a render failed
-
-A render failure stops the run immediately; files already rendered stay on
-disk.
-
-Examples:
-    ./render.py         # render everything under $PWD
-    ./render.py test    # render the test fixtures
+Requires the `jsonnet` binary on PATH (mise pins go-jsonnet).
 """
 
-import json
+import argparse
 import subprocess
 import sys
 from pathlib import Path
 
-PROGRAM_NAME = "render.py"
+PROGRAM = "render.py"
 
-# Baked-in jsonnet import search paths, used alongside the settings.json ones.
-DEFAULT_JPATHS = ["lib", "vendor"]
+# This exact prefix, first line of the file, is what marks a file as ours to delete and
+# rewrite. Changing it orphans every file rendered by an older build, so it must stay
+# stable.
+MARKER = "# GENERATED from "
 
-SETTINGS_FILE = Path(".vscode/settings.json")
-SETTINGS_JPATH_KEY = "jsonnet.languageServer.jpath"
-
-
-def warn(message: str) -> None:
-    """Print a warning to stderr."""
-    print(f"{PROGRAM_NAME}: {message}", file=sys.stderr)
+REPO_ROOT = Path(__file__).resolve().parent.parent
+DEFAULT_SRC = "src"
+DEFAULT_JPATH = "devlib"
 
 
 def die(message: str) -> None:
     """Print an error and exit non-zero."""
-    warn(message)
+    print(f"{PROGRAM}: {message}", file=sys.stderr)
     sys.exit(1)
 
 
-def settings_jpaths() -> list[str]:
-    """Read the jsonnet import paths out of .vscode/settings.json.
-
-    Returns:
-        The "jsonnet.languageServer.jpath" entries, or an empty list when the
-        file or the key is absent.
-    """
-    if not SETTINGS_FILE.is_file():
-        return []
-
-    try:
-        settings = json.loads(SETTINGS_FILE.read_text())
-    except json.JSONDecodeError as error:
-        die(f"{SETTINGS_FILE} is not valid JSON: {error}")
-
-    return settings.get(SETTINGS_JPATH_KEY, [])
+def parse_args() -> argparse.Namespace:
+    """Parse the source directory and the jsonnet library paths."""
+    parser = argparse.ArgumentParser(prog=PROGRAM, description=__doc__)
+    parser.add_argument("src", nargs="?", default=DEFAULT_SRC,
+                        help=f"directory to sweep for entrypoints (default: {DEFAULT_SRC})")
+    parser.add_argument("-J", "--jpath", action="append", default=None,
+                        help=f"jsonnet library path, repeatable (default: {DEFAULT_JPATH})")
+    return parser.parse_args()
 
 
-def build_jpath_flags(search_root: Path) -> list[str]:
-    """Build the -J arguments for jsonnet.
-
-    Order is the search root first, then DEFAULT_JPATHS, then the settings.json
-    paths. Earlier paths win when a file exists in several.
-
-    Args:
-        search_root: Directory the .jsonnet files are found under.
-
-    Returns:
-        The -J flags and their values, ready to pass to jsonnet.
-    """
-    flags = []
-    for path in [str(search_root), *DEFAULT_JPATHS, *settings_jpaths()]:
-        if path:
-            flags += ["-J", path]
-    return flags
+def under_root(path: str) -> Path:
+    """Resolve a path against the repo root, leaving an absolute one as given."""
+    return Path(path) if Path(path).is_absolute() else REPO_ROOT / path
 
 
-def render_to_yaml(jsonnet_file: Path, jpath_flags: list[str]) -> None:
-    """Render one .jsonnet file to a .yaml file of the same name in the same directory.
-
-    -S emits the string result raw instead of as a JSON-quoted string.
-    -J adds a directory that `import` inside the file resolves against.
-
-    Args:
-        jsonnet_file: The .jsonnet file to render.
-        jpath_flags: The -J flags from build_jpath_flags.
-    """
-    yaml_file = jsonnet_file.with_suffix(".yaml")
-    expression = (
-        f"std.manifestYamlDoc(import '{jsonnet_file}', "
-        "indent_array_in_object=true, quote_keys=false)"
+def entrypoints(src: Path) -> list[Path]:
+    """Every .jsonnet under src, skipping dot-prefixed directories."""
+    return sorted(
+        path for path in src.rglob("*.jsonnet")
+        if not any(part.startswith(".") for part in path.relative_to(src).parts)
     )
 
-    try:
-        subprocess.run(
-            ["jsonnet", "-S", *jpath_flags, "-o", str(yaml_file), "-e", expression],
-            check=True,
-        )
-    except FileNotFoundError:
-        die("jsonnet not found on PATH")
-    except subprocess.CalledProcessError as error:
-        die(f"jsonnet failed on {jsonnet_file} (exit {error.returncode})")
 
-    print(yaml_file)
+def is_generated(path: Path) -> bool:
+    """Whether this build owns the file -- i.e. it carries the header on line one."""
+    try:
+        with path.open() as handle:
+            return handle.readline().startswith(MARKER)
+    except OSError:
+        return False
+
+
+def generated_files(src: Path) -> list[Path]:
+    """Every file under src carrying the generated header, skipping dot-prefixed dirs.
+
+    A retired stack is parked under `.old/`, which entrypoints() also skips -- so its
+    committed output is left alone rather than removed as stale.
+    """
+    return sorted(
+        path for path in src.rglob("*")
+        if path.is_file()
+        and not any(part.startswith(".") for part in path.relative_to(src).parts[:-1])
+        and is_generated(path)
+    )
+
+
+def render(entrypoint: Path, jpaths: list[Path]) -> str:
+    """Evaluate one entrypoint to a YAML document.
+
+    The assert is in jsonnet rather than here so the failure names the entrypoint at the
+    point jsonnet already reports line numbers for.
+
+    Args:
+        entrypoint: The .jsonnet file to evaluate.
+        jpaths: Directories `import` resolves against, after the importing file's own.
+
+    Returns:
+        The YAML body, without the generated header.
+    """
+    flags = [flag for jpath in jpaths for flag in ("-J", str(jpath))]
+    expression = (
+        f"local doc = import '{entrypoint}';"
+        f" assert std.isObject(doc) && doc != {{}} :"
+        f" '{entrypoint.name}: must evaluate to a non-empty object';"
+        " std.manifestYamlDoc(doc, indent_array_in_object=true, quote_keys=false)"
+    )
+    try:
+        result = subprocess.run(["jsonnet", "-S", *flags, "-e", expression],
+                                check=True, capture_output=True, text=True)
+    except FileNotFoundError:
+        die("jsonnet not found on PATH (run `mise install`)")
+    except subprocess.CalledProcessError as error:
+        sys.stderr.write(error.stderr)
+        die(f"jsonnet failed on {entrypoint}")
+    return result.stdout
 
 
 def main() -> None:
-    """Render every .jsonnet file under the directory given as argv[1], or $PWD."""
-    search_root = Path(sys.argv[1]) if len(sys.argv) > 1 else Path.cwd()
-    if not search_root.is_dir():
-        die(f"no such directory: {search_root}")
+    """Render every entrypoint, remove what the build no longer produces, list both."""
+    args = parse_args()
+    src = under_root(args.src)
+    if not src.is_dir():
+        die(f"no such directory: {src}")
+    jpaths = [under_root(p) for p in (args.jpath or [DEFAULT_JPATH])]
 
-    jsonnet_files = sorted(search_root.rglob("*.jsonnet"))
-    if not jsonnet_files:
-        warn(f"no .jsonnet files under {search_root}")
-        return
+    sources = entrypoints(src)
+    if not sources:
+        die(f"no .jsonnet entrypoints under {src}")
 
-    jpath_flags = build_jpath_flags(search_root)
-    for jsonnet_file in jsonnet_files:
-        render_to_yaml(jsonnet_file, jpath_flags)
+    # Rendered up front so a failure aborts before the tree is touched.
+    built = {path.with_suffix(".yaml"): render(path, jpaths) for path in sources}
+
+    clashes = [path for path in built if path.exists() and not is_generated(path)]
+    if clashes:
+        die("would overwrite hand-written files (rename the entrypoint or the file): "
+            + ", ".join(str(p.relative_to(REPO_ROOT)) for p in sorted(clashes)))
+
+    stale = [path for path in generated_files(src) if path not in built]
+    for path in stale:
+        path.unlink()
+
+    for path, body in built.items():
+        header = f"{MARKER}{path.with_suffix('.jsonnet').name} by {PROGRAM} — DO NOT EDIT.\n"
+        path.write_text(header + body)
+
+    for path in sorted(stale) + sorted(built):
+        print(path.relative_to(REPO_ROOT))
+    print(f"{PROGRAM}: {len(built)} rendered, {len(stale)} stale removed", file=sys.stderr)
 
 
 if __name__ == "__main__":

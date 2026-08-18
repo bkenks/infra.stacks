@@ -133,7 +133,6 @@ name = "fbq"
 server = "biggy"
 linked_repo = "infra.stacks"
 run_directory = "src/apps/storage/file-browser-quantum"
-ignore_services = ["init"]
 
 ##
 
@@ -170,7 +169,7 @@ name = "homarr"
 server = "rick"
 destroy_before_deploy = true
 linked_repo = "infra.stacks"
-run_directory = "./src/platform/dashboard"
+run_directory = "./src/platform/dashboard/homarr"
 file_paths = ["compose.yaml"]
 
 ##
@@ -232,7 +231,7 @@ run_directory = "./src/platform/secrets-manager/infisical"
 file_paths = ["compose.yaml"]
 config_files = [
   { path = "README.md" },
-  { path = "stack.services.yaml" }
+  { path = "services.yaml" }
 ]
 environment = """
 # ----- Credentials -----
@@ -264,7 +263,7 @@ run_directory = "./src/platform/secrets-manager/infisical"
 file_paths = ["compose.yaml"]
 config_files = [
   { path = "README.md" },
-  { path = "stack.services.yaml" }
+  { path = "services.yaml" }
 ]
 environment = """
 # ----- Credentials -----
@@ -322,7 +321,7 @@ run_directory = "./src/platform/secrets-manager/infisical"
 file_paths = ["compose.yaml"]
 config_files = [
   { path = "README.md" },
-  { path = "stack.services.yaml" }
+  { path = "services.yaml" }
 ]
 environment = """
 # ----- Credentials -----
@@ -351,7 +350,7 @@ linked_repo = "infra.stacks"
 run_directory = "./src/tools/komodo-mcp"
 file_paths = ["compose.yaml"]
 config_files = [
-  { path = "stack.services.yaml", requires = "Restart" }
+  { path = "services.yaml", requires = "Restart" }
 ]
 extra_args = ["--remove-orphans"]
 environment = """

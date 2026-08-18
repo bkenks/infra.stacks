@@ -20,8 +20,11 @@ pre-commit:
 
     - name: "[3/3] JSONNET -> YAML"
       run: |
+        # pipefail: without it a render failure is masked by git add's exit 0, and a
+        # commit lands with stale YAML.
+        set -o pipefail
         echo "INFO || running mise task..."
         echo "———————————————————————————————"
-        mise run render-compose | git add --pathspec-from-file=-
+        mise run render | git add --pathspec-from-file=-
         echo "———————————————————————————————"
         echo "INFO || completed successfully"

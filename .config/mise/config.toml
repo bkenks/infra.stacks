@@ -2,25 +2,16 @@
 # SETUP
 [tools]
 go-jsonnet = "0.22.0"
-uv = "0.12.1"         # TODO: remove after bash script
+uv = "0.12.1"         # runtime for devlib/render.py
 lefthook = "2.1.10"
 yamllint = "1.38.0"
-vendir = "0.46.0"
 yq = "4.53.3"
 
 [env]
 LEFTHOOK = 0
 
 [hooks]
-postinstall = """
-lefthook install
-mise run deps-vendir
-"""
-
-[tasks.deps-vendir]
-description = "Pull vendir dependencies"
-run = "vendir sync -f .config/vendir.yml --lock-file .config/vendir.lock.yml"
-alias = ["deps-vendir", "deps"]
+postinstall = "lefthook install"
 # SETUP
 # —————————————————————
 
@@ -37,13 +28,10 @@ alias = ["lint-yaml", "lint"]
 
 # —————————————————————
 # BUILD
-[tasks.render-compose]
-description = "Render all .jsonnet files to .yaml for Docker Compose"
-run = ".kmods/composonnet/jsonnet/scripts/render-compose.py"
+[tasks.render]
+description = "Render every .jsonnet under src/ into the .yaml beside it"
+run = "./devlib/render.py"
 alias = ["render-compose", "render"]
-# — configuration vars —
-env.RENDER_COMPOSE_SRC = "src"
-env.RENDER_COMPOSE_JPATH = ".kmods/composonnet/jsonnet/lib"
 # BUILD
 # —————————————————————
 

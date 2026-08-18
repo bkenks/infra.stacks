@@ -1,0 +1,124 @@
+# GENERATED from services.jsonnet by render.py — DO NOT EDIT.
+name: "paperless"
+networks:
+  default:
+    name: "paperless"
+  shared__paperless_db:
+    external: true
+    name: "shared__paperless_db"
+services:
+  broker:
+    container_name: "paperless_broker"
+    environment:
+      ALLOW_EMPTY_PASSWORD: "yes"
+    expose:
+      - "6379"
+    healthcheck:
+      interval: "10s"
+      retries: 5
+      test:
+        - "CMD"
+        - "redis-cli"
+        - "ping"
+      timeout: "5s"
+    image: "docker.io/library/redis:8"
+    restart: "on-failure:5"
+    volumes:
+      - "broker:/data"
+  db:
+    container_name: "paperless_db"
+    environment:
+      POSTGRES_DB: "paperless"
+      POSTGRES_PASSWORD: "${PAPERLESS_PG_PASS:?err}"
+      POSTGRES_USER: "paperless"
+    expose:
+      - "5432"
+    healthcheck:
+      interval: "5s"
+      retries: 10
+      test:
+        - "CMD-SHELL"
+        - "pg_isready --username=paperless"
+      timeout: "10s"
+    image: "docker.io/library/postgres:18"
+    networks:
+      - "default"
+      - "shared__paperless_db"
+    ports:
+      - "127.0.0.1:18025:5432"
+    restart: "on-failure:5"
+    volumes:
+      - "db:/var/lib/postgresql"
+  gotenberg:
+    command:
+      - "gotenberg"
+      - "--chromium-disable-javascript=true"
+      - "--chromium-allow-list=file:///tmp/.*"
+    container_name: "paperless_gotenberg"
+    expose:
+      - "3000"
+    image: "docker.io/gotenberg/gotenberg:8.25"
+    restart: "on-failure:5"
+  tika:
+    container_name: "paperless_tika"
+    expose:
+      - "9998"
+    image: "docker.io/apache/tika:latest"
+    restart: "on-failure:5"
+  webserver:
+    container_name: "paperless_webserver"
+    depends_on:
+      broker:
+        condition: "service_healthy"
+      db:
+        condition: "service_healthy"
+      gotenberg:
+        condition: "service_started"
+      tika:
+        condition: "service_started"
+    environment:
+      PAPERLESS_DATE_ORDER: "MDY"
+      PAPERLESS_DBHOST: "db"
+      PAPERLESS_DBNAME: "paperless"
+      PAPERLESS_DBPASS: "${PAPERLESS_PG_PASS:?err}"
+      PAPERLESS_DBUSER: "paperless"
+      PAPERLESS_OCR_LANGUAGE: "eng"
+      PAPERLESS_REDIS: "redis://broker:6379"
+      PAPERLESS_SECRET_KEY: "${PAPERLESS_SECRET_KEY:?err}"
+      PAPERLESS_TIKA_ENABLED: "1"
+      PAPERLESS_TIKA_ENDPOINT: "http://tika:9998"
+      PAPERLESS_TIKA_GOTENBERG_ENDPOINT: "http://gotenberg:3000"
+      PAPERLESS_TIME_ZONE: "America/New_York"
+      PAPERLESS_URL: "https://paper.ktbinternal.com"
+    expose:
+      - "8000"
+    healthcheck:
+      interval: "30s"
+      retries: 5
+      test:
+        - "CMD"
+        - "curl"
+        - "-fs"
+        - "-S"
+        - "--max-time"
+        - "2"
+        - "http://localhost:8000"
+      timeout: "10s"
+    image: "ghcr.io/paperless-ngx/paperless-ngx:latest"
+    ports:
+      - "127.0.0.1:18010:8000"
+    restart: "on-failure:5"
+    volumes:
+      - "webserver_data:/usr/src/paperless/data"
+      - "webserver_media:/usr/src/paperless/media"
+      - "/srv/docker/bind-mounts/apps/paperless/export:/usr/src/paperless/export"
+      - "/srv/docker/bind-mounts/apps/paperless/consume:/usr/src/paperless/consume"
+volumes:
+  broker:
+    name: "paperless_broker"
+  db:
+    name: "paperless_db"
+  webserver_data:
+    name: "paperless_webserver_data"
+  webserver_media:
+    name: "paperless_webserver_media"

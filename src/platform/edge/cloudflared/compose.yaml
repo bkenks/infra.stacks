@@ -1,6 +1,6 @@
-# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
+# GENERATED from compose.jsonnet by render.py — DO NOT EDIT.
 include:
-- env_file:
-  - ${ANSIBLE_SECRETS_FILE:-/dev/shm/cloudflared.env}
-  path: stack.services.yaml
-name: cloudflared
+  - env_file:
+      - "${ANSIBLE_SECRETS_FILE:-/dev/shm/cloudflared.env}"
+    path: "services.yaml"
+name: "cloudflared"

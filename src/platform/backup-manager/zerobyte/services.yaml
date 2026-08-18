@@ -1,0 +1,29 @@
+# GENERATED from services.jsonnet by render.py — DO NOT EDIT.
+name: "zerobyte"
+networks:
+  default:
+    name: "zerobyte"
+services:
+  app:
+    cap_add:
+      - "SYS_ADMIN"
+    container_name: "zerobyte_app"
+    devices:
+      - "/dev/fuse:/dev/fuse"
+    environment:
+      APP_SECRET: "${ZROBYT__APP_SECRET:?err}"
+      BASE_URL: "http://littlebuddy.internal:4096"
+      TZ: "America/New_York"
+    image: "ghcr.io/nicotsx/zerobyte:v0.40"
+    ports:
+      - "4096:4096"
+    restart: "unless-stopped"
+    security_opt:
+      - "apparmor:unconfined"
+    volumes:
+      - "app:/var/lib/zerobyte"
+      - "/etc/localtime:/etc/localtime:ro"
+      - "/var/lib/docker/volumes:/source/docker-volumes"
+volumes:
+  app:
+    name: "zerobyte_app"
