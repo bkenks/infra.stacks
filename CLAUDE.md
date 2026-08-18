@@ -87,33 +87,44 @@ under `src/`.
 
 - **`lib.libsonnet`** — the single entrypoint. Re-exports everything in `collections`
   (`lib.role`, `lib.domain`, `lib.dirs`, `lib.ip`, `lib.mounts`, `lib.labels`,
-  `lib.condition`, `lib.restart`, `lib.hostGateway`) and adds `lib.registry`, `lib.Project`,
-  `lib.Secret(key)` and `lib.SecretOrBootstrap(key)`.
-- **`collections.libsonnet`** — raw constants: values that have no structure, only a
-  spelling. Nothing here refers to anything else.
-- **`templates.libsonnet`** — the shapes a name can have, holding no values: `Endpoint`
-  (`Container` / `Host` / `Public`), `SharedNetwork`, and `Project` (`Service`, `Volume`,
-  and the `compose` document).
-- **`registry.libsonnet`** — source of truth for anything crossing stack boundaries, built
-  out of those templates. **Reference by KEY, never by string literal**:
-  `reg.endpoint.postgres.host.addr` fails at compile time on a typo;
-  `'host.docker.internal:6109'` fails silently at runtime. Holds `hosts` (the inventory, `ip`
-  = the host's WireGuard addr — there is no cluster DNS, so a cross-host reference dials it
-  directly), `endpoint`, `networks.shared`, `dirs` (only paths a *second* stack reads), and
-  `secrets` (every renderable secret bundle).
+  `lib.condition`, `lib.restart`) and adds `lib.registry`, `lib.templates`,
+  `lib.collections`, `lib.Project`, `lib.Secret(key)` and `lib.SecretOrBootstrap(key)`.
+- **`collections.libsonnet`** — raw constants: values that depend on nothing, only a
+  spelling or a default. Nothing here refers to anything else.
+- **`templates.libsonnet`** — the shapes a name can have, holding no values:
+  `Endpoint.HostGroup` (`Host`), `Endpoint.ServiceGroup.Service` (`Container` / `Host` /
+  `Proxy`), `SharedNetwork`, and `Project` (`Service`, `Volume`, and the `compose`
+  document).
+- **`registry.libsonnet`** — the global version of a stack's `refs.libsonnet`: a value
+  lands here the moment a *second* stack needs it. That is the line against
+  `collections` — constants that depend on nothing stay there and are never repeated here.
+  **Reference by KEY, never by string literal**:
+  `reg.endpoint.serviceGroup.postgres.host.addr` fails at compile time on a typo;
+  `'littlebuddy.internal:6109'` fails silently at runtime. Holds `network.shared`,
+  `endpoint.hostGroup` (the inventory — `ref` is the host's `.internal` name),
+  `endpoint.serviceGroup`, `dir` (only paths a *second* stack reads), and `infisical`
+  (every project's secret bundles, flattened into `infisical.catalog` for `lib.Secret`).
 
 ## Network model (non-obvious)
 
-Each stack gets a private `default` bridge named after the project, and **cross-stack
-traffic goes over published host ports by default** — dialled as `host.docker.internal:<port>`
-with `extra_hosts: lib.hostGateway.extraHosts` on the consumer. The shared Postgres cluster
-(`databases/postgres`) is single-sourced this way via `reg.endpoint.postgres.host`.
+This is a multi-node fleet, so the two directions are different mechanisms and the registry
+names both.
 
-A service can also join a shared Docker network. The split is ownership: exactly one stack
-puts `<net>.create` in its top-level `networks:`, every consumer puts `<net>.attach`, and each
-participating service lists the network by `<net>.name`. Compose creates an `external`
-network for nobody, so a stack that attaches to one that does not exist yet fails to come up
-instead of quietly building its own empty copy.
+Each stack gets a private `default` bridge named after the project, written literally:
+`networks: { default: { name: refs.name } }`.
+
+**Container to container, on one host** — a shared Docker network out of
+`reg.network.shared`. The split is ownership: the owning stack declares it plain, every
+other stack declares it `external: true`, and each participating service lists it by
+`<net>.name`. Compose creates an `external` network for nobody, so a stack that attaches to
+one that does not exist yet fails to come up instead of quietly building its own empty copy.
+
+**Host to host** — the `.internal` zone, resolved by the CoreDNS every host runs. Publish
+the port and dial `reg.endpoint.serviceGroup.<x>.host.addr`, which pairs the service's port
+with its host's `ref`. Which host runs a service is a fact of that stack, so it lives on
+the registry entry (`host:: service.Host { on:: host.littlebuddy, port:: '6109' }`) and no
+consumer retypes it. The shared Postgres cluster (`databases/postgres`) is single-sourced
+both ways: `.container.addr` on littlebuddy, `.host.addr` from anywhere else.
 
 ## Secrets (Infisical)
 
@@ -122,7 +133,8 @@ that host's secrets to `/dev/shm/<stack>.env` (RAM, never disk). The agent's per
 config fragments live in `src/platform/secrets-manager/infisical/templates/` and are
 **hand-written**; a host opts in via its `AGENT_SERVICES` list.
 
-In a stack, register the bundle in `registry.libsonnet`'s `secrets` map, put
+In a stack, register the bundle in the right Infisical project's `secretsMap` in
+`registry.libsonnet` (they flatten into `infisical.catalog`), put
 `lib.Secret('<key>')` in `refs.libsonnet`'s `envFiles`, and reference vars as `${VAR:?err}`
 so a missing secret aborts the deploy. Consumer and agent derive the path from the same
 entry, so they cannot disagree; `lib.SecretOrBootstrap(key)` is the same path wrapped in

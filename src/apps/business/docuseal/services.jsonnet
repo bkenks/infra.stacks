@@ -3,17 +3,20 @@ local refs = import 'refs.libsonnet';
 
 local version = '2.5.3';
 local port = '3000';
-local pg = lib.registry.endpoint.postgres;
-local sharedDB = lib.registry.networks.shared.postgresDB;
+local pg = lib.registry.endpoint.serviceGroup.postgres;
+local sharedDB = lib.registry.network.shared.postgresDB;
 
 {
   name: refs.name,
-  networks: refs.networks + sharedDB.attach,
+  networks: {
+    default: { name: refs.name },
+    [sharedDB.name]: { name: sharedDB.name, external: true },
+  },
   volumes: refs.appData.declare,
 
   services: {
     [refs.app.key]: {
-      container_name: refs.app.container,
+      container_name: refs.app.ext,
       image: 'docuseal/docuseal:' + version,
       restart: lib.restart.onFailure(5),
       networks: ['default', sharedDB.name],
@@ -27,7 +30,6 @@ local sharedDB = lib.registry.networks.shared.postgresDB;
         SECRET_KEY_BASE: '${DOCUSEAL_SECRET_KEY_BASE:?err}',
       },
       expose: [port],
-      extra_hosts: lib.hostGateway.extraHosts,
       ports: ['%s:18002:%s' % [lib.ip.loopback, port]],
     },
   },

@@ -13,7 +13,7 @@ local port = '4005';
 
   services: {
     [refs.app.key]: {
-      container_name: refs.app.container,
+      container_name: refs.app.ext,
       image: 'databasus/databasus@' + version,
       restart: lib.restart.unlessStopped,
       volumes: [
@@ -23,10 +23,9 @@ local port = '4005';
       ],
       ports: [port + ':' + port],
       network_mode: 'host',
-      // Reaches the databases it backs up over the docker gateway — they publish host
-      // ports (Postgres at lib.registry.endpoint.postgres.host.addr); configure each
-      // backup target's connection inside databasus to that address.
-      extra_hosts: lib.hostGateway.extraHosts,
+      // Reaches the databases it backs up over the .internal zone, which every host's
+      // CoreDNS resolves (Postgres at lib.registry.endpoint.serviceGroup.postgres.host.addr);
+      // configure each backup target's connection inside databasus to that address.
     },
   },
 }

@@ -16,8 +16,6 @@ services:
       SECRET_KEY_BASE: "${DOCUSEAL_SECRET_KEY_BASE:?err}"
     expose:
       - "3000"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     image: "docuseal/docuseal:2.5.3"
     networks:
       - "default"

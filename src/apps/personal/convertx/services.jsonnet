@@ -6,11 +6,11 @@ local dataDir = lib.dirs.docker.bindMounts + '/apps/convertx';
 
 {
   name: refs.name,
-  networks: refs.networks,
+  networks: { default: { name: refs.name } },
 
   services: {
     [refs.app.key]: {
-      container_name: refs.app.container,
+      container_name: refs.app.ext,
       // Upstream publishes no version tags — unpinned/`latest`.
       image: 'ghcr.io/c4illin/convertx',
       restart: lib.restart.unlessStopped,

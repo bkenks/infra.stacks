@@ -23,23 +23,27 @@ local dbVersion = '16-alpine';
 local redisVersion = '7-alpine';
 local agentVersion = '0.43.89';
 
-local infisical = lib.registry.endpoint.infisical;
+local infisical = lib.registry.endpoint.serviceGroup.infisical;
 local appPort = infisical.container.port;
 local dbUser = refs.name;
 local dbName = refs.name;
 
-local sharedDB = lib.registry.networks.shared.infisicalDB;
-local gateway = lib.registry.networks.shared.tsGateway;
+local sharedDB = lib.registry.network.shared.infisicalDB;
+local gateway = lib.registry.network.shared.tsGateway;
 
 {
   name: refs.name,
-  networks: refs.networks + sharedDB.attach + gateway.attach,
+  networks: {
+    default: { name: refs.name },
+    [sharedDB.name]: { name: sharedDB.name, external: true },
+    [gateway.name]: { name: gateway.name, external: true },
+  },
   volumes: refs.dbData.declare + refs.redisData.declare,
 
   services: {
     [refs.app.key]: {
-      // infisical_app is registry.endpoint.infisical.container.host — other stacks dial it.
-      container_name: infisical.container.host,
+      // infisical_app is registry.endpoint.infisical.container.name — other stacks dial it.
+      container_name: infisical.container.name,
       profiles: [serverProfile],
       image: 'docker.io/infisical/infisical:' + appVersion,
       restart: lib.restart.unlessStopped,
@@ -49,7 +53,7 @@ local gateway = lib.registry.networks.shared.tsGateway;
         [refs.redis.key]: { condition: lib.condition.healthy },
       },
       environment: {
-        SITE_URL: infisical.public.url,
+        SITE_URL: infisical.proxy.url,
 
         // Optional; blank disables email.
         SMTP_HOST: '${INFISICAL__SMTP_HOST:-}',
@@ -79,14 +83,14 @@ local gateway = lib.registry.networks.shared.tsGateway;
       },
       expose: [appPort],
       // Loopback-bound like every other host port: the public entrypoint is
-      // infisical.public.url via the edge proxy, not this mapping. Without the prefix this
+      // infisical.proxy.url via the edge proxy, not this mapping. Without the prefix this
       // publishes on 0.0.0.0, which reaches the internet on a public-IP host because
       // docker's iptables rules bypass ufw.
       ports: ['%s:%s:%s' % [lib.ip.loopback, infisical.host.port, appPort]],
     },
 
     [refs.db.key]: {
-      container_name: refs.db.container,
+      container_name: refs.db.ext,
       profiles: [serverProfile],
       image: 'docker.io/library/postgres:' + dbVersion,
       restart: lib.restart.unlessStopped,
@@ -111,7 +115,7 @@ local gateway = lib.registry.networks.shared.tsGateway;
     },
 
     [refs.redis.key]: {
-      container_name: refs.redis.container,
+      container_name: refs.redis.ext,
       profiles: [serverProfile],
       image: 'docker.io/library/redis:' + redisVersion,
       restart: lib.restart.unlessStopped,
@@ -129,7 +133,7 @@ local gateway = lib.registry.networks.shared.tsGateway;
     },
 
     [refs.agent.key]: {
-      container_name: refs.agent.container,
+      container_name: refs.agent.ext,
       profiles: [agentProfile],
       image: 'docker.io/infisical/cli:' + agentVersion,
       restart: lib.restart.unlessStopped,
@@ -153,7 +157,7 @@ local gateway = lib.registry.networks.shared.tsGateway;
         INFISICAL_CLIENT_ID: '${INFISICAL_CLIENT_ID:-}',
         INFISICAL_CLIENT_SECRET: '${INFISICAL_CLIENT_SECRET:-}',
         // The in-cluster address by default; a per-host override is allowed.
-        INFISICAL_ADDRESS: '${INFISICAL_ADDRESS:-%s}' % infisical.container.url,
+        INFISICAL_ADDRESS: '${INFISICAL_ADDRESS:-%s}' % infisical.container.url(),
       },
       healthcheck: {
         test: ['CMD-SHELL', '[ ! -f /tmp/agent.last_err ] || [ $$(( $$(date +%s) - $$(cat /tmp/agent.last_err) )) -ge 180 ]'],

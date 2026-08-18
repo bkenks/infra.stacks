@@ -1,5 +1,5 @@
 // authentik — identity provider / OIDC-SSO. Runs on rick (public VPS), served at
-// registry.endpoint.authentik.public.url. As of authentik 2025.10 Redis is gone (state
+// registry.endpoint.serviceGroup.authentik.proxy.url. As of authentik 2025.10 Redis is gone (state
 // moved to Postgres), so the stack is server + worker + a dedicated Postgres.
 //
 // Postgres is bundled (NOT the shared cluster): the shared cluster lives on littlebuddy,
@@ -13,7 +13,7 @@ local dbVersion = '16-alpine';
 local httpPort = '9000';
 local dbUser = refs.name;
 local dbName = refs.name;
-local gateway = lib.registry.networks.shared.tsGateway;
+local gateway = lib.registry.network.shared.tsGateway;
 
 // Identical on server AND worker — they must agree on the DB and the secret key.
 local authentikEnv = {
@@ -28,13 +28,16 @@ local dbHealthy = { [refs.db.key]: { condition: lib.condition.healthy } };
 
 {
   name: refs.name,
-  networks: refs.networks + gateway.attach,
+  networks: {
+    default: { name: refs.name },
+    [gateway.name]: { name: gateway.name, external: true },
+  },
   volumes: refs.data.declare + refs.dbData.declare,
 
   services: {
     // ── Server: the web UI + API + OIDC endpoints ──────────────────────────────
     [refs.app.key]: {
-      container_name: refs.app.container,
+      container_name: refs.app.ext,
       image: 'ghcr.io/goauthentik/server:' + version,
       restart: lib.restart.unlessStopped,
       command: 'server',
@@ -48,7 +51,7 @@ local dbHealthy = { [refs.db.key]: { condition: lib.condition.healthy } };
 
     // ── Worker: background tasks, outpost mgmt, cert/blueprint processing ───────
     [refs.worker.key]: {
-      container_name: refs.worker.container,
+      container_name: refs.worker.ext,
       image: 'ghcr.io/goauthentik/server:' + version,
       restart: lib.restart.unlessStopped,
       command: 'worker',
@@ -64,7 +67,7 @@ local dbHealthy = { [refs.db.key]: { condition: lib.condition.healthy } };
 
     // ── DB: dedicated Postgres (see the header for why not the shared cluster) ──
     [refs.db.key]: {
-      container_name: refs.db.container,
+      container_name: refs.db.ext,
       image: 'docker.io/library/postgres:' + dbVersion,
       restart: lib.restart.unlessStopped,
       networks: ['default', gateway.name],

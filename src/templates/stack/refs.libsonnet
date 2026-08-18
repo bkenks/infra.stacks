@@ -7,7 +7,7 @@ local lib = import 'lib.libsonnet';
 
 lib.Project {
   // The one string a stack has to choose. Containers become <name>_<role>, volumes
-  // <name>_<key>, and it is the real name of the private bridge.
+  // <name>_<key>, and it is the name the private bridge is given in services.jsonnet.
   name:: 'example',  // ← rename me
 
   // The env files compose interpolates into services.yaml. Register the bundle in

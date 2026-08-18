@@ -10,12 +10,12 @@ local stackDir = lib.dirs.docker.bindMounts + '/dcm';
 
 {
   name: refs.name,
-  networks: refs.networks,
+  networks: { default: { name: refs.name } },
   volumes: refs.appData.declare,
 
   services: {
     [refs.app.key]: {
-      container_name: refs.app.container,
+      container_name: refs.app.ext,
       image: 'ghcr.io/moghtech/komodo-core:' + version,
       restart: lib.restart.unlessStopped,
       depends_on: [refs.db.key],
@@ -40,7 +40,6 @@ local stackDir = lib.dirs.docker.bindMounts + '/dcm';
       },
       // Published directly — the UI is reached via this port.
       ports: ['9120:9120'],
-      extra_hosts: lib.hostGateway.extraHosts,
       init: true,
       // Komodo's own config already names the core komodo_core, so the alias keeps that
       // rather than following container_name.
@@ -50,7 +49,7 @@ local stackDir = lib.dirs.docker.bindMounts + '/dcm';
 
     [refs.db.key]: {
       // Referenced as komodo_db in core.env.
-      container_name: refs.db.container,
+      container_name: refs.db.ext,
       image: 'mongo:' + mongoVersion,
       restart: lib.restart.unlessStopped,
       volumes: [

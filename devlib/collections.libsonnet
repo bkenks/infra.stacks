@@ -1,10 +1,4 @@
-// Raw constants — the values that have no structure, only a spelling.
-//
-// Anything computed from these (an endpoint, a shared network, a secret path) lives in
-// registry.libsonnet instead. Nothing here refers to anything else.
 {
-  // The vocabulary for service keys. A stack picks its keys from here rather than
-  // inventing names, so `db` is never also `database` or `postgres` in another stack.
   role:: {
     // User-facing / entry
     APP:: 'app',
@@ -44,50 +38,42 @@
     MAIL:: 'mail',
   },
 
-  ip:: {
-    // Published ports bind here: apps are reached over the tailnet or the edge proxy, so a
-    // port that is not loopback-bound is a mistake rather than a default.
-    loopback:: '127.0.0.1',
-  },
+  ip:: { loopback:: '127.0.0.1' },
 
   domain:: {
-    homektb:: 'homektb.com',
-    stackform:: 'stackform.app',
-    couchpotatoes:: 'couchpotatoes.store',
-    ktbinternal:: 'ktbinternal.com',
-    ktbcloud:: 'ktbcloud.com',
+    ktbdev::          'ktb.dev',
+    ktbinternal::     'ktbinternal.com',
+    ktbcloud::        'ktbcloud.com',
   },
 
   dirs:: {
     docker:: {
-      root:: '/srv/docker',
-      bindMounts:: '/srv/docker/bind-mounts',
+      root::
+        '/srv/docker',
+      bindMounts::
+        '/srv/docker/bind-mounts',
     },
 
-    // Rootless docker's data root on the hosts that run it.
-    rootlessSrv:: '/rootless-srv',
+    rootlessSrv::
+      '/rootless-srv',
 
     nas:: {
-      docker:: '/volume1/docker',
-      backups:: '/volume1/backups',
+      docker::
+        '/volume1/docker',
+      backups::
+        '/volume1/backups',
     },
 
     // tmpfs. infisical-agent renders every secret here, so it never touches a disk.
-    secrets:: '/dev/shm',
-  },
-
-  // There is no cluster DNS. A container reaches its own host through the docker gateway,
-  // which is how every cross-stack call is made: publish a port, then dial it here.
-  // `hostGateway.extraHosts` is what makes the name resolve inside the container.
-  hostGateway:: {
-    host:: 'host.docker.internal',
-    extraHosts:: ['host.docker.internal:host-gateway'],
+    secrets::
+      '/dev/shm',
   },
 
   mounts:: {
-    dockerSock:: '/var/run/docker.sock:/var/run/docker.sock:ro',
-    // Restarting a container is a write on the socket, so this one is deliberately not :ro.
-    dockerSockRW:: '/var/run/docker.sock:/var/run/docker.sock',
+    dockerSock::
+      '/var/run/docker.sock:/var/run/docker.sock:ro',
+    dockerSockRW::
+      '/var/run/docker.sock:/var/run/docker.sock',
   },
 
   labels:: {

@@ -20,11 +20,11 @@ local bindRoot = lib.dirs.docker.bindMounts + '/apps/immich';
 
 {
   name: refs.name,
-  networks: refs.networks,
+  networks: { default: { name: refs.name } },
 
   services: {
     [refs.database.key]: {
-      container_name: refs.database.container,
+      container_name: refs.database.ext,
       image: dbImage,
       restart: lib.restart.unlessStopped,
       volumes: [bindRoot + '/postgres:/var/lib/postgresql/data'],
@@ -38,7 +38,7 @@ local bindRoot = lib.dirs.docker.bindMounts + '/apps/immich';
     },
 
     [refs.machineLearning.key]: {
-      container_name: refs.machineLearning.container,
+      container_name: refs.machineLearning.ext,
       image: mlImage,
       restart: lib.restart.unlessStopped,
       volumes: [bindRoot + '/model-cache:/cache'],
@@ -46,13 +46,13 @@ local bindRoot = lib.dirs.docker.bindMounts + '/apps/immich';
     },
 
     [refs.redis.key]: {
-      container_name: refs.redis.container,
+      container_name: refs.redis.ext,
       image: redisImage,
       restart: lib.restart.unlessStopped,
     },
 
     [refs.server.key]: {
-      container_name: refs.server.container,
+      container_name: refs.server.ext,
       image: serverImage,
       restart: lib.restart.unlessStopped,
       depends_on: [refs.database.key, refs.redis.key],
@@ -63,8 +63,8 @@ local bindRoot = lib.dirs.docker.bindMounts + '/apps/immich';
       devices: ['/dev/dri:/dev/dri'],
       environment: {
         TZ: tz,
-        REDIS_HOSTNAME: refs.redis.container,
-        DB_HOSTNAME: refs.database.container,
+        REDIS_HOSTNAME: refs.redis.ext,
+        DB_HOSTNAME: refs.database.ext,
         DB_USERNAME: refs.name,
         DB_DATABASE_NAME: refs.name,
         DB_PASSWORD: '${IMMICH_DB_PASSWORD:?err}',

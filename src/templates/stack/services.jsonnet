@@ -17,13 +17,15 @@ local dbName = refs.name;
 
 {
   name: refs.name,
-  networks: refs.networks,
+  // The private bridge every service joins implicitly. `default` is compose's reserved
+  // key, not a name; the stack's name lands underneath it.
+  networks: { default: { name: refs.name } },
 
   volumes: refs.appData.declare + refs.dbData.declare,
 
   services: {
     [refs.app.key]: {
-      container_name: refs.app.container,
+      container_name: refs.app.ext,
       image: 'ghcr.io/example/example:' + appVersion,
       restart: lib.restart.onFailure(5),
 
@@ -59,11 +61,12 @@ local dbName = refs.name;
     },
 
     // ── DB: dedicated Postgres ────────────────────────────────────────────────────
-    // To use the SHARED cluster instead, delete this service and dial it through the
-    // docker gateway: lib.registry.endpoint.postgres.host.addr, plus
-    // `extra_hosts: lib.hostGateway.extraHosts` on the consumer.
+    // To use the SHARED cluster instead, delete this service and reach it by the level it
+    // is on: same host, join shared__postgres_db and dial
+    // lib.registry.endpoint.serviceGroup.postgres.container.addr; another host, dial
+    // lib.registry.endpoint.serviceGroup.postgres.host.addr over the .internal zone.
     [refs.db.key]: {
-      container_name: refs.db.container,
+      container_name: refs.db.ext,
       image: 'docker.io/library/postgres:' + dbVersion,
       restart: lib.restart.onFailure(5),
       expose: ['5432'],

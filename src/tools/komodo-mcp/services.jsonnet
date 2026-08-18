@@ -10,11 +10,11 @@ local port = '8000';
 
 {
   name: refs.name,
-  networks: refs.networks,
+  networks: { default: { name: refs.name } },
 
   services: {
     [refs.app.key]: {
-      container_name: refs.app.container,
+      container_name: refs.app.ext,
       image: 'fj.%s/bkenks/komodo-mcp-server:%s' % [lib.domain.ktbcloud, version],
       restart: lib.restart.onFailure(5),
       environment: {
@@ -32,7 +32,6 @@ local port = '8000';
       },
       expose: [port],
       ports: ['%s:18007:%s' % [lib.ip.loopback, port]],
-      extra_hosts: lib.hostGateway.extraHosts,
       // No `init: true`: the image's own tini is already PID 1; Docker's init would nest a
       // second tini as a non-PID-1 child and break zombie reaping.
       labels: lib.labels.komodoSkip,

@@ -133,7 +133,6 @@ name = "fbq"
 server = "biggy"
 linked_repo = "infra.stacks"
 run_directory = "src/apps/storage/file-browser-quantum"
-ignore_services = ["init"]
 
 ##
 
@@ -170,7 +169,7 @@ name = "homarr"
 server = "rick"
 destroy_before_deploy = true
 linked_repo = "infra.stacks"
-run_directory = "./src/platform/dashboard"
+run_directory = "./src/platform/dashboard/homarr"
 file_paths = ["compose.yaml"]
 
 ##

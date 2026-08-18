@@ -9,16 +9,19 @@ local dbVersion = '14';
 local port = '3000';
 local dbUser = refs.name;
 local dbName = refs.name;
-local sharedDB = lib.registry.networks.shared.forgejoDB;
+local sharedDB = lib.registry.network.shared.forgejoDB;
 
 {
   name: refs.name,
-  networks: refs.networks + sharedDB.attach,
+  networks: {
+    default: { name: refs.name },
+    [sharedDB.name]: { name: sharedDB.name, external: true },
+  },
   volumes: refs.serverData.declare + refs.dbData.declare,
 
   services: {
     [refs.server.key]: {
-      container_name: refs.server.container,
+      container_name: refs.server.ext,
       image: serverImage,
       restart: lib.restart.onFailure(5),
       volumes: [
@@ -44,7 +47,7 @@ local sharedDB = lib.registry.networks.shared.forgejoDB;
     },
 
     [refs.db.key]: {
-      container_name: refs.db.container,
+      container_name: refs.db.ext,
       image: 'docker.io/library/postgres:' + dbVersion,
       restart: lib.restart.onFailure(5),
       networks: ['default', sharedDB.name],

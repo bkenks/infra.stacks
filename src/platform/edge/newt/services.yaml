@@ -11,7 +11,5 @@ services:
       NEWT_SECRET: "${NEWT_SECRET:?err}"
       PANGOLIN_ENDPOINT: "https://pangolin.ktbcloud.com"
       TZ: "America/New_York"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     image: "fosrl/newt:1.14.0"
     restart: "unless-stopped"

@@ -1,25 +1,28 @@
-// The cluster's own identity is single-sourced at registry.endpoint.postgres — change it
-// there, not here. Consumers no longer share a docker network with this stack; they dial
-// the host-published port through the docker gateway.
+// The cluster's own identity is single-sourced at registry.endpoint.serviceGroup.postgres —
+// change it there, not here. Consumers on this host reach it over shared__postgres_db;
+// consumers on another host dial the published port at postgres.host.addr.
 local lib = import 'lib.libsonnet';
 local refs = import 'refs.libsonnet';
 
-local pg = lib.registry.endpoint.postgres;
-local sharedDB = lib.registry.networks.shared.postgresDB;
+local pg = lib.registry.endpoint.serviceGroup.postgres;
+local sharedDB = lib.registry.network.shared.postgresDB;
 local version = '18';
 
 {
   name: refs.name,
   // shared__postgres_db is created out of band, so this stack attaches to it exactly like
   // every consumer does — nothing here owns it.
-  networks: refs.networks + sharedDB.attach,
+  networks: {
+    default: { name: refs.name },
+    [sharedDB.name]: { name: sharedDB.name, external: true },
+  },
   volumes: refs.dbData.declare,
 
   services: {
     [refs.db.key]: {
       // Other stacks already dial this name, so it is the registry's value rather than the
       // <project>_<role> convention.
-      container_name: pg.container.host,
+      container_name: pg.container.name,
       image: 'postgres:' + version,
       restart: lib.restart.always,
       networks: ['default', sharedDB.name],

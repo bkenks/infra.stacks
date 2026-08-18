@@ -9,12 +9,12 @@ local port = '4096';
 
 {
   name: refs.name,
-  networks: refs.networks,
+  networks: { default: { name: refs.name } },
   volumes: refs.appData.declare,
 
   services: {
     [refs.app.key]: {
-      container_name: refs.app.container,
+      container_name: refs.app.ext,
       image: 'ghcr.io/nicotsx/zerobyte:' + version,
       restart: lib.restart.unlessStopped,
       volumes: [
@@ -24,7 +24,7 @@ local port = '4096';
       ],
       environment: {
         TZ: 'America/New_York',
-        BASE_URL: 'http://%s:%s' % [lib.registry.hosts.littlebuddy.ip, port],
+        BASE_URL: 'http://%s:%s' % [lib.registry.endpoint.hostGroup.littlebuddy.ref, port],
         APP_SECRET: '${ZROBYT__APP_SECRET:?err}',
       },
       // Core infra, no proxy in front of it.

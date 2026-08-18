@@ -15,8 +15,8 @@ local sub = 'openprj';
 local cloudDomain = sub + '.' + lib.domain.ktbcloud;
 local internalDomain = sub + '.' + lib.domain.ktbinternal;
 
-local pg = lib.registry.endpoint.postgres.container;
-local sharedDB = lib.registry.networks.shared.postgresDB;
+local pg = lib.registry.endpoint.serviceGroup.postgres.container;
+local sharedDB = lib.registry.network.shared.postgresDB;
 
 local appEnv = {
   OPENPROJECT_HTTPS: 'true',
@@ -58,21 +58,25 @@ local railsApp = {
     './token/enterprise_token.rb:/app/app/models/enterprise_token.rb',
   ],
   environment: appEnv,
-  // Postgres is the shared cluster, dialled through the docker gateway.
-  extra_hosts: lib.hostGateway.extraHosts,
+  // Postgres is the shared cluster on this host, reached over shared__postgres_db. Every
+  // Rails service needs it — the seeder runs the migrations.
+  networks: ['default', sharedDB.name],
 };
 
 local afterSeed = [refs.cache.key, refs.seeder.key];
 
 {
   name: refs.name,
-  networks: refs.networks + sharedDB.attach,
+  networks: {
+    default: { name: refs.name },
+    [sharedDB.name]: { name: sharedDB.name, external: true },
+  },
   volumes: refs.assets.declare,
 
   services: {
     // Restarts any container labelled autoheal=true once its healthcheck fails.
     [refs.autoheal.key]: {
-      container_name: refs.autoheal.container,
+      container_name: refs.autoheal.ext,
       image: 'willfarrell/autoheal:' + autohealVersion,
       restart: lib.restart.unlessStopped,
       environment: {
@@ -84,19 +88,19 @@ local afterSeed = [refs.cache.key, refs.seeder.key];
     },
 
     [refs.cache.key]: {
-      container_name: refs.cache.container,
+      container_name: refs.cache.ext,
       image: 'memcached:' + memcachedVersion,
       restart: lib.restart.unlessStopped,
     },
 
     [refs.cron.key]: railsApp {
-      container_name: refs.cron.container,
+      container_name: refs.cron.ext,
       depends_on: afterSeed,
       command: './docker/prod/cron',
     },
 
     [refs.hocuspocus.key]: {
-      container_name: refs.hocuspocus.container,
+      container_name: refs.hocuspocus.ext,
       image: 'openproject/hocuspocus:' + hocuspocusVersion,
       restart: lib.restart.unlessStopped,
       networks: ['default', sharedDB.name],
@@ -113,16 +117,15 @@ local afterSeed = [refs.cache.key, refs.seeder.key];
 
     // Runs migrations and seeds, then exits; the long-running services wait on it.
     [refs.seeder.key]: railsApp {
-      container_name: refs.seeder.container,
+      container_name: refs.seeder.ext,
       command: './docker/prod/seeder',
       restart: 'on-failure',
     },
 
     [refs.web.key]: railsApp {
-      container_name: refs.web.container,
+      container_name: refs.web.ext,
       depends_on: afterSeed,
       command: './docker/prod/web',
-      networks: ['default', sharedDB.name],
       // One Puma worker instead of the default 2 — a whole forked Rails process saved; low
       // concurrency here does not need two. Bump back up if web slows.
       environment: appEnv { WEB_CONCURRENCY: '1' },
@@ -139,10 +142,9 @@ local afterSeed = [refs.cache.key, refs.seeder.key];
     },
 
     [refs.worker.key]: railsApp {
-      container_name: refs.worker.container,
+      container_name: refs.worker.ext,
       depends_on: afterSeed,
       command: './docker/prod/worker',
-      networks: ['default', sharedDB.name],
     },
   },
 }

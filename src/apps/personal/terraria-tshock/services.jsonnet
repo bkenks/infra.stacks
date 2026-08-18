@@ -27,11 +27,11 @@ local pluginsDir = '/tshock/ServerPlugins';
 
 {
   name: refs.name,
-  networks: refs.networks,
+  networks: { default: { name: refs.name } },
 
   services: {
     [refs.app.key]: {
-      container_name: refs.app.container,
+      container_name: refs.app.ext,
       image: 'ryshe/terraria:' + imageTag,
       restart: lib.restart.unlessStopped,
       ports: [

@@ -13,17 +13,20 @@ local dbUser = refs.name;
 local dbName = refs.name;
 
 local bindRoot = lib.dirs.docker.bindMounts + '/apps/paperless';
-local sharedDB = lib.registry.networks.shared.paperlessDB;
+local sharedDB = lib.registry.network.shared.paperlessDB;
 
 {
   name: refs.name,
-  networks: refs.networks + sharedDB.attach,
+  networks: {
+    default: { name: refs.name },
+    [sharedDB.name]: { name: sharedDB.name, external: true },
+  },
   volumes: refs.brokerData.declare + refs.dbData.declare
            + refs.webserverData.declare + refs.webserverMedia.declare,
 
   services: {
     [refs.broker.key]: {
-      container_name: refs.broker.container,
+      container_name: refs.broker.ext,
       image: 'docker.io/library/redis:' + brokerVersion,
       restart: lib.restart.onFailure(5),
       volumes: [refs.brokerData.mount('/data')],
@@ -40,7 +43,7 @@ local sharedDB = lib.registry.networks.shared.paperlessDB;
     },
 
     [refs.db.key]: {
-      container_name: refs.db.container,
+      container_name: refs.db.ext,
       image: 'docker.io/library/postgres:' + dbVersion,
       restart: lib.restart.onFailure(5),
       networks: ['default', sharedDB.name],
@@ -61,7 +64,7 @@ local sharedDB = lib.registry.networks.shared.paperlessDB;
     },
 
     [refs.gotenberg.key]: {
-      container_name: refs.gotenberg.container,
+      container_name: refs.gotenberg.ext,
       image: 'docker.io/gotenberg/gotenberg:' + gotenbergVersion,
       restart: lib.restart.onFailure(5),
       // The chromium route converts .eml files; disallow tracking pixels/javascript.
@@ -70,14 +73,14 @@ local sharedDB = lib.registry.networks.shared.paperlessDB;
     },
 
     [refs.tika.key]: {
-      container_name: refs.tika.container,
+      container_name: refs.tika.ext,
       image: 'docker.io/apache/tika:' + tikaVersion,
       restart: lib.restart.onFailure(5),
       expose: ['9998'],
     },
 
     [refs.webserver.key]: {
-      container_name: refs.webserver.container,
+      container_name: refs.webserver.ext,
       image: 'ghcr.io/paperless-ngx/paperless-ngx:' + paperlessVersion,
       restart: lib.restart.onFailure(5),
       depends_on: {

@@ -48,9 +48,10 @@ services:
       RAILS_MIN_THREADS: "4"
       SECRET_KEY_BASE: "${OPEN_PRJ_SECRET_KEY:?err}"
       USE_JEMALLOC: "true"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     image: "openproject/openproject:17-slim"
+    networks:
+      - "default"
+      - "shared__postgres_db"
     restart: "unless-stopped"
     volumes:
       - "assets:/var/openproject/assets"
@@ -94,9 +95,10 @@ services:
       RAILS_MIN_THREADS: "4"
       SECRET_KEY_BASE: "${OPEN_PRJ_SECRET_KEY:?err}"
       USE_JEMALLOC: "true"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     image: "openproject/openproject:17-slim"
+    networks:
+      - "default"
+      - "shared__postgres_db"
     restart: "on-failure"
     volumes:
       - "assets:/var/openproject/assets"
@@ -131,8 +133,6 @@ services:
       WEB_CONCURRENCY: "1"
     expose:
       - "8080"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     healthcheck:
       interval: "10s"
       retries: 3
@@ -182,8 +182,6 @@ services:
       RAILS_MIN_THREADS: "4"
       SECRET_KEY_BASE: "${OPEN_PRJ_SECRET_KEY:?err}"
       USE_JEMALLOC: "true"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     image: "openproject/openproject:17-slim"
     networks:
       - "default"

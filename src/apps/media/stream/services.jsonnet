@@ -56,11 +56,11 @@ local arrApiKeys = {
 
 {
   name: refs.name,
-  networks: refs.networks,
+  networks: { default: { name: refs.name } },
 
   services: {
     [refs.bazarr.key]: {
-      container_name: refs.bazarr.container,
+      container_name: refs.bazarr.ext,
       image: 'lscr.io/linuxserver/bazarr:' + versions.bazarr,
       restart: restart,
       volumes: [
@@ -75,7 +75,7 @@ local arrApiKeys = {
 
     // One-shot: syncs ./configarr/config.yml into Sonarr/Radarr on each deploy, then exits 0.
     [refs.configarr.key]: {
-      container_name: refs.configarr.container,
+      container_name: refs.configarr.ext,
       image: 'ghcr.io/raydak-labs/configarr:' + versions.configarr,
       restart: restart,
       depends_on: arrsHealthy,
@@ -89,7 +89,7 @@ local arrApiKeys = {
     // Long-running: every `timer` minutes scans the Sonarr/Radarr queues, removes
     // failed/stalled/slow/orphaned downloads, and triggers a re-search.
     [refs.decluttarr.key]: {
-      container_name: refs.decluttarr.container,
+      container_name: refs.decluttarr.ext,
       image: 'ghcr.io/manimatter/decluttarr:' + versions.decluttarr,
       restart: restart,
       depends_on: arrsHealthy,
@@ -102,7 +102,7 @@ local arrApiKeys = {
     // Compose rejects network_mode and networks on the same service, so this one declares
     // no networks at all.
     [refs.plex.key]: {
-      container_name: refs.plex.container,
+      container_name: refs.plex.ext,
       image: 'lscr.io/linuxserver/plex:' + versions.plex,
       restart: restart,
       network_mode: 'host',
@@ -124,7 +124,7 @@ local arrApiKeys = {
     },
 
     [refs.prowlarr.key]: {
-      container_name: refs.prowlarr.container,
+      container_name: refs.prowlarr.ext,
       image: 'lscr.io/linuxserver/prowlarr@sha256:d3e9307b320b6772749a2cf8fc2712e9e824c4930b034680ad4d08a9e2f25884',
       restart: restart,
       volumes: [bindRoot + '/prowlarr/config:/config'],
@@ -135,7 +135,7 @@ local arrApiKeys = {
     },
 
     [refs.radarr.key]: {
-      container_name: refs.radarr.container,
+      container_name: refs.radarr.ext,
       image: 'lscr.io/linuxserver/radarr@sha256:270f25698624b57b86ca119cc95399d7ff15be8297095b4e1223fd5b549b732c',
       restart: restart,
       volumes: [
@@ -149,7 +149,7 @@ local arrApiKeys = {
     },
 
     [refs.sabnzbd.key]: {
-      container_name: refs.sabnzbd.container,
+      container_name: refs.sabnzbd.ext,
       image: 'lscr.io/linuxserver/sabnzbd@sha256:fba727f777f6b2633fcdeaea94abc85d73148f2a6b19a8158907bdd5b6e145d0',
       restart: restart,
       volumes: [
@@ -165,7 +165,7 @@ local arrApiKeys = {
     // Runs as the fixed non-root `node` user (UID 1000) — PUID/PGID have no effect; needs
     // `init: true`. No healthcheck: the image ships no curl/wget/bash.
     [refs.seerr.key]: {
-      container_name: refs.seerr.container,
+      container_name: refs.seerr.ext,
       image: 'ghcr.io/seerr-team/seerr:' + versions.seerr,
       restart: restart,
       volumes: [bindRoot + '/seerr/config:/app/config'],
@@ -176,7 +176,7 @@ local arrApiKeys = {
     },
 
     [refs.sonarr.key]: {
-      container_name: refs.sonarr.container,
+      container_name: refs.sonarr.ext,
       image: 'lscr.io/linuxserver/sonarr@sha256:02b4d538d351d6e35882a021c08e8600fe95d28860fb1dd724b597166e7221ca',
       restart: restart,
       volumes: [

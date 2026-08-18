@@ -5,18 +5,18 @@ local appVersion = 'latest';
 local appPort = '7575';
 
 local homarrUrl = 'https://' + lib.domain.ktbcloud;
-local authentik = lib.registry.endpoint.authentik;
+local authentik = lib.registry.endpoint.serviceGroup.authentik;
 // Homarr is registered in authentik under its own name.
-local issuer = authentik.public.oidc.issuer(refs.name);
+local issuer = authentik.proxy.oidc.issuer(refs.name);
 
 {
   name: refs.name,
-  networks: refs.networks,
+  networks: { default: { name: refs.name } },
   volumes: refs.appData.declare,
 
   services: {
     [refs.app.key]: {
-      container_name: refs.app.container,
+      container_name: refs.app.ext,
       image: 'ghcr.io/homarr-labs/homarr:' + appVersion,
       restart: lib.restart.unlessStopped,
       volumes: [
@@ -33,7 +33,7 @@ local issuer = authentik.public.oidc.issuer(refs.name);
         AUTH_OIDC_AUTO_LOGIN: '${AUTO_LOGIN:-true}',
         AUTH_OIDC_CLIENT_NAME: authentik.name,
         AUTH_OIDC_ISSUER: issuer,
-        AUTH_OIDC_URI: authentik.public.oidc.authorize,
+        AUTH_OIDC_URI: authentik.proxy.oidc.uri,
         AUTH_LOGOUT_REDIRECT_URL: issuer + 'end-session/',
         AUTH_OIDC_SCOPE_OVERWRITE: 'openid email profile groups${EXTRA__OIDC_SCOPE:+ ${EXTRA__OIDC_SCOPE}}',
         AUTH_OIDC_GROUPS_ATTRIBUTE: '${OIDC_GROUP:-groups}',

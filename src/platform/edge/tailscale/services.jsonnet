@@ -4,16 +4,19 @@ local lib = import 'lib.libsonnet';
 local refs = import 'refs.libsonnet';
 
 local appVersion = 'v1.98.9';
-local gateway = lib.registry.networks.shared.tsGateway;
+local gateway = lib.registry.network.shared.tsGateway;
 
 {
   name: refs.name,
-  networks: refs.networks + gateway.create,
+  networks: {
+    default: { name: refs.name },
+    [gateway.name]: { name: gateway.name },
+  },
   volumes: refs.appData.declare,
 
   services: {
     [refs.app.key]: {
-      container_name: refs.app.container,
+      container_name: refs.app.ext,
       image: 'tailscale/tailscale:' + appVersion,
       restart: lib.restart.unlessStopped,
       networks: ['default', gateway.name],

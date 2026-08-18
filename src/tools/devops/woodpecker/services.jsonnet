@@ -25,12 +25,12 @@ local stepCpuQuota = 200000;
 
 {
   name: refs.name,
-  networks: refs.networks,
+  networks: { default: { name: refs.name } },
   volumes: refs.serverData.declare + refs.agentData.declare,
 
   services: {
     [refs.server.key]: {
-      container_name: refs.server.container,
+      container_name: refs.server.ext,
       image: 'docker.io/woodpeckerci/woodpecker-server:' + version,
       restart: lib.restart.onFailure(5),
       volumes: [refs.serverData.mount('/var/lib/woodpecker')],
@@ -56,7 +56,7 @@ local stepCpuQuota = 200000;
     },
 
     [refs.agent.key]: {
-      container_name: refs.agent.container,
+      container_name: refs.agent.ext,
       image: 'docker.io/woodpeckerci/woodpecker-agent:' + version,
       restart: lib.restart.onFailure(5),
       command: 'agent',

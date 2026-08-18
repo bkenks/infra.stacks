@@ -67,8 +67,8 @@ lib.Project {
 
 | You write | You get |
 | --- | --- |
-| `name:: 'example'` | `refs.name`, and the private bridge in `refs.networks` |
-| `self.Service { role:: lib.role.APP }` | `.key` (`app` — the compose key, and what other services in the project dial) and `.container` (`example_app` — what it is called on the host) |
+| `name:: 'example'` | `refs.name` — the compose project name, and what the private bridge is called |
+| `self.Service { role:: lib.role.APP }` | `.key` (`app` — the compose key, and what other services in the project dial) and `.ext` (`example_app` — what it is called on the host) |
 | `self.Volume { key:: 'app' }` | `.key` (`app`), `.name` (`example_app`), `.declare` (the top-level `volumes:` entry) and `.mount('/data')` |
 | `envFiles:: [...]` | `refs.compose`, the whole `compose.yaml` document |
 
@@ -76,7 +76,7 @@ lib.Project {
 `db` is never also `database` in some other stack. A service whose name is genuinely
 app-specific (`gerbil`, `machine-learning`, `sonarr`) passes that string as the role.
 
-**Override a derived name by writing it again.** `container:: self.role` gives a service its
+**Override a derived name by writing it again.** `ext:: self.role` gives a service its
 bare name, for the handful other systems already dial — see `platform/edge/pangolin`
 (`gerbil`, `traefik`), `databases/postgres` (`postgres-db`).
 
@@ -90,12 +90,12 @@ local refs = import 'refs.libsonnet';
 
 {
   name: refs.name,
-  networks: refs.networks,
+  networks: { default: { name: refs.name } },
   volumes: refs.appData.declare,
 
   services: {
     [refs.app.key]: {
-      container_name: refs.app.container,
+      container_name: refs.app.ext,
       image: 'ghcr.io/example/example:1.2.3',
       restart: lib.restart.unlessStopped,
       volumes: [refs.appData.mount('/data')],
@@ -116,48 +116,65 @@ Anything that crosses stack boundaries lives in `devlib/registry.libsonnet`. Ref
 **entry**, not a string literal into it:
 
 ```jsonnet
-lib.registry.endpoint.postgres.host.addr   // ✓ typo fails at compile time
-'host.docker.internal:6109'                // ✗ typo fails silently at runtime
+lib.registry.endpoint.serviceGroup.postgres.host.addr   // ✓ typo fails at compile time
+'littlebuddy.internal:6109'                             // ✗ typo fails silently at runtime
 ```
 
-Same for `lib.role.*`, `lib.domain.*`, `lib.dirs.*`, `lib.ip.loopback`, `lib.mounts.*`,
-`lib.registry.hosts.*` and `lib.Secret('<key>')`.
+`collections` holds the constants that depend on nothing — spellings and defaults.
+`registry` is the global version of a `refs.libsonnet`: a value goes there the moment a
+*second* stack needs it. Same rule for `lib.role.*`, `lib.domain.*`, `lib.dirs.*`,
+`lib.ip.loopback`, `lib.mounts.*`, `lib.registry.endpoint.hostGroup.*` and
+`lib.Secret('<key>')`.
 
 ## Cheat-sheet
 
 | Need | Use |
 | --- | --- |
 | Publish a host port | `ports: ['%s:18000:8080' % lib.ip.loopback]` |
-| Reach the host from a container | `extra_hosts: lib.hostGateway.extraHosts` |
+| Reach a service on another host | `lib.registry.endpoint.serviceGroup.<x>.host.addr` |
 | Wait on a healthcheck | `depends_on: { [refs.db.key]: { condition: lib.condition.healthy } }` |
 | Mount the docker socket | `lib.mounts.dockerSock` (`…RW` when it must write) |
 | Keep a container up through Komodo StopAll | `labels: lib.labels.komodoSkip` |
 | Env-file path for a secret bundle | `lib.Secret('<key>')` |
 | …same, overridable during bootstrap | `lib.SecretOrBootstrap('<key>')` |
-| Public HTTPS URL of an endpoint | `lib.registry.endpoint.<x>.public.url` |
+| Public HTTPS URL of an endpoint | `lib.registry.endpoint.serviceGroup.<x>.proxy.url` |
 | A restart policy | `lib.restart.unlessStopped` / `.always` / `.onFailure(5)` |
 
 ## Networks
 
-Every stack gets one private bridge, named after the project, keyed as Compose's reserved
-`default` — that is `refs.networks`. **Cross-stack traffic goes over published host ports by
-default**: publish it, then dial it from the consumer at
-`lib.registry.endpoint.<x>.host.addr` with `extra_hosts: lib.hostGateway.extraHosts`.
+This is a multi-node fleet, so the two directions are genuinely different mechanisms.
 
-A shared docker network is one entry in `lib.registry.networks.shared`:
+**Container to container, on one host** — a shared docker network. It is one entry in
+`lib.registry.network.shared`, and every participating stack writes it into its top-level
+`networks:` alongside the private bridge:
 
-| Input | Renders |
-| --- | --- |
-| `networks: refs.networks + net.create` | the bridge, plus top-level `{name: shared__x}` — for the **one** stack that owns it |
-| `networks: refs.networks + net.attach` | the bridge, plus top-level `{name: shared__x, external: true}` — for every consumer |
-| `networks: ['default', net.name]` on a service | that service's membership |
+```jsonnet
+local sharedDB = lib.registry.network.shared.postgresDB;
 
-Compose creates an `external` network for nobody, so attaching before the owner exists
-fails the deploy rather than silently building a second empty network of the same name.
-Real: `databases/postgres` (creates), `apps/business/docuseal` (attaches).
+networks: {
+  default: { name: refs.name },
+  [sharedDB.name]: { name: sharedDB.name, external: true },
+},
+// and on each participating service:
+networks: ['default', sharedDB.name],
+```
 
-To change the private bridge itself, write it: `networks: { default: refs.networks.default
-{ enable_ipv6: true } }`. Real: `platform/edge/pangolin`.
+`external: true` for every stack that joins one it does not own; the owning stack drops
+`external` so it is the one that creates it. Compose creates an `external` network for
+nobody, so attaching before the owner exists fails the deploy rather than silently building
+a second empty network of the same name. Real: `platform/edge/tailscale` (owns
+`shared__ts-gateway`), `apps/business/docuseal` (joins `shared__postgres_db`).
+
+**Host to host** — the `.internal` zone, which every host's CoreDNS resolves. Publish the
+port and dial `lib.registry.endpoint.serviceGroup.<x>.host.addr`, which is that service's
+host `ref` and port together (`littlebuddy.internal:6109`). Which host runs a service is a
+fact about that stack, so it lives on its registry entry and no consumer retypes it. Real:
+`platform/backup-manager/databasus` on `rick` reaching Postgres on `littlebuddy`.
+
+Every stack also gets one private bridge, named after the project, keyed as Compose's
+reserved `default`. Write it literally: `networks: { default: { name: refs.name } }` — and
+add fields to it the same way when a stack needs more, e.g. `{ default: { name: refs.name,
+driver: 'bridge', enable_ipv6: true } }`. Real: `platform/edge/pangolin`.
 
 A service using `network_mode` (host, or `service:<other>`) must declare no `networks` at
 all — Compose rejects the whole project if both are present. Real: `apps/media/stream`
@@ -167,9 +184,11 @@ all — Compose rejects the whole project if both are present. Real: `apps/media
 
 Producer and consumer must agree on the env-file path, so single-source it:
 
-1. Add the bundle to `secrets` in `devlib/registry.libsonnet`. The value is the filename
-   under `lib.dirs.secrets`; entries that are just `<key>.env` are generated from the key
-   list, and only the odd ones are spelled out.
+1. Add the bundle to the right Infisical project's `secretsMap` in
+   `devlib/registry.libsonnet`. `service` is the folder in Infisical and the default
+   filename; override `projectPath`, `outFile`, `type` or `key` only where they differ.
+   Every project's map is flattened into `infisical.catalog`, which is what `lib.Secret`
+   looks in — so a key can only be spelled one way across the repo.
 2. Write the agent fragment at
    `src/platform/secrets-manager/infisical/templates/services.<key>.yaml` — these are
    hand-written; see `templates.md` beside them for the Go-template forms.
@@ -179,7 +198,7 @@ Producer and consumer must agree on the env-file path, so single-source it:
 
 `lib.SecretOrBootstrap('<key>')` is the same path wrapped in `${ANSIBLE_SECRETS_FILE:-…}`,
 for stacks the control plane brings up before the agent exists. Real: `komodo`, `infisical`,
-`cloudflared`, `zerobyte`, `arcane`.
+`cloudflared`, `zerobyte`.
 
 A stack with **no** secrets omits `envFiles::` entirely.
 
@@ -188,19 +207,25 @@ happens the literal `${VAR:?err}` goes directly in `environment:` — see `apps/
 
 ## Variations (with real examples)
 
-**Shared Postgres instead of a dedicated DB** — drop the `db` service and dial the shared
-cluster through the docker gateway:
+**Shared Postgres instead of a dedicated DB** — drop the `db` service and reach the shared
+cluster at the level it is on. On `littlebuddy`, that is the shared network:
 
 ```jsonnet
-local pg = lib.registry.endpoint.postgres;
+local pg = lib.registry.endpoint.serviceGroup.postgres;
+local sharedDB = lib.registry.network.shared.postgresDB;
 // in environment:
 DATABASE_URL: 'postgresql://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@%s/mydb' % pg.container.addr,
 // on the consuming service:
-extra_hosts: lib.hostGateway.extraHosts,
+networks: ['default', sharedDB.name],
 // and pass the shared creds too, in refs.libsonnet:
 envFiles:: [lib.Secret('<stack>'), lib.Secret('postgres')],
 ```
-Real: `apps/business/docuseal`, `apps/business/openproject`.
+
+From any other host, swap `pg.container.addr` for `pg.host.addr` and drop the shared
+network — `littlebuddy.internal:6109` resolves through CoreDNS.
+
+Real: `apps/business/docuseal`, `apps/business/openproject` (same host);
+`platform/backup-manager/databasus` (another host).
 
 **One image run several ways** — bind the shared body to a `local` and add to it per
 service. Real: `apps/business/openproject` (web/worker/cron/seeder).
@@ -209,8 +234,7 @@ service. Real: `apps/business/openproject` (web/worker/cron/seeder).
 `platform/secrets-manager/infisical` (`server` and `agent`).
 
 **Committed (non-secret) config via service-level `env_file`** — point it at a file
-committed in the stack dir. Real: `platform/container-manager/komodo` (`./core.env`),
-`platform/backup-manager/garage`.
+committed in the stack dir. Real: `platform/container-manager/komodo` (`./core.env`).
 
 **Device passthrough / NFS bind mounts** — `devices: ['/dev/dri:/dev/dri']`, literal host
 paths for large media. Real: `apps/media/immich`.

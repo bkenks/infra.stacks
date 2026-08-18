@@ -33,13 +33,13 @@ local pangolinHealthy = { [refs.pangolin.key]: { condition: lib.condition.health
 {
   name: refs.name,
   // The edge needs IPv6 on its bridge, which the plain private bridge does not carry.
-  networks: { default: refs.networks.default { driver: 'bridge', enable_ipv6: true } },
+  networks: { default: { name: refs.name, driver: 'bridge', enable_ipv6: true } },
 
   services: {
     // One-shot: creates the config tree/perms + the GeoLite mmdbs (skipped after the first
     // run). It does not provision files/ content — that is the bind mounts below.
     [refs.init.key]: {
-      container_name: refs.init.container,
+      container_name: refs.init.ext,
       image: 'docker.io/library/busybox:1.37.0',
       // Quoted: bare `no` is a YAML boolean and compose wants the string.
       restart: 'no',
@@ -48,7 +48,7 @@ local pangolinHealthy = { [refs.pangolin.key]: { condition: lib.condition.health
     },
 
     [refs.pangolin.key]: {
-      container_name: refs.pangolin.container,
+      container_name: refs.pangolin.ext,
       image: 'docker.io/fosrl/pangolin:' + pangolinVersion,
       restart: lib.restart.unlessStopped,
       depends_on: initDone,
@@ -75,14 +75,14 @@ local pangolinHealthy = { [refs.pangolin.key]: { condition: lib.condition.health
     },
 
     [refs.gerbil.key]: {
-      container_name: refs.gerbil.container,
+      container_name: refs.gerbil.ext,
       image: 'docker.io/fosrl/gerbil:' + gerbilVersion,
       restart: lib.restart.unlessStopped,
       depends_on: initDone + pangolinHealthy,
       command: [
-        '--reachableAt=http://%s:3004' % refs.gerbil.container,
+        '--reachableAt=http://%s:3004' % refs.gerbil.ext,
         '--generateAndSaveKeyTo=/var/config/key',
-        '--remoteConfig=http://%s:3001/api/v1/' % refs.pangolin.container,
+        '--remoteConfig=http://%s:3001/api/v1/' % refs.pangolin.ext,
       ],
       volumes: [configDir + ':/var/config'],
       cap_add: ['NET_ADMIN', 'SYS_MODULE'],
@@ -103,7 +103,7 @@ local pangolinHealthy = { [refs.pangolin.key]: { condition: lib.condition.health
     // above front it. Compose rejects networks on a service that shares another's netns,
     // so this one declares none.
     [refs.traefik.key]: {
-      container_name: refs.traefik.container,
+      container_name: refs.traefik.ext,
       image: 'docker.io/library/traefik:' + traefikVersion,
       restart: lib.restart.unlessStopped,
       network_mode: 'service:' + refs.gerbil.key,

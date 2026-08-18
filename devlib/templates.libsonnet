@@ -1,72 +1,95 @@
 // The shapes a name can have. Nothing here holds a value — registry.libsonnet fills these
 // in for anything crossing a stack boundary, and a stack's own refs.libsonnet fills
 // `Project` in for the names it owns.
-//
-// A template exists where two files must agree on a string that neither should retype:
-// `Endpoint.Public` is a scheme, a subdomain and a domain, so no one writes an URL by
-// hand; `Project.Service` is a project and a role, so no one writes a container name.
 {
-  // A place something answers, described at the level it is reachable from.
-  //
-  //   Container  inside the compose project (or a shared docker network)
-  //   Host       published on the host, dialled from another stack through the gateway
-  //   Public     through the edge proxy, from the internet
-  //
-  // A service names only the levels it actually exposes.
   Endpoint:: {
-    Container:: {
-      scheme:: 'http',
-      host:: error '"host" is required on Endpoint.Container',
-      port:: error '"port" is required on Endpoint.Container',
-      // —— derived ——
-      addr:: '%s:%s' % [self.host, self.port],
-      url:: '%s://%s' % [self.scheme, self.addr],
+    // The host inventory. Every host runs CoreDNS for the zone, so host-to-host traffic is
+    // dialled by name — there are no IPs here.
+    HostGroup:: { local hostGroup = self,
+      zone::
+        error '"zone" is a required field',
+      Host:: {
+        alias::
+          error '"alias" is a required field',
+        ref::
+          self.alias + '.' + hostGroup.zone,
+      },
     },
 
-    Host:: {
-      scheme:: 'http',
-      // The gateway name, so a consumer never spells it out; override for a host that
-      // publishes somewhere else.
-      host:: (import 'collections.libsonnet').hostGateway.host,
-      port:: error '"port" is required on Endpoint.Host',
-      // —— derived ——
-      addr:: '%s:%s' % [self.host, self.port],
-      url:: '%s://%s' % [self.scheme, self.addr],
-    },
+    // A place a service answers, described at the level it is reachable from.
+    //
+    //   Container  container-to-container, on this host, over a shared docker network
+    //   Host       host-to-host, over the .internal zone
+    //   Proxy      from the internet, through the edge proxy
+    //
+    // A service names only the levels it actually exposes.
+    ServiceGroup:: {
+      Service:: {
+        Container:: {
+          name::
+            error '"name" is a required field of template "Container"',
+          port::
+            error '"port" is a required field of template "Container"',
+          scheme::
+            'http',
+          addr::
+            '%s:%s' % [self.name, self.port],
+          url(scheme=self.scheme, name=self.name, port=self.port)::
+            '%s://%s:%s' % [scheme, name, port],
+        },
 
-    Public:: {
-      scheme:: 'https',
-      sub:: error '"sub" is required on Endpoint.Public',
-      domain:: error '"domain" is required on Endpoint.Public',
-      // —— derived ——
-      fqdn:: '%s.%s' % [self.sub, self.domain],
-      url:: '%s://%s' % [self.scheme, self.fqdn],
+        Host:: {
+          // The HostGroup entry that publishes this port. Which host runs a service is a
+          // fact about that stack, so it is single-sourced here rather than retyped by
+          // every consumer.
+          on::
+            error '"on" is a required field of template "Host"',
+          port::
+            error '"port" is a required field of template "Host"',
+          scheme::
+            'http',
+          addr::
+            '%s:%s' % [self.on.ref, self.port],
+          url::
+            '%s://%s' % [self.scheme, self.addr],
+        },
+
+        Proxy:: {
+          subdomain::
+            error '"subdomain" is a required field of "Proxy"',
+          domain::
+            error '"domain" is a required field of "Proxy"',
+          scheme::
+            'https',
+          fqdn::
+            '%s.%s' % [self.subdomain, self.domain],
+          url::
+            '%s://%s' % [self.scheme, self.fqdn],
+        },
+      },
     },
   },
 
-  // A docker network several stacks share. Exactly one stack `create`s it and every other
-  // `attach`es: compose builds an external network for nobody, so attaching before the
-  // owner exists fails the deploy instead of quietly standing up a second empty copy.
-  SharedNetwork:: { local network = self,
-    base:: error '"base" is required on SharedNetwork',
-    // —— derived ——
-    name:: 'shared__' + self.base,
-    create:: { [network.name]: { name: network.name } },
-    attach:: { [network.name]: { name: network.name, external: true } },
+  // A docker network several stacks on the same host share. It is created out of band and
+  // every participating stack declares it `external`.
+  SharedNetwork:: {
+    base::
+      error '"base" is required on SharedNetwork',
+    name::
+      'shared__' + self.base,
   },
 
-  // The names one stack owns. A stack's refs.libsonnet is this, filled in — see
-  // src/templates/stack/refs.libsonnet.
+  // The names one stack owns. A stack's refs.libsonnet is this, filled in.
   Project:: { local project = self,
-    name:: error '"name" is required on Project',
+    name::
+      error '"name" is required on Project',
 
     // Env files the include interpolates into services.yaml. `${VAR:?err}` in the manifest
-    // resolves from these, which service-level `env_file:` cannot do — it only reaches the
-    // container's environment, never the compose document. Build with lib.Secret(key).
+    // resolves from these, which a service-level `env_file:` cannot do. Build with
+    // lib.Secret(key).
     envFiles:: [],
 
-    // What compose.yaml renders to. Every stack's compose.jsonnet is this one field, so the
-    // project name and the env files are written once, in refs.libsonnet, and read twice.
+    // What compose.yaml renders to. Every stack's compose.jsonnet is this one field.
     compose:: {
       name: project.name,
       include: [
@@ -75,27 +98,21 @@
       ],
     },
 
-    // The private bridge every service joins implicitly. `default` is compose's reserved
-    // key, not a name; the stack's name lands underneath it.
-    networks:: { default: { name: project.name } },
-
     Service:: {
-      role:: error '"role" is required on Project.Service',
-      // —— derived ——
-      // The compose key, and the name every other service in the project dials: docker
-      // resolves both the key and container_name on every network the container joins.
+      role::
+        error '"role" is required on Project.Service',
+      // The compose key, and the name every other service in the project dials.
       key:: self.role,
       // What the container is called on the host, prefixed so it cannot collide with
       // another project's.
-      container:: project.name + '_' + self.role,
+      ext:: project.name + '_' + self.role,
     },
 
     Volume:: { local volume = self,
-      key:: error '"key" is required on Project.Volume',
-      // —— derived ——
-      name:: project.name + '_' + self.key,
-      // The top-level `volumes:` entry. Several services mounting one volume each write
-      // `mount(...)`; only this declares it, so the two halves cannot drift.
+      key::
+        error '"key" is required on Project.Volume',
+      name::
+        project.name + '_' + self.key,
       declare:: { [volume.key]: { name: volume.name } },
       mount(path):: '%s:%s' % [volume.key, path],
     },

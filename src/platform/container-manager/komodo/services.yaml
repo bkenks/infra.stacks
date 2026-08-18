@@ -16,8 +16,6 @@ services:
       KOMODO_JWT_SECRET: "${KOMO_JWT_SECRET:?err}"
       KOMODO_PRIVATE_KEY: "${KOMO_PRIVATE_KEY:?err}"
       KOMODO_WEBHOOK_SECRET: "${KOMO_WEBHOOK_SECRET:?err}"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     image: "ghcr.io/moghtech/komodo-core:2.1.2"
     init: true
     labels:

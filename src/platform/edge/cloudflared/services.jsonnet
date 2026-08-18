@@ -7,11 +7,11 @@ local version = '2026.5.2';
 
 {
   name: refs.name,
-  networks: refs.networks,
+  networks: { default: { name: refs.name } },
 
   services: {
     [refs.tunnel.key]: {
-      container_name: refs.tunnel.container,
+      container_name: refs.tunnel.ext,
       image: 'cloudflare/cloudflared:' + version,
       restart: lib.restart.unlessStopped,
       command: 'tunnel --no-autoupdate run',

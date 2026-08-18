@@ -8,17 +8,16 @@ local version = '1.14.0';
 
 {
   name: refs.name,
-  networks: refs.networks,
+  networks: { default: { name: refs.name } },
 
   services: {
     [refs.tunnel.key]: {
-      container_name: refs.tunnel.container,
+      container_name: refs.tunnel.ext,
       image: 'fosrl/newt:' + version,
       restart: lib.restart.unlessStopped,
-      extra_hosts: lib.hostGateway.extraHosts,
       environment: {
         TZ: 'America/New_York',
-        PANGOLIN_ENDPOINT: lib.registry.endpoint.pangolin.public.url,
+        PANGOLIN_ENDPOINT: lib.registry.endpoint.serviceGroup.pangolin.proxy.url,
         NEWT_ID: '${NEWT_ID:?err}',
         NEWT_SECRET: '${NEWT_SECRET:?err}',
       },
