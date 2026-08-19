@@ -10,33 +10,6 @@ networks:
     external: true
     name: "shared__ts-gateway"
 services:
-  agent:
-    container_name: "infisical_agent"
-    entrypoint:
-      - "/bin/sh"
-      - "/agent/entrypoint.sh"
-    environment:
-      AGENT_HOST: "${AGENT_HOST:-}"
-      AGENT_SERVICES: "${AGENT_SERVICES:-}"
-      INFISICAL_ADDRESS: "${INFISICAL_ADDRESS:-http://infisical_app:8080}"
-      INFISICAL_CLIENT_ID: "${INFISICAL_CLIENT_ID:-}"
-      INFISICAL_CLIENT_SECRET: "${INFISICAL_CLIENT_SECRET:-}"
-    healthcheck:
-      interval: "30s"
-      retries: 2
-      start_period: "30s"
-      test:
-        - "CMD-SHELL"
-        - "[ ! -f /tmp/agent.last_err ] || [ $$(( $$(date +%s) - $$(cat /tmp/agent.last_err) )) -ge 180 ]"
-      timeout: "5s"
-    image: "docker.io/infisical/cli:0.43.89"
-    profiles:
-      - "agent"
-    restart: "unless-stopped"
-    volumes:
-      - "./files/entrypoint.sh:/agent/entrypoint.sh:ro"
-      - "./templates:/agent/templates:ro"
-      - "/dev/shm:/dev/shm"
   app:
     container_name: "infisical_app"
     depends_on:

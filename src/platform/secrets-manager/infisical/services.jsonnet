@@ -16,12 +16,12 @@ local lib = import 'lib.libsonnet';
 local refs = import 'refs.libsonnet';
 
 local serverProfile = 'server';
-local agentProfile = 'agent';
+// local agentProfile = 'agent';
 
 local appVersion = 'v0.160.9';
 local dbVersion = '16-alpine';
 local redisVersion = '7-alpine';
-local agentVersion = '0.43.89';
+// local agentVersion = '0.43.89';
 
 local infisical = lib.registry.endpoint.serviceGroup.infisical;
 local appPort = infisical.container.port;
@@ -132,40 +132,40 @@ local gateway = lib.registry.network.shared.tsGateway;
       expose: ['6379'],
     },
 
-    [refs.agent.key]: {
-      container_name: refs.agent.ext,
-      profiles: [agentProfile],
-      image: 'docker.io/infisical/cli:' + agentVersion,
-      restart: lib.collections.restart.unlessStopped,
-      entrypoint: ['/bin/sh', '/agent/entrypoint.sh'],
-      volumes: [
-        './files/entrypoint.sh:/agent/entrypoint.sh:ro',
-        // Per-service agent config fragments.
-        './templates:/agent/templates:ro',
-        // Read creds and write the rendered <stack>.env files.
-        '%s:%s' % [lib.collections.dirs.secrets, lib.collections.dirs.secrets],
-      ],
-      // Empty defaults, not `:?err`: compose interpolates this service even when the agent
-      // profile is off, so a required var would break server-only bootstrap. With the
-      // profile on, a missing credential surfaces as an agent auth failure the healthcheck
-      // flips to unhealthy.
-      environment: {
-        // Per-host: drives the ${AGENT_HOST} substitutions in the secret paths.
-        AGENT_HOST: '${AGENT_HOST:-}',
-        // Per-host: which templates/ fragments to render.
-        AGENT_SERVICES: '${AGENT_SERVICES:-}',
-        INFISICAL_CLIENT_ID: '${INFISICAL_CLIENT_ID:-}',
-        INFISICAL_CLIENT_SECRET: '${INFISICAL_CLIENT_SECRET:-}',
-        // The in-cluster address by default; a per-host override is allowed.
-        INFISICAL_ADDRESS: '${INFISICAL_ADDRESS:-%s}' % infisical.container.url(),
-      },
-      healthcheck: {
-        test: ['CMD-SHELL', '[ ! -f /tmp/agent.last_err ] || [ $$(( $$(date +%s) - $$(cat /tmp/agent.last_err) )) -ge 180 ]'],
-        interval: '30s',
-        timeout: '5s',
-        retries: 2,
-        start_period: '30s',
-      },
-    },
+    // [refs.agent.key]: {
+    //   container_name: refs.agent.ext,
+    //   profiles: [agentProfile],
+    //   image: 'docker.io/infisical/cli:' + agentVersion,
+    //   restart: lib.collections.restart.unlessStopped,
+    //   entrypoint: ['/bin/sh', '/agent/entrypoint.sh'],
+    //   volumes: [
+    //     './files/entrypoint.sh:/agent/entrypoint.sh:ro',
+    //     // Per-service agent config fragments.
+    //     './templates:/agent/templates:ro',
+    //     // Read creds and write the rendered <stack>.env files.
+    //     '%s:%s' % [lib.collections.dirs.secrets, lib.collections.dirs.secrets],
+    //   ],
+    //   // Empty defaults, not `:?err`: compose interpolates this service even when the agent
+    //   // profile is off, so a required var would break server-only bootstrap. With the
+    //   // profile on, a missing credential surfaces as an agent auth failure the healthcheck
+    //   // flips to unhealthy.
+    //   environment: {
+    //     // Per-host: drives the ${AGENT_HOST} substitutions in the secret paths.
+    //     AGENT_HOST: '${AGENT_HOST:-}',
+    //     // Per-host: which templates/ fragments to render.
+    //     AGENT_SERVICES: '${AGENT_SERVICES:-}',
+    //     INFISICAL_CLIENT_ID: '${INFISICAL_CLIENT_ID:-}',
+    //     INFISICAL_CLIENT_SECRET: '${INFISICAL_CLIENT_SECRET:-}',
+    //     // The in-cluster address by default; a per-host override is allowed.
+    //     INFISICAL_ADDRESS: '${INFISICAL_ADDRESS:-%s}' % infisical.container.url(),
+    //   },
+    //   healthcheck: {
+    //     test: ['CMD-SHELL', '[ ! -f /tmp/agent.last_err ] || [ $$(( $$(date +%s) - $$(cat /tmp/agent.last_err) )) -ge 180 ]'],
+    //     interval: '30s',
+    //     timeout: '5s',
+    //     retries: 2,
+    //     start_period: '30s',
+    //   },
+    // },
   },
 }
