@@ -12,7 +12,7 @@ local webPort = '8000';
 local dbUser = refs.name;
 local dbName = refs.name;
 
-local bindRoot = lib.dirs.docker.bindMounts + '/apps/paperless';
+local bindRoot = lib.collections.dirs.docker.bindMounts + '/apps/paperless';
 local sharedDB = lib.registry.network.shared.paperlessDB;
 
 {
@@ -28,7 +28,7 @@ local sharedDB = lib.registry.network.shared.paperlessDB;
     [refs.broker.key]: {
       container_name: refs.broker.ext,
       image: 'docker.io/library/redis:' + brokerVersion,
-      restart: lib.restart.onFailure(5),
+      restart: lib.collections.restart.onFailure(5),
       volumes: [refs.brokerData.mount('/data')],
       environment: {
         ALLOW_EMPTY_PASSWORD: 'yes',
@@ -45,7 +45,7 @@ local sharedDB = lib.registry.network.shared.paperlessDB;
     [refs.db.key]: {
       container_name: refs.db.ext,
       image: 'docker.io/library/postgres:' + dbVersion,
-      restart: lib.restart.onFailure(5),
+      restart: lib.collections.restart.onFailure(5),
       networks: ['default', sharedDB.name],
       volumes: [refs.dbData.mount('/var/lib/postgresql')],
       environment: {
@@ -60,13 +60,13 @@ local sharedDB = lib.registry.network.shared.paperlessDB;
         retries: 10,
       },
       expose: ['5432'],
-      ports: ['%s:18025:5432' % lib.ip.loopback],
+      ports: ['%s:18025:5432' % lib.collections.ip.loopback],
     },
 
     [refs.gotenberg.key]: {
       container_name: refs.gotenberg.ext,
       image: 'docker.io/gotenberg/gotenberg:' + gotenbergVersion,
-      restart: lib.restart.onFailure(5),
+      restart: lib.collections.restart.onFailure(5),
       // The chromium route converts .eml files; disallow tracking pixels/javascript.
       command: ['gotenberg', '--chromium-disable-javascript=true', '--chromium-allow-list=file:///tmp/.*'],
       expose: ['3000'],
@@ -75,19 +75,19 @@ local sharedDB = lib.registry.network.shared.paperlessDB;
     [refs.tika.key]: {
       container_name: refs.tika.ext,
       image: 'docker.io/apache/tika:' + tikaVersion,
-      restart: lib.restart.onFailure(5),
+      restart: lib.collections.restart.onFailure(5),
       expose: ['9998'],
     },
 
     [refs.webserver.key]: {
       container_name: refs.webserver.ext,
       image: 'ghcr.io/paperless-ngx/paperless-ngx:' + paperlessVersion,
-      restart: lib.restart.onFailure(5),
+      restart: lib.collections.restart.onFailure(5),
       depends_on: {
-        [refs.broker.key]: { condition: lib.condition.healthy },
-        [refs.db.key]: { condition: lib.condition.healthy },
-        [refs.gotenberg.key]: { condition: lib.condition.started },
-        [refs.tika.key]: { condition: lib.condition.started },
+        [refs.broker.key]: { condition: lib.collections.condition.healthy },
+        [refs.db.key]: { condition: lib.collections.condition.healthy },
+        [refs.gotenberg.key]: { condition: lib.collections.condition.started },
+        [refs.tika.key]: { condition: lib.collections.condition.started },
       },
       volumes: [
         refs.webserverData.mount('/usr/src/paperless/data'),
@@ -99,7 +99,7 @@ local sharedDB = lib.registry.network.shared.paperlessDB;
         PAPERLESS_TIKA_ENABLED: '1',
         PAPERLESS_OCR_LANGUAGE: 'eng',
 
-        PAPERLESS_URL: 'https://paper.' + lib.domain.ktbinternal,
+        PAPERLESS_URL: 'https://paper.' + lib.collections.domain.ktbinternal,
         PAPERLESS_TIME_ZONE: 'America/New_York',
         PAPERLESS_DATE_ORDER: 'MDY',
 
@@ -120,7 +120,7 @@ local sharedDB = lib.registry.network.shared.paperlessDB;
         retries: 5,
       },
       expose: [webPort],
-      ports: ['%s:18010:%s' % [lib.ip.loopback, webPort]],
+      ports: ['%s:18010:%s' % [lib.collections.ip.loopback, webPort]],
     },
   },
 }

@@ -4,7 +4,7 @@ local refs = import 'refs.libsonnet';
 local appVersion = 'latest';
 local appPort = '7575';
 
-local homarrUrl = 'https://' + lib.domain.ktbcloud;
+local homarrUrl = 'https://' + lib.collections.domain.ktbcloud;
 local authentik = lib.registry.endpoint.serviceGroup.authentik;
 // Homarr is registered in authentik under its own name.
 local issuer = authentik.proxy.oidc.issuer(refs.name);
@@ -18,10 +18,10 @@ local issuer = authentik.proxy.oidc.issuer(refs.name);
     [refs.app.key]: {
       container_name: refs.app.ext,
       image: 'ghcr.io/homarr-labs/homarr:' + appVersion,
-      restart: lib.restart.unlessStopped,
+      restart: lib.collections.restart.unlessStopped,
       volumes: [
         refs.appData.mount('/appdata'),
-        lib.mounts.dockerSock,
+        lib.collections.mounts.dockerSock,
       ],
       environment: {
         TZ: 'America/New_York',
@@ -47,7 +47,7 @@ local issuer = authentik.proxy.oidc.issuer(refs.name);
         retries: 5,
       },
       expose: [appPort],
-      ports: ['%s:18018:%s' % [lib.ip.loopback, appPort]],
+      ports: ['%s:18018:%s' % [lib.collections.ip.loopback, appPort]],
     },
   },
 }

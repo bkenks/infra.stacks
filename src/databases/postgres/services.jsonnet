@@ -24,7 +24,7 @@ local version = '18';
       // <project>_<role> convention.
       container_name: pg.container.name,
       image: 'postgres:' + version,
-      restart: lib.restart.always,
+      restart: lib.collections.restart.always,
       networks: ['default', sharedDB.name],
       volumes: [refs.dbData.mount('/var/lib/postgresql')],
       environment: {
@@ -32,7 +32,7 @@ local version = '18';
         POSTGRES_PASSWORD: '${POSTGRES_PASS:?err}',
       },
       // Published to the host so containers in other stacks reach it through the gateway.
-      ports: ['%s:%s:%s' % [lib.ip.loopback, pg.host.port, pg.container.port]],
+      ports: ['%s:%s:%s' % [lib.collections.ip.loopback, pg.host.port, pg.container.port]],
       healthcheck: {
         test: 'pg_isready -U ${POSTGRES_USER} -h localhost -d postgres',
         interval: '5s',

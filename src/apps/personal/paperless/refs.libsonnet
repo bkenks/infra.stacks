@@ -7,7 +7,7 @@ lib.Project {
   // Service keys are the upstream component names, not roles: nothing here is a generic
   // app/worker, and `webserver` is what paperless-ngx's own docs call it.
   broker:: self.Service { role:: 'broker' },
-  db:: self.Service { role:: lib.role.DB },
+  db:: self.Service { role:: lib.collections.role.DB },
   gotenberg:: self.Service { role:: 'gotenberg' },
   tika:: self.Service { role:: 'tika' },
   webserver:: self.Service { role:: 'webserver' },

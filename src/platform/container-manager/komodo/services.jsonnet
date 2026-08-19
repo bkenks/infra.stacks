@@ -6,7 +6,7 @@ local version = '2.1.2';
 local mongoVersion = '8.2.4';
 // Non-secret tunables, committed beside this file.
 local coreEnv = './core.env';
-local stackDir = lib.dirs.docker.bindMounts + '/dcm';
+local stackDir = lib.collections.dirs.docker.bindMounts + '/dcm';
 
 {
   name: refs.name,
@@ -17,7 +17,7 @@ local stackDir = lib.dirs.docker.bindMounts + '/dcm';
     [refs.app.key]: {
       container_name: refs.app.ext,
       image: 'ghcr.io/moghtech/komodo-core:' + version,
-      restart: lib.restart.unlessStopped,
+      restart: lib.collections.restart.unlessStopped,
       depends_on: [refs.db.key],
       volumes: [
         refs.appData.mount('/config/keys'),
@@ -26,7 +26,7 @@ local stackDir = lib.dirs.docker.bindMounts + '/dcm';
       ],
       env_file: coreEnv,
       environment: {
-        KOMODO_HOST: 'https://komo.' + lib.domain.ktbinternal,
+        KOMODO_HOST: 'https://komo.' + lib.collections.domain.ktbinternal,
         KOMODO_DATABASE_USERNAME: '${KOMO_DB_USERNAME:?err}',
         KOMODO_DATABASE_PASSWORD: '${KOMO_DB_PASSWORD:?err}',
         KOMODO_WEBHOOK_SECRET: '${KOMO_WEBHOOK_SECRET:?err}',
@@ -44,14 +44,14 @@ local stackDir = lib.dirs.docker.bindMounts + '/dcm';
       // Komodo's own config already names the core komodo_core, so the alias keeps that
       // rather than following container_name.
       networks: { default: { aliases: [refs.name + '_core'] } },
-      labels: lib.labels.komodoSkip,
+      labels: lib.collections.labels.komodoSkip,
     },
 
     [refs.db.key]: {
       // Referenced as komodo_db in core.env.
       container_name: refs.db.ext,
       image: 'mongo:' + mongoVersion,
-      restart: lib.restart.unlessStopped,
+      restart: lib.collections.restart.unlessStopped,
       volumes: [
         stackDir + '/mongo/data:/data/db',
         stackDir + '/mongo/config:/data/configdb',
@@ -63,7 +63,7 @@ local stackDir = lib.dirs.docker.bindMounts + '/dcm';
       },
       ports: ['27017:27017'],
       command: '--quiet --wiredTigerCacheSizeGB 0.25',
-      labels: lib.labels.komodoSkip,
+      labels: lib.collections.labels.komodoSkip,
     },
   },
 }

@@ -27,18 +27,18 @@ local dbName = refs.name;
     [refs.app.key]: {
       container_name: refs.app.ext,
       image: 'ghcr.io/example/example:' + appVersion,
-      restart: lib.restart.onFailure(5),
+      restart: lib.collections.restart.onFailure(5),
 
       // Published ports bind to loopback — apps are reached over the tailnet or through the
       // edge proxy, so a port that is not loopback-bound is a mistake, not a default.
-      ports: ['%s:18000:%s' % [lib.ip.loopback, appPort]],
+      ports: ['%s:18000:%s' % [lib.collections.ip.loopback, appPort]],
       expose: [appPort],
 
       volumes: [refs.appData.mount('/data')],
 
       depends_on: {
         // Wait for the DB's healthcheck, not just its start.
-        [refs.db.key]: { condition: lib.condition.healthy },
+        [refs.db.key]: { condition: lib.collections.condition.healthy },
       },
 
       environment: {
@@ -49,7 +49,7 @@ local dbName = refs.name;
         // `${VAR:?err}` makes compose refuse to start when VAR is unset rather than
         // interpolating an empty string. Use it for everything out of the env file.
         DB_PASSWORD: '${EXAMPLE_DB_PASSWORD:?err}',
-        APP_URL: 'https://%s.%s' % [refs.name, lib.domain.ktbinternal],
+        APP_URL: 'https://%s.%s' % [refs.name, lib.collections.domain.ktbinternal],
       },
 
       healthcheck: {
@@ -68,7 +68,7 @@ local dbName = refs.name;
     [refs.db.key]: {
       container_name: refs.db.ext,
       image: 'docker.io/library/postgres:' + dbVersion,
-      restart: lib.restart.onFailure(5),
+      restart: lib.collections.restart.onFailure(5),
       expose: ['5432'],
       volumes: [refs.dbData.mount('/var/lib/postgresql/data')],
       environment: {

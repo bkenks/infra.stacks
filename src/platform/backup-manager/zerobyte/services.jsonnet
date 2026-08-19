@@ -16,7 +16,7 @@ local port = '4096';
     [refs.app.key]: {
       container_name: refs.app.ext,
       image: 'ghcr.io/nicotsx/zerobyte:' + version,
-      restart: lib.restart.unlessStopped,
+      restart: lib.collections.restart.unlessStopped,
       volumes: [
         refs.appData.mount('/var/lib/zerobyte'),
         '/etc/localtime:/etc/localtime:ro',

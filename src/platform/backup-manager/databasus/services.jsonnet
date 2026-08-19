@@ -15,7 +15,7 @@ local port = '4005';
     [refs.app.key]: {
       container_name: refs.app.ext,
       image: 'databasus/databasus@' + version,
-      restart: lib.restart.unlessStopped,
+      restart: lib.collections.restart.unlessStopped,
       volumes: [
         refs.appData.mount('/databasus-data'),
         // SECRET_KEY, rendered by the Infisical agent as a raw key file.

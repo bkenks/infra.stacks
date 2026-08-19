@@ -14,13 +14,13 @@ lib.Project {
   // devlib/registry.libsonnet and pass the KEY, so the agent and this stack derive the same
   // path: `lib.Secret('example')`. Until it is registered, spell it out. A stack with no
   // secrets drops this field entirely.
-  envFiles:: [lib.dirs.secrets + '/example.env'],
+  envFiles:: [lib.collections.dirs.secrets + '/example.env'],
 
-  // Services, keyed by the role they play. Roles come from lib.role rather than bare
+  // Services, keyed by the role they play. Roles come from lib.collections.role rather than bare
   // strings, so `db` is never also `database` in another stack. A service whose name is
   // genuinely app-specific (guacd, gerbil) is a plain local instead.
-  app:: self.Service { role:: lib.role.APP },
-  db:: self.Service { role:: lib.role.DB },
+  app:: self.Service { role:: lib.collections.role.APP },
+  db:: self.Service { role:: lib.collections.role.DB },
 
   // Volumes this stack owns. The key is the compose-local handle; `name` is what it is
   // called on the host.

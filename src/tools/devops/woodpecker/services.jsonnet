@@ -32,16 +32,16 @@ local stepCpuQuota = 200000;
     [refs.server.key]: {
       container_name: refs.server.ext,
       image: 'docker.io/woodpeckerci/woodpecker-server:' + version,
-      restart: lib.restart.onFailure(5),
+      restart: lib.collections.restart.onFailure(5),
       volumes: [refs.serverData.mount('/var/lib/woodpecker')],
       environment: {
         // Must match the OAuth2 app's redirect URI in Forgejo.
-        WOODPECKER_HOST: 'https://peck.' + lib.domain.ktbcloud,
+        WOODPECKER_HOST: 'https://peck.' + lib.collections.domain.ktbcloud,
         // Any Forgejo user may log in.
         WOODPECKER_OPEN: 'true',
         // Uses Forgejo (not gitea) as the forge.
         WOODPECKER_FORGEJO: 'true',
-        WOODPECKER_FORGEJO_URL: 'https://fj.' + lib.domain.ktbcloud,
+        WOODPECKER_FORGEJO_URL: 'https://fj.' + lib.collections.domain.ktbcloud,
         // Exact match INCLUDING tag — keep in lockstep with the tag pinned in each
         // pipeline's .woodpecker.yml.
         WOODPECKER_PLUGINS_PRIVILEGED: 'woodpeckerci/plugin-docker-buildx:6.1.0',
@@ -52,20 +52,20 @@ local stepCpuQuota = 200000;
       },
       mem_limit: '1g',
       expose: [httpPort, grpcPort],
-      ports: ['%s:18016:%s' % [lib.ip.loopback, httpPort]],
+      ports: ['%s:18016:%s' % [lib.collections.ip.loopback, httpPort]],
     },
 
     [refs.agent.key]: {
       container_name: refs.agent.ext,
       image: 'docker.io/woodpeckerci/woodpecker-agent:' + version,
-      restart: lib.restart.onFailure(5),
+      restart: lib.collections.restart.onFailure(5),
       command: 'agent',
       depends_on: [refs.server.key],
       volumes: [
         refs.agentData.mount('/etc/woodpecker'),
         // Intentional: the agent runs pipeline steps as sibling containers via the host
         // daemon, which is a write on the socket.
-        lib.mounts.dockerSockRW,
+        lib.collections.mounts.dockerSockRW,
       ],
       environment: {
         WOODPECKER_SERVER: refs.server.key + ':' + grpcPort,

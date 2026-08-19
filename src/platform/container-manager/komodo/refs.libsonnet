@@ -7,7 +7,7 @@ lib.Project {
   // ./core.env of non-secret tunables.
   envFiles:: [lib.SecretOrBootstrap('komodo')],
 
-  app:: self.Service { role:: lib.role.APP },
-  db:: self.Service { role:: lib.role.DB },
+  app:: self.Service { role:: lib.collections.role.APP },
+  db:: self.Service { role:: lib.collections.role.DB },
   appData:: self.Volume { key:: 'app' },
 }

@@ -5,5 +5,5 @@ lib.Project {
   // Brought up by the control plane before the agent exists to render anything.
   envFiles:: [lib.SecretOrBootstrap('cloudflared')],
 
-  tunnel:: self.Service { role:: lib.role.TUNNEL },
+  tunnel:: self.Service { role:: lib.collections.role.TUNNEL },
 }

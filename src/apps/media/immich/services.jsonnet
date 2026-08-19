@@ -16,7 +16,7 @@ local redisImage = 'docker.io/valkey/valkey:9@sha256:8436e10bc65c94886a91d4415b6
 
 local port = '2283';
 local tz = 'America/New_York';
-local bindRoot = lib.dirs.docker.bindMounts + '/apps/immich';
+local bindRoot = lib.collections.dirs.docker.bindMounts + '/apps/immich';
 
 {
   name: refs.name,
@@ -26,7 +26,7 @@ local bindRoot = lib.dirs.docker.bindMounts + '/apps/immich';
     [refs.database.key]: {
       container_name: refs.database.ext,
       image: dbImage,
-      restart: lib.restart.unlessStopped,
+      restart: lib.collections.restart.unlessStopped,
       volumes: [bindRoot + '/postgres:/var/lib/postgresql/data'],
       environment: {
         POSTGRES_DB: refs.name,
@@ -40,7 +40,7 @@ local bindRoot = lib.dirs.docker.bindMounts + '/apps/immich';
     [refs.machineLearning.key]: {
       container_name: refs.machineLearning.ext,
       image: mlImage,
-      restart: lib.restart.unlessStopped,
+      restart: lib.collections.restart.unlessStopped,
       volumes: [bindRoot + '/model-cache:/cache'],
       environment: { TZ: tz },
     },
@@ -48,13 +48,13 @@ local bindRoot = lib.dirs.docker.bindMounts + '/apps/immich';
     [refs.redis.key]: {
       container_name: refs.redis.ext,
       image: redisImage,
-      restart: lib.restart.unlessStopped,
+      restart: lib.collections.restart.unlessStopped,
     },
 
     [refs.server.key]: {
       container_name: refs.server.ext,
       image: serverImage,
-      restart: lib.restart.unlessStopped,
+      restart: lib.collections.restart.unlessStopped,
       depends_on: [refs.database.key, refs.redis.key],
       volumes: ['/mnt/immich-library:/data'],
       // Intel Quick Sync HW transcoding (paiki's N150 iGPU) — the equivalent of the
@@ -70,7 +70,7 @@ local bindRoot = lib.dirs.docker.bindMounts + '/apps/immich';
         DB_PASSWORD: '${IMMICH_DB_PASSWORD:?err}',
       },
       expose: [port],
-      ports: ['%s:2283:%s' % [lib.ip.loopback, port]],
+      ports: ['%s:2283:%s' % [lib.collections.ip.loopback, port]],
     },
   },
 }

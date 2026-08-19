@@ -6,11 +6,11 @@ lib.Project {
   envFiles:: [lib.Secret('openproject'), lib.Secret('postgres')],
 
   // One Rails image run four ways, plus a cache and a watchdog.
-  web:: self.Service { role:: lib.role.WEB },
-  worker:: self.Service { role:: lib.role.WORKER },
-  seeder:: self.Service { role:: lib.role.SEEDER },
+  web:: self.Service { role:: lib.collections.role.WEB },
+  worker:: self.Service { role:: lib.collections.role.WORKER },
+  seeder:: self.Service { role:: lib.collections.role.SEEDER },
   cron:: self.Service { role:: 'cron' },
-  cache:: self.Service { role:: lib.role.CACHE },
+  cache:: self.Service { role:: lib.collections.role.CACHE },
   autoheal:: self.Service { role:: 'autoheal' },
   hocuspocus:: self.Service { role:: 'hocuspocus' },
 

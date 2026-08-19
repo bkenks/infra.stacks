@@ -46,11 +46,11 @@ local gateway = lib.registry.network.shared.tsGateway;
       container_name: infisical.container.name,
       profiles: [serverProfile],
       image: 'docker.io/infisical/infisical:' + appVersion,
-      restart: lib.restart.unlessStopped,
+      restart: lib.collections.restart.unlessStopped,
       networks: ['default', gateway.name],
       depends_on: {
-        [refs.db.key]: { condition: lib.condition.healthy },
-        [refs.redis.key]: { condition: lib.condition.healthy },
+        [refs.db.key]: { condition: lib.collections.condition.healthy },
+        [refs.redis.key]: { condition: lib.collections.condition.healthy },
       },
       environment: {
         SITE_URL: infisical.proxy.url,
@@ -86,14 +86,14 @@ local gateway = lib.registry.network.shared.tsGateway;
       // infisical.proxy.url via the edge proxy, not this mapping. Without the prefix this
       // publishes on 0.0.0.0, which reaches the internet on a public-IP host because
       // docker's iptables rules bypass ufw.
-      ports: ['%s:%s:%s' % [lib.ip.loopback, infisical.host.port, appPort]],
+      ports: ['%s:%s:%s' % [lib.collections.ip.loopback, infisical.host.port, appPort]],
     },
 
     [refs.db.key]: {
       container_name: refs.db.ext,
       profiles: [serverProfile],
       image: 'docker.io/library/postgres:' + dbVersion,
-      restart: lib.restart.unlessStopped,
+      restart: lib.collections.restart.unlessStopped,
       networks: ['default', sharedDB.name],
       volumes: [refs.dbData.mount('/var/lib/postgresql/data')],
       environment: {
@@ -111,14 +111,14 @@ local gateway = lib.registry.network.shared.tsGateway;
         retries: 10,
       },
       expose: ['5432'],
-      ports: ['%s:18042:5432' % lib.ip.loopback],
+      ports: ['%s:18042:5432' % lib.collections.ip.loopback],
     },
 
     [refs.redis.key]: {
       container_name: refs.redis.ext,
       profiles: [serverProfile],
       image: 'docker.io/library/redis:' + redisVersion,
-      restart: lib.restart.unlessStopped,
+      restart: lib.collections.restart.unlessStopped,
       volumes: [refs.redisData.mount('/data')],
       environment: {
         ALLOW_EMPTY_PASSWORD: 'yes',
@@ -136,14 +136,14 @@ local gateway = lib.registry.network.shared.tsGateway;
       container_name: refs.agent.ext,
       profiles: [agentProfile],
       image: 'docker.io/infisical/cli:' + agentVersion,
-      restart: lib.restart.unlessStopped,
+      restart: lib.collections.restart.unlessStopped,
       entrypoint: ['/bin/sh', '/agent/entrypoint.sh'],
       volumes: [
         './files/entrypoint.sh:/agent/entrypoint.sh:ro',
         // Per-service agent config fragments.
         './templates:/agent/templates:ro',
         // Read creds and write the rendered <stack>.env files.
-        '%s:%s' % [lib.dirs.secrets, lib.dirs.secrets],
+        '%s:%s' % [lib.collections.dirs.secrets, lib.collections.dirs.secrets],
       ],
       // Empty defaults, not `:?err`: compose interpolates this service even when the agent
       // profile is off, so a required var would break server-only bootstrap. With the

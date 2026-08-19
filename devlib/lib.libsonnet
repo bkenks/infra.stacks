@@ -10,8 +10,8 @@ local collections = import 'collections.libsonnet';
 local registry = import 'registry.libsonnet';
 local templates = import 'templates.libsonnet';
 
-collections {
-  // Reachable under their own names too, for a stack that wants to alias one.
+{
+  // Raw constants: lib.collections.role, lib.collections.restart, ...
   collections:: collections,
   templates:: templates,
 

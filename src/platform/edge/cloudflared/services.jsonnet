@@ -13,7 +13,7 @@ local version = '2026.5.2';
     [refs.tunnel.key]: {
       container_name: refs.tunnel.ext,
       image: 'cloudflare/cloudflared:' + version,
-      restart: lib.restart.unlessStopped,
+      restart: lib.collections.restart.unlessStopped,
       command: 'tunnel --no-autoupdate run',
       environment: {
         TZ: 'America/New_York',

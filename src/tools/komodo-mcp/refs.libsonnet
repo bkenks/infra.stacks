@@ -4,5 +4,5 @@ lib.Project {
   name:: 'komodo-mcp',
   envFiles:: [lib.Secret('komodoMcp')],
 
-  app:: self.Service { role:: lib.role.APP },
+  app:: self.Service { role:: lib.collections.role.APP },
 }

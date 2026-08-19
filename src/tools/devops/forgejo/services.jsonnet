@@ -23,7 +23,7 @@ local sharedDB = lib.registry.network.shared.forgejoDB;
     [refs.server.key]: {
       container_name: refs.server.ext,
       image: serverImage,
-      restart: lib.restart.onFailure(5),
+      restart: lib.collections.restart.onFailure(5),
       volumes: [
         refs.serverData.mount('/data'),
         '/etc/localtime:/etc/localtime:ro',
@@ -41,15 +41,15 @@ local sharedDB = lib.registry.network.shared.forgejoDB;
       expose: [port, '22'],
       // 127.0.0.1:22 -> container SSH, dialled by bare-metal Newt (Pangolin edge on the VPS).
       ports: [
-        '%s:18003:%s' % [lib.ip.loopback, port],
-        '%s:22:22' % lib.ip.loopback,
+        '%s:18003:%s' % [lib.collections.ip.loopback, port],
+        '%s:22:22' % lib.collections.ip.loopback,
       ],
     },
 
     [refs.db.key]: {
       container_name: refs.db.ext,
       image: 'docker.io/library/postgres:' + dbVersion,
-      restart: lib.restart.onFailure(5),
+      restart: lib.collections.restart.onFailure(5),
       networks: ['default', sharedDB.name],
       volumes: [refs.dbData.mount('/var/lib/postgresql/data')],
       environment: {
@@ -58,7 +58,7 @@ local sharedDB = lib.registry.network.shared.forgejoDB;
         POSTGRES_PASSWORD: '${DB_PASSWORD:?err}',
       },
       expose: ['5432'],
-      ports: ['%s:18041:5432' % lib.ip.loopback],
+      ports: ['%s:18041:5432' % lib.collections.ip.loopback],
     },
   },
 }

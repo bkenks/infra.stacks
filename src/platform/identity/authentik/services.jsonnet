@@ -24,7 +24,7 @@ local authentikEnv = {
   AUTHENTIK_SECRET_KEY: '${AUTHENTIK_SECRET_KEY:?err}',
 };
 
-local dbHealthy = { [refs.db.key]: { condition: lib.condition.healthy } };
+local dbHealthy = { [refs.db.key]: { condition: lib.collections.condition.healthy } };
 
 {
   name: refs.name,
@@ -39,21 +39,21 @@ local dbHealthy = { [refs.db.key]: { condition: lib.condition.healthy } };
     [refs.app.key]: {
       container_name: refs.app.ext,
       image: 'ghcr.io/goauthentik/server:' + version,
-      restart: lib.restart.unlessStopped,
+      restart: lib.collections.restart.unlessStopped,
       command: 'server',
       depends_on: dbHealthy,
       environment: authentikEnv,
       volumes: [refs.data.mount('/data')],
       expose: [httpPort],
       // 127.0.0.1:18006 — route authentik.ktbcloud.com here.
-      ports: ['%s:18006:%s' % [lib.ip.loopback, httpPort]],
+      ports: ['%s:18006:%s' % [lib.collections.ip.loopback, httpPort]],
     },
 
     // ── Worker: background tasks, outpost mgmt, cert/blueprint processing ───────
     [refs.worker.key]: {
       container_name: refs.worker.ext,
       image: 'ghcr.io/goauthentik/server:' + version,
-      restart: lib.restart.unlessStopped,
+      restart: lib.collections.restart.unlessStopped,
       command: 'worker',
       // root + docker.sock: lets the worker manage the embedded/managed outposts.
       user: 'root',
@@ -61,7 +61,7 @@ local dbHealthy = { [refs.db.key]: { condition: lib.condition.healthy } };
       environment: authentikEnv,
       volumes: [
         refs.data.mount('/data'),
-        lib.mounts.dockerSockRW,
+        lib.collections.mounts.dockerSockRW,
       ],
     },
 
@@ -69,7 +69,7 @@ local dbHealthy = { [refs.db.key]: { condition: lib.condition.healthy } };
     [refs.db.key]: {
       container_name: refs.db.ext,
       image: 'docker.io/library/postgres:' + dbVersion,
-      restart: lib.restart.unlessStopped,
+      restart: lib.collections.restart.unlessStopped,
       networks: ['default', gateway.name],
       volumes: [refs.dbData.mount('/var/lib/postgresql/data')],
       environment: {
@@ -85,7 +85,7 @@ local dbHealthy = { [refs.db.key]: { condition: lib.condition.healthy } };
         start_period: '20s',
       },
       expose: ['5432'],
-      ports: ['%s:18040:5432' % lib.ip.loopback],
+      ports: ['%s:18040:5432' % lib.collections.ip.loopback],
     },
   },
 }

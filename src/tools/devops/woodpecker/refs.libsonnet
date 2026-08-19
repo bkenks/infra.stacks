@@ -4,8 +4,8 @@ lib.Project {
   name:: 'woodpecker',
   envFiles:: [lib.Secret('woodpecker')],
 
-  server:: self.Service { role:: lib.role.SERVER },
-  agent:: self.Service { role:: lib.role.AGENT },
+  server:: self.Service { role:: lib.collections.role.SERVER },
+  agent:: self.Service { role:: lib.collections.role.AGENT },
 
   serverData:: self.Volume { key:: 'server' },
   agentData:: self.Volume { key:: 'agent' },

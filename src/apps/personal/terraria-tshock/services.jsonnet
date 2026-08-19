@@ -15,7 +15,7 @@ local restPort = '7878';
 // shared — see README.
 local gameHostPort = '18023';
 local restHostPort = '18024';
-local dataPath = lib.dirs.rootlessSrv + '/terraria-tshock';
+local dataPath = lib.collections.dirs.rootlessSrv + '/terraria-tshock';
 
 // The image defaults CONFIGPATH to the worlds directory, which buries tshock.sqlite — the
 // only copy of every server-side character — among the .wld files. Split them so the thing
@@ -33,13 +33,13 @@ local pluginsDir = '/tshock/ServerPlugins';
     [refs.app.key]: {
       container_name: refs.app.ext,
       image: 'ryshe/terraria:' + imageTag,
-      restart: lib.restart.unlessStopped,
+      restart: lib.collections.restart.unlessStopped,
       ports: [
-        '%s:%s:%s' % [lib.ip.loopback, gameHostPort, gamePort],
+        '%s:%s:%s' % [lib.collections.ip.loopback, gameHostPort, gamePort],
         // A REST token is full server admin, including arbitrary console commands, so this
         // stays on loopback like the game port. Anything consuming it joins this stack's
         // network rather than dialling the host.
-        '%s:%s:%s' % [lib.ip.loopback, restHostPort, restPort],
+        '%s:%s:%s' % [lib.collections.ip.loopback, restHostPort, restPort],
       ],
       environment: {
         WORLD_FILENAME: 'Columbia_Plaza.wld',

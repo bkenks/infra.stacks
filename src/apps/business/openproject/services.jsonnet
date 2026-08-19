@@ -12,8 +12,8 @@ local hocuspocusPort = '1234';
 
 // The public subdomain 'openprj' differs from the stack name 'openproject'.
 local sub = 'openprj';
-local cloudDomain = sub + '.' + lib.domain.ktbcloud;
-local internalDomain = sub + '.' + lib.domain.ktbinternal;
+local cloudDomain = sub + '.' + lib.collections.domain.ktbcloud;
+local internalDomain = sub + '.' + lib.collections.domain.ktbinternal;
 
 local pg = lib.registry.endpoint.serviceGroup.postgres.container;
 local sharedDB = lib.registry.network.shared.postgresDB;
@@ -52,7 +52,7 @@ local appEnv = {
 // The shared body of the four Rails services.
 local railsApp = {
   image: 'openproject/openproject:' + appVersion,
-  restart: lib.restart.unlessStopped,
+  restart: lib.collections.restart.unlessStopped,
   volumes: [
     refs.assets.mount('/var/openproject/assets'),
     './token/enterprise_token.rb:/app/app/models/enterprise_token.rb',
@@ -78,19 +78,19 @@ local afterSeed = [refs.cache.key, refs.seeder.key];
     [refs.autoheal.key]: {
       container_name: refs.autoheal.ext,
       image: 'willfarrell/autoheal:' + autohealVersion,
-      restart: lib.restart.unlessStopped,
+      restart: lib.collections.restart.unlessStopped,
       environment: {
         AUTOHEAL_CONTAINER_LABEL: 'autoheal',
         AUTOHEAL_START_PERIOD: '600',
         AUTOHEAL_INTERVAL: '30',
       },
-      volumes: [lib.mounts.dockerSockRW],
+      volumes: [lib.collections.mounts.dockerSockRW],
     },
 
     [refs.cache.key]: {
       container_name: refs.cache.ext,
       image: 'memcached:' + memcachedVersion,
-      restart: lib.restart.unlessStopped,
+      restart: lib.collections.restart.unlessStopped,
     },
 
     [refs.cron.key]: railsApp {
@@ -102,7 +102,7 @@ local afterSeed = [refs.cache.key, refs.seeder.key];
     [refs.hocuspocus.key]: {
       container_name: refs.hocuspocus.ext,
       image: 'openproject/hocuspocus:' + hocuspocusVersion,
-      restart: lib.restart.unlessStopped,
+      restart: lib.collections.restart.unlessStopped,
       networks: ['default', sharedDB.name],
       // Calls back into `web` over the private bridge (http, not the TLS hairpin); `web`
       // must be in OPENPROJECT_ADDITIONAL__HOST__NAMES.
@@ -112,7 +112,7 @@ local afterSeed = [refs.cache.key, refs.seeder.key];
         SECRET: '${COLLAB_SERVER_SECRET:?err}',
       },
       expose: [hocuspocusPort],
-      ports: ['%s:%s:%s' % [lib.ip.loopback, hocuspocusPort, hocuspocusPort]],
+      ports: ['%s:%s:%s' % [lib.collections.ip.loopback, hocuspocusPort, hocuspocusPort]],
     },
 
     // Runs migrations and seeds, then exits; the long-running services wait on it.
@@ -138,7 +138,7 @@ local afterSeed = [refs.cache.key, refs.seeder.key];
         start_period: '60s',
       },
       expose: [webPort],
-      ports: ['%s:18009:%s' % [lib.ip.loopback, webPort]],
+      ports: ['%s:18009:%s' % [lib.collections.ip.loopback, webPort]],
     },
 
     [refs.worker.key]: railsApp {

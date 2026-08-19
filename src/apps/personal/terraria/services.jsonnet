@@ -17,10 +17,10 @@ local worldPath = lib.registry.dir.fileBrowser.shared + '/terraria/worlds/columb
     [refs.app.key]: {
       container_name: refs.app.ext,
       image: 'ghcr.io/beardedio/terraria:' + version,
-      restart: lib.restart.unlessStopped,
+      restart: lib.collections.restart.unlessStopped,
       volumes: [worldPath + ':/config'],
       environment: { world: 'Columbia_Plaza.wld' },
-      ports: ['%s:%s:%s' % [lib.ip.loopback, hostPort, containerPort]],
+      ports: ['%s:%s:%s' % [lib.collections.ip.loopback, hostPort, containerPort]],
       tty: true,
       stdin_open: true,
     },

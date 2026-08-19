@@ -14,7 +14,7 @@ local version = '1.14.0';
     [refs.tunnel.key]: {
       container_name: refs.tunnel.ext,
       image: 'fosrl/newt:' + version,
-      restart: lib.restart.unlessStopped,
+      restart: lib.collections.restart.unlessStopped,
       environment: {
         TZ: 'America/New_York',
         PANGOLIN_ENDPOINT: lib.registry.endpoint.serviceGroup.pangolin.proxy.url,

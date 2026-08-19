@@ -2,8 +2,8 @@ local lib = import 'lib.libsonnet';
 local refs = import 'refs.libsonnet';
 
 local tz = 'America/New_York';
-local restart = lib.restart.onFailure(5);
-local bindRoot = lib.dirs.docker.bindMounts + '/stream';
+local restart = lib.collections.restart.onFailure(5);
+local bindRoot = lib.collections.dirs.docker.bindMounts + '/stream';
 
 // The linuxserver.io images drop to this uid/gid; the bind mounts under bindRoot are owned
 // by it. plex and seerr opt out — see their notes.
@@ -44,8 +44,8 @@ local httpHealth(port, path) = {
 // configarr and decluttarr both drive the *arr APIs, so both wait for them to be healthy
 // rather than merely started.
 local arrsHealthy = {
-  [refs.radarr.key]: { condition: lib.condition.healthy },
-  [refs.sonarr.key]: { condition: lib.condition.healthy },
+  [refs.radarr.key]: { condition: lib.collections.condition.healthy },
+  [refs.sonarr.key]: { condition: lib.collections.condition.healthy },
 };
 
 // Read via `!env` / `!ENV` in the mounted config files.
@@ -70,7 +70,7 @@ local arrApiKeys = {
       environment: lsioEnv,
       healthcheck: httpHealth(ports.bazarr, '/'),
       expose: [ports.bazarr],
-      ports: ['%s:6767:%s' % [lib.ip.loopback, ports.bazarr]],
+      ports: ['%s:6767:%s' % [lib.collections.ip.loopback, ports.bazarr]],
     },
 
     // One-shot: syncs ./configarr/config.yml into Sonarr/Radarr on each deploy, then exits 0.
@@ -131,7 +131,7 @@ local arrApiKeys = {
       environment: lsioEnv,
       healthcheck: httpHealth(ports.prowlarr, '/ping'),
       expose: [ports.prowlarr],
-      ports: ['%s:9696:%s' % [lib.ip.loopback, ports.prowlarr]],
+      ports: ['%s:9696:%s' % [lib.collections.ip.loopback, ports.prowlarr]],
     },
 
     [refs.radarr.key]: {
@@ -145,7 +145,7 @@ local arrApiKeys = {
       environment: lsioEnv,
       healthcheck: httpHealth(ports.radarr, '/ping'),
       expose: [ports.radarr],
-      ports: ['%s:7878:%s' % [lib.ip.loopback, ports.radarr]],
+      ports: ['%s:7878:%s' % [lib.collections.ip.loopback, ports.radarr]],
     },
 
     [refs.sabnzbd.key]: {
@@ -159,7 +159,7 @@ local arrApiKeys = {
       environment: lsioEnv,
       healthcheck: httpHealth(ports.sabnzbd, '/'),
       expose: [ports.sabnzbd],
-      ports: ['%s:18013:%s' % [lib.ip.loopback, ports.sabnzbd]],
+      ports: ['%s:18013:%s' % [lib.collections.ip.loopback, ports.sabnzbd]],
     },
 
     // Runs as the fixed non-root `node` user (UID 1000) — PUID/PGID have no effect; needs
@@ -171,7 +171,7 @@ local arrApiKeys = {
       volumes: [bindRoot + '/seerr/config:/app/config'],
       environment: { TZ: tz },
       expose: [ports.seerr],
-      ports: ['%s:5055:%s' % [lib.ip.loopback, ports.seerr]],
+      ports: ['%s:5055:%s' % [lib.collections.ip.loopback, ports.seerr]],
       init: true,
     },
 
@@ -186,7 +186,7 @@ local arrApiKeys = {
       environment: lsioEnv,
       healthcheck: httpHealth(ports.sonarr, '/ping'),
       expose: [ports.sonarr],
-      ports: ['%s:8989:%s' % [lib.ip.loopback, ports.sonarr]],
+      ports: ['%s:8989:%s' % [lib.collections.ip.loopback, ports.sonarr]],
     },
   },
 }

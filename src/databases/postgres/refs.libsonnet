@@ -4,6 +4,6 @@ lib.Project {
   name:: 'postgres',
   envFiles:: [lib.Secret('postgres')],
 
-  db:: self.Service { role:: lib.role.DB },
+  db:: self.Service { role:: lib.collections.role.DB },
   dbData:: self.Volume { key:: 'db' },
 }

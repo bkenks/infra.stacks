@@ -18,7 +18,7 @@ local gateway = lib.registry.network.shared.tsGateway;
     [refs.app.key]: {
       container_name: refs.app.ext,
       image: 'tailscale/tailscale:' + appVersion,
-      restart: lib.restart.unlessStopped,
+      restart: lib.collections.restart.unlessStopped,
       networks: ['default', gateway.name],
       volumes: [refs.appData.mount('/var/lib/tailscale')],
       environment: {

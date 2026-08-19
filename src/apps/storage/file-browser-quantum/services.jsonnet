@@ -16,7 +16,7 @@ local dir = lib.registry.dir.fileBrowser;
     [refs.app.key]: {
       container_name: refs.app.ext,
       image: 'gtstef/filebrowser:' + version,
-      restart: lib.restart.unlessStopped,
+      restart: lib.collections.restart.unlessStopped,
       volumes: [
         './files/config.yaml:/home/filebrowser/data/config.yaml:ro',
         dir.data + ':/data',
@@ -24,7 +24,7 @@ local dir = lib.registry.dir.fileBrowser;
         dir.cache + ':/cache',
       ],
       expose: [appPort],
-      ports: ['%s:%s:%s' % [lib.ip.loopback, hostPort, appPort]],
+      ports: ['%s:%s:%s' % [lib.collections.ip.loopback, hostPort, appPort]],
     },
   },
 }

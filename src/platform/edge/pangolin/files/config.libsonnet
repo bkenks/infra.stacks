@@ -9,8 +9,8 @@ local lib = import 'lib.libsonnet';
 // The two DNS planes this instance serves. config.yaml declares them as domain1/domain2;
 // dynamic_config.yaml requests one wildcard cert per plane (request once, serve everywhere
 // via SNI). Fixed — NOT the reach knob, so the instance holds both certs.
-local baseDomain = lib.domain.ktbinternal;
-local cloudDomain = lib.domain.ktbcloud;
+local baseDomain = lib.collections.domain.ktbinternal;
+local cloudDomain = lib.collections.domain.ktbcloud;
 
 // Named once in traefik_config.yaml's certificatesResolvers, referenced by every https
 // router in dynamic_config.yaml.
