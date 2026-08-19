@@ -84,7 +84,9 @@ def is_generated(path: Path) -> bool:
     try:
         with path.open() as handle:
             return handle.readline().startswith(MARKER)
-    except OSError:
+    except (OSError, UnicodeDecodeError):
+        # A binary file (a stray .DS_Store) reads as hand-written, which is the safe
+        # side: the build neither deletes it nor overwrites it.
         return False
 
 
