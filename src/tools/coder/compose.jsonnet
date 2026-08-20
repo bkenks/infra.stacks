@@ -43,7 +43,8 @@ local db = {
       },
       volumes: ["/var/run/docker.sock:/var/run/docker.sock", app.volumeHome.key + ":" + app.volumeHome.mount],
       depends_on: {
-        database: {
+        secrets: {},
+        [ db.key ]: {
           condition: "service_healthy" 
         }
       }
@@ -51,6 +52,9 @@ local db = {
 
     [ db.key ]: {
       image: "postgres:17",
+      depends_on: {
+        secrets: {},
+      },
       // via infisical-secrets
       // environment:{
       //   POSTGRES_USER: "${POSTGRES_USER}",
