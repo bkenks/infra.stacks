@@ -41,7 +41,7 @@ local secretsDepends = { secrets: { condition: "service_started" } };
       environment: {
         // CODER_PG_CONNECTION_URL: via infisical-secrets
         CODER_HTTP_ADDRESS: "0.0.0.0:7080",
-        CODER_ACCESS_URL: "coder." + col.domain.ktbinternal,
+        CODER_ACCESS_URL: "https://coder." + col.domain.ktbinternal,
       },
       volumes: ["/var/run/docker.sock:/var/run/docker.sock", app.volumeHome.key + ":" + app.volumeHome.mount],
       depends_on: secretsDepends {
