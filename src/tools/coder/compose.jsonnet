@@ -13,6 +13,8 @@ local db = {
   volData:: { key:: "db-data", mount:: "/var/lib/postgresql/data"}
 };
 
+local secretsDepends = { secrets: { condition: "service_started" } };
+
 // ——————————————————————————————————————————
 
 {
@@ -42,8 +44,7 @@ local db = {
         CODER_ACCESS_URL: "coder." + col.domain.ktbinternal,
       },
       volumes: ["/var/run/docker.sock:/var/run/docker.sock", app.volumeHome.key + ":" + app.volumeHome.mount],
-      depends_on: {
-        secrets: {},
+      depends_on: secretsDepends {
         [ db.key ]: {
           condition: "service_healthy" 
         }
@@ -52,9 +53,7 @@ local db = {
 
     [ db.key ]: {
       image: "postgres:17",
-      depends_on: {
-        secrets: {},
-      },
+      depends_on: secretsDepends,
       // via infisical-secrets
       // environment:{
       //   POSTGRES_USER: "${POSTGRES_USER}",

@@ -4,7 +4,8 @@ services:
     depends_on:
       db:
         condition: "service_healthy"
-      secrets: {}
+      secrets:
+        condition: "service_started"
     environment:
       CODER_ACCESS_URL: "coder.ktbinternal.com"
       CODER_HTTP_ADDRESS: "0.0.0.0:7080"
@@ -16,7 +17,8 @@ services:
       - "app-home:/home/coder"
   db:
     depends_on:
-      secrets: {}
+      secrets:
+        condition: "service_started"
     healthcheck:
       interval: "5s"
       retries: "5"
