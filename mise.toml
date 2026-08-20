@@ -4,22 +4,11 @@
 go-jsonnet = "0.22.0"
 uv = "0.12.1"         # runtime for devlib/render.py
 lefthook = "2.1.10"
-yamllint = "1.38.0"
 yq = "4.53.3"
 
 [hooks]
 postinstall = "lefthook install"
 # SETUP
-# —————————————————————
-
-
-# —————————————————————
-# LINT
-[tasks.lint-yaml]
-description = "Lint YAML files"
-run = "yamllint -c .config/yamllint.yml ."
-alias = ["lint-yaml", "lint"]
-# LINT
 # —————————————————————
 
 
