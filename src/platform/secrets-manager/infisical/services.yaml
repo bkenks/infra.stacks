@@ -48,6 +48,7 @@ services:
       - "shared__ts-gateway"
     ports:
       - "127.0.0.1:18043:8080"
+      - "100.106.170.93:18043:8080"
     profiles:
       - "server"
     restart: "unless-stopped"
