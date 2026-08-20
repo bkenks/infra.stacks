@@ -7,7 +7,6 @@ services:
     environment:
       CODER_ACCESS_URL: "coder.ktbinternal.com"
       CODER_HTTP_ADDRESS: "0.0.0.0:7080"
-      CODER_PG_CONNECTION_URL: "postgresql://${POSTGRES_USER:-username}:${POSTGRES_PASSWORD:-password}@database/${POSTGRES_DB:-coder}?sslmode=disable"
     image: "ghcr.io/coder/coder:latest"
     ports:
       - "127.0.0.1:7080:7080"
@@ -15,20 +14,26 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "app-home:/home/coder"
   db:
-    environment:
-      POSTGRES_DB: "${POSTGRES_DB}"
-      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
-      POSTGRES_USER: "${POSTGRES_USER}"
     healthcheck:
       interval: "5s"
       retries: "5"
       test:
         - "CMD-SHELL"
-        - "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"
+        - "pg_isready -U coder -d coder"
       timeout: "5s"
     image: "postgres:17"
     volumes:
       - "db-data:/var/lib/postgresql/data"
+  secrets:
+    provider:
+      options:
+        credentials-file: "/dev/shm/secrets/credentials.env"
+        domain: "http://100.106.170.93:18043"
+        env: "prod"
+        path: "/coder"
+        project-id: "2f0eb3d1-3e2a-4ce7-8060-5e47ad877e47"
+        recursive: true
+      type: "infisical-secrets"
 volumes:
   app-home: {}
   db-data: {}

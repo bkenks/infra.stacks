@@ -17,13 +17,27 @@ local db = {
 
 {
   services: {
+    secrets: {
+      provider: {
+        type: "infisical-secrets",
+        options: {
+          "credentials-file": "/dev/shm/secrets/credentials.env",
+          domain: 'http://100.106.170.93:18043',
+          "project-id": "2f0eb3d1-3e2a-4ce7-8060-5e47ad877e47",
+          env: "prod",
+          path: "/coder",
+          recursive: true
+        }
+      }
+    },
+
     [ app.key ]: {
       image: "ghcr.io/coder/coder:" + coderVersion,
       ports: [
         col.ip.loopback + ":7080:7080"
       ],
       environment: {
-        CODER_PG_CONNECTION_URL: "postgresql://${POSTGRES_USER:-username}:${POSTGRES_PASSWORD:-password}@database/${POSTGRES_DB:-coder}?sslmode=disable",
+        // CODER_PG_CONNECTION_URL: via infisical-secrets
         CODER_HTTP_ADDRESS: "0.0.0.0:7080",
         CODER_ACCESS_URL: "coder." + col.domain.ktbinternal,
       },
@@ -37,16 +51,17 @@ local db = {
 
     [ db.key ]: {
       image: "postgres:17",
-      environment:{
-        POSTGRES_USER: "${POSTGRES_USER}",
-        POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}",
-        POSTGRES_DB: "${POSTGRES_DB}",
-      },
+      // via infisical-secrets
+      // environment:{
+      //   POSTGRES_USER: "${POSTGRES_USER}",
+      //   POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}",
+      //   POSTGRES_DB: "${POSTGRES_DB}",
+      // },
       volumes: [ db.volData.key + ":" + db.volData.mount ],
       healthcheck:{
         test: [
           "CMD-SHELL",
-          "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}",
+          "pg_isready -U coder -d coder",
         ],
         interval: "5s",
         timeout: "5s",
