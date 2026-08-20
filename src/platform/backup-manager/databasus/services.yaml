@@ -10,7 +10,7 @@ services:
     restart: "unless-stopped"
     volumes:
       - "app:/databasus-data"
-      - "/dev/shm/databasus_secret.key:/databasus-data/secret.key:ro"
+      - "/dev/shm/secrets/databasus_secret.key:/databasus-data/secret.key:ro"
 volumes:
   app:
     name: "databasus_app"

@@ -1,6 +1,7 @@
 {
     "jsonnet.languageServer.jpath": [
-        "./devlib"
+        ".",
+        "devlib"
     ],
     "debug.javascript.defaultRuntimeExecutable": {
         "pwa-node": "/Users/briankenkel/.local/share/mise/shims/node"

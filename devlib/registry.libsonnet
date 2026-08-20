@@ -34,7 +34,7 @@ local tmpl = import 'templates.libsonnet';
       bill::            hostGroup.Host { alias:: 'bill' },
       // ── VPS ──
       maboi::           hostGroup.Host { alias:: 'maboi' },
-      rick::            hostGroup.Host { alias:: 'rick' },
+      rick::            hostGroup.Host { alias:: 'rick', tailscaleIP:: '100.106.170.93' },
       // ── NAS ──
       nas::             hostGroup.Host { alias:: 'snaszy' },
 

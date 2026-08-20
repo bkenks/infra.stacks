@@ -1,6 +1,6 @@
 # GENERATED from compose.jsonnet by render.py — DO NOT EDIT.
 include:
   - env_file:
-      - "/dev/shm/example.env"
+      - "/dev/shm/secrets/example.env"
     path: "services.yaml"
 name: "example"

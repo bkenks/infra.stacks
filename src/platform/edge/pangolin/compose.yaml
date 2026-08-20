@@ -1,7 +1,7 @@
 # GENERATED from compose.jsonnet by render.py — DO NOT EDIT.
 include:
   - env_file:
-      - "/dev/shm/pangolin.env"
-      - "/dev/shm/cloudflare__dns-api-token.env"
+      - "/dev/shm/secrets/pangolin.env"
+      - "/dev/shm/secrets/cloudflare__dns-api-token.env"
     path: "services.yaml"
 name: "pangolin"

@@ -1,6 +1,6 @@
 # GENERATED from compose.jsonnet by render.py — DO NOT EDIT.
 include:
   - env_file:
-      - "/dev/shm/postgres.env"
+      - "/dev/shm/secrets/postgres.env"
     path: "services.yaml"
 name: "postgres"

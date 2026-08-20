@@ -38,7 +38,9 @@
     MAIL:: 'mail',
   },
 
-  ip:: { loopback:: '127.0.0.1' },
+  ip:: {
+    loopback:: '127.0.0.1'
+  },
 
   domain:: {
     ktbdev::          'ktb.dev',
@@ -66,7 +68,7 @@
 
     // tmpfs. infisical-agent renders every secret here, so it never touches a disk.
     secrets::
-      '/dev/shm',
+      '/dev/shm/secrets',
   },
 
   mounts:: {

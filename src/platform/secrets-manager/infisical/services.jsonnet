@@ -82,11 +82,10 @@ local gateway = lib.registry.network.shared.tsGateway;
         start_period: '40s',
       },
       expose: [appPort],
-      // Loopback-bound like every other host port: the public entrypoint is
-      // infisical.proxy.url via the edge proxy, not this mapping. Without the prefix this
-      // publishes on 0.0.0.0, which reaches the internet on a public-IP host because
-      // docker's iptables rules bypass ufw.
-      ports: ['%s:%s:%s' % [lib.collections.ip.loopback, infisical.host.port, appPort]],
+      ports: [
+        '%s:%s:%s' % [ lib.collections.ip.loopback, infisical.host.port, appPort],
+        '%s:%s:%s' % [ infisical.host.on.tailscaleIP , infisical.host.port, appPort],
+        ],
     },
 
     [refs.db.key]: {
