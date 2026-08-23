@@ -30,6 +30,7 @@ local initScript = std.join(' && ', [
 ]);
 
 local initDone = { [refs.init.key]: { condition: lib.collections.condition.completed } };
+local secretsStarted = { [col.role.SECRETS]: { condition: lib.collections.condition.started } };
 local pangolinHealthy = { [refs.pangolin.key]: { condition: lib.collections.condition.healthy } };
 
 {
@@ -66,7 +67,7 @@ local pangolinHealthy = { [refs.pangolin.key]: { condition: lib.collections.cond
       container_name: refs.pangolin.ext,
       image: 'docker.io/fosrl/pangolin:' + pangolinVersion,
       restart: lib.collections.restart.unlessStopped,
-      depends_on: initDone,
+      depends_on: initDone + secretsStarted,
       mem_limit: '2g',
       mem_reservation: '512m',
       volumes: [
@@ -78,8 +79,8 @@ local pangolinHealthy = { [refs.pangolin.key]: { condition: lib.collections.cond
       ],
       environment: {
         // Overrides server.secret / email.smtp_pass (config.yml ships both blank).
-        SERVER_SECRET: '${SERVER_SECRET:?err}',
-        EMAIL_SMTP_PASS: '${EMAIL_SMTP_PASS:?err}',
+        // SERVER_SECRET: '${SERVER_SECRET:?err}',
+        // EMAIL_SMTP_PASS: '${EMAIL_SMTP_PASS:?err}',
       },
       healthcheck: {
         test: ['CMD', 'curl', '-f', 'http://localhost:3001/api/v1/'],
@@ -122,12 +123,12 @@ local pangolinHealthy = { [refs.pangolin.key]: { condition: lib.collections.cond
       image: 'docker.io/library/traefik:' + traefikVersion,
       restart: lib.collections.restart.unlessStopped,
       network_mode: 'service:' + refs.gerbil.key,
-      depends_on: initDone + pangolinHealthy,
+      depends_on: initDone + pangolinHealthy + secretsStarted,
       command: ['--configFile=/etc/traefik/traefik_config.yml'],
       environment: {
         // CF_DNS_API_TOKEN for DNS-01 ACME (lego reads it from the environment); shared
         // with platform/edge/traefik rather than duplicated into this stack's own bundle.
-        CF_DNS_API_TOKEN: '${CF_DNS_API_TOKEN:?err}',
+        // CF_DNS_API_TOKEN: '${CF_DNS_API_TOKEN:?err}',
       },
       volumes: [
         // Generated beside this file; the container paths keep the .yml names traefik

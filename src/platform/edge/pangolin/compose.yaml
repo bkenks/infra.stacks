@@ -47,9 +47,9 @@ services:
     depends_on:
       init:
         condition: "service_completed_successfully"
-    environment:
-      EMAIL_SMTP_PASS: "${EMAIL_SMTP_PASS:?err}"
-      SERVER_SECRET: "${SERVER_SECRET:?err}"
+      secrets:
+        condition: "service_started"
+    environment: {}
     healthcheck:
       interval: "10s"
       retries: 15
@@ -86,8 +86,9 @@ services:
         condition: "service_completed_successfully"
       pangolin:
         condition: "service_healthy"
-    environment:
-      CF_DNS_API_TOKEN: "${CF_DNS_API_TOKEN:?err}"
+      secrets:
+        condition: "service_started"
+    environment: {}
     image: "docker.io/library/traefik:v3.6"
     network_mode: "service:gerbil"
     restart: "unless-stopped"
