@@ -1,5 +1,6 @@
 {
   role:: {
+    SECRETS:: 'secrets',
     // User-facing / entry
     APP:: 'app',
     PROXY:: 'proxy',

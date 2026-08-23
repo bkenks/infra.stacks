@@ -1,5 +1,7 @@
 local lib = import 'lib.libsonnet';
 local refs = import 'refs.libsonnet';
+local col = lib.collections;
+local reg = lib.registry;
 
 local pangolinVersion = 'ee-1.20.0';
 local gerbilVersion = '1.4.2';
@@ -36,6 +38,19 @@ local pangolinHealthy = { [refs.pangolin.key]: { condition: lib.collections.cond
   networks: { default: { name: refs.name, driver: 'bridge', enable_ipv6: true } },
 
   services: {
+    [col.role.SECRETS]: {
+      provider: {
+        type: "infisical-secrets",
+        options: {
+          "credentials-file": "/dev/shm/credentials/infisical.env",
+          domain: "http://controlplane.internal:18043",
+          "project-id": reg.infisical.project.infra.id,
+          env: "prod",
+          path: "/pangolin",
+          recursive: true
+        }
+      }
+    },
     // One-shot: creates the config tree/perms + the GeoLite mmdbs (skipped after the first
     // run). It does not provision files/ content — that is the bind mounts below.
     [refs.init.key]: {

@@ -67,6 +67,16 @@ services:
       - "/srv/docker/bind-mounts/pangolin/config:/app/config"
       - "./files/config.yaml:/app/config/config.yml:ro"
       - "./files/privateConfig.yaml:/app/config/privateConfig.yml:ro"
+  secrets:
+    provider:
+      options:
+        credentials-file: "/dev/shm/credentials/infisical.env"
+        domain: "http://controlplane.internal:18043"
+        env: "prod"
+        path: "/pangolin"
+        project-id: "86324d9b-3dd7-49d4-b252-69228c5ee0c7"
+        recursive: true
+      type: "infisical-secrets"
   traefik:
     command:
       - "--configFile=/etc/traefik/traefik_config.yml"
