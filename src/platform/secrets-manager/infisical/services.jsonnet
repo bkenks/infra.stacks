@@ -1,27 +1,11 @@
-// infisical — the secrets store itself, plus the agent that renders every host's secrets.
-//
-// Two profiles carve one file into two deployment shapes. The server (app/db/redis) runs on
-// the single Infisical host; the agent runs on every host, rendering that host's secrets.
-// Nothing runs without a profile:
-//   littlebuddy (server host):  COMPOSE_PROFILES=server,agent
-//   every other host:           COMPOSE_PROFILES=agent
-//   Ansible bootstrap:          COMPOSE_PROFILES=server
-//
-// Compose interpolates the WHOLE file on every host regardless of the active profile, so no
-// var here can use `:?err`: an agent-only host has no server secrets and a server-only
-// bootstrap has no agent creds, yet both would still be interpolated. Every var therefore
-// carries an empty default and validation moves to runtime — the Infisical app rejects an
-// empty ENCRYPTION_KEY at boot, and the agent's entrypoint.sh does `:?` checks of its own.
 local lib = import 'lib.libsonnet';
 local refs = import 'refs.libsonnet';
 
 local serverProfile = 'server';
-// local agentProfile = 'agent';
 
 local appVersion = 'v0.160.9';
 local dbVersion = '16-alpine';
 local redisVersion = '7-alpine';
-// local agentVersion = '0.43.89';
 
 local infisical = lib.registry.endpoint.serviceGroup.infisical;
 local appPort = infisical.container.port;
@@ -54,19 +38,12 @@ local gateway = lib.registry.network.shared.tsGateway;
       },
       environment: {
         SITE_URL: infisical.proxy.url,
-
-        // Optional; blank disables email.
         SMTP_HOST: '${INFISICAL__SMTP_HOST:-}',
         SMTP_PORT: '${INFISICAL__SMTP_PORT:-}',
         SMTP_FROM_ADDRESS: '${INFISICAL__SMTP_FROM_ADDRESS:-}',
         SMTP_FROM_NAME: '${INFISICAL__SMTP_FROM_NAME:-}',
-
         NODE_ENV: 'production',
         REDIS_URL: 'redis://%s:6379' % refs.redis.key,
-
-        // Ansible renders these into platform.env so infisical can read its own secrets
-        // despite being the server. Empty defaults, not `:?err` — see the whole-file
-        // interpolation note above.
         ENCRYPTION_KEY: '${INFISICAL_ENCRYPTION_KEY:-}',
         AUTH_SECRET: '${INFISICAL_AUTH_SECRET:-}',
         DB_CONNECTION_URI: 'postgres://%s:${INFISICAL_DB_PASSWORD:-}@%s:5432/%s'
@@ -98,9 +75,6 @@ local gateway = lib.registry.network.shared.tsGateway;
       environment: {
         POSTGRES_USER: dbUser,
         POSTGRES_DB: dbName,
-        // Same source as the app's INFISICAL_DB_PASSWORD; empty default per the
-        // interpolation note above, and postgres refuses to initialize on an empty
-        // password anyway.
         POSTGRES_PASSWORD: '${INFISICAL_DB_PASSWORD:-}',
       },
       healthcheck: {
