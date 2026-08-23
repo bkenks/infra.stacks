@@ -12,6 +12,7 @@ services:
     image: "ghcr.io/coder/coder:latest"
     ports:
       - "127.0.0.1:7080:7080"
+    user: "0:0"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "app-home:/home/coder"

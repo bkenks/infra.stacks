@@ -35,6 +35,12 @@ local secretsDepends = { secrets: { condition: "service_started" } };
 
     [ app.key ]: {
       image: "ghcr.io/coder/coder:" + coderVersion,
+      depends_on: secretsDepends {
+        [ db.key ]: {
+          condition: "service_healthy" 
+        }
+      },
+      volumes: ["/var/run/docker.sock:/var/run/docker.sock", app.volumeHome.key + ":" + app.volumeHome.mount],
       ports: [
         col.ip.loopback + ":7080:7080"
       ],
@@ -43,12 +49,7 @@ local secretsDepends = { secrets: { condition: "service_started" } };
         CODER_HTTP_ADDRESS: "0.0.0.0:7080",
         CODER_ACCESS_URL: "https://coder." + col.domain.ktbinternal,
       },
-      volumes: ["/var/run/docker.sock:/var/run/docker.sock", app.volumeHome.key + ":" + app.volumeHome.mount],
-      depends_on: secretsDepends {
-        [ db.key ]: {
-          condition: "service_healthy" 
-        }
-      }
+      user: "0:0"
     },
 
     [ db.key ]: {
