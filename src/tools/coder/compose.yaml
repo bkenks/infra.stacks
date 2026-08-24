@@ -33,7 +33,7 @@ services:
   secrets:
     provider:
       options:
-        credentials-file: "/dev/shm/secrets/credentials.env"
+        credentials-file: "/mnt/secrets/credentials/infisical.env"
         domain: "http://100.106.170.93:18043"
         env: "prod"
         path: "/coder"

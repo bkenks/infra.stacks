@@ -9,6 +9,11 @@ local col = import 'collections.libsonnet';
 local tmpl = import 'templates.libsonnet';
 
 {
+  path:: {
+    file:: {
+      infisical_creds:: "/mnt/secrets/credentials/infisical.env"
+    },
+  },
   network:: {
     // Container-to-container, within one host. The owning stack declares it plain in its
     // top-level networks:, every other stack declares it external — so attaching before
