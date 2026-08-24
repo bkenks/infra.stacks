@@ -6,21 +6,52 @@ local coderVersion = "latest";
 local coderFQDN = "coder." + col.domain.ktbcloud;
 local coderURL = "https://" + coderFQDN;
 
+local secretsDepends = { secrets: { condition: "service_started" } };
+
+
+// ——————————————————————————————————————————
+
 local app = {
   key:: col.role.APP,
-  volumeHome:: { key:: "app-home", mount:: "/home/coder"}
+  volume:: {
+    home:: { key:: "app-home", mount:: "/home/coder"}
+  }, v:: self.volume,
 };
 
 local db = {
   key:: col.role.DB,
-  volData:: { key:: "db-data", mount:: "/var/lib/postgresql/data"}
+  volume:: {
+    data:: { key:: "db-data", mount:: "/var/lib/postgresql/data"}
+  }, v:: self.volume,
 };
 
-local secretsDepends = { secrets: { condition: "service_started" } };
+local n = {
+  workspaces:: { local workspaces = self,
+    key:: "workspaces",
+    def:: {
+      [workspaces.key]: {
+        name: "coder-" + workspaces.key
+      }
+    }
+  }
+};
 
 // ——————————————————————————————————————————
 
+
+
 {
+  networks:
+    n.workspaces.def +
+    { 
+      default: {}
+    },
+
+  volumes: {
+    [ app.v.home.key ]: {},
+    [ db.v.data.key ]: {}
+  },
+
   services: {
     secrets: {
       provider: {
@@ -38,12 +69,21 @@ local secretsDepends = { secrets: { condition: "service_started" } };
 
     [ app.key ]: {
       image: "ghcr.io/coder/coder:" + coderVersion,
-      depends_on: secretsDepends {
-        [ db.key ]: {
-          condition: "service_healthy" 
-        }
-      },
-      volumes: ["/var/run/docker.sock:/var/run/docker.sock", app.volumeHome.key + ":" + app.volumeHome.mount],
+      depends_on:
+        secretsDepends +
+        {
+          [ db.key ]: {
+            condition: "service_healthy" 
+          }
+        },
+      volumes: [
+        "/var/run/docker.sock:/var/run/docker.sock",
+        app.v.home.key + ":" + app.v.home.mount
+      ],
+      networks: [
+        "default",
+        n.workspaces.key
+      ],
       ports: [
         col.ip.loopback + ":7080:7080"
       ],
@@ -68,7 +108,7 @@ local secretsDepends = { secrets: { condition: "service_started" } };
       //   POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}",
       //   POSTGRES_DB: "${POSTGRES_DB}",
       // },
-      volumes: [ db.volData.key + ":" + db.volData.mount ],
+      volumes: [ db.v.data.key + ":" + db.v.data.mount ],
       healthcheck:{
         test: [
           "CMD-SHELL",
@@ -79,9 +119,4 @@ local secretsDepends = { secrets: { condition: "service_started" } };
         retries: "5",
       }
     }},
-
-  volumes: {
-    [ app.volumeHome.key ]: {},
-    [ db.volData.key ]: {}
-  }
 }
