@@ -1,6 +1,7 @@
 // The shape of Pangolin's four config files, parameterized by ONE knob: `urlDomain`, the
-// domain this instance is reached at (host = pangolin.<urlDomain>). One entrypoint per key
-// sits beside this file and renders it; services.jsonnet mounts the results read-only.
+// domain this instance is reached at (host = pangolin.<urlDomain>). Its four keys are four
+// filenames: configs.jsonnet applies this and renders each one, and services.jsonnet mounts
+// the results read-only.
 //
 // The rendered YAML carries only a DO-NOT-EDIT header, so all operational knowledge lives
 // HERE.
