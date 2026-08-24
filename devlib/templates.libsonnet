@@ -89,7 +89,7 @@
     // lib.Secret(key).
     envFiles:: [],
 
-    // What compose.yaml renders to. Every stack's compose.jsonnet is this one field.
+    // What compose.yaml renders to. Every stack's `compose:` field is exactly this.
     compose:: {
       name: project.name,
       include: [

@@ -22,7 +22,7 @@ Both are loopback-bound; reach them over Tailscale or the edge, not from the ope
 tags the TShock release together with the Terraria version it targets, and ships 6.1.0 for
 1.4.5.6, which matches the vanilla stack exactly.
 
-A TShock release supports exactly one Terraria version, so `imageTag` in `services.jsonnet`
+A TShock release supports exactly one Terraria version, so `imageTag` in `stack.jsonnet`
 moves as a pair. Check the [TShock releases](https://github.com/Pryaxis/TShock/releases)
 before bumping — TShock lags vanilla Terraria by weeks after a Terraria release.
 

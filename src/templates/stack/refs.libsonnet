@@ -1,13 +1,13 @@
-// Every name this stack owns, in one place. compose.jsonnet and services.jsonnet both
-// import this file, so the two can never disagree — and a name is written once even when
-// it is read from four services.
+// Every name this stack owns, in one place. stack.jsonnet imports this file, so the
+// manifest and the compose document can never disagree — and a name is written once even
+// when it is read from four services.
 //
 // Nothing here is a compose document; it is a table of strings.
 local lib = import 'lib.libsonnet';
 
 lib.Project {
   // The one string a stack has to choose. Containers become <name>_<role>, volumes
-  // <name>_<key>, and it is the name the private bridge is given in services.jsonnet.
+  // <name>_<key>, and it is the name the private bridge is given in stack.jsonnet.
   name:: 'example',  // ← rename me
 
   // The env files compose interpolates into services.yaml. Register the bundle in

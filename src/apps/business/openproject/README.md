@@ -2,7 +2,7 @@
 
 [OpenProject](https://www.openproject.org/) — self-hosted project management. Reached at `openprj.ktbinternal.com` via Traefik. Runs `web`/`worker`/`cron`/`seeder` off one image plus `cache` (memcached), `hocuspocus` (collaborative editing), and `autoheal`.
 
-Source of truth: `refs.libsonnet` (names) + `services.jsonnet` (the manifest) — don't edit the generated `compose.yaml` / `services.yaml`.
+Source of truth: `refs.libsonnet` (names) + `stack.jsonnet` (the manifest) — don't edit the generated `compose.yaml` / `services.yaml`.
 
 ## Deploy
 

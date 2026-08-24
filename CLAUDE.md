@@ -30,27 +30,27 @@ one and never deletes it.
 Generated output is committed, because Komodo clones this repo on the target host and
 deploys out of `src/` directly.
 
-## A stack is three hand-written files
+## A stack is two hand-written files
 
 | File | Hand-written? | Role |
 |---|---|---|
-| `refs.libsonnet` | yes | Every name this stack owns — project name, service keys, container names, volume names, env files. Imported by the other two. |
-| `services.jsonnet` | yes | `{ services: <plain Compose> }` — the manifest. **This is what Komodo watches and diffs.** |
-| `compose.jsonnet` | yes | One field: `{ compose: (import 'refs.libsonnet').compose }`. |
+| `refs.libsonnet` | yes | Every name this stack owns — project name, service keys, container names, volume names, env files. Imported by the entrypoint. |
+| `stack.jsonnet` | yes | `{ compose: refs.compose, services: <plain Compose> }` — one field per file it renders. **`services` is what Komodo watches and diffs.** |
 | `services.yaml` | no | Rendered manifest. |
 | `compose.yaml` | no | What `docker compose` loads: project name + `include:` (+ `env_file:`). |
 | `files/`, `templates/` | both | Bind-mounted config: nested `.jsonnet` entrypoints, their outputs, and hand-written assets (`files/entrypoint.sh`) side by side. |
 | `README.md` | yes | Per-stack deploy notes. |
 
-Under its `services:` field, `services.jsonnet` is **plain Compose**. There is no `Service`
+Under its `services:` field, `stack.jsonnet` is **plain Compose**. There is no `Service`
 base and no `Stack` assembler — what you read is what gets rendered. The only things not
-written literally are the names two files have to agree on, and those come out of
-`refs.libsonnet`.
+written literally are the names the entrypoint and `refs.libsonnet` have to agree on, and
+those come out of `refs.libsonnet`.
 
-`compose.jsonnet` exists as its own file because `env_file` has to attach at the `include`,
-not at the service: `${VAR:?err}` inside `services.yaml` is interpolated from the include's
-env file, whereas a service-level `env_file:` only reaches the container's environment and
-would leave every `${...}` in the manifest unresolved.
+`compose` stays a separate document from `services` because `env_file` has to attach at the
+`include`, not at the service: `${VAR:?err}` inside `services.yaml` is interpolated from the
+include's env file, whereas a service-level `env_file:` only reaches the container's
+environment and would leave every `${...}` in the manifest unresolved. Two documents, so
+two files — which is one entrypoint naming two fields.
 
 **Authoring guide with worked examples lives at `src/templates/stack/README.md`** — read it
 before writing a new stack. `src/templates/stack/` is the canonical copy-me stack; it is a

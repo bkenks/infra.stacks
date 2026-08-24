@@ -1,4 +1,4 @@
-# GENERATED from services.jsonnet by render.py — DO NOT EDIT.
+# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
 name: "paperless"
 networks:
   default:

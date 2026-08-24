@@ -2,7 +2,7 @@
 
 [Immich](https://immich.app/) — self-hosted photo & video management. Runs on **paiki**. Reached at `immich.ktbinternal.com` via Traefik → port 2283 (`immich-server`).
 
-Source of truth: `refs.libsonnet` (names) + `services.jsonnet` (the manifest) — don't edit the generated `compose.yaml` / `services.yaml`.
+Source of truth: `refs.libsonnet` (names) + `stack.jsonnet` (the manifest) — don't edit the generated `compose.yaml` / `services.yaml`.
 
 ## Deploy
 

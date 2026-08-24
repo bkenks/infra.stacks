@@ -1,6 +1,6 @@
 # Stack template
 
-Standard reference for authoring a docker-compose stack in jsonnet. The three files here
+Standard reference for authoring a docker-compose stack in jsonnet. The two files here
 are a real, compiling stack (app + dedicated Postgres, with secrets) — copy the directory,
 don't start from scratch. Its output lands beside it as `compose.yaml` and `services.yaml`,
 so you can see input → output. It is rebuilt on every commit, which is what stops this
@@ -13,7 +13,7 @@ template from silently rotting when `devlib/` changes under it.
 2. Rename `name::` in `refs.libsonnet`. It is the compose project name and the prefix of
    every derived container (`<name>_<role>`) and volume (`<name>_<key>`).
 3. Delete the services and volumes you don't need, in `refs.libsonnet` and
-   `services.jsonnet` both.
+   `stack.jsonnet` both.
 4. Register secrets (see [Secrets](#secrets)), then deploy via Komodo. Never `docker
    compose` a stack by hand.
 5. Add a `[[stack]]` entry to `files/komodo_config/sync.toml` with
@@ -22,32 +22,31 @@ template from silently rotting when `devlib/` changes under it.
 Committing re-renders everything automatically (lefthook → `devlib/render.py`). Never edit a
 file whose first line is the `# GENERATED from …` header.
 
-## The three files
+## The two files
 
 | File | Role |
 | --- | --- |
-| `refs.libsonnet` | Every name this stack owns. Imported by both files below. |
-| `services.jsonnet` | `{ services: <plain Compose> }` — the manifest. Renders to `services.yaml`. |
-| `compose.jsonnet` | `{ compose: (import 'refs.libsonnet').compose }`. Renders to `compose.yaml`. |
+| `refs.libsonnet` | Every name this stack owns. Imported by the entrypoint. |
+| `stack.jsonnet` | `{ compose: refs.compose, services: <plain Compose> }`. Renders `compose.yaml` and `services.yaml`. |
 
 **An entrypoint names the files it writes.** It evaluates to an object whose top-level
 fields are filenames without the extension, and each value is the document to put there —
-so `{ services: {...} }` renders `services.yaml` beside it. The entrypoint's own filename
-decides nothing; what ties output back to source is the `# GENERATED from …` header.
+so `{ compose: {...}, services: {...} }` renders both YAML files beside it. The entrypoint's
+own filename decides nothing; what ties output back to source is the `# GENERATED from …`
+header.
 
 That is why the manifest is wrapped in a `services:` field rather than being the document
 itself. A field holding anything but an object is a hard error, which catches the mistake
 this shape invites — returning a bare Compose document, whose `name:`/`networks:`/`volumes:`
 fields would otherwise be read as filenames.
 
-One entrypoint can write several files by naming several fields (see
-`platform/edge/pangolin/files/configs.jsonnet`, which selects four keys out of one shared
-`config.libsonnet` and renders four YAML files).
+A stack can name more than two (see `platform/edge/pangolin/files/configs.jsonnet`, which
+applies one shared `config.libsonnet` and renders the four YAML files its keys name).
 
-`compose.jsonnet` is its own file because `env_file` has to attach at the `include`, not at
-the service: `${VAR:?err}` inside `services.yaml` is interpolated from the include's env
-file, whereas a service-level `env_file:` only reaches the container's environment and
-would leave every `${...}` in the manifest unresolved.
+`compose` stays a **separate document** from `services` because `env_file` has to attach at
+the `include`, not at the service: `${VAR:?err}` inside `services.yaml` is interpolated from
+the include's env file, whereas a service-level `env_file:` only reaches the container's
+environment and would leave every `${...}` in the manifest unresolved.
 
 ## The one import
 
@@ -89,31 +88,38 @@ app-specific (`gerbil`, `machine-learning`, `sonarr`) passes that string as the 
 bare name, for the handful other systems already dial — see `platform/edge/pangolin`
 (`gerbil`, `traefik`), `databases/postgres` (`postgres-db`).
 
-## services.jsonnet
+## stack.jsonnet
 
-Plain Compose. Everything is literal except the names that come out of `refs`:
+Two fields, two files. `compose` is `refs.compose` and nothing else; under `services` it is
+plain Compose, everything literal except the names that come out of `refs`:
 
 ```jsonnet
 local lib = import 'lib.libsonnet';
 local refs = import 'refs.libsonnet';
 
 {
-  name: refs.name,
-  networks: { default: { name: refs.name } },
-  volumes: refs.appData.declare,
+  compose: refs.compose,
 
   services: {
-    [refs.app.key]: {
-      container_name: refs.app.ext,
-      image: 'ghcr.io/example/example:1.2.3',
-      restart: lib.restart.unlessStopped,
-      volumes: [refs.appData.mount('/data')],
-      depends_on: { [refs.db.key]: { condition: lib.condition.healthy } },
-      environment: { DB_HOST: refs.db.key },
+    name: refs.name,
+    networks: { default: { name: refs.name } },
+    volumes: refs.appData.declare,
+
+    services: {
+      [refs.app.key]: {
+        container_name: refs.app.ext,
+        image: 'ghcr.io/example/example:1.2.3',
+        restart: lib.restart.unlessStopped,
+        volumes: [refs.appData.mount('/data')],
+        depends_on: { [refs.db.key]: { condition: lib.condition.healthy } },
+        environment: { DB_HOST: refs.db.key },
+      },
     },
   },
 }
 ```
+
+The outer `services:` names the file; the inner one is Compose's own key.
 
 A volume mounted by several services is declared once in `refs.libsonnet`, `.declare`d once
 at the top level, and `.mount(...)`ed in each service — so the name is written in exactly one

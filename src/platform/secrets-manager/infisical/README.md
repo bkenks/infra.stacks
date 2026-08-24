@@ -6,7 +6,7 @@ profiles — the server runs on a single host, the agent runs on every host.
 
 ## Profiles
 
-Nothing starts without a profile (see the interpolation note in `services.jsonnet`):
+Nothing starts without a profile (see the interpolation note in `stack.jsonnet`):
 
 | Host | `COMPOSE_PROFILES` | Runs |
 |---|---|---|

@@ -8,6 +8,11 @@ local version = 'v0.40';
 local port = '4096';
 
 {
+  // What docker compose discovers. The include is where env_file goes: `${VAR:?err}` inside
+  // services.yaml resolves from it, which a service-level env_file cannot do — that only
+  // reaches the container's environment, never the compose document.
+  compose: refs.compose,
+
   services: {
     name: refs.name,
     networks: { default: { name: refs.name } },

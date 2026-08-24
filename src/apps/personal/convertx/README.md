@@ -2,7 +2,7 @@
 
 [ConvertX](https://github.com/C4illin/ConvertX) — self-hosted file conversion tool. Reached at `convertx.ktbinternal.com` via Traefik → port 3000.
 
-Source of truth: `refs.libsonnet` (names) + `services.jsonnet` (the manifest) — don't edit the generated `compose.yaml` / `services.yaml`.
+Source of truth: `refs.libsonnet` (names) + `stack.jsonnet` (the manifest) — don't edit the generated `compose.yaml` / `services.yaml`.
 
 ## Deploy
 

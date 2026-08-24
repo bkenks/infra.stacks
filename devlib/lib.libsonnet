@@ -3,7 +3,7 @@
 // Imports resolve through render.py's `-J devlib` jpath, so this path is the same from any
 // depth under src/.
 //
-// Nothing here builds compose objects. A stack's services.jsonnet is plain Compose written
+// Nothing here builds compose objects. A stack's `services:` field is plain Compose written
 // against the ref table in its own refs.libsonnet — what you read is what gets rendered.
 // These are the values that cannot be written literally because two files must agree.
 local collections = import 'collections.libsonnet';
