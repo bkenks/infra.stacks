@@ -9,6 +9,8 @@ domains:
     base_domain: "ktbinternal.com"
   domain2:
     base_domain: "ktbcloud.com"
+  domain3:
+    base_domain: "coder.ktbcloud.com"
 email:
   no_reply: "pangolin@ktbcloud.com"
   smtp_host: "smtp.resend.com"

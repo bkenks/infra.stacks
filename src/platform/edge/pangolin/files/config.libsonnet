@@ -58,6 +58,13 @@ function(urlDomain)
         domain2: {
           base_domain: cloudDomain,
         },
+        // Its own base domain, not a subdomain of domain2: Pangolin builds a Resource's
+        // hostname as <subdomain>.<base_domain>, so the wildcard Resource that fans every
+        // Coder workspace-app hostname at coderd can only be created under a base domain
+        // that IS coder.<cloudDomain>. Matches the *.coder.<cloudDomain> SAN below.
+        domain3: {
+          base_domain: coderDomain,
+        },
       },
 
       server: {
