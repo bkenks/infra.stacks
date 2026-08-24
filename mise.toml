@@ -5,6 +5,7 @@ go-jsonnet = "0.22.0"
 uv = "0.12.1"         # runtime for devlib/render.py
 lefthook = "2.1.10"
 yq = "4.53.3"
+d2 = "latest"
 
 [hooks]
 postinstall = "lefthook install"
