@@ -70,7 +70,7 @@ services:
   secrets:
     provider:
       options:
-        credentials-file: "/dev/shm/credentials/infisical.env"
+        credentials-file: "/mnt/secrets/credentials/infisical.env"
         domain: "http://controlplane.internal:18043"
         env: "prod"
         path: "/pangolin"

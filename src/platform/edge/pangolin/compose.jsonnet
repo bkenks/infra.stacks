@@ -43,7 +43,7 @@ local pangolinHealthy = { [refs.pangolin.key]: { condition: lib.collections.cond
       provider: {
         type: "infisical-secrets",
         options: {
-          "credentials-file": "/dev/shm/credentials/infisical.env",
+          "credentials-file": reg.path.file.infisical_creds,
           domain: "http://controlplane.internal:18043",
           "project-id": reg.infisical.project.infra.id,
           env: "prod",
