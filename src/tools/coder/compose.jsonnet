@@ -1,5 +1,6 @@
 local lib = import 'lib.libsonnet';
 local col = lib.collections;
+local reg = lib.registry;
 
 local coderVersion = "latest";
 
@@ -23,7 +24,7 @@ local secretsDepends = { secrets: { condition: "service_started" } };
       provider: {
         type: "infisical-secrets",
         options: {
-          "credentials-file": "/dev/shm/secrets/credentials.env",
+          "credentials-file": reg.path.file.infisical_creds,
           domain: 'http://100.106.170.93:18043',
           "project-id": "2f0eb3d1-3e2a-4ce7-8060-5e47ad877e47",
           env: "prod",
