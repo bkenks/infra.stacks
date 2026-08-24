@@ -3,6 +3,8 @@ local col = lib.collections;
 local reg = lib.registry;
 
 local coderVersion = "latest";
+local coderFQDN = "coder." + col.domain.ktbcloud;
+local coderURL = "https://" + coderFQDN;
 
 local app = {
   key:: col.role.APP,
@@ -47,8 +49,12 @@ local secretsDepends = { secrets: { condition: "service_started" } };
       ],
       environment: {
         // CODER_PG_CONNECTION_URL: via infisical-secrets
-        CODER_HTTP_ADDRESS: "0.0.0.0:7080",
-        CODER_ACCESS_URL: "https://coder." + col.domain.ktbcloud,
+        CODER_HTTP_ADDRESS: "127.0.0.1:7080",
+        CODER_ACCESS_URL: coderURL,
+        // Traefik does not relay the custom `Upgrade: DERP` header; without this
+        // the agent's tailnet relay never connects and every app 502s.
+        CODER_DERP_FORCE_WEBSOCKETS: "true",
+        CODER_WILDCARD_ACCESS_URL: "*." + coderFQDN,
       },
       user: "0:0"
     },

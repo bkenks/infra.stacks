@@ -8,7 +8,9 @@ services:
         condition: "service_started"
     environment:
       CODER_ACCESS_URL: "https://coder.ktbcloud.com"
-      CODER_HTTP_ADDRESS: "0.0.0.0:7080"
+      CODER_DERP_FORCE_WEBSOCKETS: "true"
+      CODER_HTTP_ADDRESS: "127.0.0.1:7080"
+      CODER_WILDCARD_ACCESS_URL: "*.coder.ktbcloud.com"
     image: "ghcr.io/coder/coder:latest"
     ports:
       - "127.0.0.1:7080:7080"
