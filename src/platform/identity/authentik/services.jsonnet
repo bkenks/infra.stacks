@@ -27,65 +27,67 @@ local authentikEnv = {
 local dbHealthy = { [refs.db.key]: { condition: lib.collections.condition.healthy } };
 
 {
-  name: refs.name,
-  networks: {
-    default: { name: refs.name },
-    [gateway.name]: { name: gateway.name, external: true },
-  },
-  volumes: refs.data.declare + refs.dbData.declare,
-
   services: {
-    // ── Server: the web UI + API + OIDC endpoints ──────────────────────────────
-    [refs.app.key]: {
-      container_name: refs.app.ext,
-      image: 'ghcr.io/goauthentik/server:' + version,
-      restart: lib.collections.restart.unlessStopped,
-      command: 'server',
-      depends_on: dbHealthy,
-      environment: authentikEnv,
-      volumes: [refs.data.mount('/data')],
-      expose: [httpPort],
-      // 127.0.0.1:18006 — route authentik.ktbcloud.com here.
-      ports: ['%s:18006:%s' % [lib.collections.ip.loopback, httpPort]],
+    name: refs.name,
+    networks: {
+      default: { name: refs.name },
+      [gateway.name]: { name: gateway.name, external: true },
     },
+    volumes: refs.data.declare + refs.dbData.declare,
 
-    // ── Worker: background tasks, outpost mgmt, cert/blueprint processing ───────
-    [refs.worker.key]: {
-      container_name: refs.worker.ext,
-      image: 'ghcr.io/goauthentik/server:' + version,
-      restart: lib.collections.restart.unlessStopped,
-      command: 'worker',
-      // root + docker.sock: lets the worker manage the embedded/managed outposts.
-      user: 'root',
-      depends_on: dbHealthy,
-      environment: authentikEnv,
-      volumes: [
-        refs.data.mount('/data'),
-        lib.collections.mounts.dockerSockRW,
-      ],
-    },
+    services: {
+      // ── Server: the web UI + API + OIDC endpoints ──────────────────────────────
+      [refs.app.key]: {
+        container_name: refs.app.ext,
+        image: 'ghcr.io/goauthentik/server:' + version,
+        restart: lib.collections.restart.unlessStopped,
+        command: 'server',
+        depends_on: dbHealthy,
+        environment: authentikEnv,
+        volumes: [refs.data.mount('/data')],
+        expose: [httpPort],
+        // 127.0.0.1:18006 — route authentik.ktbcloud.com here.
+        ports: ['%s:18006:%s' % [lib.collections.ip.loopback, httpPort]],
+      },
 
-    // ── DB: dedicated Postgres (see the header for why not the shared cluster) ──
-    [refs.db.key]: {
-      container_name: refs.db.ext,
-      image: 'docker.io/library/postgres:' + dbVersion,
-      restart: lib.collections.restart.unlessStopped,
-      networks: ['default', gateway.name],
-      volumes: [refs.dbData.mount('/var/lib/postgresql/data')],
-      environment: {
-        POSTGRES_USER: dbUser,
-        POSTGRES_DB: dbName,
-        POSTGRES_PASSWORD: '${AUTHENTIK_PG_PASS:?err}',
+      // ── Worker: background tasks, outpost mgmt, cert/blueprint processing ───────
+      [refs.worker.key]: {
+        container_name: refs.worker.ext,
+        image: 'ghcr.io/goauthentik/server:' + version,
+        restart: lib.collections.restart.unlessStopped,
+        command: 'worker',
+        // root + docker.sock: lets the worker manage the embedded/managed outposts.
+        user: 'root',
+        depends_on: dbHealthy,
+        environment: authentikEnv,
+        volumes: [
+          refs.data.mount('/data'),
+          lib.collections.mounts.dockerSockRW,
+        ],
       },
-      healthcheck: {
-        test: ['CMD-SHELL', 'pg_isready -d %s -U %s' % [dbName, dbUser]],
-        interval: '30s',
-        timeout: '5s',
-        retries: 5,
-        start_period: '20s',
+
+      // ── DB: dedicated Postgres (see the header for why not the shared cluster) ──
+      [refs.db.key]: {
+        container_name: refs.db.ext,
+        image: 'docker.io/library/postgres:' + dbVersion,
+        restart: lib.collections.restart.unlessStopped,
+        networks: ['default', gateway.name],
+        volumes: [refs.dbData.mount('/var/lib/postgresql/data')],
+        environment: {
+          POSTGRES_USER: dbUser,
+          POSTGRES_DB: dbName,
+          POSTGRES_PASSWORD: '${AUTHENTIK_PG_PASS:?err}',
+        },
+        healthcheck: {
+          test: ['CMD-SHELL', 'pg_isready -d %s -U %s' % [dbName, dbUser]],
+          interval: '30s',
+          timeout: '5s',
+          retries: 5,
+          start_period: '20s',
+        },
+        expose: ['5432'],
+        ports: ['%s:18040:5432' % lib.collections.ip.loopback],
       },
-      expose: ['5432'],
-      ports: ['%s:18040:5432' % lib.collections.ip.loopback],
     },
   },
 }

@@ -10,19 +10,21 @@ local containerPort = '7777';
 local worldPath = lib.registry.dir.fileBrowser.shared + '/terraria/worlds/columbia_plaza';
 
 {
-  name: refs.name,
-  networks: { default: { name: refs.name } },
-
   services: {
-    [refs.app.key]: {
-      container_name: refs.app.ext,
-      image: 'ghcr.io/beardedio/terraria:' + version,
-      restart: lib.collections.restart.unlessStopped,
-      volumes: [worldPath + ':/config'],
-      environment: { world: 'Columbia_Plaza.wld' },
-      ports: ['%s:%s:%s' % [lib.collections.ip.loopback, hostPort, containerPort]],
-      tty: true,
-      stdin_open: true,
+    name: refs.name,
+    networks: { default: { name: refs.name } },
+
+    services: {
+      [refs.app.key]: {
+        container_name: refs.app.ext,
+        image: 'ghcr.io/beardedio/terraria:' + version,
+        restart: lib.collections.restart.unlessStopped,
+        volumes: [worldPath + ':/config'],
+        environment: { world: 'Columbia_Plaza.wld' },
+        ports: ['%s:%s:%s' % [lib.collections.ip.loopback, hostPort, containerPort]],
+        tty: true,
+        stdin_open: true,
+      },
     },
   },
 }

@@ -10,11 +10,16 @@ across a fleet of Tailscale-connected hosts.
 
 ## The two rules that dominate everything
 
-**One entrypoint, one output.** `services.jsonnet` renders to `services.yaml` beside it;
-`compose.jsonnet` renders to `compose.yaml`. Same directory, same name, `.jsonnet` ->
-`.yaml`. There is no name-mangling and no multi-file entrypoint: a jsonnet file that needs
-to produce two files is two jsonnet files. `*.libsonnet` is never an entrypoint — it is
-only ever imported — and a dot-prefixed directory (`.old/`) is skipped whole.
+**An entrypoint names the files it writes.** It evaluates to an object whose top-level
+fields are filenames without the extension, each value the document to put there, and every
+file lands in the entrypoint's own directory: `{ services: {...} }` renders `services.yaml`,
+and `{ compose: {...}, services: {...} }` renders both. One field or four, the shape is the
+same. The entrypoint's own filename decides nothing — `# GENERATED from …` is what ties
+output back to source. A field holding anything but an object is a hard error, which catches
+the mistake this shape invites: returning a bare Compose document, whose top-level
+`name:`/`networks:`/`volumes:` would otherwise be read as filenames. `*.libsonnet` is never
+an entrypoint — it is only ever imported — and a dot-prefixed directory (`.old/`) is skipped
+whole.
 
 **Never edit a file whose first line is `# GENERATED from … — DO NOT EDIT.`** That header is
 the ownership marker: the builder deletes every header-marked file the fresh build no longer
@@ -30,16 +35,17 @@ deploys out of `src/` directly.
 | File | Hand-written? | Role |
 |---|---|---|
 | `refs.libsonnet` | yes | Every name this stack owns — project name, service keys, container names, volume names, env files. Imported by the other two. |
-| `services.jsonnet` | yes | The manifest: plain Compose. **This is what Komodo watches and diffs.** |
-| `compose.jsonnet` | yes | One line: `(import 'refs.libsonnet').compose`. |
+| `services.jsonnet` | yes | `{ services: <plain Compose> }` — the manifest. **This is what Komodo watches and diffs.** |
+| `compose.jsonnet` | yes | One field: `{ compose: (import 'refs.libsonnet').compose }`. |
 | `services.yaml` | no | Rendered manifest. |
 | `compose.yaml` | no | What `docker compose` loads: project name + `include:` (+ `env_file:`). |
 | `files/`, `templates/` | both | Bind-mounted config: nested `.jsonnet` entrypoints, their outputs, and hand-written assets (`files/entrypoint.sh`) side by side. |
 | `README.md` | yes | Per-stack deploy notes. |
 
-`services.jsonnet` is **plain Compose**. There is no `Service` base and no `Stack`
-assembler — what you read is what gets rendered. The only things not written literally are
-the names two files have to agree on, and those come out of `refs.libsonnet`.
+Under its `services:` field, `services.jsonnet` is **plain Compose**. There is no `Service`
+base and no `Stack` assembler — what you read is what gets rendered. The only things not
+written literally are the names two files have to agree on, and those come out of
+`refs.libsonnet`.
 
 `compose.jsonnet` exists as its own file because `env_file` has to attach at the `include`,
 not at the service: `${VAR:?err}` inside `services.yaml` is interpolated from the include's
@@ -71,7 +77,8 @@ set in memory, so a jsonnet failure aborts before anything on disk is touched, (
 to run if an output would land on a hand-written file, (3) deletes every header-marked file
 the fresh set no longer contains, (4) writes each output beside its entrypoint.
 
-An entrypoint must evaluate to a non-empty object, which is manifested to YAML.
+An entrypoint must evaluate to a non-empty object of filename to document; each field is
+manifested to YAML as `<field>.yaml` beside the entrypoint.
 
 Normally you don't call it directly — **`.config/lefthook.yml` runs `mise run render` on
 every pre-commit**. The builder prints every path it wrote or removed on **stdout** (the

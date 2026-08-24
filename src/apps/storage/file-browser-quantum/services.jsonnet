@@ -9,22 +9,24 @@ local appPort = '80';
 local dir = lib.registry.dir.fileBrowser;
 
 {
-  name: refs.name,
-  networks: { default: { name: refs.name } },
-
   services: {
-    [refs.app.key]: {
-      container_name: refs.app.ext,
-      image: 'gtstef/filebrowser:' + version,
-      restart: lib.collections.restart.unlessStopped,
-      volumes: [
-        './files/config.yaml:/home/filebrowser/data/config.yaml:ro',
-        dir.data + ':/data',
-        dir.shared + ':/shared',
-        dir.cache + ':/cache',
-      ],
-      expose: [appPort],
-      ports: ['%s:%s:%s' % [lib.collections.ip.loopback, hostPort, appPort]],
+    name: refs.name,
+    networks: { default: { name: refs.name } },
+
+    services: {
+      [refs.app.key]: {
+        container_name: refs.app.ext,
+        image: 'gtstef/filebrowser:' + version,
+        restart: lib.collections.restart.unlessStopped,
+        volumes: [
+          './files/config.yaml:/home/filebrowser/data/config.yaml:ro',
+          dir.data + ':/data',
+          dir.shared + ':/shared',
+          dir.cache + ':/cache',
+        ],
+        expose: [appPort],
+        ports: ['%s:%s:%s' % [lib.collections.ip.loopback, hostPort, appPort]],
+      },
     },
   },
 }

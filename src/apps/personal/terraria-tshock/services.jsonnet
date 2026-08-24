@@ -26,35 +26,37 @@ local logsDir = '/tshock/logs';
 local pluginsDir = '/tshock/ServerPlugins';
 
 {
-  name: refs.name,
-  networks: { default: { name: refs.name } },
-
   services: {
-    [refs.app.key]: {
-      container_name: refs.app.ext,
-      image: 'ryshe/terraria:' + imageTag,
-      restart: lib.collections.restart.unlessStopped,
-      ports: [
-        '%s:%s:%s' % [lib.collections.ip.loopback, gameHostPort, gamePort],
-        // A REST token is full server admin, including arbitrary console commands, so this
-        // stays on loopback like the game port. Anything consuming it joins this stack's
-        // network rather than dialling the host.
-        '%s:%s:%s' % [lib.collections.ip.loopback, restHostPort, restPort],
-      ],
-      environment: {
-        WORLD_FILENAME: 'Columbia_Plaza.wld',
-        CONFIGPATH: configDir,
-        LOGPATH: logsDir,
+    name: refs.name,
+    networks: { default: { name: refs.name } },
+
+    services: {
+      [refs.app.key]: {
+        container_name: refs.app.ext,
+        image: 'ryshe/terraria:' + imageTag,
+        restart: lib.collections.restart.unlessStopped,
+        ports: [
+          '%s:%s:%s' % [lib.collections.ip.loopback, gameHostPort, gamePort],
+          // A REST token is full server admin, including arbitrary console commands, so this
+          // stays on loopback like the game port. Anything consuming it joins this stack's
+          // network rather than dialling the host.
+          '%s:%s:%s' % [lib.collections.ip.loopback, restHostPort, restPort],
+        ],
+        environment: {
+          WORLD_FILENAME: 'Columbia_Plaza.wld',
+          CONFIGPATH: configDir,
+          LOGPATH: logsDir,
+        },
+        volumes: [
+          dataPath + '/config:' + configDir,
+          dataPath + '/worlds:' + worldsDir,
+          dataPath + '/logs:' + logsDir,
+          dataPath + '/plugins:' + pluginsDir,
+        ],
+        // TShock reads console commands on stdin; without a TTY the server exits at startup.
+        tty: true,
+        stdin_open: true,
       },
-      volumes: [
-        dataPath + '/config:' + configDir,
-        dataPath + '/worlds:' + worldsDir,
-        dataPath + '/logs:' + logsDir,
-        dataPath + '/plugins:' + pluginsDir,
-      ],
-      // TShock reads console commands on stdin; without a TTY the server exits at startup.
-      tty: true,
-      stdin_open: true,
     },
   },
 }

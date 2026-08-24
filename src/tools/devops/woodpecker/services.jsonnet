@@ -24,63 +24,65 @@ local stepMemSwapBytes = stepMemBytes;
 local stepCpuQuota = 200000;
 
 {
-  name: refs.name,
-  networks: { default: { name: refs.name } },
-  volumes: refs.serverData.declare + refs.agentData.declare,
-
   services: {
-    [refs.server.key]: {
-      container_name: refs.server.ext,
-      image: 'docker.io/woodpeckerci/woodpecker-server:' + version,
-      restart: lib.collections.restart.onFailure(5),
-      volumes: [refs.serverData.mount('/var/lib/woodpecker')],
-      environment: {
-        // Must match the OAuth2 app's redirect URI in Forgejo.
-        WOODPECKER_HOST: 'https://peck.' + lib.collections.domain.ktbcloud,
-        // Any Forgejo user may log in.
-        WOODPECKER_OPEN: 'true',
-        // Uses Forgejo (not gitea) as the forge.
-        WOODPECKER_FORGEJO: 'true',
-        WOODPECKER_FORGEJO_URL: 'https://fj.' + lib.collections.domain.ktbcloud,
-        // Exact match INCLUDING tag — keep in lockstep with the tag pinned in each
-        // pipeline's .woodpecker.yml.
-        WOODPECKER_PLUGINS_PRIVILEGED: 'woodpeckerci/plugin-docker-buildx:6.1.0',
-        WOODPECKER_FORGEJO_CLIENT: '${WOODPECKER_FORGEJO_CLIENT:?err}',
-        WOODPECKER_FORGEJO_SECRET: '${WOODPECKER_FORGEJO_SECRET:?err}',
-        // Shared server<->agent gRPC auth secret — must match the agent's value below.
-        WOODPECKER_AGENT_SECRET: '${WOODPECKER_AGENT_SECRET:?err}',
-      },
-      mem_limit: '1g',
-      expose: [httpPort, grpcPort],
-      ports: ['%s:18016:%s' % [lib.collections.ip.loopback, httpPort]],
-    },
+    name: refs.name,
+    networks: { default: { name: refs.name } },
+    volumes: refs.serverData.declare + refs.agentData.declare,
 
-    [refs.agent.key]: {
-      container_name: refs.agent.ext,
-      image: 'docker.io/woodpeckerci/woodpecker-agent:' + version,
-      restart: lib.collections.restart.onFailure(5),
-      command: 'agent',
-      depends_on: [refs.server.key],
-      volumes: [
-        refs.agentData.mount('/etc/woodpecker'),
-        // Intentional: the agent runs pipeline steps as sibling containers via the host
-        // daemon, which is a write on the socket.
-        lib.collections.mounts.dockerSockRW,
-      ],
-      environment: {
-        WOODPECKER_SERVER: refs.server.key + ':' + grpcPort,
-        WOODPECKER_MAX_WORKFLOWS: std.toString(maxWorkflows),
-        // Per-step-container limits, applied by the docker backend to every container it
-        // starts. Bytes for memory, microseconds-per-period for CPU; 0 (the default) is
-        // unlimited, which is what let concurrent image builds take the host down.
-        WOODPECKER_BACKEND_DOCKER_LIMIT_MEM: std.toString(stepMemBytes),
-        WOODPECKER_BACKEND_DOCKER_LIMIT_MEM_SWAP: std.toString(stepMemSwapBytes),
-        WOODPECKER_BACKEND_DOCKER_LIMIT_CPU_QUOTA: std.toString(stepCpuQuota),
-        // Must match the server's WOODPECKER_AGENT_SECRET exactly.
-        WOODPECKER_AGENT_SECRET: '${WOODPECKER_AGENT_SECRET:?err}',
+    services: {
+      [refs.server.key]: {
+        container_name: refs.server.ext,
+        image: 'docker.io/woodpeckerci/woodpecker-server:' + version,
+        restart: lib.collections.restart.onFailure(5),
+        volumes: [refs.serverData.mount('/var/lib/woodpecker')],
+        environment: {
+          // Must match the OAuth2 app's redirect URI in Forgejo.
+          WOODPECKER_HOST: 'https://peck.' + lib.collections.domain.ktbcloud,
+          // Any Forgejo user may log in.
+          WOODPECKER_OPEN: 'true',
+          // Uses Forgejo (not gitea) as the forge.
+          WOODPECKER_FORGEJO: 'true',
+          WOODPECKER_FORGEJO_URL: 'https://fj.' + lib.collections.domain.ktbcloud,
+          // Exact match INCLUDING tag — keep in lockstep with the tag pinned in each
+          // pipeline's .woodpecker.yml.
+          WOODPECKER_PLUGINS_PRIVILEGED: 'woodpeckerci/plugin-docker-buildx:6.1.0',
+          WOODPECKER_FORGEJO_CLIENT: '${WOODPECKER_FORGEJO_CLIENT:?err}',
+          WOODPECKER_FORGEJO_SECRET: '${WOODPECKER_FORGEJO_SECRET:?err}',
+          // Shared server<->agent gRPC auth secret — must match the agent's value below.
+          WOODPECKER_AGENT_SECRET: '${WOODPECKER_AGENT_SECRET:?err}',
+        },
+        mem_limit: '1g',
+        expose: [httpPort, grpcPort],
+        ports: ['%s:18016:%s' % [lib.collections.ip.loopback, httpPort]],
       },
-      // The agent only supervises; the work happens in the step containers above.
-      mem_limit: '512m',
+
+      [refs.agent.key]: {
+        container_name: refs.agent.ext,
+        image: 'docker.io/woodpeckerci/woodpecker-agent:' + version,
+        restart: lib.collections.restart.onFailure(5),
+        command: 'agent',
+        depends_on: [refs.server.key],
+        volumes: [
+          refs.agentData.mount('/etc/woodpecker'),
+          // Intentional: the agent runs pipeline steps as sibling containers via the host
+          // daemon, which is a write on the socket.
+          lib.collections.mounts.dockerSockRW,
+        ],
+        environment: {
+          WOODPECKER_SERVER: refs.server.key + ':' + grpcPort,
+          WOODPECKER_MAX_WORKFLOWS: std.toString(maxWorkflows),
+          // Per-step-container limits, applied by the docker backend to every container it
+          // starts. Bytes for memory, microseconds-per-period for CPU; 0 (the default) is
+          // unlimited, which is what let concurrent image builds take the host down.
+          WOODPECKER_BACKEND_DOCKER_LIMIT_MEM: std.toString(stepMemBytes),
+          WOODPECKER_BACKEND_DOCKER_LIMIT_MEM_SWAP: std.toString(stepMemSwapBytes),
+          WOODPECKER_BACKEND_DOCKER_LIMIT_CPU_QUOTA: std.toString(stepCpuQuota),
+          // Must match the server's WOODPECKER_AGENT_SECRET exactly.
+          WOODPECKER_AGENT_SECRET: '${WOODPECKER_AGENT_SECRET:?err}',
+        },
+        // The agent only supervises; the work happens in the step containers above.
+        mem_limit: '512m',
+      },
     },
   },
 }

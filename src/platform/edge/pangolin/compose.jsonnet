@@ -34,110 +34,112 @@ local secretsStarted = { [col.role.SECRETS]: { condition: lib.collections.condit
 local pangolinHealthy = { [refs.pangolin.key]: { condition: lib.collections.condition.healthy } };
 
 {
-  name: refs.name,
-  // The edge needs IPv6 on its bridge, which the plain private bridge does not carry.
-  networks: { default: { name: refs.name, driver: 'bridge', enable_ipv6: true } },
+  compose: {
+    name: refs.name,
+    // The edge needs IPv6 on its bridge, which the plain private bridge does not carry.
+    networks: { default: { name: refs.name, driver: 'bridge', enable_ipv6: true } },
 
-  services: {
-    [col.role.SECRETS]: {
-      provider: {
-        type: "infisical-secrets",
-        options: {
-          "credentials-file": reg.path.file.infisical_creds,
-          domain: "http://controlplane.internal:18043",
-          "project-id": reg.infisical.project.infra.id,
-          env: "prod",
-          path: "/pangolin",
-          recursive: true
+    services: {
+      [col.role.SECRETS]: {
+        provider: {
+          type: "infisical-secrets",
+          options: {
+            "credentials-file": reg.path.file.infisical_creds,
+            domain: "http://controlplane.internal:18043",
+            "project-id": reg.infisical.project.infra.id,
+            env: "prod",
+            path: "/pangolin",
+            recursive: true
+          }
         }
-      }
-    },
-    // One-shot: creates the config tree/perms + the GeoLite mmdbs (skipped after the first
-    // run). It does not provision files/ content — that is the bind mounts below.
-    [refs.init.key]: {
-      container_name: refs.init.ext,
-      image: 'docker.io/library/busybox:1.37.0',
-      // Quoted: bare `no` is a YAML boolean and compose wants the string.
-      restart: 'no',
-      volumes: [configDir + ':/mnt/config'],
-      command: ['sh', '-c', initScript],
-    },
-
-    [refs.pangolin.key]: {
-      container_name: refs.pangolin.ext,
-      image: 'docker.io/fosrl/pangolin:' + pangolinVersion,
-      restart: lib.collections.restart.unlessStopped,
-      depends_on: initDone + secretsStarted,
-      mem_limit: '2g',
-      mem_reservation: '512m',
-      volumes: [
-        configDir + ':/app/config',
-        // Generated beside this file; the container paths keep the .yml names Pangolin
-        // expects.
-        './files/config.yaml:/app/config/config.yml:ro',
-        './files/privateConfig.yaml:/app/config/privateConfig.yml:ro',
-      ],
-      environment: {
-        // Overrides server.secret / email.smtp_pass (config.yml ships both blank).
-        // SERVER_SECRET: '${SERVER_SECRET:?err}',
-        // EMAIL_SMTP_PASS: '${EMAIL_SMTP_PASS:?err}',
       },
-      healthcheck: {
-        test: ['CMD', 'curl', '-f', 'http://localhost:3001/api/v1/'],
-        interval: '10s',
-        timeout: '10s',
-        retries: 15,
+      // One-shot: creates the config tree/perms + the GeoLite mmdbs (skipped after the first
+      // run). It does not provision files/ content — that is the bind mounts below.
+      [refs.init.key]: {
+        container_name: refs.init.ext,
+        image: 'docker.io/library/busybox:1.37.0',
+        // Quoted: bare `no` is a YAML boolean and compose wants the string.
+        restart: 'no',
+        volumes: [configDir + ':/mnt/config'],
+        command: ['sh', '-c', initScript],
       },
-    },
 
-    [refs.gerbil.key]: {
-      container_name: refs.gerbil.ext,
-      image: 'docker.io/fosrl/gerbil:' + gerbilVersion,
-      restart: lib.collections.restart.unlessStopped,
-      depends_on: initDone + pangolinHealthy,
-      command: [
-        '--reachableAt=http://%s:3004' % refs.gerbil.ext,
-        '--generateAndSaveKeyTo=/var/config/key',
-        '--remoteConfig=http://%s:3001/api/v1/' % refs.pangolin.ext,
-      ],
-      volumes: [configDir + ':/var/config'],
-      cap_add: ['NET_ADMIN', 'SYS_MODULE'],
-      // Public edge ports — these are the host's 80/443, deliberately not loopback-bound.
-      ports: [
-        '51820:51820/udp',
-        '21820:21820/udp',
-        '443:443',
-        // HTTP/3 QUIC
-        '443:443/udp',
-        '80:80',
-        '22:22',
-        '18022:18022',
-      ],
-    },
-
-    // network_mode: service:gerbil — Traefik shares gerbil's netns so the public ports
-    // above front it. Compose rejects networks on a service that shares another's netns,
-    // so this one declares none.
-    [refs.traefik.key]: {
-      container_name: refs.traefik.ext,
-      image: 'docker.io/library/traefik:' + traefikVersion,
-      restart: lib.collections.restart.unlessStopped,
-      network_mode: 'service:' + refs.gerbil.key,
-      depends_on: initDone + pangolinHealthy + secretsStarted,
-      command: ['--configFile=/etc/traefik/traefik_config.yml'],
-      environment: {
-        // CF_DNS_API_TOKEN for DNS-01 ACME (lego reads it from the environment); shared
-        // with platform/edge/traefik rather than duplicated into this stack's own bundle.
-        // CF_DNS_API_TOKEN: '${CF_DNS_API_TOKEN:?err}',
+      [refs.pangolin.key]: {
+        container_name: refs.pangolin.ext,
+        image: 'docker.io/fosrl/pangolin:' + pangolinVersion,
+        restart: lib.collections.restart.unlessStopped,
+        depends_on: initDone + secretsStarted,
+        mem_limit: '2g',
+        mem_reservation: '512m',
+        volumes: [
+          configDir + ':/app/config',
+          // Generated beside this file; the container paths keep the .yml names Pangolin
+          // expects.
+          './files/config.yaml:/app/config/config.yml:ro',
+          './files/privateConfig.yaml:/app/config/privateConfig.yml:ro',
+        ],
+        environment: {
+          // Overrides server.secret / email.smtp_pass (config.yml ships both blank).
+          // SERVER_SECRET: '${SERVER_SECRET:?err}',
+          // EMAIL_SMTP_PASS: '${EMAIL_SMTP_PASS:?err}',
+        },
+        healthcheck: {
+          test: ['CMD', 'curl', '-f', 'http://localhost:3001/api/v1/'],
+          interval: '10s',
+          timeout: '10s',
+          retries: 15,
+        },
       },
-      volumes: [
-        // Generated beside this file; the container paths keep the .yml names traefik
-        // expects.
-        './files/traefik_config.yaml:/etc/traefik/traefik_config.yml:ro',
-        './files/dynamic_config.yaml:/etc/traefik/dynamic_config.yml:ro',
-        configDir + '/letsencrypt:/letsencrypt',
-        configDir + '/traefik/logs:/var/log/traefik',
-      ],
+
+      [refs.gerbil.key]: {
+        container_name: refs.gerbil.ext,
+        image: 'docker.io/fosrl/gerbil:' + gerbilVersion,
+        restart: lib.collections.restart.unlessStopped,
+        depends_on: initDone + pangolinHealthy,
+        command: [
+          '--reachableAt=http://%s:3004' % refs.gerbil.ext,
+          '--generateAndSaveKeyTo=/var/config/key',
+          '--remoteConfig=http://%s:3001/api/v1/' % refs.pangolin.ext,
+        ],
+        volumes: [configDir + ':/var/config'],
+        cap_add: ['NET_ADMIN', 'SYS_MODULE'],
+        // Public edge ports — these are the host's 80/443, deliberately not loopback-bound.
+        ports: [
+          '51820:51820/udp',
+          '21820:21820/udp',
+          '443:443',
+          // HTTP/3 QUIC
+          '443:443/udp',
+          '80:80',
+          '22:22',
+          '18022:18022',
+        ],
+      },
+
+      // network_mode: service:gerbil — Traefik shares gerbil's netns so the public ports
+      // above front it. Compose rejects networks on a service that shares another's netns,
+      // so this one declares none.
+      [refs.traefik.key]: {
+        container_name: refs.traefik.ext,
+        image: 'docker.io/library/traefik:' + traefikVersion,
+        restart: lib.collections.restart.unlessStopped,
+        network_mode: 'service:' + refs.gerbil.key,
+        depends_on: initDone + pangolinHealthy + secretsStarted,
+        command: ['--configFile=/etc/traefik/traefik_config.yml'],
+        environment: {
+          // CF_DNS_API_TOKEN for DNS-01 ACME (lego reads it from the environment); shared
+          // with platform/edge/traefik rather than duplicated into this stack's own bundle.
+          // CF_DNS_API_TOKEN: '${CF_DNS_API_TOKEN:?err}',
+        },
+        volumes: [
+          // Generated beside this file; the container paths keep the .yml names traefik
+          // expects.
+          './files/traefik_config.yaml:/etc/traefik/traefik_config.yml:ro',
+          './files/dynamic_config.yaml:/etc/traefik/dynamic_config.yml:ro',
+          configDir + '/letsencrypt:/letsencrypt',
+          configDir + '/traefik/logs:/var/log/traefik',
+        ],
+      },
     },
   },
 }

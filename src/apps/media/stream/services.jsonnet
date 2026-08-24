@@ -55,138 +55,140 @@ local arrApiKeys = {
 };
 
 {
-  name: refs.name,
-  networks: { default: { name: refs.name } },
-
   services: {
-    [refs.bazarr.key]: {
-      container_name: refs.bazarr.ext,
-      image: 'lscr.io/linuxserver/bazarr:' + versions.bazarr,
-      restart: restart,
-      volumes: [
-        bindRoot + '/bazarr/config:/config',
-        sharedData + ':/data',
-      ],
-      environment: lsioEnv,
-      healthcheck: httpHealth(ports.bazarr, '/'),
-      expose: [ports.bazarr],
-      ports: ['%s:6767:%s' % [lib.collections.ip.loopback, ports.bazarr]],
-    },
+    name: refs.name,
+    networks: { default: { name: refs.name } },
 
-    // One-shot: syncs ./configarr/config.yml into Sonarr/Radarr on each deploy, then exits 0.
-    [refs.configarr.key]: {
-      container_name: refs.configarr.ext,
-      image: 'ghcr.io/raydak-labs/configarr:' + versions.configarr,
-      restart: restart,
-      depends_on: arrsHealthy,
-      volumes: [
-        './configarr:/app/config:ro',
-        bindRoot + '/configarr/repos:/app/repos',
-      ],
-      environment: lsioEnv + arrApiKeys,
-    },
-
-    // Long-running: every `timer` minutes scans the Sonarr/Radarr queues, removes
-    // failed/stalled/slow/orphaned downloads, and triggers a re-search.
-    [refs.decluttarr.key]: {
-      container_name: refs.decluttarr.ext,
-      image: 'ghcr.io/manimatter/decluttarr:' + versions.decluttarr,
-      restart: restart,
-      depends_on: arrsHealthy,
-      volumes: ['./decluttarr:/app/config:ro'],
-      environment: lsioEnv + arrApiKeys,
-    },
-
-    // network_mode: host (NOT Traefik-fronted); GPU passthrough (Intel iGPU) for hardware
-    // transcoding. Runs as root (PUID/PGID 0), so no group_add for render is needed.
-    // Compose rejects network_mode and networks on the same service, so this one declares
-    // no networks at all.
-    [refs.plex.key]: {
-      container_name: refs.plex.ext,
-      image: 'lscr.io/linuxserver/plex:' + versions.plex,
-      restart: restart,
-      network_mode: 'host',
-      volumes: [
-        bindRoot + '/plex/config:/config',
-        sharedData + '/media:/data/media',
-      ],
-      environment: {
-        PUID: '0',
-        PGID: '0',
-        TZ: tz,
-        // Optional, only needed on a fresh start.
-        PLEX_CLAIM: '${PLEX_CLAIM:-}',
-        // "docker" = pinned-by-image, no in-container update.
-        VERSION: 'docker',
+    services: {
+      [refs.bazarr.key]: {
+        container_name: refs.bazarr.ext,
+        image: 'lscr.io/linuxserver/bazarr:' + versions.bazarr,
+        restart: restart,
+        volumes: [
+          bindRoot + '/bazarr/config:/config',
+          sharedData + ':/data',
+        ],
+        environment: lsioEnv,
+        healthcheck: httpHealth(ports.bazarr, '/'),
+        expose: [ports.bazarr],
+        ports: ['%s:6767:%s' % [lib.collections.ip.loopback, ports.bazarr]],
       },
-      devices: ['/dev/dri:/dev/dri'],
-      healthcheck: httpHealth(ports.plex, '/identity'),
-    },
 
-    [refs.prowlarr.key]: {
-      container_name: refs.prowlarr.ext,
-      image: 'lscr.io/linuxserver/prowlarr@sha256:d3e9307b320b6772749a2cf8fc2712e9e824c4930b034680ad4d08a9e2f25884',
-      restart: restart,
-      volumes: [bindRoot + '/prowlarr/config:/config'],
-      environment: lsioEnv,
-      healthcheck: httpHealth(ports.prowlarr, '/ping'),
-      expose: [ports.prowlarr],
-      ports: ['%s:9696:%s' % [lib.collections.ip.loopback, ports.prowlarr]],
-    },
+      // One-shot: syncs ./configarr/config.yml into Sonarr/Radarr on each deploy, then exits 0.
+      [refs.configarr.key]: {
+        container_name: refs.configarr.ext,
+        image: 'ghcr.io/raydak-labs/configarr:' + versions.configarr,
+        restart: restart,
+        depends_on: arrsHealthy,
+        volumes: [
+          './configarr:/app/config:ro',
+          bindRoot + '/configarr/repos:/app/repos',
+        ],
+        environment: lsioEnv + arrApiKeys,
+      },
 
-    [refs.radarr.key]: {
-      container_name: refs.radarr.ext,
-      image: 'lscr.io/linuxserver/radarr@sha256:270f25698624b57b86ca119cc95399d7ff15be8297095b4e1223fd5b549b732c',
-      restart: restart,
-      volumes: [
-        bindRoot + '/radarr/config:/config',
-        sharedData + ':/data',
-      ],
-      environment: lsioEnv,
-      healthcheck: httpHealth(ports.radarr, '/ping'),
-      expose: [ports.radarr],
-      ports: ['%s:7878:%s' % [lib.collections.ip.loopback, ports.radarr]],
-    },
+      // Long-running: every `timer` minutes scans the Sonarr/Radarr queues, removes
+      // failed/stalled/slow/orphaned downloads, and triggers a re-search.
+      [refs.decluttarr.key]: {
+        container_name: refs.decluttarr.ext,
+        image: 'ghcr.io/manimatter/decluttarr:' + versions.decluttarr,
+        restart: restart,
+        depends_on: arrsHealthy,
+        volumes: ['./decluttarr:/app/config:ro'],
+        environment: lsioEnv + arrApiKeys,
+      },
 
-    [refs.sabnzbd.key]: {
-      container_name: refs.sabnzbd.ext,
-      image: 'lscr.io/linuxserver/sabnzbd@sha256:fba727f777f6b2633fcdeaea94abc85d73148f2a6b19a8158907bdd5b6e145d0',
-      restart: restart,
-      volumes: [
-        bindRoot + '/sabnzbd/config:/config',
-        sharedData + ':/data',
-      ],
-      environment: lsioEnv,
-      healthcheck: httpHealth(ports.sabnzbd, '/'),
-      expose: [ports.sabnzbd],
-      ports: ['%s:18013:%s' % [lib.collections.ip.loopback, ports.sabnzbd]],
-    },
+      // network_mode: host (NOT Traefik-fronted); GPU passthrough (Intel iGPU) for hardware
+      // transcoding. Runs as root (PUID/PGID 0), so no group_add for render is needed.
+      // Compose rejects network_mode and networks on the same service, so this one declares
+      // no networks at all.
+      [refs.plex.key]: {
+        container_name: refs.plex.ext,
+        image: 'lscr.io/linuxserver/plex:' + versions.plex,
+        restart: restart,
+        network_mode: 'host',
+        volumes: [
+          bindRoot + '/plex/config:/config',
+          sharedData + '/media:/data/media',
+        ],
+        environment: {
+          PUID: '0',
+          PGID: '0',
+          TZ: tz,
+          // Optional, only needed on a fresh start.
+          PLEX_CLAIM: '${PLEX_CLAIM:-}',
+          // "docker" = pinned-by-image, no in-container update.
+          VERSION: 'docker',
+        },
+        devices: ['/dev/dri:/dev/dri'],
+        healthcheck: httpHealth(ports.plex, '/identity'),
+      },
 
-    // Runs as the fixed non-root `node` user (UID 1000) — PUID/PGID have no effect; needs
-    // `init: true`. No healthcheck: the image ships no curl/wget/bash.
-    [refs.seerr.key]: {
-      container_name: refs.seerr.ext,
-      image: 'ghcr.io/seerr-team/seerr:' + versions.seerr,
-      restart: restart,
-      volumes: [bindRoot + '/seerr/config:/app/config'],
-      environment: { TZ: tz },
-      expose: [ports.seerr],
-      ports: ['%s:5055:%s' % [lib.collections.ip.loopback, ports.seerr]],
-      init: true,
-    },
+      [refs.prowlarr.key]: {
+        container_name: refs.prowlarr.ext,
+        image: 'lscr.io/linuxserver/prowlarr@sha256:d3e9307b320b6772749a2cf8fc2712e9e824c4930b034680ad4d08a9e2f25884',
+        restart: restart,
+        volumes: [bindRoot + '/prowlarr/config:/config'],
+        environment: lsioEnv,
+        healthcheck: httpHealth(ports.prowlarr, '/ping'),
+        expose: [ports.prowlarr],
+        ports: ['%s:9696:%s' % [lib.collections.ip.loopback, ports.prowlarr]],
+      },
 
-    [refs.sonarr.key]: {
-      container_name: refs.sonarr.ext,
-      image: 'lscr.io/linuxserver/sonarr@sha256:02b4d538d351d6e35882a021c08e8600fe95d28860fb1dd724b597166e7221ca',
-      restart: restart,
-      volumes: [
-        bindRoot + '/sonarr/config:/config',
-        sharedData + ':/data',
-      ],
-      environment: lsioEnv,
-      healthcheck: httpHealth(ports.sonarr, '/ping'),
-      expose: [ports.sonarr],
-      ports: ['%s:8989:%s' % [lib.collections.ip.loopback, ports.sonarr]],
+      [refs.radarr.key]: {
+        container_name: refs.radarr.ext,
+        image: 'lscr.io/linuxserver/radarr@sha256:270f25698624b57b86ca119cc95399d7ff15be8297095b4e1223fd5b549b732c',
+        restart: restart,
+        volumes: [
+          bindRoot + '/radarr/config:/config',
+          sharedData + ':/data',
+        ],
+        environment: lsioEnv,
+        healthcheck: httpHealth(ports.radarr, '/ping'),
+        expose: [ports.radarr],
+        ports: ['%s:7878:%s' % [lib.collections.ip.loopback, ports.radarr]],
+      },
+
+      [refs.sabnzbd.key]: {
+        container_name: refs.sabnzbd.ext,
+        image: 'lscr.io/linuxserver/sabnzbd@sha256:fba727f777f6b2633fcdeaea94abc85d73148f2a6b19a8158907bdd5b6e145d0',
+        restart: restart,
+        volumes: [
+          bindRoot + '/sabnzbd/config:/config',
+          sharedData + ':/data',
+        ],
+        environment: lsioEnv,
+        healthcheck: httpHealth(ports.sabnzbd, '/'),
+        expose: [ports.sabnzbd],
+        ports: ['%s:18013:%s' % [lib.collections.ip.loopback, ports.sabnzbd]],
+      },
+
+      // Runs as the fixed non-root `node` user (UID 1000) — PUID/PGID have no effect; needs
+      // `init: true`. No healthcheck: the image ships no curl/wget/bash.
+      [refs.seerr.key]: {
+        container_name: refs.seerr.ext,
+        image: 'ghcr.io/seerr-team/seerr:' + versions.seerr,
+        restart: restart,
+        volumes: [bindRoot + '/seerr/config:/app/config'],
+        environment: { TZ: tz },
+        expose: [ports.seerr],
+        ports: ['%s:5055:%s' % [lib.collections.ip.loopback, ports.seerr]],
+        init: true,
+      },
+
+      [refs.sonarr.key]: {
+        container_name: refs.sonarr.ext,
+        image: 'lscr.io/linuxserver/sonarr@sha256:02b4d538d351d6e35882a021c08e8600fe95d28860fb1dd724b597166e7221ca',
+        restart: restart,
+        volumes: [
+          bindRoot + '/sonarr/config:/config',
+          sharedData + ':/data',
+        ],
+        environment: lsioEnv,
+        healthcheck: httpHealth(ports.sonarr, '/ping'),
+        expose: [ports.sonarr],
+        ports: ['%s:8989:%s' % [lib.collections.ip.loopback, ports.sonarr]],
+      },
     },
   },
 }

@@ -27,13 +27,22 @@ file whose first line is the `# GENERATED from …` header.
 | File | Role |
 | --- | --- |
 | `refs.libsonnet` | Every name this stack owns. Imported by both files below. |
-| `services.jsonnet` | The manifest — plain Compose. Renders to `services.yaml`. |
-| `compose.jsonnet` | `(import 'refs.libsonnet').compose`. Renders to `compose.yaml`. |
+| `services.jsonnet` | `{ services: <plain Compose> }` — the manifest. Renders to `services.yaml`. |
+| `compose.jsonnet` | `{ compose: (import 'refs.libsonnet').compose }`. Renders to `compose.yaml`. |
 
-One entrypoint renders to one output of the same name: `services.jsonnet` → `services.yaml`.
-An entrypoint that needs to produce two files is two entrypoints (see
-`platform/edge/pangolin/files/`, where four `.jsonnet` files select four keys out of one
-shared `config.libsonnet`).
+**An entrypoint names the files it writes.** It evaluates to an object whose top-level
+fields are filenames without the extension, and each value is the document to put there —
+so `{ services: {...} }` renders `services.yaml` beside it. The entrypoint's own filename
+decides nothing; what ties output back to source is the `# GENERATED from …` header.
+
+That is why the manifest is wrapped in a `services:` field rather than being the document
+itself. A field holding anything but an object is a hard error, which catches the mistake
+this shape invites — returning a bare Compose document, whose `name:`/`networks:`/`volumes:`
+fields would otherwise be read as filenames.
+
+One entrypoint can write several files by naming several fields (see
+`platform/edge/pangolin/files/configs.jsonnet`, which selects four keys out of one shared
+`config.libsonnet` and renders four YAML files).
 
 `compose.jsonnet` is its own file because `env_file` has to attach at the `include`, not at
 the service: `${VAR:?err}` inside `services.yaml` is interpolated from the include's env

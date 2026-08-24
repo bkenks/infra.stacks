@@ -66,85 +66,87 @@ local railsApp = {
 local afterSeed = [refs.cache.key, refs.seeder.key];
 
 {
-  name: refs.name,
-  networks: {
-    default: { name: refs.name },
-    [sharedDB.name]: { name: sharedDB.name, external: true },
-  },
-  volumes: refs.assets.declare,
-
   services: {
-    // Restarts any container labelled autoheal=true once its healthcheck fails.
-    [refs.autoheal.key]: {
-      container_name: refs.autoheal.ext,
-      image: 'willfarrell/autoheal:' + autohealVersion,
-      restart: lib.collections.restart.unlessStopped,
-      environment: {
-        AUTOHEAL_CONTAINER_LABEL: 'autoheal',
-        AUTOHEAL_START_PERIOD: '600',
-        AUTOHEAL_INTERVAL: '30',
+    name: refs.name,
+    networks: {
+      default: { name: refs.name },
+      [sharedDB.name]: { name: sharedDB.name, external: true },
+    },
+    volumes: refs.assets.declare,
+
+    services: {
+      // Restarts any container labelled autoheal=true once its healthcheck fails.
+      [refs.autoheal.key]: {
+        container_name: refs.autoheal.ext,
+        image: 'willfarrell/autoheal:' + autohealVersion,
+        restart: lib.collections.restart.unlessStopped,
+        environment: {
+          AUTOHEAL_CONTAINER_LABEL: 'autoheal',
+          AUTOHEAL_START_PERIOD: '600',
+          AUTOHEAL_INTERVAL: '30',
+        },
+        volumes: [lib.collections.mounts.dockerSockRW],
       },
-      volumes: [lib.collections.mounts.dockerSockRW],
-    },
 
-    [refs.cache.key]: {
-      container_name: refs.cache.ext,
-      image: 'memcached:' + memcachedVersion,
-      restart: lib.collections.restart.unlessStopped,
-    },
-
-    [refs.cron.key]: railsApp {
-      container_name: refs.cron.ext,
-      depends_on: afterSeed,
-      command: './docker/prod/cron',
-    },
-
-    [refs.hocuspocus.key]: {
-      container_name: refs.hocuspocus.ext,
-      image: 'openproject/hocuspocus:' + hocuspocusVersion,
-      restart: lib.collections.restart.unlessStopped,
-      networks: ['default', sharedDB.name],
-      // Calls back into `web` over the private bridge (http, not the TLS hairpin); `web`
-      // must be in OPENPROJECT_ADDITIONAL__HOST__NAMES.
-      environment: {
-        OPENPROJECT_URL: 'http://%s:%s' % [refs.web.key, webPort],
-        OPENPROJECT_HTTPS: 'true',
-        SECRET: '${COLLAB_SERVER_SECRET:?err}',
+      [refs.cache.key]: {
+        container_name: refs.cache.ext,
+        image: 'memcached:' + memcachedVersion,
+        restart: lib.collections.restart.unlessStopped,
       },
-      expose: [hocuspocusPort],
-      ports: ['%s:%s:%s' % [lib.collections.ip.loopback, hocuspocusPort, hocuspocusPort]],
-    },
 
-    // Runs migrations and seeds, then exits; the long-running services wait on it.
-    [refs.seeder.key]: railsApp {
-      container_name: refs.seeder.ext,
-      command: './docker/prod/seeder',
-      restart: 'on-failure',
-    },
-
-    [refs.web.key]: railsApp {
-      container_name: refs.web.ext,
-      depends_on: afterSeed,
-      command: './docker/prod/web',
-      // One Puma worker instead of the default 2 — a whole forked Rails process saved; low
-      // concurrency here does not need two. Bump back up if web slows.
-      environment: appEnv { WEB_CONCURRENCY: '1' },
-      labels: { autoheal: 'true' },
-      healthcheck: {
-        test: ['CMD', 'curl', '-f', 'http://localhost:%s/health_checks/default' % webPort],
-        interval: '10s',
-        timeout: '3s',
-        retries: 3,
-        start_period: '60s',
+      [refs.cron.key]: railsApp {
+        container_name: refs.cron.ext,
+        depends_on: afterSeed,
+        command: './docker/prod/cron',
       },
-      expose: [webPort],
-      ports: ['%s:18009:%s' % [lib.collections.ip.loopback, webPort]],
-    },
 
-    [refs.worker.key]: railsApp {
-      container_name: refs.worker.ext,
-      depends_on: afterSeed,
-      command: './docker/prod/worker',
+      [refs.hocuspocus.key]: {
+        container_name: refs.hocuspocus.ext,
+        image: 'openproject/hocuspocus:' + hocuspocusVersion,
+        restart: lib.collections.restart.unlessStopped,
+        networks: ['default', sharedDB.name],
+        // Calls back into `web` over the private bridge (http, not the TLS hairpin); `web`
+        // must be in OPENPROJECT_ADDITIONAL__HOST__NAMES.
+        environment: {
+          OPENPROJECT_URL: 'http://%s:%s' % [refs.web.key, webPort],
+          OPENPROJECT_HTTPS: 'true',
+          SECRET: '${COLLAB_SERVER_SECRET:?err}',
+        },
+        expose: [hocuspocusPort],
+        ports: ['%s:%s:%s' % [lib.collections.ip.loopback, hocuspocusPort, hocuspocusPort]],
+      },
+
+      // Runs migrations and seeds, then exits; the long-running services wait on it.
+      [refs.seeder.key]: railsApp {
+        container_name: refs.seeder.ext,
+        command: './docker/prod/seeder',
+        restart: 'on-failure',
+      },
+
+      [refs.web.key]: railsApp {
+        container_name: refs.web.ext,
+        depends_on: afterSeed,
+        command: './docker/prod/web',
+        // One Puma worker instead of the default 2 — a whole forked Rails process saved; low
+        // concurrency here does not need two. Bump back up if web slows.
+        environment: appEnv { WEB_CONCURRENCY: '1' },
+        labels: { autoheal: 'true' },
+        healthcheck: {
+          test: ['CMD', 'curl', '-f', 'http://localhost:%s/health_checks/default' % webPort],
+          interval: '10s',
+          timeout: '3s',
+          retries: 3,
+          start_period: '60s',
+        },
+        expose: [webPort],
+        ports: ['%s:18009:%s' % [lib.collections.ip.loopback, webPort]],
+      },
+
+      [refs.worker.key]: railsApp {
+        container_name: refs.worker.ext,
+        depends_on: afterSeed,
+        command: './docker/prod/worker',
+      },
     },
   },
 }

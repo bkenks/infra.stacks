@@ -19,58 +19,60 @@ local tz = 'America/New_York';
 local bindRoot = lib.collections.dirs.docker.bindMounts + '/apps/immich';
 
 {
-  name: refs.name,
-  networks: { default: { name: refs.name } },
-
   services: {
-    [refs.database.key]: {
-      container_name: refs.database.ext,
-      image: dbImage,
-      restart: lib.collections.restart.unlessStopped,
-      volumes: [bindRoot + '/postgres:/var/lib/postgresql/data'],
-      environment: {
-        POSTGRES_DB: refs.name,
-        POSTGRES_USER: refs.name,
-        POSTGRES_INITDB_ARGS: '--data-checksums',
-        POSTGRES_PASSWORD: '${IMMICH_DB_PASSWORD:?err}',
+    name: refs.name,
+    networks: { default: { name: refs.name } },
+
+    services: {
+      [refs.database.key]: {
+        container_name: refs.database.ext,
+        image: dbImage,
+        restart: lib.collections.restart.unlessStopped,
+        volumes: [bindRoot + '/postgres:/var/lib/postgresql/data'],
+        environment: {
+          POSTGRES_DB: refs.name,
+          POSTGRES_USER: refs.name,
+          POSTGRES_INITDB_ARGS: '--data-checksums',
+          POSTGRES_PASSWORD: '${IMMICH_DB_PASSWORD:?err}',
+        },
+        shm_size: '128mb',
       },
-      shm_size: '128mb',
-    },
 
-    [refs.machineLearning.key]: {
-      container_name: refs.machineLearning.ext,
-      image: mlImage,
-      restart: lib.collections.restart.unlessStopped,
-      volumes: [bindRoot + '/model-cache:/cache'],
-      environment: { TZ: tz },
-    },
-
-    [refs.redis.key]: {
-      container_name: refs.redis.ext,
-      image: redisImage,
-      restart: lib.collections.restart.unlessStopped,
-    },
-
-    [refs.server.key]: {
-      container_name: refs.server.ext,
-      image: serverImage,
-      restart: lib.collections.restart.unlessStopped,
-      depends_on: [refs.database.key, refs.redis.key],
-      volumes: ['/mnt/immich-library:/data'],
-      // Intel Quick Sync HW transcoding (paiki's N150 iGPU) — the equivalent of the
-      // `quicksync` service in Immich's hwaccel.transcoding.yml. Enable it in the UI:
-      // Admin -> Video Transcoding -> Acceleration API -> Quick Sync.
-      devices: ['/dev/dri:/dev/dri'],
-      environment: {
-        TZ: tz,
-        REDIS_HOSTNAME: refs.redis.ext,
-        DB_HOSTNAME: refs.database.ext,
-        DB_USERNAME: refs.name,
-        DB_DATABASE_NAME: refs.name,
-        DB_PASSWORD: '${IMMICH_DB_PASSWORD:?err}',
+      [refs.machineLearning.key]: {
+        container_name: refs.machineLearning.ext,
+        image: mlImage,
+        restart: lib.collections.restart.unlessStopped,
+        volumes: [bindRoot + '/model-cache:/cache'],
+        environment: { TZ: tz },
       },
-      expose: [port],
-      ports: ['%s:2283:%s' % [lib.collections.ip.loopback, port]],
+
+      [refs.redis.key]: {
+        container_name: refs.redis.ext,
+        image: redisImage,
+        restart: lib.collections.restart.unlessStopped,
+      },
+
+      [refs.server.key]: {
+        container_name: refs.server.ext,
+        image: serverImage,
+        restart: lib.collections.restart.unlessStopped,
+        depends_on: [refs.database.key, refs.redis.key],
+        volumes: ['/mnt/immich-library:/data'],
+        // Intel Quick Sync HW transcoding (paiki's N150 iGPU) — the equivalent of the
+        // `quicksync` service in Immich's hwaccel.transcoding.yml. Enable it in the UI:
+        // Admin -> Video Transcoding -> Acceleration API -> Quick Sync.
+        devices: ['/dev/dri:/dev/dri'],
+        environment: {
+          TZ: tz,
+          REDIS_HOSTNAME: refs.redis.ext,
+          DB_HOSTNAME: refs.database.ext,
+          DB_USERNAME: refs.name,
+          DB_DATABASE_NAME: refs.name,
+          DB_PASSWORD: '${IMMICH_DB_PASSWORD:?err}',
+        },
+        expose: [port],
+        ports: ['%s:2283:%s' % [lib.collections.ip.loopback, port]],
+      },
     },
   },
 }
