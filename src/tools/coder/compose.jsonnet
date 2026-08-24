@@ -49,7 +49,7 @@ local secretsDepends = { secrets: { condition: "service_started" } };
       ],
       environment: {
         // CODER_PG_CONNECTION_URL: via infisical-secrets
-        CODER_HTTP_ADDRESS: "127.0.0.1:7080",
+        CODER_HTTP_ADDRESS: "0.0.0.0:7080",
         CODER_ACCESS_URL: coderURL,
         // Traefik does not relay the custom `Upgrade: DERP` header; without this
         // the agent's tailnet relay never connects and every app 502s.

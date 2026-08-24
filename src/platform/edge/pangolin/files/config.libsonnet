@@ -12,6 +12,12 @@ local lib = import 'lib.libsonnet';
 local baseDomain = lib.collections.domain.ktbinternal;
 local cloudDomain = lib.collections.domain.ktbcloud;
 
+// Coder serves each workspace app on its own <app>--<agent>--<workspace>--<user> label under
+// this zone (tools/coder's CODER_WILDCARD_ACCESS_URL). A TLS wildcard covers exactly one
+// label, so *.<cloudDomain> does NOT match — the cert needs *.coder.<cloudDomain> as its own
+// SAN, requested alongside the public-plane wildcard below.
+local coderDomain = 'coder.' + cloudDomain;
+
 // Named once in traefik_config.yaml's certificatesResolvers, referenced by every https
 // router in dynamic_config.yaml.
 local certResolver = 'cloudflare';
@@ -124,8 +130,9 @@ function(urlDomain)
               domains: [
                 { main: baseDomain, sans: ['*.' + baseDomain] },
                 // ktbcloud.com public-plane wildcard — requested once here, served
-                // everywhere via SNI.
-                { main: cloudDomain, sans: ['*.' + cloudDomain] },
+                // everywhere via SNI. Carries the Coder workspace-app wildcard as a second
+                // SAN; see coderDomain above for why *.<cloudDomain> is not enough.
+                { main: cloudDomain, sans: ['*.' + cloudDomain, '*.' + coderDomain] },
               ],
             },
           },

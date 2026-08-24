@@ -42,6 +42,7 @@ http:
           - main: "ktbcloud.com"
             sans:
               - "*.ktbcloud.com"
+              - "*.coder.ktbcloud.com"
     ws-router:
       entryPoints:
         - "websecure"

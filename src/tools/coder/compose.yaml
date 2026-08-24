@@ -9,7 +9,7 @@ services:
     environment:
       CODER_ACCESS_URL: "https://coder.ktbcloud.com"
       CODER_DERP_FORCE_WEBSOCKETS: "true"
-      CODER_HTTP_ADDRESS: "127.0.0.1:7080"
+      CODER_HTTP_ADDRESS: "0.0.0.0:7080"
       CODER_WILDCARD_ACCESS_URL: "*.coder.ktbcloud.com"
     image: "ghcr.io/coder/coder:latest"
     ports:
