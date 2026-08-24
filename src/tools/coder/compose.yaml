@@ -7,7 +7,7 @@ services:
       secrets:
         condition: "service_started"
     environment:
-      CODER_ACCESS_URL: "https://coder.ktbinternal.com"
+      CODER_ACCESS_URL: "https://coder.ktbcloud.com"
       CODER_HTTP_ADDRESS: "0.0.0.0:7080"
     image: "ghcr.io/coder/coder:latest"
     ports:

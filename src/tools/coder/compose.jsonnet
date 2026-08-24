@@ -48,7 +48,7 @@ local secretsDepends = { secrets: { condition: "service_started" } };
       environment: {
         // CODER_PG_CONNECTION_URL: via infisical-secrets
         CODER_HTTP_ADDRESS: "0.0.0.0:7080",
-        CODER_ACCESS_URL: "https://coder." + col.domain.ktbinternal,
+        CODER_ACCESS_URL: "https://coder." + col.domain.ktbcloud,
       },
       user: "0:0"
     },
