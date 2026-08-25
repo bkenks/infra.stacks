@@ -1,22 +1,31 @@
 ---
 pre-commit:
   jobs:
-    - name: "FORMAT MISE CONFIG"
+    - name: "JOB: format mise config"
       run: |
-        echo "INFO || running cmd 'mise fmt'"
+        echo "INFO running cmd 'mise fmt'"
         echo "———————————————————————————————"
         mise fmt && echo "no output"
         echo "———————————————————————————————"
-        echo "INFO || completed successfully"
+        echo "INFO completed successfully"
+      stage_fixed: true
+    
+    - name: "JOB: pack kstore"
+      run: |
+        echo "INFO running cmd 'mise run kstore:pack'"
+        echo "———————————————————————————————"
+        mise run kstore:pack
+        echo "———————————————————————————————"
+        echo "INFO completed successfully"
       stage_fixed: true
 
-    - name: "JSONNET -> YAML"
+    - name: "JOB: jsonnet -> yaml"
       run: |
         # pipefail: without it a render failure is masked by git add's exit 0, and a
         # commit lands with stale YAML.
         set -o pipefail
-        echo "INFO || running mise task..."
+        echo "INFO running mise task..."
         echo "———————————————————————————————"
         mise run render | git add --pathspec-from-file=-
         echo "———————————————————————————————"
-        echo "INFO || completed successfully"
+        echo "INFO completed successfully"
