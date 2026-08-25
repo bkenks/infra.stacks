@@ -18,7 +18,7 @@ local port = '8000';
     networks: { default: { name: refs.name } },
 
     services: {
-      [lib.collections.role.SECRETS]: lib.SecretsProvider('komodoMcp'),
+      [lib.collections.role.SECRETS]: lib.SecretsProvider('infra', '/komodo-mcp'),
 
       [refs.app.key]: {
         container_name: refs.app.ext,

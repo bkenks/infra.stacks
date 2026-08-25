@@ -84,10 +84,10 @@
     name::
       error '"name" is required on Project',
 
-    // Env files the include interpolates into services.yaml, built with lib.Secret(key).
-    // Only the Infisical server's own stack still needs this — every other stack reads its
-    // secrets through lib.SecretsProvider, which injects them at `up` instead. Left empty,
-    // the stack renders a single compose document and no include.
+    // Env files the include interpolates into services.yaml. Only the Infisical server's
+    // own stack still needs this — every other stack reads its secrets through
+    // lib.SecretsProvider, which injects them at `up` instead. Left empty, the stack
+    // renders a single compose document and no include.
     envFiles:: [],
 
     // What compose.yaml renders to. Every stack's `compose:` field is exactly this.

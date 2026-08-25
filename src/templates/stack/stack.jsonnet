@@ -46,13 +46,13 @@ local dbName = refs.name;
 
     services: {
       // Fetches this stack's bundle and injects every secret in it, under its own Infisical
-      // name, into each service that depends on it. Register the bundle in
-      // registry.libsonnet's infisical.project.<x>.secretsMap first, then name its KEY here.
+      // name, into each service that depends on it. The first argument is a KEY into
+      // registry.libsonnet's infisical.project; the second is the folder inside it.
       //
       // There is no compose-level interpolation left to rename a value or build one out of
       // parts, so a secret has to be stored under exactly the name the container reads — a
       // connection URL whole, not a user and a password to join together.
-      [lib.collections.role.SECRETS]: lib.SecretsProvider('example'),
+      [lib.collections.role.SECRETS]: lib.SecretsProvider('apps', '/example'),
 
       [refs.app.key]: {
         container_name: refs.app.ext,

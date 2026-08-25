@@ -92,7 +92,7 @@ local afterSeed = lib.secretsReady {
     volumes: refs.assets.declare,
 
     services: {
-      [lib.collections.role.SECRETS]: lib.SecretsProvider('openproject'),
+      [lib.collections.role.SECRETS]: lib.SecretsProvider('apps', '/openproject'),
 
       // Restarts any container labelled autoheal=true once its healthcheck fails.
       [refs.autoheal.key]: {

@@ -21,7 +21,7 @@ local stackDir = lib.collections.dirs.docker.bindMounts + '/dcm';
     volumes: refs.appData.declare,
 
     services: {
-      [lib.collections.role.SECRETS]: lib.SecretsProvider('komodo'),
+      [lib.collections.role.SECRETS]: lib.SecretsProvider('infra', '/komodo'),
 
       [refs.app.key]: {
         container_name: refs.app.ext,

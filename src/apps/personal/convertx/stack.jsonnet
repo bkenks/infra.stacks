@@ -14,7 +14,7 @@ local dataDir = lib.collections.dirs.docker.bindMounts + '/apps/convertx';
     networks: { default: { name: refs.name } },
 
     services: {
-      [lib.collections.role.SECRETS]: lib.SecretsProvider('convertx'),
+      [lib.collections.role.SECRETS]: lib.SecretsProvider('apps', '/convertx'),
 
       [refs.app.key]: {
         container_name: refs.app.ext,

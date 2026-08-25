@@ -68,7 +68,7 @@ local arrsHealthy = {
     networks: { default: { name: refs.name } },
 
     services: {
-      [lib.collections.role.SECRETS]: lib.SecretsProvider('stream'),
+      [lib.collections.role.SECRETS]: lib.SecretsProvider('apps', '/stream'),
 
       [refs.bazarr.key]: {
         container_name: refs.bazarr.ext,

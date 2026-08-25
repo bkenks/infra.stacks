@@ -19,10 +19,10 @@ gone, along with the per-host `AGENT_SERVICES` / `AGENT_HOST` wiring.
 
 ## Why this stack is the exception
 
-It still takes its own secrets from an env file attached at the include
-(`lib.SecretOrBootstrap('infisical')`), because the provider would have to ask this server
-for them before it is running. The control plane writes that file and points
-`ANSIBLE_SECRETS_FILE` at it; the default path is `lib.Secret('infisical')`.
+It still takes its own secrets from an env file attached at the include, because the
+provider would have to ask this server for them before it is running. The control plane
+writes that file and points `ANSIBLE_SECRETS_FILE` at it; the path is spelled out in
+`stack.jsonnet`'s `envFiles::`, defaulting to `/dev/shm/secrets/infisical.env`.
 
 Every var uses `${VAR:-}` rather than `${VAR:?err}`: validation is at runtime — the app
 rejects an empty `ENCRYPTION_KEY` — so a `config` on a host without the file still resolves.

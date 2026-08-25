@@ -1,10 +1,11 @@
 // The one stack that cannot read its own secrets through the infisical-secrets provider:
 // the provider would be asking this server for them before it is up. Its secrets stay an
-// env file the control plane writes, which is what lib.SecretOrBootstrap points at.
+// env file the control plane writes, spelled out here because nothing else reads it —
+// ANSIBLE_SECRETS_FILE overrides the path during bootstrap.
 local lib = import 'lib.libsonnet';
 local refs = lib.Project {
   name:: 'infisical',
-  envFiles:: [lib.SecretOrBootstrap('infisical')],
+  envFiles:: ['${ANSIBLE_SECRETS_FILE:-%s/infisical.env}' % lib.collections.dirs.secrets],
 
   app:: self.Service { role:: lib.collections.role.APP },
   db:: self.Service { role:: lib.collections.role.DB },

@@ -106,7 +106,7 @@ local tmpl = import 'templates.libsonnet';
     },
   },
 
-  infisical:: { local infisical = self,
+  infisical:: {
     // Where the infisical-secrets compose provider reaches the server. The control-plane
     // alias rather than the serviceGroup host's own name: every host in the fleet resolves
     // it, including the ones that deploy before they know which box is the control plane.
@@ -115,82 +115,15 @@ local tmpl = import 'templates.libsonnet';
       $.endpoint.serviceGroup.infisical.host.port,
     ],
 
-    t_InfisProject:: { local infisProject = self,
-      id:: error '"id" is a required field of "infisProject"',
-      t_Secrets:: {
-        service:      error '"service" is a required field of "Secrets"',
-        projectId:    infisProject.id,                            // ID of project containing secrets in Infisical
-        env:          'prod',                                     // Infisical environment slug
-        projectPath:  '/' + self.service,                         // path to secrets folder in Infisical
-        // outFile/outFilePath are read only by lib.Secret, and only the Infisical stack
-        // itself still uses that — every other stack reads its bundle through the provider.
-        outFile:      self.service + '.env',                      // i.e. "<service>.env"
-        outFilePath:  col.dirs.secrets + '/' + self.outFile,      // i.e. "/dev/shm/<service>.env"
-      },
-    },
-
+    // The Infisical projects secrets live in. Only the ids are global: a bundle's folder
+    // path is read by exactly one stack, so it is written in that stack rather than
+    // mirrored here, and lib.SecretsProvider pairs the two.
     project:: {
-      apps:: infisical.t_InfisProject { local project = self,
-        id:: '2f0eb3d1-3e2a-4ce7-8060-5e47ad877e47',
-        secretsMap:: {
-          postgres:     project.t_Secrets { service: 'postgres' },
-          paperless:    project.t_Secrets { service: 'paperless' },
-          docuseal:     project.t_Secrets { service: 'docuseal' },
-          openproject:  project.t_Secrets { service: 'openproject' },
-          immich:       project.t_Secrets { service: 'immich' },
-          stream:       project.t_Secrets { service: 'stream' },
-          convertx:     project.t_Secrets { service: 'convertx' },
-          twenty:       project.t_Secrets { service: 'twenty' },
-          pangolin:     project.t_Secrets { service: 'pangolin' },
-          // Only src/templates/stack reads this one — the template is a real compiling
-          // stack, so the key it shows has to resolve. No such folder exists in Infisical.
-          example:      project.t_Secrets { service: 'example' },
-        },
-      },
-      frappe:: infisical.t_InfisProject { local project = self,
-        id:: '12ed25dd-c0d2-4a78-9b10-472fc09fe554',
-        secretsMap:: {
-          frappe: project.t_Secrets { service: 'frappe' },
-        },
-      },
-      couchPotatoes:: infisical.t_InfisProject { local project = self,
-        id:: 'fb1dd6a7-3924-415b-b6c3-3071fc93aaae',
-        secretsMap:: {
-          'couch-potatoes-website': project.t_Secrets { service: 'couch-potatoes-website', projectPath: '/website', outFile: 'client_couch-potatoes_website.env' },
-        },
-      },
-      stackform:: infisical.t_InfisProject { local project = self,
-        id:: '15d61370-a2ec-4993-9bbd-3774a63f7b94',
-        secretsMap:: {
-          'stackform-website': project.t_Secrets { service: 'stackform-website', projectPath: '/website', outFile: 'stackform_website.env' },  // TODO: Delete, no longer used
-        },
-      },
-      infra:: infisical.t_InfisProject { local project = self,
-        id:: '86324d9b-3dd7-49d4-b252-69228c5ee0c7',
-        secretsMap:: {
-          cfApiDnsToken:    project.t_Secrets { service: 'cloudflare__dns-api-token', projectPath: '/traefik' },
-          zerobyte:         project.t_Secrets { service: 'zerobyte' },
-          infisical:        project.t_Secrets { service: 'infisical' },
-          authentik:        project.t_Secrets { service: 'authentik' },
-          forgejo:          project.t_Secrets { service: 'forgejo' },
-          komodoMcp:        project.t_Secrets { service: 'komodo-mcp' },
-          woodpecker:       project.t_Secrets { service: 'woodpecker' },
-          homarr:           project.t_Secrets { service: 'homarr' },
-          tsGateway:        project.t_Secrets { service: 'tsGateway', projectPath: '/tailscale/containers', outFile: 'ts-gateway.env' },
-          newt:             project.t_Secrets { service: 'newt', projectPath: '/hosts/${AGENT_HOST}/newt' },
-          komodo:           project.t_Secrets { service: 'komodo', outFile: 'komodo_core.env' },
-          cloudflared:      project.t_Secrets { service: 'cloudflared', projectPath: '/hosts/${AGENT_HOST}/cloudflared' },
-          databasus:        project.t_Secrets { service: 'databasus' },
-        },
-      },
+      apps::          '2f0eb3d1-3e2a-4ce7-8060-5e47ad877e47',
+      frappe::        '12ed25dd-c0d2-4a78-9b10-472fc09fe554',
+      couchPotatoes:: 'fb1dd6a7-3924-415b-b6c3-3071fc93aaae',
+      stackform::     '15d61370-a2ec-4993-9bbd-3774a63f7b94',
+      infra::         '86324d9b-3dd7-49d4-b252-69228c5ee0c7',
     },
-
-    // Every bundle above, flattened, so lib.SecretsProvider(key) is one lookup and a key
-    // can only be spelled one way across the whole repo.
-    catalog:: std.foldl(
-      function(acc, name) acc + infisical.project[name].secretsMap,
-      ['apps', 'frappe', 'couchPotatoes', 'stackform', 'infra'],
-      {},
-    ),
   },
 }

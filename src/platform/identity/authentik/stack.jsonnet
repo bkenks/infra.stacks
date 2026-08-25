@@ -49,7 +49,7 @@ local dbHealthy = lib.secretsReady {
     volumes: refs.data.declare + refs.dbData.declare,
 
     services: {
-      [lib.collections.role.SECRETS]: lib.SecretsProvider('authentik'),
+      [lib.collections.role.SECRETS]: lib.SecretsProvider('infra', '/authentik'),
 
       // ── Server: the web UI + API + OIDC endpoints ──────────────────────────────
       [refs.app.key]: {

@@ -43,7 +43,7 @@ local sharedDB = lib.registry.network.shared.paperlessDB;
     services: {
       // Injects every secret under /paperless into the services that depend on it, each
       // under its own Infisical name.
-      [lib.collections.role.SECRETS]: lib.SecretsProvider('paperless'),
+      [lib.collections.role.SECRETS]: lib.SecretsProvider('apps', '/paperless'),
 
       [refs.broker.key]: {
         container_name: refs.broker.ext,

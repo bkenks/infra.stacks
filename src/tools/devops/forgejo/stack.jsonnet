@@ -30,7 +30,7 @@ local sharedDB = lib.registry.network.shared.forgejoDB;
     volumes: refs.serverData.declare + refs.dbData.declare,
 
     services: {
-      [lib.collections.role.SECRETS]: lib.SecretsProvider('forgejo'),
+      [lib.collections.role.SECRETS]: lib.SecretsProvider('infra', '/forgejo'),
 
       [refs.server.key]: {
         container_name: refs.server.ext,

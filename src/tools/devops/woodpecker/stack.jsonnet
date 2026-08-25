@@ -38,7 +38,7 @@ local stepCpuQuota = 200000;
     volumes: refs.serverData.declare + refs.agentData.declare,
 
     services: {
-      [lib.collections.role.SECRETS]: lib.SecretsProvider('woodpecker'),
+      [lib.collections.role.SECRETS]: lib.SecretsProvider('infra', '/woodpecker'),
 
       [refs.server.key]: {
         container_name: refs.server.ext,

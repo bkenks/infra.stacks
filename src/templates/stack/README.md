@@ -97,7 +97,7 @@ names that come out of `refs` and the secrets the provider injects:
     volumes: refs.appData.declare,
 
     services: {
-      [lib.role.SECRETS]: lib.SecretsProvider('example'),
+      [lib.role.SECRETS]: lib.SecretsProvider('apps', '/example'),
 
       [refs.app.key]: {
         container_name: refs.app.ext,
@@ -134,7 +134,7 @@ lib.registry.endpoint.serviceGroup.postgres.host.addr   // ✓ typo fails at com
 `registry` is the global version of a stack's `refs` table: a value goes there the moment a
 *second* stack needs it. Same rule for `lib.role.*`, `lib.domain.*`, `lib.dirs.*`,
 `lib.ip.loopback`, `lib.mounts.*`, `lib.registry.endpoint.hostGroup.*` and
-`lib.SecretsProvider('<key>')`.
+`lib.registry.infisical.project.*`.
 
 ## Cheat-sheet
 
@@ -145,7 +145,7 @@ lib.registry.endpoint.serviceGroup.postgres.host.addr   // ✓ typo fails at com
 | Wait on a healthcheck | `depends_on: { [refs.db.key]: { condition: lib.condition.healthy } }` |
 | Mount the docker socket | `lib.mounts.dockerSock` (`…RW` when it must write) |
 | Keep a container up through Komodo StopAll | `labels: lib.labels.komodoSkip` |
-| Pull in a secret bundle | `[lib.role.SECRETS]: lib.SecretsProvider('<key>')` |
+| Pull in a secret bundle | `[lib.role.SECRETS]: lib.SecretsProvider('apps', '/<folder>')` |
 | Depend on that bundle | `depends_on: lib.secretsReady` |
 | Public HTTPS URL of an endpoint | `lib.registry.endpoint.serviceGroup.<x>.proxy.url` |
 | A restart policy | `lib.restart.unlessStopped` / `.always` / `.onFailure(5)` |
@@ -197,15 +197,15 @@ subprocess at `up`, and every secret in the bundle is injected as a plain enviro
 variable — under its own Infisical name — into each service that declares `depends_on` on
 the provider service.
 
-1. Add the bundle to the right Infisical project's `secretsMap` in
-   `devlib/registry.libsonnet`. `service` is the folder in Infisical; override `projectPath`
-   only where they differ. Every project's map is flattened into `infisical.catalog`, which
-   is what `lib.SecretsProvider` looks in — so a key can only be spelled one way across the
-   repo, and a typo fails at compile time.
-2. Add the provider service, keyed by `lib.role.SECRETS`:
+1. Make sure the Infisical project holding the bundle is in `infisical.project` in
+   `devlib/registry.libsonnet` — that map is just project name to id, and all five are
+   already there. The bundle's *folder* does not go in the registry: exactly one stack reads
+   it, so it is written in that stack.
+2. Add the provider service, keyed by `lib.role.SECRETS`. The first argument is the project
+   KEY (a typo fails at compile time), the second the folder inside it:
 
    ```jsonnet
-   [lib.role.SECRETS]: lib.SecretsProvider('<key>'),
+   [lib.role.SECRETS]: lib.SecretsProvider('apps', '/<folder>'),
    ```
 
 3. Add `lib.secretsReady` to the `depends_on` of every service that reads one. Without it
@@ -235,9 +235,9 @@ injects environment variables. Real: `platform/backup-manager/databasus`.
 
 A stack with **no** secrets declares no provider service at all.
 
-`lib.Secret('<key>')` and `lib.SecretOrBootstrap('<key>')` still exist for the one stack the
-provider cannot serve — `platform/secrets-manager/infisical`, which would be asking itself
-for its own secrets. Do not reach for them in a new stack.
+One stack the provider cannot serve — `platform/secrets-manager/infisical`, which would be
+asking itself for its own secrets — still takes an env file at its `include`, via
+`refs.envFiles`. Nothing else should.
 
 ## Variations (with real examples)
 

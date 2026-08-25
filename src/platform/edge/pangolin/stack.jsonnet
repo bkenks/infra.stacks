@@ -58,8 +58,8 @@ local pangolinHealthy = { [refs.pangolin.key]: { condition: lib.collections.cond
     networks: { default: { name: refs.name, driver: 'bridge', enable_ipv6: true } },
 
     services: {
-      [col.role.SECRETS]: lib.SecretsProvider('pangolin'),
-      [secretsTraefik]: lib.SecretsProvider('cfApiDnsToken'),
+      [col.role.SECRETS]: lib.SecretsProvider('apps', '/pangolin'),
+      [secretsTraefik]: lib.SecretsProvider('infra', '/traefik'),
       // One-shot: creates the config tree/perms + the GeoLite mmdbs (skipped after the first
       // run). It does not provision files/ content — that is the bind mounts below.
       [refs.init.key]: {

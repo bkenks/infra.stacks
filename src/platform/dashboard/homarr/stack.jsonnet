@@ -21,7 +21,7 @@ local issuer = authentik.proxy.oidc.issuer(refs.name);
     volumes: refs.appData.declare,
 
     services: {
-      [lib.collections.role.SECRETS]: lib.SecretsProvider('homarr'),
+      [lib.collections.role.SECRETS]: lib.SecretsProvider('infra', '/homarr'),
 
       [refs.app.key]: {
         container_name: refs.app.ext,

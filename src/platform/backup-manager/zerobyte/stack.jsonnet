@@ -19,7 +19,7 @@ local port = '4096';
     volumes: refs.appData.declare,
 
     services: {
-      [lib.collections.role.SECRETS]: lib.SecretsProvider('zerobyte'),
+      [lib.collections.role.SECRETS]: lib.SecretsProvider('infra', '/zerobyte'),
 
       [refs.app.key]: {
         container_name: refs.app.ext,

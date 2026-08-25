@@ -18,7 +18,7 @@ local port = '4005';
     volumes: refs.appData.declare,
 
     services: {
-      [lib.collections.role.SECRETS]: lib.SecretsProvider('databasus'),
+      [lib.collections.role.SECRETS]: lib.SecretsProvider('infra', '/databasus'),
 
       [refs.app.key]: {
         container_name: refs.app.ext,

@@ -28,7 +28,7 @@ local bindRoot = lib.collections.dirs.docker.bindMounts + '/apps/immich';
     networks: { default: { name: refs.name } },
 
     services: {
-      [lib.collections.role.SECRETS]: lib.SecretsProvider('immich'),
+      [lib.collections.role.SECRETS]: lib.SecretsProvider('apps', '/immich'),
 
       [refs.database.key]: {
         container_name: refs.database.ext,

@@ -21,7 +21,7 @@ local gateway = lib.registry.network.shared.tsGateway;
     volumes: refs.appData.declare,
 
     services: {
-      [lib.collections.role.SECRETS]: lib.SecretsProvider('tsGateway'),
+      [lib.collections.role.SECRETS]: lib.SecretsProvider('infra', '/tailscale/containers'),
 
       [refs.app.key]: {
         container_name: refs.app.ext,

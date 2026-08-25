@@ -20,7 +20,7 @@ local sharedDB = lib.registry.network.shared.postgresDB;
     volumes: refs.appData.declare,
 
     services: {
-      [lib.collections.role.SECRETS]: lib.SecretsProvider('docuseal'),
+      [lib.collections.role.SECRETS]: lib.SecretsProvider('apps', '/docuseal'),
 
       [refs.app.key]: {
         container_name: refs.app.ext,

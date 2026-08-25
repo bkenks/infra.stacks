@@ -22,27 +22,26 @@ local templates = import 'templates.libsonnet';
   // The template a stack's `refs` table fills in.
   Project:: templates.Project,
 
-  // The infisical-secrets compose provider, as a service. Takes the registry KEY, never a
-  // project id and path: the catalog entry is the one place a bundle's location is written,
-  // so a stack cannot drift from it, and a typo'd key fails at compile time.
+  // The infisical-secrets compose provider, as a service. `project` is a KEY into
+  // registry.infisical.project, so a typo fails at compile time rather than fetching from
+  // nowhere; `path` is the bundle's folder, written here because exactly one stack reads it.
   //
   // Every secret at that path is injected as a plain environment variable, under its own
   // Infisical name, into every service that declares depends_on on this one. There is no
   // compose-level interpolation left to rename or compose values with, so a secret must be
   // stored under exactly the name the container reads.
-  SecretsProvider(key, recursive=true)::
-    assert std.objectHasAll(registry.infisical.catalog, key) :
-      'lib.SecretsProvider(%s): not in registry.infisical.catalog' % key;
-    local bundle = registry.infisical.catalog[key];
+  SecretsProvider(project, path, env='prod', recursive=true)::
+    assert std.objectHasAll(registry.infisical.project, project) :
+      'lib.SecretsProvider(%s): not in registry.infisical.project' % project;
     {
       provider: {
         type: 'infisical-secrets',
         options: {
           'credentials-file': registry.path.file.infisical_creds,
           domain: registry.infisical.address,
-          'project-id': bundle.projectId,
-          env: bundle.env,
-          path: bundle.projectPath,
+          'project-id': registry.infisical.project[project],
+          env: env,
+          path: path,
           recursive: recursive,
         },
       },
@@ -51,19 +50,4 @@ local templates = import 'templates.libsonnet';
   // The compose fragment every service reading those secrets needs. A provider has no
   // health of its own, so `started` is the only condition it can satisfy.
   secretsReady:: { [collections.role.SECRETS]: { condition: collections.condition.started } },
-
-  // Where the control plane writes a secret bundle. Takes the registry KEY, never a
-  // filename, so writer and reader derive the same path from the same entry and a typo'd
-  // key fails at compile time instead of yielding a file nobody writes.
-  //
-  // Only the one stack the provider cannot serve still uses this: the Infisical server
-  // itself, which would be asking itself for its own secrets before it is up.
-  Secret(key)::
-    assert std.objectHasAll(registry.infisical.catalog, key) :
-      'lib.Secret(%s): not in registry.infisical.catalog' % key;
-    registry.infisical.catalog[key].outFilePath,
-
-  // The same file, overridable during bootstrap: the control plane points
-  // ANSIBLE_SECRETS_FILE at wherever it wrote them, and the default takes over after.
-  SecretOrBootstrap(key):: '${ANSIBLE_SECRETS_FILE:-%s}' % self.Secret(key),
 }

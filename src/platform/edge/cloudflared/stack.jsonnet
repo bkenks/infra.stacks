@@ -18,7 +18,7 @@ local version = '2026.5.2';
     networks: { default: { name: refs.name } },
 
     services: {
-      [lib.collections.role.SECRETS]: lib.SecretsProvider('cloudflared'),
+      [lib.collections.role.SECRETS]: lib.SecretsProvider('infra', '/hosts/${AGENT_HOST}/cloudflared'),
 
       [refs.tunnel.key]: {
         container_name: refs.tunnel.ext,

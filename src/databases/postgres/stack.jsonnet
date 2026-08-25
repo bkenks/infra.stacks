@@ -25,7 +25,7 @@ local version = '18';
     volumes: refs.dbData.declare,
 
     services: {
-      [lib.collections.role.SECRETS]: lib.SecretsProvider('postgres'),
+      [lib.collections.role.SECRETS]: lib.SecretsProvider('apps', '/postgres'),
 
       [refs.db.key]: {
         // Other stacks already dial this name, so it is the registry's value rather than the
