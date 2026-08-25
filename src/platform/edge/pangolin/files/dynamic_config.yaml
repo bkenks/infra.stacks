@@ -1,4 +1,4 @@
-# GENERATED from dynamic_config.jsonnet by render.py — DO NOT EDIT.
+# GENERATED from configs.jsonnet by render.py — DO NOT EDIT.
 http:
   middlewares:
     badger:

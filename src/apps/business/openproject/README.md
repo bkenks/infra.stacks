@@ -2,11 +2,11 @@
 
 [OpenProject](https://www.openproject.org/) — self-hosted project management. Reached at `openprj.ktbinternal.com` via Traefik. Runs `web`/`worker`/`cron`/`seeder` off one image plus `cache` (memcached), `hocuspocus` (collaborative editing), and `autoheal`.
 
-Source of truth: `refs.libsonnet` (names) + `services.jsonnet` (the manifest) — don't edit the generated `compose.yaml` / `services.yaml`.
+Source of truth: `stack.jsonnet` — don't edit the generated `compose.yaml`.
 
 ## Deploy
 
-Deployed via Komodo. Infisical `/openproject` (`OPEN_PRJ_SECRET_KEY`, `COLLAB_SERVER_SECRET`) → `/dev/shm/openproject.env`; also needs `/dev/shm/postgres.env` (shared Postgres, `postgres-db:5432`, db `openproject`). `COLLAB_SERVER_SECRET` renders as `OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__SECRET` on the app services and as `SECRET` on `hocuspocus`.
+Deployed via Komodo. Secrets come from Infisical `/openproject` through the infisical-secrets provider, injected under the names the containers read: `SECRET_KEY_BASE`, `DATABASE_URL`, `OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__SECRET` (the Rails services) and `SECRET` (hocuspocus). The last two hold the same value, so the bundle carries it twice — the provider injects values, it does not rename them. `DATABASE_URL` is stored whole (shared Postgres, `postgres-db:5432`, db `openproject`).
 
 `hocuspocus` is routed via `PathPrefix(/hocuspocus)` at higher priority than `web`'s catch-all — needed for `wss://openprj.ktbinternal.com/hocuspocus`.
 

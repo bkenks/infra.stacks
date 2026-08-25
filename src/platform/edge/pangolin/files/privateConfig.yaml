@@ -1,4 +1,4 @@
-# GENERATED from privateConfig.jsonnet by render.py — DO NOT EDIT.
+# GENERATED from configs.jsonnet by render.py — DO NOT EDIT.
 app:
   identity_provider_mode: "org"
 branding:

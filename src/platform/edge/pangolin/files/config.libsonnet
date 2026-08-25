@@ -1,6 +1,7 @@
 // The shape of Pangolin's four config files, parameterized by ONE knob: `urlDomain`, the
-// domain this instance is reached at (host = pangolin.<urlDomain>). One entrypoint per key
-// sits beside this file and renders it; services.jsonnet mounts the results read-only.
+// domain this instance is reached at (host = pangolin.<urlDomain>). Its four keys are four
+// filenames: configs.jsonnet applies this and renders each one, and stack.jsonnet mounts
+// the results read-only.
 //
 // The rendered YAML carries only a DO-NOT-EDIT header, so all operational knowledge lives
 // HERE.
@@ -99,7 +100,7 @@ function(urlDomain)
       },
     },
 
-    // Backend hostnames stay literal 'pangolin' — see services.jsonnet's naming-deviation note.
+    // Backend hostnames stay literal 'pangolin' — see stack.jsonnet's naming-deviation note.
     dynamic_config: {
       http: {
         middlewares: {
@@ -180,7 +181,7 @@ function(urlDomain)
     },
 
     // CF_DNS_API_TOKEN is read by the lego cloudflare provider from the container env
-    // (services.jsonnet) — deliberately not set here, so no secret lands in git.
+    // (stack.jsonnet) — deliberately not set here, so no secret lands in git.
     traefik_config: {
       api: {
         insecure: true,

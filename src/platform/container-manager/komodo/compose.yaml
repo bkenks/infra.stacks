@@ -1,6 +1,60 @@
-# GENERATED from compose.jsonnet by render.py — DO NOT EDIT.
-include:
-  - env_file:
-      - "${ANSIBLE_SECRETS_FILE:-/dev/shm/secrets/komodo_core.env}"
-    path: "services.yaml"
+# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
 name: "komodo"
+networks:
+  default:
+    name: "komodo"
+services:
+  app:
+    container_name: "komodo_app"
+    depends_on:
+      db:
+        condition: "service_started"
+      secrets:
+        condition: "service_started"
+    env_file: "./core.env"
+    environment:
+      KOMODO_HOST: "https://komo.ktbinternal.com"
+    image: "ghcr.io/moghtech/komodo-core:2.1.2"
+    init: true
+    labels:
+      komodo.skip: ""
+    networks:
+      default:
+        aliases:
+          - "komodo_core"
+    ports:
+      - "9120:9120"
+    restart: "unless-stopped"
+    volumes:
+      - "app:/config/keys"
+      - "/srv/docker/bind-mounts/dcm/komodo/data/backups:/backups"
+      - "/srv/docker/bind-mounts/dcm/komodo/data/syncs:/syncs"
+  db:
+    command: "--quiet --wiredTigerCacheSizeGB 0.25"
+    container_name: "komodo_db"
+    depends_on:
+      secrets:
+        condition: "service_started"
+    env_file: "./core.env"
+    image: "mongo:8.2.4"
+    labels:
+      komodo.skip: ""
+    ports:
+      - "27017:27017"
+    restart: "unless-stopped"
+    volumes:
+      - "/srv/docker/bind-mounts/dcm/mongo/data:/data/db"
+      - "/srv/docker/bind-mounts/dcm/mongo/config:/data/configdb"
+  secrets:
+    provider:
+      options:
+        credentials-file: "/mnt/secrets/credentials/infisical.env"
+        domain: "http://controlplane.internal:18043"
+        env: "prod"
+        path: "/komodo"
+        project-id: "86324d9b-3dd7-49d4-b252-69228c5ee0c7"
+        recursive: true
+      type: "infisical-secrets"
+volumes:
+  app:
+    name: "komodo_app"

@@ -1,6 +1,26 @@
-# GENERATED from compose.jsonnet by render.py — DO NOT EDIT.
-include:
-  - env_file:
-      - "${ANSIBLE_SECRETS_FILE:-/dev/shm/secrets/cloudflared.env}"
-    path: "services.yaml"
+# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
 name: "cloudflared"
+networks:
+  default:
+    name: "cloudflared"
+services:
+  secrets:
+    provider:
+      options:
+        credentials-file: "/mnt/secrets/credentials/infisical.env"
+        domain: "http://controlplane.internal:18043"
+        env: "prod"
+        path: "/hosts/${AGENT_HOST}/cloudflared"
+        project-id: "86324d9b-3dd7-49d4-b252-69228c5ee0c7"
+        recursive: true
+      type: "infisical-secrets"
+  tunnel:
+    command: "tunnel --no-autoupdate run"
+    container_name: "cloudflared_tunnel"
+    depends_on:
+      secrets:
+        condition: "service_started"
+    environment:
+      TZ: "America/New_York"
+    image: "cloudflare/cloudflared:2026.5.2"
+    restart: "unless-stopped"

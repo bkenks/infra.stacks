@@ -1,5 +1,5 @@
 // The shapes a name can have. Nothing here holds a value — registry.libsonnet fills these
-// in for anything crossing a stack boundary, and a stack's own refs.libsonnet fills
+// in for anything crossing a stack boundary, and a stack's own `refs` table fills
 // `Project` in for the names it owns.
 {
   Endpoint:: {
@@ -79,17 +79,18 @@
       'shared__' + self.base,
   },
 
-  // The names one stack owns. A stack's refs.libsonnet is this, filled in.
+  // The names one stack owns. A stack's `refs` table is this, filled in.
   Project:: { local project = self,
     name::
       error '"name" is required on Project',
 
-    // Env files the include interpolates into services.yaml. `${VAR:?err}` in the manifest
-    // resolves from these, which a service-level `env_file:` cannot do. Build with
-    // lib.Secret(key).
+    // Env files the include interpolates into services.yaml, built with lib.Secret(key).
+    // Only the Infisical server's own stack still needs this — every other stack reads its
+    // secrets through lib.SecretsProvider, which injects them at `up` instead. Left empty,
+    // the stack renders a single compose document and no include.
     envFiles:: [],
 
-    // What compose.yaml renders to. Every stack's compose.jsonnet is this one field.
+    // What compose.yaml renders to. Every stack's `compose:` field is exactly this.
     compose:: {
       name: project.name,
       include: [

@@ -1,6 +1,67 @@
-# GENERATED from compose.jsonnet by render.py — DO NOT EDIT.
-include:
-  - env_file:
-      - "/dev/shm/secrets/immich.env"
-    path: "services.yaml"
+# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
 name: "immich"
+networks:
+  default:
+    name: "immich"
+services:
+  database:
+    container_name: "immich_database"
+    depends_on:
+      secrets:
+        condition: "service_started"
+    environment:
+      POSTGRES_DB: "immich"
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+      POSTGRES_USER: "immich"
+    image: "ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:bcf63357191b76a916ae5eb93464d65c07511da41e3bf7a8416db519b40b1c23"
+    restart: "unless-stopped"
+    shm_size: "128mb"
+    volumes:
+      - "/srv/docker/bind-mounts/apps/immich/postgres:/var/lib/postgresql/data"
+  machine-learning:
+    container_name: "immich_machine-learning"
+    environment:
+      TZ: "America/New_York"
+    image: "ghcr.io/immich-app/immich-machine-learning:v2.7.5"
+    restart: "unless-stopped"
+    volumes:
+      - "/srv/docker/bind-mounts/apps/immich/model-cache:/cache"
+  redis:
+    container_name: "immich_redis"
+    image: "docker.io/valkey/valkey:9@sha256:8436e10bc65c94886a91d4415b6a6dfa9cb5a306fb3b996e5bb67cd2b4854193"
+    restart: "unless-stopped"
+  secrets:
+    provider:
+      options:
+        credentials-file: "/mnt/secrets/credentials/infisical.env"
+        domain: "http://controlplane.internal:18043"
+        env: "prod"
+        path: "/immich"
+        project-id: "2f0eb3d1-3e2a-4ce7-8060-5e47ad877e47"
+        recursive: true
+      type: "infisical-secrets"
+  server:
+    container_name: "immich_server"
+    depends_on:
+      database:
+        condition: "service_started"
+      redis:
+        condition: "service_started"
+      secrets:
+        condition: "service_started"
+    devices:
+      - "/dev/dri:/dev/dri"
+    environment:
+      DB_DATABASE_NAME: "immich"
+      DB_HOSTNAME: "immich_database"
+      DB_USERNAME: "immich"
+      REDIS_HOSTNAME: "immich_redis"
+      TZ: "America/New_York"
+    expose:
+      - "2283"
+    image: "ghcr.io/immich-app/immich-server:v2.7.5"
+    ports:
+      - "127.0.0.1:2283:2283"
+    restart: "unless-stopped"
+    volumes:
+      - "/mnt/immich-library:/data"

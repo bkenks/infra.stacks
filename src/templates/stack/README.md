@@ -1,44 +1,51 @@
 # Stack template
 
-Standard reference for authoring a docker-compose stack in jsonnet. The three files here
-are a real, compiling stack (app + dedicated Postgres, with secrets) — copy the directory,
-don't start from scratch. Its output lands beside it as `compose.yaml` and `services.yaml`,
-so you can see input → output. It is rebuilt on every commit, which is what stops this
+Standard reference for authoring a docker-compose stack in jsonnet. The `stack.jsonnet`
+here is a real, compiling stack (app + dedicated Postgres, with secrets) — copy the directory,
+don't start from scratch. Its output lands beside it as `compose.yaml`, so you can see
+input → output. It is rebuilt on every commit, which is what stops this
 template from silently rotting when `devlib/` changes under it.
 
 ## Scaffold a new stack
 
 1. Copy this directory to `src/<area>/<stack>/` — `area` is `apps/<group>`,
    `platform/<group>`, or `tools/<group>`.
-2. Rename `name::` in `refs.libsonnet`. It is the compose project name and the prefix of
-   every derived container (`<name>_<role>`) and volume (`<name>_<key>`).
-3. Delete the services and volumes you don't need, in `refs.libsonnet` and
-   `services.jsonnet` both.
-4. Register secrets (see [Secrets](#secrets)), then deploy via Komodo. Never `docker
-   compose` a stack by hand.
+2. Rename `name::` in the `refs` table at the top of `stack.jsonnet`. It is the compose
+   project name and the prefix of every derived container (`<name>_<role>`) and volume
+   (`<name>_<key>`).
+3. Delete the services and volumes you don't need, from both the `refs` table and the
+   manifest under it.
+4. Register the secret bundle (see [Secrets](#secrets)), then deploy via Komodo. Never
+   `docker compose` a stack by hand.
 5. Add a `[[stack]]` entry to `files/komodo_config/sync.toml` with
    `run_directory = "./src/<area>/<stack>"` and `file_paths = ["compose.yaml"]`.
 
 Committing re-renders everything automatically (lefthook → `devlib/render.py`). Never edit a
 file whose first line is the `# GENERATED from …` header.
 
-## The three files
+## The one file
 
-| File | Role |
-| --- | --- |
-| `refs.libsonnet` | Every name this stack owns. Imported by both files below. |
-| `services.jsonnet` | The manifest — plain Compose. Renders to `services.yaml`. |
-| `compose.jsonnet` | `(import 'refs.libsonnet').compose`. Renders to `compose.yaml`. |
+`stack.jsonnet` is the whole stack: a `local refs` table of every name it owns, then
+`{ compose: <plain Compose> }`, which renders `compose.yaml` beside it.
 
-One entrypoint renders to one output of the same name: `services.jsonnet` → `services.yaml`.
-An entrypoint that needs to produce two files is two entrypoints (see
-`platform/edge/pangolin/files/`, where four `.jsonnet` files select four keys out of one
-shared `config.libsonnet`).
+**An entrypoint names the files it writes.** It evaluates to an object whose top-level
+fields are filenames without the extension, and each value is the document to put there —
+so `{ compose: {...} }` renders `compose.yaml`. The entrypoint's own filename decides
+nothing; what ties output back to source is the `# GENERATED from …` header.
 
-`compose.jsonnet` is its own file because `env_file` has to attach at the `include`, not at
-the service: `${VAR:?err}` inside `services.yaml` is interpolated from the include's env
-file, whereas a service-level `env_file:` only reaches the container's environment and
-would leave every `${...}` in the manifest unresolved.
+That is why the manifest is wrapped in a `compose:` field rather than being the document
+itself. A field holding anything but an object is a hard error, which catches the mistake
+this shape invites — returning a bare Compose document, whose `name:`/`networks:`/`volumes:`
+fields would otherwise be read as filenames.
+
+A stack can name more than one (see `platform/edge/pangolin/files/configs.jsonnet`, which
+applies one shared `config.libsonnet` and renders the four YAML files its keys name).
+
+**The exception is `platform/secrets-manager/infisical`**, which still renders two documents.
+Its secrets cannot come from the provider — that would mean asking the Infisical server for
+them before it is up — so they arrive in an env file attached at an `include`, which is the
+one place `${VAR}` inside a manifest is interpolated from. Every other stack has no
+`${...}` left to resolve and needs only the one document.
 
 ## The one import
 
@@ -47,22 +54,20 @@ local lib = import 'lib.libsonnet';
 ```
 
 `render.py` passes `-J devlib`, so that path is the same from any depth under `src/`.
-`refs.libsonnet` sits next to the entrypoint, so `import 'refs.libsonnet'` just works.
 
-## refs.libsonnet
+## The refs table
 
 ```jsonnet
 local lib = import 'lib.libsonnet';
 
-lib.Project {
+local refs = lib.Project {
   name:: 'example',
-  envFiles:: [lib.Secret('example')],
 
   app:: self.Service { role:: lib.role.APP },
   db:: self.Service { role:: lib.role.DB },
 
   appData:: self.Volume { key:: 'app' },
-}
+};
 ```
 
 | You write | You get |
@@ -70,7 +75,6 @@ lib.Project {
 | `name:: 'example'` | `refs.name` — the compose project name, and what the private bridge is called |
 | `self.Service { role:: lib.role.APP }` | `.key` (`app` — the compose key, and what other services in the project dial) and `.ext` (`example_app` — what it is called on the host) |
 | `self.Volume { key:: 'app' }` | `.key` (`app`), `.name` (`example_app`), `.declare` (the top-level `volumes:` entry) and `.mount('/data')` |
-| `envFiles:: [...]` | `refs.compose`, the whole `compose.yaml` document |
 
 **Services are keyed by role**, taken from `lib.role` rather than typed as bare strings, so
 `db` is never also `database` in some other stack. A service whose name is genuinely
@@ -80,33 +84,39 @@ app-specific (`gerbil`, `machine-learning`, `sonarr`) passes that string as the 
 bare name, for the handful other systems already dial — see `platform/edge/pangolin`
 (`gerbil`, `traefik`), `databases/postgres` (`postgres-db`).
 
-## services.jsonnet
+## The manifest
 
-Plain Compose. Everything is literal except the names that come out of `refs`:
+One field, one file. Under `compose` it is plain Compose, everything literal except the
+names that come out of `refs` and the secrets the provider injects:
 
 ```jsonnet
-local lib = import 'lib.libsonnet';
-local refs = import 'refs.libsonnet';
-
 {
-  name: refs.name,
-  networks: { default: { name: refs.name } },
-  volumes: refs.appData.declare,
+  compose: {
+    name: refs.name,
+    networks: { default: { name: refs.name } },
+    volumes: refs.appData.declare,
 
-  services: {
-    [refs.app.key]: {
-      container_name: refs.app.ext,
-      image: 'ghcr.io/example/example:1.2.3',
-      restart: lib.restart.unlessStopped,
-      volumes: [refs.appData.mount('/data')],
-      depends_on: { [refs.db.key]: { condition: lib.condition.healthy } },
-      environment: { DB_HOST: refs.db.key },
+    services: {
+      [lib.role.SECRETS]: lib.SecretsProvider('example'),
+
+      [refs.app.key]: {
+        container_name: refs.app.ext,
+        image: 'ghcr.io/example/example:1.2.3',
+        restart: lib.restart.unlessStopped,
+        volumes: [refs.appData.mount('/data')],
+        depends_on: lib.secretsReady + {
+          [refs.db.key]: { condition: lib.condition.healthy },
+        },
+        environment: { DB_HOST: refs.db.key },
+      },
     },
   },
 }
 ```
 
-A volume mounted by several services is declared once in `refs.libsonnet`, `.declare`d once
+The outer `compose:` names the file; the inner `services:` is Compose's own key.
+
+A volume mounted by several services is declared once in `refs`, `.declare`d once
 at the top level, and `.mount(...)`ed in each service — so the name is written in exactly one
 place. Bind mounts have no name to derive and go in `volumes:` verbatim.
 
@@ -121,10 +131,10 @@ lib.registry.endpoint.serviceGroup.postgres.host.addr   // ✓ typo fails at com
 ```
 
 `collections` holds the constants that depend on nothing — spellings and defaults.
-`registry` is the global version of a `refs.libsonnet`: a value goes there the moment a
+`registry` is the global version of a stack's `refs` table: a value goes there the moment a
 *second* stack needs it. Same rule for `lib.role.*`, `lib.domain.*`, `lib.dirs.*`,
 `lib.ip.loopback`, `lib.mounts.*`, `lib.registry.endpoint.hostGroup.*` and
-`lib.Secret('<key>')`.
+`lib.SecretsProvider('<key>')`.
 
 ## Cheat-sheet
 
@@ -135,8 +145,8 @@ lib.registry.endpoint.serviceGroup.postgres.host.addr   // ✓ typo fails at com
 | Wait on a healthcheck | `depends_on: { [refs.db.key]: { condition: lib.condition.healthy } }` |
 | Mount the docker socket | `lib.mounts.dockerSock` (`…RW` when it must write) |
 | Keep a container up through Komodo StopAll | `labels: lib.labels.komodoSkip` |
-| Env-file path for a secret bundle | `lib.Secret('<key>')` |
-| …same, overridable during bootstrap | `lib.SecretOrBootstrap('<key>')` |
+| Pull in a secret bundle | `[lib.role.SECRETS]: lib.SecretsProvider('<key>')` |
+| Depend on that bundle | `depends_on: lib.secretsReady` |
 | Public HTTPS URL of an endpoint | `lib.registry.endpoint.serviceGroup.<x>.proxy.url` |
 | A restart policy | `lib.restart.unlessStopped` / `.always` / `.onFailure(5)` |
 
@@ -182,28 +192,52 @@ all — Compose rejects the whole project if both are present. Real: `apps/media
 
 ## Secrets
 
-Producer and consumer must agree on the env-file path, so single-source it:
+Secrets come from the **infisical-secrets** Compose provider. Compose runs it as a
+subprocess at `up`, and every secret in the bundle is injected as a plain environment
+variable — under its own Infisical name — into each service that declares `depends_on` on
+the provider service.
 
 1. Add the bundle to the right Infisical project's `secretsMap` in
-   `devlib/registry.libsonnet`. `service` is the folder in Infisical and the default
-   filename; override `projectPath`, `outFile`, `type` or `key` only where they differ.
-   Every project's map is flattened into `infisical.catalog`, which is what `lib.Secret`
-   looks in — so a key can only be spelled one way across the repo.
-2. Write the agent fragment at
-   `src/platform/secrets-manager/infisical/templates/services.<key>.yaml` — these are
-   hand-written; see `templates.md` beside them for the Go-template forms.
-3. Put `lib.Secret('<key>')` in the stack's `envFiles::`. A typo'd key fails at compile time.
-4. Reference each secret in `environment:` as `${VAR:?err}` — the `:?err` aborts the deploy
-   if the value is missing. **Set the secret before the first `up`.**
+   `devlib/registry.libsonnet`. `service` is the folder in Infisical; override `projectPath`
+   only where they differ. Every project's map is flattened into `infisical.catalog`, which
+   is what `lib.SecretsProvider` looks in — so a key can only be spelled one way across the
+   repo, and a typo fails at compile time.
+2. Add the provider service, keyed by `lib.role.SECRETS`:
 
-`lib.SecretOrBootstrap('<key>')` is the same path wrapped in `${ANSIBLE_SECRETS_FILE:-…}`,
-for stacks the control plane brings up before the agent exists. Real: `komodo`, `infisical`,
-`cloudflared`, `zerobyte`.
+   ```jsonnet
+   [lib.role.SECRETS]: lib.SecretsProvider('<key>'),
+   ```
 
-A stack with **no** secrets omits `envFiles::` entirely.
+3. Add `lib.secretsReady` to the `depends_on` of every service that reads one. Without it
+   nothing is injected. A provider has no health of its own, so `service_started` is the
+   only condition it can satisfy — which is what `lib.secretsReady` is.
+4. Write nothing in `environment:` for those values, and leave a comment naming them so the
+   next reader knows where they come from. **Store the secret before the first `up`.**
 
-Gotcha: some images don't interpolate env-file values into certain fields. When that
-happens the literal `${VAR:?err}` goes directly in `environment:` — see `apps/media/immich`.
+**Store each secret under exactly the name the container reads.** There is no compose-level
+interpolation left, so the provider cannot rename a value or build one out of parts:
+
+- One password read by two services under two names (`POSTGRES_PASSWORD` on the database,
+  `PAPERLESS_DBPASS` on the app) is stored **twice**, once under each name.
+- A connection string is stored **whole** as `DATABASE_URL`, not assembled from a user and a
+  password. Real: `apps/business/docuseal`, `tools/komodo-mcp`.
+
+A value written literally in `environment:` that the bundle also carries is **overwritten by
+the bundle's**, with a Compose warning. That is how a literal default stays overridable per
+host — see `platform/dashboard/homarr`.
+
+The bundle's name space is flat across every provider service a container depends on, so
+keep keys distinct when a stack pulls from two paths. Real: `platform/edge/pangolin`, which
+has a second provider service for the shared `/traefik` DNS-01 token.
+
+A secret that has to arrive as a **file** needs a `pre_start` hook: the provider only ever
+injects environment variables. Real: `platform/backup-manager/databasus`.
+
+A stack with **no** secrets declares no provider service at all.
+
+`lib.Secret('<key>')` and `lib.SecretOrBootstrap('<key>')` still exist for the one stack the
+provider cannot serve — `platform/secrets-manager/infisical`, which would be asking itself
+for its own secrets. Do not reach for them in a new stack.
 
 ## Variations (with real examples)
 
@@ -211,18 +245,17 @@ happens the literal `${VAR:?err}` goes directly in `environment:` — see `apps/
 cluster at the level it is on. On `littlebuddy`, that is the shared network:
 
 ```jsonnet
-local pg = lib.registry.endpoint.serviceGroup.postgres;
 local sharedDB = lib.registry.network.shared.postgresDB;
-// in environment:
-DATABASE_URL: 'postgresql://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@%s/mydb' % pg.container.addr,
 // on the consuming service:
 networks: ['default', sharedDB.name],
-// and pass the shared creds too, in refs.libsonnet:
-envFiles:: [lib.Secret('<stack>'), lib.Secret('postgres')],
+depends_on: lib.secretsReady,
 ```
 
-From any other host, swap `pg.container.addr` for `pg.host.addr` and drop the shared
-network — `littlebuddy.internal:6109` resolves through CoreDNS.
+`DATABASE_URL` is not written here at all: it is stored whole in this stack's own bundle and
+injected, so the shared cluster's credentials are never a second bundle this stack has to
+pull. Address the cluster at `lib.registry.endpoint.serviceGroup.postgres.container.addr`
+from the same host, or `.host.addr` from any other (drop the shared network then —
+`littlebuddy.internal:6109` resolves through CoreDNS).
 
 Real: `apps/business/docuseal`, `apps/business/openproject` (same host);
 `platform/backup-manager/databasus` (another host).

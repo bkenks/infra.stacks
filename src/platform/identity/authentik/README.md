@@ -23,8 +23,9 @@ volume.
      it invalidates all sessions).
    - `AUTHENTIK_PG_PASS` — Postgres password.
    Generate with `openssl rand -base64 60`.
-2. rick's infisical-agent already lists `authentik` in `AGENT_SERVICES`
-   (see `komodo-config-sync.toml`), so it renders `/dev/shm/authentik.env` on that host.
+2. The stack's `secrets` provider reads Infisical `/authentik` at `up`. It supplies
+   `AUTHENTIK_SECRET_KEY`, `AUTHENTIK_POSTGRESQL__PASSWORD` (server + worker) and
+   `POSTGRES_PASSWORD` (db) — the last two are the same password under both names.
 3. **Route the domain:** point `authentik.ktbcloud.com` at `127.0.0.1:18006` on rick
    (via the edge proxy / Pangolin cloud that already fronts rick). TLS terminates at the
    edge; authentik speaks plain HTTP on :9000.
@@ -43,6 +44,6 @@ then create an **Application** bound to it. Hand the app these:
 
 ## Upgrading
 
-Bump `version` in `services.jsonnet`, commit (lefthook re-renders the YAML), redeploy.
+Bump `version` in `stack.jsonnet`, commit (lefthook re-renders the YAML), redeploy.
 Postgres major-version bumps (`dbVersion`) require a dump/restore — don't just change the
 tag.

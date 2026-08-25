@@ -1,4 +1,4 @@
-# GENERATED from compose.jsonnet by render.py — DO NOT EDIT.
+# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
 name: "pangolin"
 networks:
   default:
@@ -49,7 +49,6 @@ services:
         condition: "service_completed_successfully"
       secrets:
         condition: "service_started"
-    environment: {}
     healthcheck:
       interval: "10s"
       retries: 15
@@ -74,6 +73,16 @@ services:
         domain: "http://controlplane.internal:18043"
         env: "prod"
         path: "/pangolin"
+        project-id: "2f0eb3d1-3e2a-4ce7-8060-5e47ad877e47"
+        recursive: true
+      type: "infisical-secrets"
+  secrets-traefik:
+    provider:
+      options:
+        credentials-file: "/mnt/secrets/credentials/infisical.env"
+        domain: "http://controlplane.internal:18043"
+        env: "prod"
+        path: "/traefik"
         project-id: "86324d9b-3dd7-49d4-b252-69228c5ee0c7"
         recursive: true
       type: "infisical-secrets"
@@ -86,9 +95,8 @@ services:
         condition: "service_completed_successfully"
       pangolin:
         condition: "service_healthy"
-      secrets:
+      secrets-traefik:
         condition: "service_started"
-    environment: {}
     image: "docker.io/library/traefik:v3.6"
     network_mode: "service:gerbil"
     restart: "unless-stopped"

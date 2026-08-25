@@ -1,5 +1,5 @@
 // Single source of truth for names that cross stack boundaries — the globally scoped
-// version of a stack's own refs.libsonnet. If one stack needs a value another stack owns,
+// version of a stack's own `refs` table. If one stack needs a value another stack owns,
 // it lives here; values that depend on nothing (defaults, spellings) live in
 // collections.libsonnet instead, and are never repeated here.
 //
@@ -107,16 +107,25 @@ local tmpl = import 'templates.libsonnet';
   },
 
   infisical:: { local infisical = self,
+    // Where the infisical-secrets compose provider reaches the server. The control-plane
+    // alias rather than the serviceGroup host's own name: every host in the fleet resolves
+    // it, including the ones that deploy before they know which box is the control plane.
+    address:: 'http://%s:%s' % [
+      $.endpoint.hostGroup.controlplane.ref,
+      $.endpoint.serviceGroup.infisical.host.port,
+    ],
+
     t_InfisProject:: { local infisProject = self,
       id:: error '"id" is a required field of "infisProject"',
       t_Secrets:: {
         service:      error '"service" is a required field of "Secrets"',
         projectId:    infisProject.id,                            // ID of project containing secrets in Infisical
+        env:          'prod',                                     // Infisical environment slug
         projectPath:  '/' + self.service,                         // path to secrets folder in Infisical
+        // outFile/outFilePath are read only by lib.Secret, and only the Infisical stack
+        // itself still uses that — every other stack reads its bundle through the provider.
         outFile:      self.service + '.env',                      // i.e. "<service>.env"
         outFilePath:  col.dirs.secrets + '/' + self.outFile,      // i.e. "/dev/shm/<service>.env"
-        type:         'dump',                                     // e.g. "dump": dump all secrets in projectPath, "raw": one secret -> one file
-        key:          '',                                         // Secret Name; required if "type: raw"
       },
     },
 
@@ -133,6 +142,9 @@ local tmpl = import 'templates.libsonnet';
           convertx:     project.t_Secrets { service: 'convertx' },
           twenty:       project.t_Secrets { service: 'twenty' },
           pangolin:     project.t_Secrets { service: 'pangolin' },
+          // Only src/templates/stack reads this one — the template is a real compiling
+          // stack, so the key it shows has to resolve. No such folder exists in Infisical.
+          example:      project.t_Secrets { service: 'example' },
         },
       },
       frappe:: infisical.t_InfisProject { local project = self,
@@ -168,13 +180,13 @@ local tmpl = import 'templates.libsonnet';
           newt:             project.t_Secrets { service: 'newt', projectPath: '/hosts/${AGENT_HOST}/newt' },
           komodo:           project.t_Secrets { service: 'komodo', outFile: 'komodo_core.env' },
           cloudflared:      project.t_Secrets { service: 'cloudflared', projectPath: '/hosts/${AGENT_HOST}/cloudflared' },
-          databasus:        project.t_Secrets { service: 'databasus', outFile: 'databasus_secret.key', type: 'raw', key: 'SECRET_KEY' },
+          databasus:        project.t_Secrets { service: 'databasus' },
         },
       },
     },
 
-    // Every bundle above, flattened, so lib.Secret(key) is one lookup and a key can only
-    // be spelled one way across the whole repo.
+    // Every bundle above, flattened, so lib.SecretsProvider(key) is one lookup and a key
+    // can only be spelled one way across the whole repo.
     catalog:: std.foldl(
       function(acc, name) acc + infisical.project[name].secretsMap,
       ['apps', 'frappe', 'couchPotatoes', 'stackform', 'infra'],
