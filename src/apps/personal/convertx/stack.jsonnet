@@ -1,5 +1,10 @@
 local lib = import 'lib.libsonnet';
-local refs = import 'refs.libsonnet';
+local refs = lib.Project {
+  name:: 'convertx',
+  envFiles:: [lib.Secret('convertx')],
+
+  app:: self.Service { role:: lib.collections.role.APP },
+};
 
 local port = '3000';
 local dataDir = lib.collections.dirs.docker.bindMounts + '/apps/convertx';

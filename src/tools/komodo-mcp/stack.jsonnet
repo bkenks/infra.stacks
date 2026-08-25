@@ -2,7 +2,12 @@
 // basic-auth — the MCP endpoint has no auth of its own and the configured key is full
 // read/write.
 local lib = import 'lib.libsonnet';
-local refs = import 'refs.libsonnet';
+local refs = lib.Project {
+  name:: 'komodo-mcp',
+  envFiles:: [lib.Secret('komodoMcp')],
+
+  app:: self.Service { role:: lib.collections.role.APP },
+};
 
 // Pinned to upstream release tag v1.4.1 — verify it exists on the mirror before deploying.
 local version = '1.4.1';

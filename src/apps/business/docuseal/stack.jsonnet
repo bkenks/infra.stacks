@@ -1,5 +1,12 @@
 local lib = import 'lib.libsonnet';
-local refs = import 'refs.libsonnet';
+local refs = lib.Project {
+  name:: 'docuseal',
+  // The shared Postgres credentials come from the postgres bundle, not this stack's.
+  envFiles:: [lib.Secret('docuseal'), lib.Secret('postgres')],
+
+  app:: self.Service { role:: lib.collections.role.APP },
+  appData:: self.Volume { key:: 'app' },
+};
 
 local version = '2.5.3';
 local port = '3000';

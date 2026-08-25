@@ -5,7 +5,18 @@
 // Postgres is bundled (NOT the shared cluster): the shared cluster lives on littlebuddy,
 // and a public-facing IdP should not depend on the home LAN being reachable.
 local lib = import 'lib.libsonnet';
-local refs = import 'refs.libsonnet';
+local refs = lib.Project {
+  name:: 'authentik',
+  envFiles:: [lib.Secret('authentik')],
+
+  app:: self.Service { role:: lib.collections.role.APP },
+  worker:: self.Service { role:: lib.collections.role.WORKER },
+  db:: self.Service { role:: lib.collections.role.DB },
+
+  // Shared by app and worker; declared once, mounted twice.
+  data:: self.Volume { key:: 'data' },
+  dbData:: self.Volume { key:: 'db' },
+};
 
 local version = '2026.5.4';
 local dbVersion = '16-alpine';

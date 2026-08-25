@@ -1,6 +1,16 @@
 // DOCKER_VOLUMES comes from Komodo's own stack Environment.
 local lib = import 'lib.libsonnet';
-local refs = import 'refs.libsonnet';
+local refs = lib.Project {
+  name:: 'komodo',
+  // Brought up by the control plane before the agent exists to render anything. The bundle
+  // renders to komodo_core.env, not komodo.env, so it cannot collide with the committed
+  // ./core.env of non-secret tunables.
+  envFiles:: [lib.SecretOrBootstrap('komodo')],
+
+  app:: self.Service { role:: lib.collections.role.APP },
+  db:: self.Service { role:: lib.collections.role.DB },
+  appData:: self.Volume { key:: 'app' },
+};
 
 local version = '2.1.2';
 local mongoVersion = '8.2.4';

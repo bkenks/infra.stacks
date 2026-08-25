@@ -1,7 +1,14 @@
 // Static config baked in at compile time — nothing arrives at deploy but the Infisical
 // secret, which the agent renders as a raw key file.
 local lib = import 'lib.libsonnet';
-local refs = import 'refs.libsonnet';
+local refs = lib.Project {
+  name:: 'databasus',
+  // No envFiles: databasus's only secret is a raw key file bind-mounted from the agent's
+  // output directory, not an env file — see the mount in stack.jsonnet.
+
+  app:: self.Service { role:: lib.collections.role.APP },
+  appData:: self.Volume { key:: 'app' },
+};
 
 local version = 'sha256:f748c20cecb3cf3162d80ebfddd4f192b5e4ee640d600c9daf726310ac49e51c';
 local port = '4005';

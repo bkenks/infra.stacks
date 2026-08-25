@@ -2,7 +2,13 @@
 // change it there, not here. Consumers on this host reach it over shared__postgres_db;
 // consumers on another host dial the published port at postgres.host.addr.
 local lib = import 'lib.libsonnet';
-local refs = import 'refs.libsonnet';
+local refs = lib.Project {
+  name:: 'postgres',
+  envFiles:: [lib.Secret('postgres')],
+
+  db:: self.Service { role:: lib.collections.role.DB },
+  dbData:: self.Volume { key:: 'db' },
+};
 
 local pg = lib.registry.endpoint.serviceGroup.postgres;
 local sharedDB = lib.registry.network.shared.postgresDB;

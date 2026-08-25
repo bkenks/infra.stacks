@@ -30,12 +30,11 @@ one and never deletes it.
 Generated output is committed, because Komodo clones this repo on the target host and
 deploys out of `src/` directly.
 
-## A stack is two hand-written files
+## A stack is one hand-written file
 
 | File | Hand-written? | Role |
 |---|---|---|
-| `refs.libsonnet` | yes | Every name this stack owns — project name, service keys, container names, volume names, env files. Imported by the entrypoint. |
-| `stack.jsonnet` | yes | `{ compose: refs.compose, services: <plain Compose> }` — one field per file it renders. **`services` is what Komodo watches and diffs.** |
+| `stack.jsonnet` | yes | A `local refs = lib.Project {...}` — every name this stack owns — then `{ compose: refs.compose, services: <plain Compose> }`, one field per file it renders. **`services` is what Komodo watches and diffs.** |
 | `services.yaml` | no | Rendered manifest. |
 | `compose.yaml` | no | What `docker compose` loads: project name + `include:` (+ `env_file:`). |
 | `files/`, `templates/` | both | Bind-mounted config: nested `.jsonnet` entrypoints, their outputs, and hand-written assets (`files/entrypoint.sh`) side by side. |
@@ -43,8 +42,8 @@ deploys out of `src/` directly.
 
 Under its `services:` field, `stack.jsonnet` is **plain Compose**. There is no `Service`
 base and no `Stack` assembler — what you read is what gets rendered. The only things not
-written literally are the names the entrypoint and `refs.libsonnet` have to agree on, and
-those come out of `refs.libsonnet`.
+written literally are the names the manifest and the compose document have to agree on,
+and those come out of the `refs` table above them.
 
 `compose` stays a separate document from `services` because `env_file` has to attach at the
 `include`, not at the service: `${VAR:?err}` inside `services.yaml` is interpolated from the
@@ -102,7 +101,7 @@ under `src/`.
   `Endpoint.HostGroup` (`Host`), `Endpoint.ServiceGroup.Service` (`Container` / `Host` /
   `Proxy`), `SharedNetwork`, and `Project` (`Service`, `Volume`, and the `compose`
   document).
-- **`registry.libsonnet`** — the global version of a stack's `refs.libsonnet`: a value
+- **`registry.libsonnet`** — the global version of a stack's `refs` table: a value
   lands here the moment a *second* stack needs it. That is the line against
   `collections` — constants that depend on nothing stay there and are never repeated here.
   **Reference by KEY, never by string literal**:
@@ -142,7 +141,7 @@ config fragments live in `src/platform/secrets-manager/infisical/templates/` and
 
 In a stack, register the bundle in the right Infisical project's `secretsMap` in
 `registry.libsonnet` (they flatten into `infisical.catalog`), put
-`lib.Secret('<key>')` in `refs.libsonnet`'s `envFiles`, and reference vars as `${VAR:?err}`
+`lib.Secret('<key>')` in the stack's `refs.envFiles`, and reference vars as `${VAR:?err}`
 so a missing secret aborts the deploy. Consumer and agent derive the path from the same
 entry, so they cannot disagree; `lib.SecretOrBootstrap(key)` is the same path wrapped in
 `${ANSIBLE_SECRETS_FILE:-…}` for stacks the control plane brings up before the agent exists.

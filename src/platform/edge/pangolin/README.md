@@ -1,7 +1,7 @@
 # pangolin
 [Pangolin](https://docs.pangolin.net/) — self-hosted tunnel + reverse proxy exposing internal services (incl. raw TCP/UDP) to the public internet without inbound ports on the origin host. Three containers: `pangolin` (control plane/dashboard), `gerbil` (WireGuard tunnel server, owns public `80/443/51820/21820`), `traefik` (HTTP routing + Let's Encrypt).
 
-Source of truth is the `.jsonnet` — `refs.libsonnet` (names) + `stack.jsonnet` (the manifest), and `files/configs.jsonnet`, which applies `files/config.libsonnet` (the shared config shape) to the reach domain and renders the four YAML files its keys name (`config`, `dynamic_config`, `traefik_config`, `privateConfig`). Don't edit generated YAML.
+Source of truth is the `.jsonnet` — `stack.jsonnet` (names + the manifest), and `files/configs.jsonnet`, which applies `files/config.libsonnet` (the shared config shape) to the reach domain and renders the four YAML files its keys name (`config`, `dynamic_config`, `traefik_config`, `privateConfig`). Don't edit generated YAML.
 
 ## Single instance — the VPS edge on rick (`pangolin.ktbcloud.com`)
 **The single knob is `host`** (`= 'pangolin.' + urlDomain` in `files/config.libsonnet`, passed `ktbcloud` by `files/configs.jsonnet`) — the domain the instance is reached at. It drives `dashboard_url`, gerbil's `base_endpoint`, the CORS origin, and every dashboard `Host()` rule. The instance declares both DNS planes and holds both wildcard certs.

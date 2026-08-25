@@ -1,7 +1,13 @@
 // Cloudflare Tunnel egress; apps are reached via their exposed ports.
 // cloudflared.env supplies TUNNEL_TOKEN.
 local lib = import 'lib.libsonnet';
-local refs = import 'refs.libsonnet';
+local refs = lib.Project {
+  name:: 'cloudflared',
+  // Brought up by the control plane before the agent exists to render anything.
+  envFiles:: [lib.SecretOrBootstrap('cloudflared')],
+
+  tunnel:: self.Service { role:: lib.collections.role.TUNNEL },
+};
 
 local version = '2026.5.2';
 

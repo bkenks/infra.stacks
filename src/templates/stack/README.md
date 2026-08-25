@@ -1,7 +1,7 @@
 # Stack template
 
-Standard reference for authoring a docker-compose stack in jsonnet. The two files here
-are a real, compiling stack (app + dedicated Postgres, with secrets) — copy the directory,
+Standard reference for authoring a docker-compose stack in jsonnet. The `stack.jsonnet`
+here is a real, compiling stack (app + dedicated Postgres, with secrets) — copy the directory,
 don't start from scratch. Its output lands beside it as `compose.yaml` and `services.yaml`,
 so you can see input → output. It is rebuilt on every commit, which is what stops this
 template from silently rotting when `devlib/` changes under it.
@@ -10,10 +10,11 @@ template from silently rotting when `devlib/` changes under it.
 
 1. Copy this directory to `src/<area>/<stack>/` — `area` is `apps/<group>`,
    `platform/<group>`, or `tools/<group>`.
-2. Rename `name::` in `refs.libsonnet`. It is the compose project name and the prefix of
-   every derived container (`<name>_<role>`) and volume (`<name>_<key>`).
-3. Delete the services and volumes you don't need, in `refs.libsonnet` and
-   `stack.jsonnet` both.
+2. Rename `name::` in the `refs` table at the top of `stack.jsonnet`. It is the compose
+   project name and the prefix of every derived container (`<name>_<role>`) and volume
+   (`<name>_<key>`).
+3. Delete the services and volumes you don't need, from both the `refs` table and the
+   manifest under it.
 4. Register secrets (see [Secrets](#secrets)), then deploy via Komodo. Never `docker
    compose` a stack by hand.
 5. Add a `[[stack]]` entry to `files/komodo_config/sync.toml` with
@@ -22,12 +23,11 @@ template from silently rotting when `devlib/` changes under it.
 Committing re-renders everything automatically (lefthook → `devlib/render.py`). Never edit a
 file whose first line is the `# GENERATED from …` header.
 
-## The two files
+## The one file
 
-| File | Role |
-| --- | --- |
-| `refs.libsonnet` | Every name this stack owns. Imported by the entrypoint. |
-| `stack.jsonnet` | `{ compose: refs.compose, services: <plain Compose> }`. Renders `compose.yaml` and `services.yaml`. |
+`stack.jsonnet` is the whole stack: a `local refs` table of every name it owns, then
+`{ compose: refs.compose, services: <plain Compose> }`, which renders `compose.yaml` and
+`services.yaml` beside it.
 
 **An entrypoint names the files it writes.** It evaluates to an object whose top-level
 fields are filenames without the extension, and each value is the document to put there —
@@ -55,14 +55,13 @@ local lib = import 'lib.libsonnet';
 ```
 
 `render.py` passes `-J devlib`, so that path is the same from any depth under `src/`.
-`refs.libsonnet` sits next to the entrypoint, so `import 'refs.libsonnet'` just works.
 
-## refs.libsonnet
+## The refs table
 
 ```jsonnet
 local lib = import 'lib.libsonnet';
 
-lib.Project {
+local refs = lib.Project {
   name:: 'example',
   envFiles:: [lib.Secret('example')],
 
@@ -70,7 +69,7 @@ lib.Project {
   db:: self.Service { role:: lib.role.DB },
 
   appData:: self.Volume { key:: 'app' },
-}
+};
 ```
 
 | You write | You get |
@@ -88,15 +87,12 @@ app-specific (`gerbil`, `machine-learning`, `sonarr`) passes that string as the 
 bare name, for the handful other systems already dial — see `platform/edge/pangolin`
 (`gerbil`, `traefik`), `databases/postgres` (`postgres-db`).
 
-## stack.jsonnet
+## The manifest
 
 Two fields, two files. `compose` is `refs.compose` and nothing else; under `services` it is
 plain Compose, everything literal except the names that come out of `refs`:
 
 ```jsonnet
-local lib = import 'lib.libsonnet';
-local refs = import 'refs.libsonnet';
-
 {
   compose: refs.compose,
 
@@ -121,7 +117,7 @@ local refs = import 'refs.libsonnet';
 
 The outer `services:` names the file; the inner one is Compose's own key.
 
-A volume mounted by several services is declared once in `refs.libsonnet`, `.declare`d once
+A volume mounted by several services is declared once in `refs`, `.declare`d once
 at the top level, and `.mount(...)`ed in each service — so the name is written in exactly one
 place. Bind mounts have no name to derive and go in `volumes:` verbatim.
 
@@ -136,7 +132,7 @@ lib.registry.endpoint.serviceGroup.postgres.host.addr   // ✓ typo fails at com
 ```
 
 `collections` holds the constants that depend on nothing — spellings and defaults.
-`registry` is the global version of a `refs.libsonnet`: a value goes there the moment a
+`registry` is the global version of a stack's `refs` table: a value goes there the moment a
 *second* stack needs it. Same rule for `lib.role.*`, `lib.domain.*`, `lib.dirs.*`,
 `lib.ip.loopback`, `lib.mounts.*`, `lib.registry.endpoint.hostGroup.*` and
 `lib.Secret('<key>')`.
@@ -232,7 +228,7 @@ local sharedDB = lib.registry.network.shared.postgresDB;
 DATABASE_URL: 'postgresql://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@%s/mydb' % pg.container.addr,
 // on the consuming service:
 networks: ['default', sharedDB.name],
-// and pass the shared creds too, in refs.libsonnet:
+// and pass the shared creds too, in refs:
 envFiles:: [lib.Secret('<stack>'), lib.Secret('postgres')],
 ```
 

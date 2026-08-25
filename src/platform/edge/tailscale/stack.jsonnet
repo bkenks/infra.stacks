@@ -1,7 +1,13 @@
 // The tailnet gateway every stack that needs one attaches to. This stack owns the shared
 // network; consumers attach to it.
 local lib = import 'lib.libsonnet';
-local refs = import 'refs.libsonnet';
+local refs = lib.Project {
+  name:: 'ts-dokr-gw',
+  envFiles:: [lib.Secret('tsGateway')],
+
+  app:: self.Service { role:: lib.collections.role.APP },
+  appData:: self.Volume { key:: 'app' },
+};
 
 local appVersion = 'v1.98.9';
 local gateway = lib.registry.network.shared.tsGateway;

@@ -3,7 +3,11 @@
 // 1.4.5.6 is what the vanilla `terraria` stack already runs, so the world and every client
 // carry over untouched. beardedio (the vanilla stack's image) has no TShock 6.x build.
 local lib = import 'lib.libsonnet';
-local refs = import 'refs.libsonnet';
+local refs = lib.Project {
+  name:: 'terraria-tshock',
+
+  app:: self.Service { role:: lib.collections.role.APP },
+};
 
 local imageTag = 'tshock-1.4.5.6-6.1.0';
 

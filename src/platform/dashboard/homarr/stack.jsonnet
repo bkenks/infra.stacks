@@ -1,5 +1,11 @@
 local lib = import 'lib.libsonnet';
-local refs = import 'refs.libsonnet';
+local refs = lib.Project {
+  name:: 'homarr',
+  envFiles:: [lib.Secret('homarr')],
+
+  app:: self.Service { role:: lib.collections.role.APP },
+  appData:: self.Volume { key:: 'app' },
+};
 
 local appVersion = 'latest';
 local appPort = '7575';

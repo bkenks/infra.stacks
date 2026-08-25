@@ -1,5 +1,5 @@
 // The shapes a name can have. Nothing here holds a value — registry.libsonnet fills these
-// in for anything crossing a stack boundary, and a stack's own refs.libsonnet fills
+// in for anything crossing a stack boundary, and a stack's own `refs` table fills
 // `Project` in for the names it owns.
 {
   Endpoint:: {
@@ -79,7 +79,7 @@
       'shared__' + self.base,
   },
 
-  // The names one stack owns. A stack's refs.libsonnet is this, filled in.
+  // The names one stack owns. A stack's `refs` table is this, filled in.
   Project:: { local project = self,
     name::
       error '"name" is required on Project',

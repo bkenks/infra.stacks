@@ -7,7 +7,16 @@
 // DB_PASSWORD / REDIS_HOSTNAME, so those carry the literal ${VAR} and the real container
 // name rather than anything resolved at runtime.
 local lib = import 'lib.libsonnet';
-local refs = import 'refs.libsonnet';
+local refs = lib.Project {
+  name:: 'immich',
+  envFiles:: [lib.Secret('immich')],
+
+  // Immich's own upstream component names — no lib.collections.role equivalent.
+  database:: self.Service { role:: 'database' },
+  machineLearning:: self.Service { role:: 'machine-learning' },
+  redis:: self.Service { role:: 'redis' },
+  server:: self.Service { role:: lib.collections.role.SERVER },
+};
 
 local dbImage = 'ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:bcf63357191b76a916ae5eb93464d65c07511da41e3bf7a8416db519b40b1c23';
 local mlImage = 'ghcr.io/immich-app/immich-machine-learning:v2.7.5';

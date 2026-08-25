@@ -2,7 +2,16 @@
 // pipeline steps via the host docker socket, talks to the server only over the private
 // bridge).
 local lib = import 'lib.libsonnet';
-local refs = import 'refs.libsonnet';
+local refs = lib.Project {
+  name:: 'woodpecker',
+  envFiles:: [lib.Secret('woodpecker')],
+
+  server:: self.Service { role:: lib.collections.role.SERVER },
+  agent:: self.Service { role:: lib.collections.role.AGENT },
+
+  serverData:: self.Volume { key:: 'server' },
+  agentData:: self.Volume { key:: 'agent' },
+};
 
 local version = 'v3.15.0';
 local httpPort = '8000';

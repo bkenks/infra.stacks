@@ -1,5 +1,5 @@
 // Single source of truth for names that cross stack boundaries — the globally scoped
-// version of a stack's own refs.libsonnet. If one stack needs a value another stack owns,
+// version of a stack's own `refs` table. If one stack needs a value another stack owns,
 // it lives here; values that depend on nothing (defaults, spellings) live in
 // collections.libsonnet instead, and are never repeated here.
 //

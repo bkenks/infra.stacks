@@ -2,7 +2,14 @@
 // owns no shared network. BASE_URL points at the control plane rather than at whichever
 // host this copy runs on, so every instance advertises the same address.
 local lib = import 'lib.libsonnet';
-local refs = import 'refs.libsonnet';
+local refs = lib.Project {
+  name:: 'zerobyte',
+  // Brought up by the control plane before the agent exists to render anything.
+  envFiles:: [lib.SecretOrBootstrap('zerobyte')],
+
+  app:: self.Service { role:: lib.collections.role.APP },
+  appData:: self.Volume { key:: 'app' },
+};
 
 local version = 'v0.40';
 local port = '4096';

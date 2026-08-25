@@ -1,7 +1,11 @@
 // Serves the tree at registry.dir.fileBrowser — the paths live in the registry rather than
 // here because terraria keeps its world under the same tree.
 local lib = import 'lib.libsonnet';
-local refs = import 'refs.libsonnet';
+local refs = lib.Project {
+  name:: 'file-brws-quantm',
+
+  app:: self.Service { role:: lib.collections.role.APP },
+};
 
 local version = 'stable';
 local hostPort = '18450';

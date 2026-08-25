@@ -4,8 +4,8 @@
 // depth under src/.
 //
 // Nothing here builds compose objects. A stack's `services:` field is plain Compose written
-// against the ref table in its own refs.libsonnet — what you read is what gets rendered.
-// These are the values that cannot be written literally because two files must agree.
+// against the ref table its own stack.jsonnet binds — what you read is what gets rendered.
+// These are the values that cannot be written literally because two documents must agree.
 local collections = import 'collections.libsonnet';
 local registry = import 'registry.libsonnet';
 local templates = import 'templates.libsonnet';
@@ -18,7 +18,7 @@ local templates = import 'templates.libsonnet';
   // Every value one stack owns and another reads.
   registry:: registry,
 
-  // The template a stack's refs.libsonnet fills in.
+  // The template a stack's `refs` table fills in.
   Project:: templates.Project,
 
   // Where infisical-agent renders a secret bundle. Takes the registry KEY, never a

@@ -1,5 +1,9 @@
 local lib = import 'lib.libsonnet';
-local refs = import 'refs.libsonnet';
+local refs = lib.Project {
+  name:: 'terraria',
+
+  app:: self.Service { role:: lib.collections.role.APP },
+};
 
 local version = 'latest';
 local hostPort = '18022';
