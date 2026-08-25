@@ -1,6 +1,34 @@
 # GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
-include:
-  - env_file:
-      - "/dev/shm/secrets/komodo-mcp.env"
-    path: "services.yaml"
 name: "komodo-mcp"
+networks:
+  default:
+    name: "komodo-mcp"
+services:
+  app:
+    container_name: "komodo-mcp_app"
+    depends_on:
+      secrets:
+        condition: "service_started"
+    environment:
+      MCP_ALLOWED_HOSTS: "komodo-mcp.ktbinternal.com"
+      MCP_TRANSPORT: "http"
+      MCP_TRUST_PROXY: "1"
+      TZ: "America/Chicago"
+    expose:
+      - "8000"
+    image: "fj.ktbcloud.com/bkenks/komodo-mcp-server:1.4.1"
+    labels:
+      komodo.skip: ""
+    ports:
+      - "127.0.0.1:18007:8000"
+    restart: "on-failure:5"
+  secrets:
+    provider:
+      options:
+        credentials-file: "/mnt/secrets/credentials/infisical.env"
+        domain: "http://controlplane.internal:18043"
+        env: "prod"
+        path: "/komodo-mcp"
+        project-id: "86324d9b-3dd7-49d4-b252-69228c5ee0c7"
+        recursive: true
+      type: "infisical-secrets"

@@ -3,7 +3,6 @@
 local lib = import 'lib.libsonnet';
 local refs = lib.Project {
   name:: 'forgejo',
-  envFiles:: [lib.Secret('forgejo')],
 
   // Forgejo's own docs call it `server`, and the old stack did too.
   server:: self.Service { role:: lib.collections.role.SERVER },
@@ -22,12 +21,7 @@ local dbName = refs.name;
 local sharedDB = lib.registry.network.shared.forgejoDB;
 
 {
-  // What docker compose discovers. The include is where env_file goes: `${VAR:?err}` inside
-  // services.yaml resolves from it, which a service-level env_file cannot do — that only
-  // reaches the container's environment, never the compose document.
-  compose: refs.compose,
-
-  services: {
+  compose: {
     name: refs.name,
     networks: {
       default: { name: refs.name },
@@ -36,21 +30,25 @@ local sharedDB = lib.registry.network.shared.forgejoDB;
     volumes: refs.serverData.declare + refs.dbData.declare,
 
     services: {
+      [lib.collections.role.SECRETS]: lib.SecretsProvider('forgejo'),
+
       [refs.server.key]: {
         container_name: refs.server.ext,
         image: serverImage,
         restart: lib.collections.restart.onFailure(5),
+        depends_on: lib.secretsReady,
         volumes: [
           refs.serverData.mount('/data'),
           '/etc/localtime:/etc/localtime:ro',
         ],
+        // FORGEJO__database__PASSWD arrives from infisical-secrets; `db` reads the same
+        // password as POSTGRES_PASSWORD, so the bundle carries it under both names.
         environment: {
           FORGEJO____APP_NAME: 'Forgejo',
           FORGEJO__database__DB_TYPE: 'postgres',
           FORGEJO__database__HOST: refs.db.key + ':5432',
           FORGEJO__database__NAME: dbName,
           FORGEJO__database__USER: dbUser,
-          FORGEJO__database__PASSWD: '${DB_PASSWORD:?err}',
           USER_UID: '1000',
           USER_GID: '1000',
         },
@@ -66,12 +64,13 @@ local sharedDB = lib.registry.network.shared.forgejoDB;
         container_name: refs.db.ext,
         image: 'docker.io/library/postgres:' + dbVersion,
         restart: lib.collections.restart.onFailure(5),
+        depends_on: lib.secretsReady,
         networks: ['default', sharedDB.name],
         volumes: [refs.dbData.mount('/var/lib/postgresql/data')],
+        // POSTGRES_PASSWORD arrives from infisical-secrets.
         environment: {
           POSTGRES_USER: dbUser,
           POSTGRES_DB: dbName,
-          POSTGRES_PASSWORD: '${DB_PASSWORD:?err}',
         },
         expose: ['5432'],
         ports: ['%s:18041:5432' % lib.collections.ip.loopback],

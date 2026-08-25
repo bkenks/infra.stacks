@@ -2,7 +2,7 @@
 
 Self-hosted media stack — Plex + the *arr suite + download client — one Komodo stack.
 
-Source of truth: `stack.jsonnet` — don't edit the generated `compose.yaml` / `services.yaml`.
+Source of truth: `stack.jsonnet` — don't edit the generated `compose.yaml`.
 
 ## Services
 
@@ -20,7 +20,7 @@ Source of truth: `stack.jsonnet` — don't edit the generated `compose.yaml` / `
 
 ## Deploy
 
-Deployed via Komodo. Infisical `/stream` (`SONARR_API_KEY`, `RADARR_API_KEY`) → `/dev/shm/stream.env` — consumed by Configarr and Decluttarr; stack fails closed if missing. `PLEX_CLAIM` is set manually via host/Komodo env (short-lived, one-time — not in Infisical).
+Deployed via Komodo. Secrets come from Infisical `/stream` through the infisical-secrets provider: `SONARR_API_KEY` and `RADARR_API_KEY`, read by Configarr and Decluttarr through `!env` in their mounted config files, plus `PLEX_CLAIM`, which Plex only reads on a fresh start.
 
 All storage is host bind mounts under `${DOCKER_VOLUMES}/stream/` (no volume rename needed). `bazarr`/`radarr`/`sabnzbd`/`sonarr` share the same `stream/shared` tree at `/data` (TRaSH single-mount layout — don't add nested submounts). Configarr/Decluttarr config files are bind-mounted read-only from this repo; only `configarr/repos` (its TRaSH-guide clone cache) needs to exist and be writable on the host.
 

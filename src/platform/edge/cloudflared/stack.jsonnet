@@ -1,10 +1,11 @@
 // Cloudflare Tunnel egress; apps are reached via their exposed ports.
-// cloudflared.env supplies TUNNEL_TOKEN.
+//
+// The bundle is per-host (/hosts/${AGENT_HOST}/cloudflared), so the deploy environment has
+// to carry AGENT_HOST — compose interpolates it into the provider's path before the
+// provider runs.
 local lib = import 'lib.libsonnet';
 local refs = lib.Project {
   name:: 'cloudflared',
-  // Brought up by the control plane before the agent exists to render anything.
-  envFiles:: [lib.SecretOrBootstrap('cloudflared')],
 
   tunnel:: self.Service { role:: lib.collections.role.TUNNEL },
 };
@@ -12,24 +13,22 @@ local refs = lib.Project {
 local version = '2026.5.2';
 
 {
-  // What docker compose discovers. The include is where env_file goes: `${VAR:?err}` inside
-  // services.yaml resolves from it, which a service-level env_file cannot do — that only
-  // reaches the container's environment, never the compose document.
-  compose: refs.compose,
-
-  services: {
+  compose: {
     name: refs.name,
     networks: { default: { name: refs.name } },
 
     services: {
+      [lib.collections.role.SECRETS]: lib.SecretsProvider('cloudflared'),
+
       [refs.tunnel.key]: {
         container_name: refs.tunnel.ext,
         image: 'cloudflare/cloudflared:' + version,
         restart: lib.collections.restart.unlessStopped,
         command: 'tunnel --no-autoupdate run',
+        depends_on: lib.secretsReady,
+        // TUNNEL_TOKEN arrives from infisical-secrets.
         environment: {
           TZ: 'America/New_York',
-          TUNNEL_TOKEN: '${TUNNEL_TOKEN:?please provide a Tunnel Token}',
         },
       },
     },

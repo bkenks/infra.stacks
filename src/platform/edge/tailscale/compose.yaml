@@ -1,6 +1,38 @@
 # GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
-include:
-  - env_file:
-      - "/dev/shm/secrets/ts-gateway.env"
-    path: "services.yaml"
 name: "ts-dokr-gw"
+networks:
+  default:
+    name: "ts-dokr-gw"
+  shared__ts-gateway:
+    name: "shared__ts-gateway"
+services:
+  app:
+    container_name: "ts-dokr-gw_app"
+    depends_on:
+      secrets:
+        condition: "service_started"
+    environment:
+      TS_EXTRA_ARGS: "--advertise-tags=tag:gateway"
+      TS_HOSTNAME: "ts-dokr-gw--${HOST:?err}"
+      TS_STATE_DIR: "/var/lib/tailscale"
+      TS_USERSPACE: "true"
+    image: "tailscale/tailscale:v1.98.9"
+    networks:
+      - "default"
+      - "shared__ts-gateway"
+    restart: "unless-stopped"
+    volumes:
+      - "app:/var/lib/tailscale"
+  secrets:
+    provider:
+      options:
+        credentials-file: "/mnt/secrets/credentials/infisical.env"
+        domain: "http://controlplane.internal:18043"
+        env: "prod"
+        path: "/tailscale/containers"
+        project-id: "86324d9b-3dd7-49d4-b252-69228c5ee0c7"
+        recursive: true
+      type: "infisical-secrets"
+volumes:
+  app:
+    name: "ts-dokr-gw_app"

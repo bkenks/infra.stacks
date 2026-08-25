@@ -1,22 +1,20 @@
+// The one stack that cannot read its own secrets through the infisical-secrets provider:
+// the provider would be asking this server for them before it is up. Its secrets stay an
+// env file the control plane writes, which is what lib.SecretOrBootstrap points at.
 local lib = import 'lib.libsonnet';
 local refs = lib.Project {
   name:: 'infisical',
-  // The server is bootstrapped by Ansible — it cannot read its own secrets through the
-  // agent before the agent exists.
   envFiles:: [lib.SecretOrBootstrap('infisical')],
 
   app:: self.Service { role:: lib.collections.role.APP },
   db:: self.Service { role:: lib.collections.role.DB },
-  // `redis` rather than lib.collections.role.CACHE: the container name is what other things on the
-  // host already know it by.
+  // `redis` rather than lib.collections.role.CACHE: the container name is what other things
+  // on the host already know it by.
   redis:: self.Service { role:: 'redis' },
-  agent:: self.Service { role:: lib.collections.role.AGENT },
 
   dbData:: self.Volume { key:: 'db' },
   redisData:: self.Volume { key:: 'redis' },
 };
-
-local serverProfile = 'server';
 
 local appVersion = 'v0.160.9';
 local dbVersion = '16-alpine';
@@ -31,7 +29,7 @@ local sharedDB = lib.registry.network.shared.infisicalDB;
 local gateway = lib.registry.network.shared.tsGateway;
 
 {
-  // What docker compose discovers. The include is where env_file goes: `${VAR:?err}` inside
+  // Two documents, because env_file has to attach at the include: `${VAR:-}` inside
   // services.yaml resolves from it, which a service-level env_file cannot do — that only
   // reaches the container's environment, never the compose document.
   compose: refs.compose,
@@ -49,7 +47,6 @@ local gateway = lib.registry.network.shared.tsGateway;
       [refs.app.key]: {
         // infisical_app is registry.endpoint.infisical.container.name — other stacks dial it.
         container_name: infisical.container.name,
-        profiles: [serverProfile],
         image: 'docker.io/infisical/infisical:' + appVersion,
         restart: lib.collections.restart.unlessStopped,
         networks: ['default', gateway.name],
@@ -88,7 +85,6 @@ local gateway = lib.registry.network.shared.tsGateway;
 
       [refs.db.key]: {
         container_name: refs.db.ext,
-        profiles: [serverProfile],
         image: 'docker.io/library/postgres:' + dbVersion,
         restart: lib.collections.restart.unlessStopped,
         networks: ['default', sharedDB.name],
@@ -110,7 +106,6 @@ local gateway = lib.registry.network.shared.tsGateway;
 
       [refs.redis.key]: {
         container_name: refs.redis.ext,
-        profiles: [serverProfile],
         image: 'docker.io/library/redis:' + redisVersion,
         restart: lib.collections.restart.unlessStopped,
         volumes: [refs.redisData.mount('/data')],
@@ -125,42 +120,6 @@ local gateway = lib.registry.network.shared.tsGateway;
         },
         expose: ['6379'],
       },
-
-      // [refs.agent.key]: {
-      //   container_name: refs.agent.ext,
-      //   profiles: [agentProfile],
-      //   image: 'docker.io/infisical/cli:' + agentVersion,
-      //   restart: lib.collections.restart.unlessStopped,
-      //   entrypoint: ['/bin/sh', '/agent/entrypoint.sh'],
-      //   volumes: [
-      //     './files/entrypoint.sh:/agent/entrypoint.sh:ro',
-      //     // Per-service agent config fragments.
-      //     './templates:/agent/templates:ro',
-      //     // Read creds and write the rendered <stack>.env files.
-      //     '%s:%s' % [lib.collections.dirs.secrets, lib.collections.dirs.secrets],
-      //   ],
-      //   // Empty defaults, not `:?err`: compose interpolates this service even when the agent
-      //   // profile is off, so a required var would break server-only bootstrap. With the
-      //   // profile on, a missing credential surfaces as an agent auth failure the healthcheck
-      //   // flips to unhealthy.
-      //   environment: {
-      //     // Per-host: drives the ${AGENT_HOST} substitutions in the secret paths.
-      //     AGENT_HOST: '${AGENT_HOST:-}',
-      //     // Per-host: which templates/ fragments to render.
-      //     AGENT_SERVICES: '${AGENT_SERVICES:-}',
-      //     INFISICAL_CLIENT_ID: '${INFISICAL_CLIENT_ID:-}',
-      //     INFISICAL_CLIENT_SECRET: '${INFISICAL_CLIENT_SECRET:-}',
-      //     // The in-cluster address by default; a per-host override is allowed.
-      //     INFISICAL_ADDRESS: '${INFISICAL_ADDRESS:-%s}' % infisical.container.url(),
-      //   },
-      //   healthcheck: {
-      //     test: ['CMD-SHELL', '[ ! -f /tmp/agent.last_err ] || [ $$(( $$(date +%s) - $$(cat /tmp/agent.last_err) )) -ge 180 ]'],
-      //     interval: '30s',
-      //     timeout: '5s',
-      //     retries: 2,
-      //     start_period: '30s',
-      //   },
-      // },
     },
   },
 }

@@ -1,7 +1,6 @@
 local lib = import 'lib.libsonnet';
 local refs = lib.Project {
   name:: 'pangolin',
-  envFiles:: [lib.Secret('pangolin'), lib.Secret('cfApiDnsToken')],
 
   // Only `init` takes the derived <project>_<role> name. The other three are dialled by
   // literal name from outside this stack — gerbil's own flags, the Traefik backends
@@ -42,7 +41,14 @@ local initScript = std.join(' && ', [
 ]);
 
 local initDone = { [refs.init.key]: { condition: lib.collections.condition.completed } };
-local secretsStarted = { [col.role.SECRETS]: { condition: lib.collections.condition.started } };
+
+// Traefik's Cloudflare DNS-01 token is a bundle of its own (/traefik), shared with anything
+// else that does DNS-01 rather than copied into this stack's bundle. One provider service
+// serves one path, so it takes a second one; the injected names do not collide.
+local secretsTraefik = col.role.SECRETS + '-traefik';
+local secretsTraefikReady = {
+  [secretsTraefik]: { condition: lib.collections.condition.started },
+};
 local pangolinHealthy = { [refs.pangolin.key]: { condition: lib.collections.condition.healthy } };
 
 {
@@ -52,19 +58,8 @@ local pangolinHealthy = { [refs.pangolin.key]: { condition: lib.collections.cond
     networks: { default: { name: refs.name, driver: 'bridge', enable_ipv6: true } },
 
     services: {
-      [col.role.SECRETS]: {
-        provider: {
-          type: "infisical-secrets",
-          options: {
-            "credentials-file": reg.path.file.infisical_creds,
-            domain: "http://controlplane.internal:18043",
-            "project-id": reg.infisical.project.infra.id,
-            env: "prod",
-            path: "/pangolin",
-            recursive: true
-          }
-        }
-      },
+      [col.role.SECRETS]: lib.SecretsProvider('pangolin'),
+      [secretsTraefik]: lib.SecretsProvider('cfApiDnsToken'),
       // One-shot: creates the config tree/perms + the GeoLite mmdbs (skipped after the first
       // run). It does not provision files/ content — that is the bind mounts below.
       [refs.init.key]: {
@@ -80,7 +75,7 @@ local pangolinHealthy = { [refs.pangolin.key]: { condition: lib.collections.cond
         container_name: refs.pangolin.ext,
         image: 'docker.io/fosrl/pangolin:' + pangolinVersion,
         restart: lib.collections.restart.unlessStopped,
-        depends_on: initDone + secretsStarted,
+        depends_on: initDone + lib.secretsReady,
         mem_limit: '2g',
         mem_reservation: '512m',
         volumes: [
@@ -90,11 +85,8 @@ local pangolinHealthy = { [refs.pangolin.key]: { condition: lib.collections.cond
           './files/config.yaml:/app/config/config.yml:ro',
           './files/privateConfig.yaml:/app/config/privateConfig.yml:ro',
         ],
-        environment: {
-          // Overrides server.secret / email.smtp_pass (config.yml ships both blank).
-          // SERVER_SECRET: '${SERVER_SECRET:?err}',
-          // EMAIL_SMTP_PASS: '${EMAIL_SMTP_PASS:?err}',
-        },
+        // SERVER_SECRET and EMAIL_SMTP_PASS arrive from infisical-secrets and override
+        // server.secret / email.smtp_pass, which config.yml ships blank.
         healthcheck: {
           test: ['CMD', 'curl', '-f', 'http://localhost:3001/api/v1/'],
           interval: '10s',
@@ -136,13 +128,10 @@ local pangolinHealthy = { [refs.pangolin.key]: { condition: lib.collections.cond
         image: 'docker.io/library/traefik:' + traefikVersion,
         restart: lib.collections.restart.unlessStopped,
         network_mode: 'service:' + refs.gerbil.key,
-        depends_on: initDone + pangolinHealthy + secretsStarted,
+        depends_on: initDone + pangolinHealthy + secretsTraefikReady,
         command: ['--configFile=/etc/traefik/traefik_config.yml'],
-        environment: {
-          // CF_DNS_API_TOKEN for DNS-01 ACME (lego reads it from the environment); shared
-          // with platform/edge/traefik rather than duplicated into this stack's own bundle.
-          // CF_DNS_API_TOKEN: '${CF_DNS_API_TOKEN:?err}',
-        },
+        // CF_DNS_API_TOKEN arrives from the /traefik bundle above; lego reads it straight
+        // out of the environment for the DNS-01 challenge.
         volumes: [
           // Generated beside this file; the container paths keep the .yml names traefik
           // expects.

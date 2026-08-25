@@ -1,6 +1,56 @@
 # GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
-include:
-  - env_file:
-      - "/dev/shm/secrets/homarr.env"
-    path: "services.yaml"
 name: "homarr"
+networks:
+  default:
+    name: "homarr"
+services:
+  app:
+    container_name: "homarr_app"
+    depends_on:
+      secrets:
+        condition: "service_started"
+    environment:
+      AUTH_LOGOUT_REDIRECT_URL: "https://authentik.ktbcloud.com/application/o/homarr/end-session/"
+      AUTH_OIDC_AUTO_LOGIN: "true"
+      AUTH_OIDC_CLIENT_NAME: "Authentik"
+      AUTH_OIDC_GROUPS_ATTRIBUTE: "groups"
+      AUTH_OIDC_ISSUER: "https://authentik.ktbcloud.com/application/o/homarr/"
+      AUTH_OIDC_SCOPE_OVERWRITE: "openid email profile groups"
+      AUTH_OIDC_URI: "https://authentik.ktbcloud.com/application/o/authorize/"
+      AUTH_PROVIDERS: "credentials,oidc"
+      BASE_URL: "https://ktbcloud.com"
+      NEXTAUTH_URL: "https://ktbcloud.com"
+      TZ: "America/New_York"
+    expose:
+      - "7575"
+    healthcheck:
+      interval: "30s"
+      retries: 5
+      test:
+        - "CMD"
+        - "curl"
+        - "-fsS"
+        - "--max-time"
+        - "2"
+        - "http://localhost:7575"
+      timeout: "10s"
+    image: "ghcr.io/homarr-labs/homarr:latest"
+    ports:
+      - "127.0.0.1:18018:7575"
+    restart: "unless-stopped"
+    volumes:
+      - "app:/appdata"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+  secrets:
+    provider:
+      options:
+        credentials-file: "/mnt/secrets/credentials/infisical.env"
+        domain: "http://controlplane.internal:18043"
+        env: "prod"
+        path: "/homarr"
+        project-id: "86324d9b-3dd7-49d4-b252-69228c5ee0c7"
+        recursive: true
+      type: "infisical-secrets"
+volumes:
+  app:
+    name: "homarr_app"

@@ -2,7 +2,6 @@
 local lib = import 'lib.libsonnet';
 local refs = lib.Project {
   name:: 'paperless',
-  envFiles:: [lib.Secret('paperless')],
 
   // Service keys are the upstream component names, not roles: nothing here is a generic
   // app/worker, and `webserver` is what paperless-ngx's own docs call it.
@@ -32,12 +31,7 @@ local bindRoot = lib.collections.dirs.docker.bindMounts + '/apps/paperless';
 local sharedDB = lib.registry.network.shared.paperlessDB;
 
 {
-  // What docker compose discovers. The include is where env_file goes: `${VAR:?err}` inside
-  // services.yaml resolves from it, which a service-level env_file cannot do — that only
-  // reaches the container's environment, never the compose document.
-  compose: refs.compose,
-
-  services: {
+  compose: {
     name: refs.name,
     networks: {
       default: { name: refs.name },
@@ -47,6 +41,10 @@ local sharedDB = lib.registry.network.shared.paperlessDB;
              + refs.webserverData.declare + refs.webserverMedia.declare,
 
     services: {
+      // Injects every secret under /paperless into the services that depend on it, each
+      // under its own Infisical name.
+      [lib.collections.role.SECRETS]: lib.SecretsProvider('paperless'),
+
       [refs.broker.key]: {
         container_name: refs.broker.ext,
         image: 'docker.io/library/redis:' + brokerVersion,
@@ -68,12 +66,13 @@ local sharedDB = lib.registry.network.shared.paperlessDB;
         container_name: refs.db.ext,
         image: 'docker.io/library/postgres:' + dbVersion,
         restart: lib.collections.restart.onFailure(5),
+        depends_on: lib.secretsReady,
         networks: ['default', sharedDB.name],
         volumes: [refs.dbData.mount('/var/lib/postgresql')],
+        // POSTGRES_PASSWORD arrives from infisical-secrets.
         environment: {
           POSTGRES_USER: dbUser,
           POSTGRES_DB: dbName,
-          POSTGRES_PASSWORD: '${PAPERLESS_PG_PASS:?err}',
         },
         healthcheck: {
           test: ['CMD-SHELL', 'pg_isready --username=' + dbUser],
@@ -105,7 +104,7 @@ local sharedDB = lib.registry.network.shared.paperlessDB;
         container_name: refs.webserver.ext,
         image: 'ghcr.io/paperless-ngx/paperless-ngx:' + paperlessVersion,
         restart: lib.collections.restart.onFailure(5),
-        depends_on: {
+        depends_on: lib.secretsReady {
           [refs.broker.key]: { condition: lib.collections.condition.healthy },
           [refs.db.key]: { condition: lib.collections.condition.healthy },
           [refs.gotenberg.key]: { condition: lib.collections.condition.started },
@@ -129,11 +128,10 @@ local sharedDB = lib.registry.network.shared.paperlessDB;
           PAPERLESS_TIKA_GOTENBERG_ENDPOINT: 'http://%s:3000' % refs.gotenberg.key,
           PAPERLESS_TIKA_ENDPOINT: 'http://%s:9998' % refs.tika.key,
 
+          // PAPERLESS_DBPASS and PAPERLESS_SECRET_KEY arrive from infisical-secrets.
           PAPERLESS_DBHOST: refs.db.key,
           PAPERLESS_DBUSER: dbUser,
           PAPERLESS_DBNAME: dbName,
-          PAPERLESS_DBPASS: '${PAPERLESS_PG_PASS:?err}',
-          PAPERLESS_SECRET_KEY: '${PAPERLESS_SECRET_KEY:?err}',
         },
         healthcheck: {
           test: ['CMD', 'curl', '-fs', '-S', '--max-time', '2', 'http://localhost:' + webPort],

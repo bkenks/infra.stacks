@@ -3,7 +3,6 @@
 local lib = import 'lib.libsonnet';
 local refs = lib.Project {
   name:: 'ts-dokr-gw',
-  envFiles:: [lib.Secret('tsGateway')],
 
   app:: self.Service { role:: lib.collections.role.APP },
   appData:: self.Volume { key:: 'app' },
@@ -13,12 +12,7 @@ local appVersion = 'v1.98.9';
 local gateway = lib.registry.network.shared.tsGateway;
 
 {
-  // What docker compose discovers. The include is where env_file goes: `${VAR:?err}` inside
-  // services.yaml resolves from it, which a service-level env_file cannot do — that only
-  // reaches the container's environment, never the compose document.
-  compose: refs.compose,
-
-  services: {
+  compose: {
     name: refs.name,
     networks: {
       default: { name: refs.name },
@@ -27,14 +21,18 @@ local gateway = lib.registry.network.shared.tsGateway;
     volumes: refs.appData.declare,
 
     services: {
+      [lib.collections.role.SECRETS]: lib.SecretsProvider('tsGateway'),
+
       [refs.app.key]: {
         container_name: refs.app.ext,
         image: 'tailscale/tailscale:' + appVersion,
         restart: lib.collections.restart.unlessStopped,
+        depends_on: lib.secretsReady,
         networks: ['default', gateway.name],
         volumes: [refs.appData.mount('/var/lib/tailscale')],
+        // TS_AUTHKEY arrives from infisical-secrets. HOST is not a secret — it comes from
+        // the deploy environment, so compose still interpolates it here.
         environment: {
-          TS_AUTHKEY: '${TS_AUTHKEY:?err}',
           // Per-host, so one stack definition yields a distinct tailnet node per host.
           TS_HOSTNAME: refs.name + '--${HOST:?err}',
           TS_STATE_DIR: '/var/lib/tailscale',

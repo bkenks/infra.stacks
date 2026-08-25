@@ -67,7 +67,8 @@
         '/volume1/backups',
     },
 
-    // tmpfs. infisical-agent renders every secret here, so it never touches a disk.
+    // tmpfs, so the one env file left — the Infisical server's own bootstrap secrets —
+    // never touches a disk.
     secrets::
       '/dev/shm/secrets',
   },

@@ -4,8 +4,9 @@
 // It is a real, compiling stack, so a devlib change that breaks the library breaks this
 // file and `mise run render` fails on the next commit.
 //
-// Under `services` this is plain Compose. Everything is written literally except the names
-// the manifest and the compose document have to agree on, which come from `refs`.
+// Under `compose` this is plain Compose. Everything is written literally except the names
+// read in more than one place, which come from `refs`, and the secrets, which the
+// infisical-secrets provider injects.
 local lib = import 'lib.libsonnet';
 
 // Every name this stack owns, in one table, so a name is written once even when it is read
@@ -15,11 +16,6 @@ local refs = lib.Project {
   // <name>_<key>, and it is the name the private bridge is given in stack.jsonnet.
   name:: 'example',  // ← rename me
 
-  // The env files compose interpolates into services.yaml. Register the bundle in
-  // devlib/registry.libsonnet and pass the KEY, so the agent and this stack derive the same
-  // path: `lib.Secret('example')`. Until it is registered, spell it out. A stack with no
-  // secrets drops this field entirely.
-  envFiles:: [lib.collections.dirs.secrets + '/example.env'],
 
   // Services, keyed by the role they play. Roles come from lib.collections.role rather than bare
   // strings, so `db` is never also `database` in another stack. A service whose name is
@@ -40,12 +36,7 @@ local dbUser = refs.name;
 local dbName = refs.name;
 
 {
-  // What docker compose discovers. The include is where env_file goes: `${VAR:?err}` inside
-  // services.yaml resolves from it, which a service-level env_file cannot do — that only
-  // reaches the container's environment, never the compose document.
-  compose: refs.compose,
-
-  services: {
+  compose: {
     name: refs.name,
     // The private bridge every service joins implicitly. `default` is compose's reserved
     // key, not a name; the stack's name lands underneath it.
@@ -54,6 +45,15 @@ local dbName = refs.name;
     volumes: refs.appData.declare + refs.dbData.declare,
 
     services: {
+      // Fetches this stack's bundle and injects every secret in it, under its own Infisical
+      // name, into each service that depends on it. Register the bundle in
+      // registry.libsonnet's infisical.project.<x>.secretsMap first, then name its KEY here.
+      //
+      // There is no compose-level interpolation left to rename a value or build one out of
+      // parts, so a secret has to be stored under exactly the name the container reads — a
+      // connection URL whole, not a user and a password to join together.
+      [lib.collections.role.SECRETS]: lib.SecretsProvider('example'),
+
       [refs.app.key]: {
         container_name: refs.app.ext,
         image: 'ghcr.io/example/example:' + appVersion,
@@ -66,19 +66,21 @@ local dbName = refs.name;
 
         volumes: [refs.appData.mount('/data')],
 
-        depends_on: {
+        // A provider has no health of its own, so `started` is the only condition it can
+        // satisfy — lib.secretsReady is that entry, ready to join a depends_on map.
+        depends_on: lib.secretsReady {
           // Wait for the DB's healthcheck, not just its start.
           [refs.db.key]: { condition: lib.collections.condition.healthy },
         },
 
+        // DB_PASSWORD arrives from infisical-secrets. A value written here that the bundle
+        // also carries is overwritten by the bundle's, which is how a literal default stays
+        // overridable per host.
         environment: {
           // Reach the DB by its compose key — docker resolves it on the private bridge.
           DB_HOST: refs.db.key,
           DB_NAME: dbName,
           DB_USER: dbUser,
-          // `${VAR:?err}` makes compose refuse to start when VAR is unset rather than
-          // interpolating an empty string. Use it for everything out of the env file.
-          DB_PASSWORD: '${EXAMPLE_DB_PASSWORD:?err}',
           APP_URL: 'https://%s.%s' % [refs.name, lib.collections.domain.ktbinternal],
         },
 
@@ -99,12 +101,15 @@ local dbName = refs.name;
         container_name: refs.db.ext,
         image: 'docker.io/library/postgres:' + dbVersion,
         restart: lib.collections.restart.onFailure(5),
+        depends_on: lib.secretsReady,
         expose: ['5432'],
         volumes: [refs.dbData.mount('/var/lib/postgresql/data')],
+        // POSTGRES_PASSWORD arrives from infisical-secrets. `app` reads the same password as
+        // DB_PASSWORD, so the bundle has to carry it under both names — the provider injects
+        // values, it does not rename them.
         environment: {
           POSTGRES_USER: dbUser,
           POSTGRES_DB: dbName,
-          POSTGRES_PASSWORD: '${EXAMPLE_DB_PASSWORD:?err}',
         },
         healthcheck: {
           test: ['CMD-SHELL', 'pg_isready --username=' + dbUser],

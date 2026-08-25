@@ -4,7 +4,6 @@
 local lib = import 'lib.libsonnet';
 local refs = lib.Project {
   name:: 'woodpecker',
-  envFiles:: [lib.Secret('woodpecker')],
 
   server:: self.Service { role:: lib.collections.role.SERVER },
   agent:: self.Service { role:: lib.collections.role.AGENT },
@@ -33,22 +32,23 @@ local stepMemSwapBytes = stepMemBytes;
 local stepCpuQuota = 200000;
 
 {
-  // What docker compose discovers. The include is where env_file goes: `${VAR:?err}` inside
-  // services.yaml resolves from it, which a service-level env_file cannot do — that only
-  // reaches the container's environment, never the compose document.
-  compose: refs.compose,
-
-  services: {
+  compose: {
     name: refs.name,
     networks: { default: { name: refs.name } },
     volumes: refs.serverData.declare + refs.agentData.declare,
 
     services: {
+      [lib.collections.role.SECRETS]: lib.SecretsProvider('woodpecker'),
+
       [refs.server.key]: {
         container_name: refs.server.ext,
         image: 'docker.io/woodpeckerci/woodpecker-server:' + version,
         restart: lib.collections.restart.onFailure(5),
+        depends_on: lib.secretsReady,
         volumes: [refs.serverData.mount('/var/lib/woodpecker')],
+        // WOODPECKER_FORGEJO_CLIENT, WOODPECKER_FORGEJO_SECRET and the shared
+        // server<->agent WOODPECKER_AGENT_SECRET all arrive from infisical-secrets. Both
+        // services depend on the same bundle, so they cannot disagree on the last of those.
         environment: {
           // Must match the OAuth2 app's redirect URI in Forgejo.
           WOODPECKER_HOST: 'https://peck.' + lib.collections.domain.ktbcloud,
@@ -60,10 +60,6 @@ local stepCpuQuota = 200000;
           // Exact match INCLUDING tag — keep in lockstep with the tag pinned in each
           // pipeline's .woodpecker.yml.
           WOODPECKER_PLUGINS_PRIVILEGED: 'woodpeckerci/plugin-docker-buildx:6.1.0',
-          WOODPECKER_FORGEJO_CLIENT: '${WOODPECKER_FORGEJO_CLIENT:?err}',
-          WOODPECKER_FORGEJO_SECRET: '${WOODPECKER_FORGEJO_SECRET:?err}',
-          // Shared server<->agent gRPC auth secret — must match the agent's value below.
-          WOODPECKER_AGENT_SECRET: '${WOODPECKER_AGENT_SECRET:?err}',
         },
         mem_limit: '1g',
         expose: [httpPort, grpcPort],
@@ -75,7 +71,9 @@ local stepCpuQuota = 200000;
         image: 'docker.io/woodpeckerci/woodpecker-agent:' + version,
         restart: lib.collections.restart.onFailure(5),
         command: 'agent',
-        depends_on: [refs.server.key],
+        depends_on: lib.secretsReady {
+          [refs.server.key]: { condition: lib.collections.condition.started },
+        },
         volumes: [
           refs.agentData.mount('/etc/woodpecker'),
           // Intentional: the agent runs pipeline steps as sibling containers via the host
@@ -91,8 +89,6 @@ local stepCpuQuota = 200000;
           WOODPECKER_BACKEND_DOCKER_LIMIT_MEM: std.toString(stepMemBytes),
           WOODPECKER_BACKEND_DOCKER_LIMIT_MEM_SWAP: std.toString(stepMemSwapBytes),
           WOODPECKER_BACKEND_DOCKER_LIMIT_CPU_QUOTA: std.toString(stepCpuQuota),
-          // Must match the server's WOODPECKER_AGENT_SECRET exactly.
-          WOODPECKER_AGENT_SECRET: '${WOODPECKER_AGENT_SECRET:?err}',
         },
         // The agent only supervises; the work happens in the step containers above.
         mem_limit: '512m',

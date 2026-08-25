@@ -49,8 +49,6 @@ services:
     ports:
       - "127.0.0.1:18043:8080"
       - "100.106.170.93:18043:8080"
-    profiles:
-      - "server"
     restart: "unless-stopped"
   db:
     container_name: "infisical_db"
@@ -73,8 +71,6 @@ services:
       - "shared__infisical_db"
     ports:
       - "127.0.0.1:18042:5432"
-    profiles:
-      - "server"
     restart: "unless-stopped"
     volumes:
       - "db:/var/lib/postgresql/data"
@@ -93,8 +89,6 @@ services:
         - "ping"
       timeout: "5s"
     image: "docker.io/library/redis:7-alpine"
-    profiles:
-      - "server"
     restart: "unless-stopped"
     volumes:
       - "redis:/data"

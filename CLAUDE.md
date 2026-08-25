@@ -1,6 +1,9 @@
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Remember that a repo is a living project, changing daily. So, if something in this repository contradicts
+an action, instruction, inquiries, etc. it is possible something has changed. In this scenario, just ask
+about the contradiction.
 
 ## What this is
 
@@ -12,7 +15,7 @@ across a fleet of Tailscale-connected hosts.
 
 **An entrypoint names the files it writes.** It evaluates to an object whose top-level
 fields are filenames without the extension, each value the document to put there, and every
-file lands in the entrypoint's own directory: `{ services: {...} }` renders `services.yaml`,
+file lands in the entrypoint's own directory: `{ compose: {...} }` renders `compose.yaml`,
 and `{ compose: {...}, services: {...} }` renders both. One field or four, the shape is the
 same. The entrypoint's own filename decides nothing — `# GENERATED from …` is what ties
 output back to source. A field holding anything but an object is a hard error, which catches
@@ -34,9 +37,8 @@ deploys out of `src/` directly.
 
 | File | Hand-written? | Role |
 |---|---|---|
-| `stack.jsonnet` | yes | A `local refs = lib.Project {...}` — every name this stack owns — then `{ compose: refs.compose, services: <plain Compose> }`, one field per file it renders. **`services` is what Komodo watches and diffs.** |
-| `services.yaml` | no | Rendered manifest. |
-| `compose.yaml` | no | What `docker compose` loads: project name + `include:` (+ `env_file:`). |
+| `stack.jsonnet` | yes | A `local refs = lib.Project {...}` — every name this stack owns — then `{ compose: <plain Compose> }`, one field per file it renders. |
+| `compose.yaml` | no | The rendered manifest — what `docker compose` loads, and what Komodo watches and diffs. |
 | `files/`, `templates/` | both | Bind-mounted config: nested `.jsonnet` entrypoints, their outputs, and hand-written assets (`files/entrypoint.sh`) side by side. |
 | `README.md` | yes | Per-stack deploy notes. |
 
@@ -45,11 +47,12 @@ base and no `Stack` assembler — what you read is what gets rendered. The only 
 written literally are the names the manifest and the compose document have to agree on,
 and those come out of the `refs` table above them.
 
-`compose` stays a separate document from `services` because `env_file` has to attach at the
-`include`, not at the service: `${VAR:?err}` inside `services.yaml` is interpolated from the
-include's env file, whereas a service-level `env_file:` only reaches the container's
-environment and would leave every `${...}` in the manifest unresolved. Two documents, so
-two files — which is one entrypoint naming two fields.
+Secrets arrive through the infisical-secrets Compose provider, which injects them straight
+into the container's environment, so a manifest has no `${...}` left for compose to resolve
+and a stack renders as one document. The single exception is
+`src/platform/secrets-manager/infisical` — see **Secrets** below — which still splits
+`compose` from `services` so an `env_file` can attach at the `include`, the one place a
+`${VAR}` inside a manifest is interpolated from.
 
 **Authoring guide with worked examples lives at `src/templates/stack/README.md`** — read it
 before writing a new stack. `src/templates/stack/` is the canonical copy-me stack; it is a
@@ -94,7 +97,8 @@ under `src/`.
 - **`lib.libsonnet`** — the single entrypoint. Re-exports everything in `collections`
   (`lib.role`, `lib.domain`, `lib.dirs`, `lib.ip`, `lib.mounts`, `lib.labels`,
   `lib.condition`, `lib.restart`) and adds `lib.registry`, `lib.templates`,
-  `lib.collections`, `lib.Project`, `lib.Secret(key)` and `lib.SecretOrBootstrap(key)`.
+  `lib.collections`, `lib.Project`, `lib.SecretsProvider(key)`, `lib.secretsReady`, and —
+  for the Infisical stack alone — `lib.Secret(key)` and `lib.SecretOrBootstrap(key)`.
 - **`collections.libsonnet`** — raw constants: values that depend on nothing, only a
   spelling or a default. Nothing here refers to anything else.
 - **`templates.libsonnet`** — the shapes a name can have, holding no values:
@@ -109,7 +113,8 @@ under `src/`.
   `'littlebuddy.internal:6109'` fails silently at runtime. Holds `network.shared`,
   `endpoint.hostGroup` (the inventory — `ref` is the host's `.internal` name),
   `endpoint.serviceGroup`, `dir` (only paths a *second* stack reads), and `infisical`
-  (every project's secret bundles, flattened into `infisical.catalog` for `lib.Secret`).
+  (the server's `address` plus every project's secret bundles, flattened into
+  `infisical.catalog` for `lib.SecretsProvider`).
 
 ## Network model (non-obvious)
 
@@ -134,17 +139,30 @@ both ways: `.container.addr` on littlebuddy, `.host.addr` from anywhere else.
 
 ## Secrets (Infisical)
 
-Self-hosted Infisical is the store; the **infisical-agent** runs on every host and renders
-that host's secrets to `/dev/shm/<stack>.env` (RAM, never disk). The agent's per-service
-config fragments live in `src/platform/secrets-manager/infisical/templates/` and are
-**hand-written**; a host opts in via its `AGENT_SERVICES` list.
+Self-hosted Infisical is the store, read through the **infisical-secrets** Compose provider
+(`bkenks/collection_compose-extensions`). Compose runs the provider as a subprocess at `up`
+and injects every secret in the bundle as a plain environment variable — under its own
+Infisical name — into each service that declares `depends_on` on the provider service. The
+binary has to be on the `PATH` of whatever runs `docker compose` on the host; each host's
+machine identity lives in the dotenv file at `registry.path.file.infisical_creds`.
 
-In a stack, register the bundle in the right Infisical project's `secretsMap` in
-`registry.libsonnet` (they flatten into `infisical.catalog`), put
-`lib.Secret('<key>')` in the stack's `refs.envFiles`, and reference vars as `${VAR:?err}`
-so a missing secret aborts the deploy. Consumer and agent derive the path from the same
-entry, so they cannot disagree; `lib.SecretOrBootstrap(key)` is the same path wrapped in
-`${ANSIBLE_SECRETS_FILE:-…}` for stacks the control plane brings up before the agent exists.
+In a stack: register the bundle in the right Infisical project's `secretsMap` in
+`registry.libsonnet` (they flatten into `infisical.catalog`), add
+`[lib.collections.role.SECRETS]: lib.SecretsProvider('<key>')` to `services:`, and add
+`lib.secretsReady` to the `depends_on` of every service that reads one. Nothing is injected
+into a service that does not depend on the provider.
+
+**Store each secret under exactly the name the container reads.** There is no compose-level
+interpolation left, so nothing can rename a value or assemble one: a password two services
+read under two names is stored twice, and a connection string is stored whole rather than
+built from a user and a password. A literal written in `environment:` that the bundle also
+carries is overwritten by the bundle's, which is how a default stays overridable per host.
+A secret that must land as a *file* needs a `pre_start` hook — see
+`platform/backup-manager/databasus`.
+
+`lib.Secret(key)` / `lib.SecretOrBootstrap(key)` survive for exactly one stack: the Infisical
+server's own, which cannot ask itself for its secrets before it is up. It keeps the two-
+document shape and an `env_file` the control plane writes. Do not use them anywhere else.
 
 ## Deployment (Komodo)
 
@@ -157,7 +175,14 @@ is the stack's own source directory** — `./src/platform/edge/cloudflared` — 
 carries `file_paths = ["compose.yaml"]`.
 
 **"[Komodo] Commit Sync" commits are Komodo writing UI-side changes back into that TOML** —
-the sync is bidirectional, so the TOML stays canonical.
+the sync is bidirectional, so the TOML stays canonical. The TOML is currently not synced on
+a schedule so there may be drift between what exists in the TOML vs. what is actually in Komodo.
+So, if something doesn't exist in the TOML, either don't worry about it if it's not critical, or
+if some other action depends on it, refer to Komodo directly via MCP to check state and resources.
+
+[Aug 26, 2026] NOTE: We are in a trial phase of testing out Dockhand as a possible replacement
+for Komodo. Currently Dockhand is only used for stacks under the KTB Software business and it's
+config is in another repo, deployed to a host not connected to this infra.
 
 ## Top-level org
 

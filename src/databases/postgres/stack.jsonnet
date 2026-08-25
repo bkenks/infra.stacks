@@ -4,7 +4,6 @@
 local lib = import 'lib.libsonnet';
 local refs = lib.Project {
   name:: 'postgres',
-  envFiles:: [lib.Secret('postgres')],
 
   db:: self.Service { role:: lib.collections.role.DB },
   dbData:: self.Volume { key:: 'db' },
@@ -15,12 +14,7 @@ local sharedDB = lib.registry.network.shared.postgresDB;
 local version = '18';
 
 {
-  // What docker compose discovers. The include is where env_file goes: `${VAR:?err}` inside
-  // services.yaml resolves from it, which a service-level env_file cannot do — that only
-  // reaches the container's environment, never the compose document.
-  compose: refs.compose,
-
-  services: {
+  compose: {
     name: refs.name,
     // shared__postgres_db is created out of band, so this stack attaches to it exactly like
     // every consumer does — nothing here owns it.
@@ -31,22 +25,25 @@ local version = '18';
     volumes: refs.dbData.declare,
 
     services: {
+      [lib.collections.role.SECRETS]: lib.SecretsProvider('postgres'),
+
       [refs.db.key]: {
         // Other stacks already dial this name, so it is the registry's value rather than the
         // <project>_<role> convention.
         container_name: pg.container.name,
         image: 'postgres:' + version,
         restart: lib.collections.restart.always,
+        depends_on: lib.secretsReady,
         networks: ['default', sharedDB.name],
         volumes: [refs.dbData.mount('/var/lib/postgresql')],
-        environment: {
-          POSTGRES_USER: '${POSTGRES_USER:?err}',
-          POSTGRES_PASSWORD: '${POSTGRES_PASS:?err}',
-        },
+        // POSTGRES_USER and POSTGRES_PASSWORD arrive from infisical-secrets.
+
         // Published to the host so containers in other stacks reach it through the gateway.
         ports: ['%s:%s:%s' % [lib.collections.ip.loopback, pg.host.port, pg.container.port]],
         healthcheck: {
-          test: 'pg_isready -U ${POSTGRES_USER} -h localhost -d postgres',
+          // $$ escapes compose's own interpolation, so the shell in the container expands
+          // the injected POSTGRES_USER rather than compose resolving it to nothing.
+          test: 'pg_isready -U $$POSTGRES_USER -h localhost -d postgres',
           interval: '5s',
           timeout: '5s',
           retries: 10,

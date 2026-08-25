@@ -1,6 +1,89 @@
 # GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
-include:
-  - env_file:
-      - "/dev/shm/secrets/authentik.env"
-    path: "services.yaml"
 name: "authentik"
+networks:
+  default:
+    name: "authentik"
+  shared__ts-gateway:
+    external: true
+    name: "shared__ts-gateway"
+services:
+  app:
+    command: "server"
+    container_name: "authentik_app"
+    depends_on:
+      db:
+        condition: "service_healthy"
+      secrets:
+        condition: "service_started"
+    environment:
+      AUTHENTIK_POSTGRESQL__HOST: "db"
+      AUTHENTIK_POSTGRESQL__NAME: "authentik"
+      AUTHENTIK_POSTGRESQL__USER: "authentik"
+    expose:
+      - "9000"
+    image: "ghcr.io/goauthentik/server:2026.5.4"
+    ports:
+      - "127.0.0.1:18006:9000"
+    restart: "unless-stopped"
+    volumes:
+      - "data:/data"
+  db:
+    container_name: "authentik_db"
+    depends_on:
+      secrets:
+        condition: "service_started"
+    environment:
+      POSTGRES_DB: "authentik"
+      POSTGRES_USER: "authentik"
+    expose:
+      - "5432"
+    healthcheck:
+      interval: "30s"
+      retries: 5
+      start_period: "20s"
+      test:
+        - "CMD-SHELL"
+        - "pg_isready -d authentik -U authentik"
+      timeout: "5s"
+    image: "docker.io/library/postgres:16-alpine"
+    networks:
+      - "default"
+      - "shared__ts-gateway"
+    ports:
+      - "127.0.0.1:18040:5432"
+    restart: "unless-stopped"
+    volumes:
+      - "db:/var/lib/postgresql/data"
+  secrets:
+    provider:
+      options:
+        credentials-file: "/mnt/secrets/credentials/infisical.env"
+        domain: "http://controlplane.internal:18043"
+        env: "prod"
+        path: "/authentik"
+        project-id: "86324d9b-3dd7-49d4-b252-69228c5ee0c7"
+        recursive: true
+      type: "infisical-secrets"
+  worker:
+    command: "worker"
+    container_name: "authentik_worker"
+    depends_on:
+      db:
+        condition: "service_healthy"
+      secrets:
+        condition: "service_started"
+    environment:
+      AUTHENTIK_POSTGRESQL__HOST: "db"
+      AUTHENTIK_POSTGRESQL__NAME: "authentik"
+      AUTHENTIK_POSTGRESQL__USER: "authentik"
+    image: "ghcr.io/goauthentik/server:2026.5.4"
+    restart: "unless-stopped"
+    user: "root"
+    volumes:
+      - "data:/data"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+volumes:
+  data:
+    name: "authentik_data"
+  db:
+    name: "authentik_db"

@@ -2,8 +2,6 @@
 local lib = import 'lib.libsonnet';
 local refs = lib.Project {
   name:: 'openproject',
-  // The shared Postgres credentials come from the postgres bundle, not this stack's.
-  envFiles:: [lib.Secret('openproject'), lib.Secret('postgres')],
 
   // One Rails image run four ways, plus a cache and a watchdog.
   web:: self.Service { role:: lib.collections.role.WEB },
@@ -31,7 +29,6 @@ local sub = 'openprj';
 local cloudDomain = sub + '.' + lib.collections.domain.ktbcloud;
 local internalDomain = sub + '.' + lib.collections.domain.ktbinternal;
 
-local pg = lib.registry.endpoint.serviceGroup.postgres.container;
 local sharedDB = lib.registry.network.shared.postgresDB;
 
 local appEnv = {
@@ -56,13 +53,11 @@ local appEnv = {
   OPENPROJECT_EE__MANAGER__VISIBLE: 'false',
   OPENPROJECT_WELCOME__ON__HOMESCREEN: 'false',
   OPENPROJECT_DISABLED__MODULES: '',
-
-  // Must be 'postgres://' not 'postgresql://': Ruby's uri gem does not pre-register the
-  // latter as hierarchical and rejects the user:pass@ part.
-  DATABASE_URL: 'postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@%s/openproject?pool=20&encoding=unicode&reconnect=true'
-                % pg.addr,
-  SECRET_KEY_BASE: '${OPEN_PRJ_SECRET_KEY:?err}',
-  OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__SECRET: '${COLLAB_SERVER_SECRET:?err}',
+  // DATABASE_URL, SECRET_KEY_BASE and OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__SECRET
+  // arrive from infisical-secrets. DATABASE_URL is stored whole — there is no compose-level
+  // interpolation left to assemble it from a user and a password, and it must be spelled
+  // 'postgres://' not 'postgresql://': Ruby's uri gem does not pre-register the latter as
+  // hierarchical and rejects the user:pass@ part.
 };
 
 // The shared body of the four Rails services.
@@ -77,17 +72,18 @@ local railsApp = {
   // Postgres is the shared cluster on this host, reached over shared__postgres_db. Every
   // Rails service needs it — the seeder runs the migrations.
   networks: ['default', sharedDB.name],
+  depends_on: lib.secretsReady,
 };
 
-local afterSeed = [refs.cache.key, refs.seeder.key];
+// Map form, not a bare list: the secrets provider is joined in below and compose takes one
+// shape or the other, never both. `service_started` is what a plain list already meant.
+local afterSeed = lib.secretsReady {
+  [refs.cache.key]: { condition: lib.collections.condition.started },
+  [refs.seeder.key]: { condition: lib.collections.condition.started },
+};
 
 {
-  // What docker compose discovers. The include is where env_file goes: `${VAR:?err}` inside
-  // services.yaml resolves from it, which a service-level env_file cannot do — that only
-  // reaches the container's environment, never the compose document.
-  compose: refs.compose,
-
-  services: {
+  compose: {
     name: refs.name,
     networks: {
       default: { name: refs.name },
@@ -96,6 +92,8 @@ local afterSeed = [refs.cache.key, refs.seeder.key];
     volumes: refs.assets.declare,
 
     services: {
+      [lib.collections.role.SECRETS]: lib.SecretsProvider('openproject'),
+
       // Restarts any container labelled autoheal=true once its healthcheck fails.
       [refs.autoheal.key]: {
         container_name: refs.autoheal.ext,
@@ -126,12 +124,14 @@ local afterSeed = [refs.cache.key, refs.seeder.key];
         image: 'openproject/hocuspocus:' + hocuspocusVersion,
         restart: lib.collections.restart.unlessStopped,
         networks: ['default', sharedDB.name],
+        depends_on: lib.secretsReady,
         // Calls back into `web` over the private bridge (http, not the TLS hairpin); `web`
-        // must be in OPENPROJECT_ADDITIONAL__HOST__NAMES.
+        // must be in OPENPROJECT_ADDITIONAL__HOST__NAMES. SECRET arrives from
+        // infisical-secrets and holds the same value the Rails services read as
+        // OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__SECRET.
         environment: {
           OPENPROJECT_URL: 'http://%s:%s' % [refs.web.key, webPort],
           OPENPROJECT_HTTPS: 'true',
-          SECRET: '${COLLAB_SERVER_SECRET:?err}',
         },
         expose: [hocuspocusPort],
         ports: ['%s:%s:%s' % [lib.collections.ip.loopback, hocuspocusPort, hocuspocusPort]],

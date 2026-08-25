@@ -2,14 +2,9 @@
 // shared cluster. Postgres and the ML model cache live on local NVMe bind mounts (Postgres
 // must NOT live on NFS); the photo/video library is a separate NFS export at the literal
 // host path /mnt/immich-library.
-//
-// Gotcha: this image does not interpolate env-file values into POSTGRES_PASSWORD /
-// DB_PASSWORD / REDIS_HOSTNAME, so those carry the literal ${VAR} and the real container
-// name rather than anything resolved at runtime.
 local lib = import 'lib.libsonnet';
 local refs = lib.Project {
   name:: 'immich',
-  envFiles:: [lib.Secret('immich')],
 
   // Immich's own upstream component names — no lib.collections.role equivalent.
   database:: self.Service { role:: 'database' },
@@ -28,26 +23,25 @@ local tz = 'America/New_York';
 local bindRoot = lib.collections.dirs.docker.bindMounts + '/apps/immich';
 
 {
-  // What docker compose discovers. The include is where env_file goes: `${VAR:?err}` inside
-  // services.yaml resolves from it, which a service-level env_file cannot do — that only
-  // reaches the container's environment, never the compose document.
-  compose: refs.compose,
-
-  services: {
+  compose: {
     name: refs.name,
     networks: { default: { name: refs.name } },
 
     services: {
+      [lib.collections.role.SECRETS]: lib.SecretsProvider('immich'),
+
       [refs.database.key]: {
         container_name: refs.database.ext,
         image: dbImage,
         restart: lib.collections.restart.unlessStopped,
+        depends_on: lib.secretsReady,
         volumes: [bindRoot + '/postgres:/var/lib/postgresql/data'],
+        // POSTGRES_PASSWORD arrives from infisical-secrets; `server` reads the same value
+        // as DB_PASSWORD, so the bundle carries it under both names.
         environment: {
           POSTGRES_DB: refs.name,
           POSTGRES_USER: refs.name,
           POSTGRES_INITDB_ARGS: '--data-checksums',
-          POSTGRES_PASSWORD: '${IMMICH_DB_PASSWORD:?err}',
         },
         shm_size: '128mb',
       },
@@ -70,19 +64,22 @@ local bindRoot = lib.collections.dirs.docker.bindMounts + '/apps/immich';
         container_name: refs.server.ext,
         image: serverImage,
         restart: lib.collections.restart.unlessStopped,
-        depends_on: [refs.database.key, refs.redis.key],
+        depends_on: lib.secretsReady {
+          [refs.database.key]: { condition: lib.collections.condition.started },
+          [refs.redis.key]: { condition: lib.collections.condition.started },
+        },
         volumes: ['/mnt/immich-library:/data'],
         // Intel Quick Sync HW transcoding (paiki's N150 iGPU) — the equivalent of the
         // `quicksync` service in Immich's hwaccel.transcoding.yml. Enable it in the UI:
         // Admin -> Video Transcoding -> Acceleration API -> Quick Sync.
         devices: ['/dev/dri:/dev/dri'],
+        // DB_PASSWORD arrives from infisical-secrets.
         environment: {
           TZ: tz,
           REDIS_HOSTNAME: refs.redis.ext,
           DB_HOSTNAME: refs.database.ext,
           DB_USERNAME: refs.name,
           DB_DATABASE_NAME: refs.name,
-          DB_PASSWORD: '${IMMICH_DB_PASSWORD:?err}',
         },
         expose: [port],
         ports: ['%s:2283:%s' % [lib.collections.ip.loopback, port]],

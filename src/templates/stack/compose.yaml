@@ -1,6 +1,73 @@
 # GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
-include:
-  - env_file:
-      - "/dev/shm/secrets/example.env"
-    path: "services.yaml"
 name: "example"
+networks:
+  default:
+    name: "example"
+services:
+  app:
+    container_name: "example_app"
+    depends_on:
+      db:
+        condition: "service_healthy"
+      secrets:
+        condition: "service_started"
+    environment:
+      APP_URL: "https://example.ktbinternal.com"
+      DB_HOST: "db"
+      DB_NAME: "example"
+      DB_USER: "example"
+    expose:
+      - "8080"
+    healthcheck:
+      interval: "30s"
+      retries: 5
+      test:
+        - "CMD"
+        - "curl"
+        - "-fsS"
+        - "--max-time"
+        - "2"
+        - "http://localhost:8080"
+      timeout: "10s"
+    image: "ghcr.io/example/example:latest"
+    ports:
+      - "127.0.0.1:18000:8080"
+    restart: "on-failure:5"
+    volumes:
+      - "app:/data"
+  db:
+    container_name: "example_db"
+    depends_on:
+      secrets:
+        condition: "service_started"
+    environment:
+      POSTGRES_DB: "example"
+      POSTGRES_USER: "example"
+    expose:
+      - "5432"
+    healthcheck:
+      interval: "5s"
+      retries: 10
+      test:
+        - "CMD-SHELL"
+        - "pg_isready --username=example"
+      timeout: "10s"
+    image: "docker.io/library/postgres:18"
+    restart: "on-failure:5"
+    volumes:
+      - "db:/var/lib/postgresql/data"
+  secrets:
+    provider:
+      options:
+        credentials-file: "/mnt/secrets/credentials/infisical.env"
+        domain: "http://controlplane.internal:18043"
+        env: "prod"
+        path: "/example"
+        project-id: "2f0eb3d1-3e2a-4ce7-8060-5e47ad877e47"
+        recursive: true
+      type: "infisical-secrets"
+volumes:
+  app:
+    name: "example_app"
+  db:
+    name: "example_db"

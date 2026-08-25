@@ -1,7 +1,6 @@
 local lib = import 'lib.libsonnet';
 local refs = lib.Project {
   name:: 'stream',
-  envFiles:: [lib.Secret('stream')],
 
   // Service keys are app names, not roles from lib.collections.role — nothing here is a generic
   // app/db/worker. All storage is host bind mounts, so this stack owns no volumes.
@@ -63,23 +62,14 @@ local arrsHealthy = {
   [refs.sonarr.key]: { condition: lib.collections.condition.healthy },
 };
 
-// Read via `!env` / `!ENV` in the mounted config files.
-local arrApiKeys = {
-  SONARR_API_KEY: '${SONARR_API_KEY:?err}',
-  RADARR_API_KEY: '${RADARR_API_KEY:?err}',
-};
-
 {
-  // What docker compose discovers. The include is where env_file goes: `${VAR:?err}` inside
-  // services.yaml resolves from it, which a service-level env_file cannot do — that only
-  // reaches the container's environment, never the compose document.
-  compose: refs.compose,
-
-  services: {
+  compose: {
     name: refs.name,
     networks: { default: { name: refs.name } },
 
     services: {
+      [lib.collections.role.SECRETS]: lib.SecretsProvider('stream'),
+
       [refs.bazarr.key]: {
         container_name: refs.bazarr.ext,
         image: 'lscr.io/linuxserver/bazarr:' + versions.bazarr,
@@ -99,12 +89,14 @@ local arrApiKeys = {
         container_name: refs.configarr.ext,
         image: 'ghcr.io/raydak-labs/configarr:' + versions.configarr,
         restart: restart,
-        depends_on: arrsHealthy,
+        depends_on: lib.secretsReady + arrsHealthy,
         volumes: [
           './configarr:/app/config:ro',
           bindRoot + '/configarr/repos:/app/repos',
         ],
-        environment: lsioEnv + arrApiKeys,
+        // SONARR_API_KEY and RADARR_API_KEY arrive from infisical-secrets; the mounted
+        // config files read them back through `!env` / `!ENV`.
+        environment: lsioEnv,
       },
 
       // Long-running: every `timer` minutes scans the Sonarr/Radarr queues, removes
@@ -113,9 +105,11 @@ local arrApiKeys = {
         container_name: refs.decluttarr.ext,
         image: 'ghcr.io/manimatter/decluttarr:' + versions.decluttarr,
         restart: restart,
-        depends_on: arrsHealthy,
+        depends_on: lib.secretsReady + arrsHealthy,
         volumes: ['./decluttarr:/app/config:ro'],
-        environment: lsioEnv + arrApiKeys,
+        // SONARR_API_KEY and RADARR_API_KEY arrive from infisical-secrets; the mounted
+        // config files read them back through `!env` / `!ENV`.
+        environment: lsioEnv,
       },
 
       // network_mode: host (NOT Traefik-fronted); GPU passthrough (Intel iGPU) for hardware
@@ -127,16 +121,16 @@ local arrApiKeys = {
         image: 'lscr.io/linuxserver/plex:' + versions.plex,
         restart: restart,
         network_mode: 'host',
+        depends_on: lib.secretsReady,
         volumes: [
           bindRoot + '/plex/config:/config',
           sharedData + '/media:/data/media',
         ],
+        // PLEX_CLAIM arrives from infisical-secrets; it is only read on a fresh start.
         environment: {
           PUID: '0',
           PGID: '0',
           TZ: tz,
-          // Optional, only needed on a fresh start.
-          PLEX_CLAIM: '${PLEX_CLAIM:-}',
           // "docker" = pinned-by-image, no in-container update.
           VERSION: 'docker',
         },

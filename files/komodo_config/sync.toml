@@ -198,145 +198,9 @@ linked_repo = "infra.stacks"
 run_directory = "./src/platform/secrets-manager/infisical"
 file_paths = ["compose.yaml"]
 environment = """
-# Uncomment if deploying from Ansible generated env
+# The store cannot read its own secrets through the infisical-secrets provider, so the
+# control plane writes them to this file and the include interpolates them.
 ANSIBLE_SECRETS_FILE=/dev/shm/platform.env
-
-# ----- Merged stack: server + agent on the Infisical host -----
-COMPOSE_PROFILES = 'server,agent'
-
-# ----- Agent credentials -----
-INFISICAL_CLIENT_ID     = [[LITTLEBUDDY__AGENT_CLIENT_ID]]      # Set in Komodo variables (toggle secret on to prevent upload to Repo)
-INFISICAL_CLIENT_SECRET = [[LITTLEBUDDY__AGENT_CLIENT_SECRET]]  # Set in Komodo variables (toggle secret on to prevent upload to Repo)
-
-# ----- Secrets Rendering -----
-# INFISICAL_ADDRESS intentionally unset: defaults to http://infisical_app:8080,
-# reachable in-stack, so the agent does not depend on the published port or the edge.
-AGENT_HOST      = 'littlebuddy'
-NS              = [[INFSCL_AGNT_NODE_SECERTS]]
-PS              = [[INFSCL_AGNT_PANGOLIN_SECERTS]]
-AGENT_SERVICES  = "${NS} ${PS} zerobyte postgres docuseal forgejo openproject woodpecker komodo-mcp paperless"
-"""
-
-##
-
-[[stack]]
-name = "infisical-agent_biggy"
-[stack.config]
-server = "biggy"
-poll_for_updates = true
-destroy_before_deploy = true
-linked_repo = "infra.stacks"
-webhook_enabled = false
-run_directory = "./src/platform/secrets-manager/infisical"
-file_paths = ["compose.yaml"]
-config_files = [
-  { path = "README.md" },
-  { path = "services.yaml" }
-]
-environment = """
-# ----- Credentials -----
-INFISICAL_ADDRESS     = [[INFSCL_URL]]
-INFISICAL_CLIENT_ID     = [[INFSCL_AGNT_CLIENT_ID__BIGGY]]      # Set in Komodo variables (toggle secret on to prevent upload to Repo)
-INFISICAL_CLIENT_SECRET = [[INFSCL_AGNT_CLIENT_SECRET__BIGGY]]  # Set in Komodo variables (toggle secret on to prevent upload to Repo)
-
-# ----- Merged stack: agent-only host -----
-COMPOSE_PROFILES     = 'agent'
-ANSIBLE_SECRETS_FILE = '/dev/null'
-
-# ----- Secrets Rendering -----
-AGENT_HOST      = 'biggy'
-NS              = [[INFSCL_AGNT_NODE_SECERTS]]
-AGENT_SERVICES  = "${NS}"
-"""
-
-##
-
-[[stack]]
-name = "infisical-agent_bill"
-[stack.config]
-server = "bill"
-poll_for_updates = true
-destroy_before_deploy = true
-linked_repo = "infra.stacks"
-webhook_enabled = false
-run_directory = "./src/platform/secrets-manager/infisical"
-file_paths = ["compose.yaml"]
-config_files = [
-  { path = "README.md" },
-  { path = "services.yaml" }
-]
-environment = """
-# ----- Credentials -----
-INFISICAL_ADDRESS     = [[INFSCL_URL]]
-INFISICAL_CLIENT_ID     = [[INFSCL_AGNT_CLIENT_ID__BILL]]       # Set in Komodo variables (toggle secret on to prevent upload to Repo)
-INFISICAL_CLIENT_SECRET = [[INFSCL_AGNT_CLIENT_SECRET__BILL]]   # Set in Komodo variables (toggle secret on to prevent upload to Repo)
-
-# ----- Merged stack: agent-only host -----
-COMPOSE_PROFILES     = 'agent'
-ANSIBLE_SECRETS_FILE = '/dev/null'
-
-# ----- Secrets Rendering -----
-AGENT_HOST      = 'bill'
-NS              = [[INFSCL_AGNT_NODE_SECERTS]]
-AGENT_SERVICES  = "${NS} zerobyte postgres twenty"
-"""
-
-##
-
-[[stack]]
-name = "infisical-agent_maboi"
-[stack.config]
-server = "maboi"
-destroy_before_deploy = true
-linked_repo = "infra.stacks"
-run_directory = "./src/platform/secrets-manager/infisical"
-file_paths = ["compose.yaml"]
-environment = """
-# ----- Credentials -----
-INFISICAL_ADDRESS     = [[INFSCL_URL]]
-INFISICAL_CLIENT_ID     = [[MABOI__AGENT_CLIENT_ID]]      # Set in Komodo variables (toggle secret on to prevent upload to Repo)
-INFISICAL_CLIENT_SECRET = [[MABOI__AGENT_CLIENT_SECRET]]  # Set in Komodo variables (toggle secret on to prevent upload to Repo)
-
-# ----- Merged stack: agent-only host -----
-COMPOSE_PROFILES     = 'agent'
-ANSIBLE_SECRETS_FILE = '/dev/null'
-
-# ----- Secrets Rendering -----
-AGENT_HOST      = 'maboi'
-NS              = [[INFSCL_AGNT_NODE_SECERTS]]
-AGENT_SERVICES  = "${NS} couch-potatoes-website stackform-website"
-"""
-
-##
-
-[[stack]]
-name = "infisical-agent_paiki"
-[stack.config]
-server = "paiki"
-poll_for_updates = true
-destroy_before_deploy = true
-linked_repo = "infra.stacks"
-webhook_enabled = false
-run_directory = "./src/platform/secrets-manager/infisical"
-file_paths = ["compose.yaml"]
-config_files = [
-  { path = "README.md" },
-  { path = "services.yaml" }
-]
-environment = """
-# ----- Credentials -----
-INFISICAL_ADDRESS     = [[INFSCL_URL]]
-INFISICAL_CLIENT_ID     = [[PAIKI__AGENT_CLIENT_ID]]      # Set in Komodo variables (toggle secret on to prevent upload to Repo)
-INFISICAL_CLIENT_SECRET = [[PAIKI__AGENT_CLIENT_SECRET]]  # Set in Komodo variables (toggle secret on to prevent upload to Repo)
-
-# ----- Merged stack: agent-only host -----
-COMPOSE_PROFILES     = 'agent'
-ANSIBLE_SECRETS_FILE = '/dev/null'
-
-# ----- Secrets Rendering -----
-AGENT_HOST      = 'paiki'
-NS              = [[INFSCL_AGNT_NODE_SECERTS]]
-AGENT_SERVICES  = "${NS} immich stream"
 """
 
 ##
@@ -650,18 +514,6 @@ name = "Poll For Updates"
 enabled = true
 executions = [
   { execution.type = "GlobalAutoUpdate", execution.params.skip_auto_update = false, enabled = true }
-]
-
-##
-
-[[procedure]]
-name = "Redeploy Infisical Agent"
-
-[[procedure.config.stage]]
-name = "Stage 1"
-enabled = true
-executions = [
-  { execution.type = "BatchDeployStack", execution.params.pattern = "infisical-agent*", enabled = true }
 ]
 
 ##

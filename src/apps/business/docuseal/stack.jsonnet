@@ -1,8 +1,6 @@
 local lib = import 'lib.libsonnet';
 local refs = lib.Project {
   name:: 'docuseal',
-  // The shared Postgres credentials come from the postgres bundle, not this stack's.
-  envFiles:: [lib.Secret('docuseal'), lib.Secret('postgres')],
 
   app:: self.Service { role:: lib.collections.role.APP },
   appData:: self.Volume { key:: 'app' },
@@ -10,16 +8,10 @@ local refs = lib.Project {
 
 local version = '2.5.3';
 local port = '3000';
-local pg = lib.registry.endpoint.serviceGroup.postgres;
 local sharedDB = lib.registry.network.shared.postgresDB;
 
 {
-  // What docker compose discovers. The include is where env_file goes: `${VAR:?err}` inside
-  // services.yaml resolves from it, which a service-level env_file cannot do — that only
-  // reaches the container's environment, never the compose document.
-  compose: refs.compose,
-
-  services: {
+  compose: {
     name: refs.name,
     networks: {
       default: { name: refs.name },
@@ -28,19 +20,22 @@ local sharedDB = lib.registry.network.shared.postgresDB;
     volumes: refs.appData.declare,
 
     services: {
+      [lib.collections.role.SECRETS]: lib.SecretsProvider('docuseal'),
+
       [refs.app.key]: {
         container_name: refs.app.ext,
         image: 'docuseal/docuseal:' + version,
         restart: lib.collections.restart.onFailure(5),
+        depends_on: lib.secretsReady,
         networks: ['default', sharedDB.name],
         volumes: [refs.appData.mount('/data/docuseal')],
+        // DATABASE_URL and SECRET_KEY_BASE arrive from infisical-secrets. DATABASE_URL is
+        // stored whole rather than assembled here: the provider injects values, and there
+        // is no compose-level interpolation left to build a URL out of its parts.
         environment: {
           PORT: port,
           // Also the SSL switch: forces HTTPS redirects + absolute signing-link URLs.
           FORCE_SSL: refs.name + '.' + lib.collections.domain.ktbcloud,
-          DATABASE_URL: 'postgresql://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@%s/docuseal'
-                        % pg.container.addr,
-          SECRET_KEY_BASE: '${DOCUSEAL_SECRET_KEY_BASE:?err}',
         },
         expose: [port],
         ports: ['%s:18002:%s' % [lib.collections.ip.loopback, port]],

@@ -7,7 +7,6 @@
 local lib = import 'lib.libsonnet';
 local refs = lib.Project {
   name:: 'authentik',
-  envFiles:: [lib.Secret('authentik')],
 
   app:: self.Service { role:: lib.collections.role.APP },
   worker:: self.Service { role:: lib.collections.role.WORKER },
@@ -27,23 +26,21 @@ local dbName = refs.name;
 local gateway = lib.registry.network.shared.tsGateway;
 
 // Identical on server AND worker — they must agree on the DB and the secret key.
+// AUTHENTIK_POSTGRESQL__PASSWORD and AUTHENTIK_SECRET_KEY arrive from infisical-secrets;
+// `db` reads the same password as POSTGRES_PASSWORD, so the bundle carries it under both
+// names.
 local authentikEnv = {
   AUTHENTIK_POSTGRESQL__HOST: refs.db.key,
   AUTHENTIK_POSTGRESQL__NAME: dbName,
   AUTHENTIK_POSTGRESQL__USER: dbUser,
-  AUTHENTIK_POSTGRESQL__PASSWORD: '${AUTHENTIK_PG_PASS:?err}',
-  AUTHENTIK_SECRET_KEY: '${AUTHENTIK_SECRET_KEY:?err}',
 };
 
-local dbHealthy = { [refs.db.key]: { condition: lib.collections.condition.healthy } };
+local dbHealthy = lib.secretsReady {
+  [refs.db.key]: { condition: lib.collections.condition.healthy },
+};
 
 {
-  // What docker compose discovers. The include is where env_file goes: `${VAR:?err}` inside
-  // services.yaml resolves from it, which a service-level env_file cannot do — that only
-  // reaches the container's environment, never the compose document.
-  compose: refs.compose,
-
-  services: {
+  compose: {
     name: refs.name,
     networks: {
       default: { name: refs.name },
@@ -52,6 +49,8 @@ local dbHealthy = { [refs.db.key]: { condition: lib.collections.condition.health
     volumes: refs.data.declare + refs.dbData.declare,
 
     services: {
+      [lib.collections.role.SECRETS]: lib.SecretsProvider('authentik'),
+
       // ── Server: the web UI + API + OIDC endpoints ──────────────────────────────
       [refs.app.key]: {
         container_name: refs.app.ext,
@@ -87,12 +86,13 @@ local dbHealthy = { [refs.db.key]: { condition: lib.collections.condition.health
         container_name: refs.db.ext,
         image: 'docker.io/library/postgres:' + dbVersion,
         restart: lib.collections.restart.unlessStopped,
+        depends_on: lib.secretsReady,
         networks: ['default', gateway.name],
         volumes: [refs.dbData.mount('/var/lib/postgresql/data')],
+        // POSTGRES_PASSWORD arrives from infisical-secrets.
         environment: {
           POSTGRES_USER: dbUser,
           POSTGRES_DB: dbName,
-          POSTGRES_PASSWORD: '${AUTHENTIK_PG_PASS:?err}',
         },
         healthcheck: {
           test: ['CMD-SHELL', 'pg_isready -d %s -U %s' % [dbName, dbUser]],
