@@ -2,10 +2,10 @@ apiVersion: vendir.k14s.io/v1alpha1
 directories:
 - contents:
   - git:
-      commitTitle: Add src to the default jsonnet library path
-      sha: c2b4d5c50bccd1a07966c566b79f744c18fd4f6f
+      commitTitle: Vendor to .vendir/libsonnet and find the repo root by vendir.yml
+      sha: 458b25fb4cc888f1b9425e7430effb7524dbc01c
       tags:
-      - v1.0.6-4-gc2b4d5c
+      - v1.0.6-5-g458b25f
     path: .
-  path: devlib
+  path: .vendir/libsonnet
 kind: LockConfig

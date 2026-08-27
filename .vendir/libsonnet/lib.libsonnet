@@ -1,7 +1,7 @@
 // The one import a stack needs: `local lib = import 'lib.libsonnet';`
 //
-// Imports resolve through render.py's `-J devlib -J src` jpath, so this path is the same
-// from any depth under src/. `registry.libsonnet` is the repo's own, at src/.
+// Imports resolve through render.py's `-J .vendir/libsonnet -J src` jpath, so this path is
+// the same from any depth under src/. `registry.libsonnet` is the repo's own, at src/.
 //
 // Nothing here builds compose objects. A stack's `compose:` field is plain Compose written
 // against the ref table its own stack.jsonnet binds — what you read is what gets rendered.

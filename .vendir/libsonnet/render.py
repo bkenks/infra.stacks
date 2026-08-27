@@ -30,9 +30,9 @@ untouched.
 Usage:
     render.py [SRC] [-J JPATH]...
 
-SRC defaults to `src` under the repo root, JPATH to `devlib` and `src` -- the vendored
-library and the repo's own `registry.libsonnet` beside it; all resolve against the repo
-root, which is this script's parent directory. stdout lists every path the build
+SRC defaults to `src` under the repo root, JPATH to `.vendir/libsonnet` and `src` -- the
+vendored library and the repo's own `registry.libsonnet` beside it; all resolve against
+the repo root, which is the nearest ancestor of this script holding a vendir.yml. stdout lists every path the build
 owns, written and removed alike -- .config/lefthook.yml pipes it into `git add`. The
 summary goes to stderr to keep that list machine-readable.
 
@@ -57,15 +57,30 @@ MARKER = "# GENERATED from "
 # stack's directory, no leading dot to hide from the stale sweep.
 STEM = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*")
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+# The file that vendored this script in is what marks the repo root, so the root is found
+# the same way whatever path vendir.yml syncs the library to.
+VENDIR_CONFIG = "vendir.yml"
 DEFAULT_SRC = "src"
-DEFAULT_JPATH = ["devlib", "src"]
+DEFAULT_JPATH = [".vendir/libsonnet", "src"]
 
 
 def die(message: str) -> None:
     """Print an error and exit non-zero."""
     print(f"{PROGRAM}: {message}", file=sys.stderr)
     sys.exit(1)
+
+
+def repo_root() -> Path:
+    """The nearest ancestor of this script holding a vendir.yml."""
+    here = Path(__file__).resolve()
+    for parent in here.parents:
+        if (parent / VENDIR_CONFIG).is_file():
+            return parent
+    die(f"no {VENDIR_CONFIG} above {here}")
+    raise AssertionError  # die() exits; this keeps the return type honest.
+
+
+REPO_ROOT = repo_root()
 
 
 def parse_args() -> argparse.Namespace:

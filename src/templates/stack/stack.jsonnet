@@ -1,7 +1,7 @@
 // STANDARD STACK TEMPLATE — copy this directory to start a new stack, rename it in
 // `refs`, then delete every service and field you do not need.
 //
-// It is a real, compiling stack, so a devlib change that breaks the library breaks this
+// It is a real, compiling stack, so a library change that breaks it breaks this
 // file and `mise run render` fails on the next commit.
 //
 // Under `compose` this is plain Compose. Everything is written literally except the names

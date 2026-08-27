@@ -1,7 +1,7 @@
 {
     "jsonnet.languageServer.jpath": [
         ".",
-        "devlib",
+        ".vendir/libsonnet",
         "src"
     ],
     "debug.javascript.defaultRuntimeExecutable": {

@@ -1,7 +1,7 @@
 [tools]
 go-jsonnet = "0.22.0"
-uv = "0.12.1"           # runtime for devlib/render.py
-vendir = "0.46.1"       # vendors lib_compose into devlib/
+uv = "0.12.1"           # runtime for .vendir/libsonnet/render.py
+vendir = "0.46.1"       # vendors lib_compose into .vendir/libsonnet/
 lefthook = "2.1.10"
 yq = "4.53.3"
 d2 = "latest"
@@ -15,13 +15,13 @@ path_c4 = "docs/c4"
 
 # BUILD —————————————————————
 [tasks.vendor]
-description = "Sync devlib/ from the lib_compose library pinned in vendir.yml"
+description = "Sync .vendir/libsonnet/ from the lib_compose library pinned in vendir.yml"
 sources = ["vendir.yml"]
 run = "vendir sync"
 
 [tasks.render]
 description = "Render every .jsonnet under src/ into the .yaml beside it"
-run = "./devlib/render.py"
+run = "./.vendir/libsonnet/render.py"
 alias = ["render-compose", "render"]
 
 

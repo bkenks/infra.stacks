@@ -4,7 +4,7 @@ Standard reference for authoring a docker-compose stack in jsonnet. The `stack.j
 here is a real, compiling stack (app + dedicated Postgres, with secrets) — copy the directory,
 don't start from scratch. Its output lands beside it as `compose.yaml`, so you can see
 input → output. It is rebuilt on every commit, which is what stops this
-template from silently rotting when `devlib/` changes under it.
+template from silently rotting when the library changes under it.
 
 ## Scaffold a new stack
 
@@ -20,7 +20,7 @@ template from silently rotting when `devlib/` changes under it.
 5. Add a `[[stack]]` entry to `files/komodo_config/sync.toml` with
    `run_directory = "./src/<area>/<stack>"` and `file_paths = ["compose.yaml"]`.
 
-Committing re-renders everything automatically (lefthook → `devlib/render.py`). Never edit a
+Committing re-renders everything automatically (lefthook → `.vendir/libsonnet/render.py`). Never edit a
 file whose first line is the `# GENERATED from …` header.
 
 ## The one file
@@ -53,7 +53,8 @@ one place `${VAR}` inside a manifest is interpolated from. Every other stack has
 local lib = import 'lib.libsonnet';
 ```
 
-`render.py` passes `-J devlib`, so that path is the same from any depth under `src/`.
+`render.py` passes `-J .vendir/libsonnet -J src`, so that path is the same from any depth
+under `src/`.
 
 ## The refs table
 
@@ -122,7 +123,7 @@ place. Bind mounts have no name to derive and go in `volumes:` verbatim.
 
 ## Golden rule: reference by key, never by string
 
-Anything that crosses stack boundaries lives in `devlib/registry.libsonnet`. Reference the
+Anything that crosses stack boundaries lives in `src/registry.libsonnet`. Reference the
 **entry**, not a string literal into it:
 
 ```jsonnet
@@ -198,7 +199,7 @@ variable — under its own Infisical name — into each service that declares `d
 the provider service.
 
 1. Make sure the Infisical project holding the bundle is in `infisical.project` in
-   `devlib/registry.libsonnet` — that map is just project name to id, and all five are
+   `src/registry.libsonnet` — that map is just project name to id, and all five are
    already there. The bundle's *folder* does not go in the registry: exactly one stack reads
    it, so it is written in that stack.
 2. Add the provider service, keyed by `lib.role.SECRETS`. The first argument is the project
