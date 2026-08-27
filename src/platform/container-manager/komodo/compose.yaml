@@ -5,7 +5,7 @@ networks:
     name: "komodo"
 services:
   app:
-    container_name: "komodo_app"
+    container_name: "komodo-app"
     depends_on:
       db:
         condition: "service_started"
@@ -31,7 +31,7 @@ services:
       - "/srv/docker/bind-mounts/dcm/komodo/data/syncs:/syncs"
   db:
     command: "--quiet --wiredTigerCacheSizeGB 0.25"
-    container_name: "komodo_db"
+    container_name: "komodo-db"
     depends_on:
       secrets:
         condition: "service_started"

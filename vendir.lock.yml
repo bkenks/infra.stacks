@@ -2,10 +2,10 @@ apiVersion: vendir.k14s.io/v1alpha1
 directories:
 - contents:
   - git:
-      commitTitle: Vendor to .vendir/libsonnet and find the repo root by vendir.yml
-      sha: 458b25fb4cc888f1b9425e7430effb7524dbc01c
+      commitTitle: Join container names with a hyphen for RFC-1123 validity
+      sha: ac67352735e420deee8e189f4239e9996c36da16
       tags:
-      - v1.0.6-5-g458b25f
+      - v1.0.6-6-gac67352
     path: .
   path: .vendir/libsonnet
 kind: LockConfig

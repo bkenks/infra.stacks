@@ -5,7 +5,7 @@ networks:
     name: "example"
 services:
   app:
-    container_name: "example_app"
+    container_name: "example-app"
     depends_on:
       db:
         condition: "service_healthy"
@@ -36,7 +36,7 @@ services:
     volumes:
       - "app:/data"
   db:
-    container_name: "example_db"
+    container_name: "example-db"
     depends_on:
       secrets:
         condition: "service_started"

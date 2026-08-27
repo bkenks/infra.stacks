@@ -8,7 +8,7 @@ networks:
     name: "shared__forgejo_db"
 services:
   db:
-    container_name: "forgejo_db"
+    container_name: "forgejo-db"
     depends_on:
       secrets:
         condition: "service_started"
@@ -37,7 +37,7 @@ services:
         recursive: true
       type: "infisical-secrets"
   server:
-    container_name: "forgejo_server"
+    container_name: "forgejo-server"
     depends_on:
       secrets:
         condition: "service_started"

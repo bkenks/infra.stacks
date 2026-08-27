@@ -7,7 +7,7 @@ networks:
     name: "shared__ts-gateway"
 services:
   app:
-    container_name: "ts-dokr-gw_app"
+    container_name: "ts-dokr-gw-app"
     depends_on:
       secrets:
         condition: "service_started"

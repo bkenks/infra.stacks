@@ -5,7 +5,7 @@ networks:
     name: "convertx"
 services:
   app:
-    container_name: "convertx_app"
+    container_name: "convertx-app"
     depends_on:
       secrets:
         condition: "service_started"

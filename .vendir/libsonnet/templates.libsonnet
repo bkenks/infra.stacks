@@ -105,8 +105,10 @@
       // The compose key, and the name every other service in the project dials.
       key:: self.role,
       // What the container is called on the host, prefixed so it cannot collide with
-      // another project's.
-      ext:: project.name + '_' + self.role,
+      // another project's. Joined with a hyphen because containers are dialled by this
+      // name and RFC-1123 hostnames disallow underscores. Volume.name keeps the
+      // underscore — renaming a volume orphans its data.
+      ext:: project.name + '-' + self.role,
     },
 
     Volume:: { local volume = self,

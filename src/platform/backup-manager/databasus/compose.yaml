@@ -2,7 +2,7 @@
 name: "databasus"
 services:
   app:
-    container_name: "databasus_app"
+    container_name: "databasus-app"
     depends_on:
       secrets:
         condition: "service_started"
