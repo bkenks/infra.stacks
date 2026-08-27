@@ -13,24 +13,24 @@ deployment {
             host rick "rick" {
                 description "Vultr VPS. The control plane: the only host in registry.jsonnet roles.controlPlane."
 
-                instanceOf gateway
-                instanceOf idp
-                instanceOf secretsMan
-                instanceOf dashboard
-                instanceOf dbBak
-                instanceOf dataBak
+                instanceOf selfHosted.gateway
+                instanceOf selfHosted.idp
+                instanceOf selfHosted.secretsMan
+                instanceOf selfHosted.dashboard
+                instanceOf selfHosted.dbBak
+                instanceOf selfHosted.dataBak
 
-                instanceOf overlayNet.agent
-                instanceOf containerOrc.komoC
-                instanceOf containerOrc.komoP
+                instanceOf selfHosted.overlayNet.agent
+                instanceOf selfHosted.containerOrc.komoC
+                instanceOf selfHosted.containerOrc.komoP
             }
 
             host maboi "maboi" {
                 description "Hetzner Cloud cpx11, ash. Registered with Komodo, runs no stacks."
 
-                instanceOf gateway.wgAgent
-                instanceOf overlayNet.agent
-                instanceOf containerOrc.komoP
+                instanceOf selfHosted.gateway.wgAgent
+                instanceOf selfHosted.overlayNet.agent
+                instanceOf selfHosted.containerOrc.komoP
             }
         }
 
@@ -39,50 +39,50 @@ deployment {
             host littlebuddy "littlebuddy" {
                 description "HP EliteDesk 705."
 
-                instanceOf sharedDB
-                instanceOf secCodeForge
-                instanceOf ci
-                instanceOf agentGw
-                instanceOf prjMan
-                instanceOf docsign
-                instanceOf docArc
+                instanceOf selfHosted.sharedState.sharedDB
+                instanceOf selfHosted.secCodeForge
+                instanceOf selfHosted.ci
+                instanceOf selfHosted.agentGw
+                instanceOf selfHosted.prjMan
+                instanceOf selfHosted.docsign
+                instanceOf selfHosted.docArc
 
-                instanceOf gateway.wgAgent
-                instanceOf overlayNet.agent
-                instanceOf containerOrc.komoP
+                instanceOf selfHosted.gateway.wgAgent
+                instanceOf selfHosted.overlayNet.agent
+                instanceOf selfHosted.containerOrc.komoP
             }
 
             host biggy "biggy" {
                 description "HP ProDesk 400."
 
-                instanceOf fileExp
-                instanceOf gameServers
-                instanceOf sharedFiles
+                instanceOf selfHosted.fileExp
+                instanceOf selfHosted.gameServers
+                instanceOf selfHosted.sharedState.sharedFiles
 
-                instanceOf gateway.wgAgent
-                instanceOf overlayNet.agent
-                instanceOf containerOrc.komoP
+                instanceOf selfHosted.gateway.wgAgent
+                instanceOf selfHosted.overlayNet.agent
+                instanceOf selfHosted.containerOrc.komoP
             }
 
             host bill "bill" {
                 description "HP EliteDesk 705."
 
-                instanceOf erp
+                instanceOf selfHosted.erp
 
-                instanceOf gateway.wgAgent
-                instanceOf overlayNet.agent
-                instanceOf containerOrc.komoP
+                instanceOf selfHosted.gateway.wgAgent
+                instanceOf selfHosted.overlayNet.agent
+                instanceOf selfHosted.containerOrc.komoP
             }
 
             host paiki "paiki" {
                 description "Beelink S13 Mini PC."
 
-                instanceOf phovid
-                instanceOf mediaLib
+                instanceOf selfHosted.phovid
+                instanceOf selfHosted.mediaLib
 
-                instanceOf gateway.wgAgent
-                instanceOf overlayNet.agent
-                instanceOf containerOrc.komoP
+                instanceOf selfHosted.gateway.wgAgent
+                instanceOf selfHosted.overlayNet.agent
+                instanceOf selfHosted.containerOrc.komoP
             }
 
             device nas "snaszy" {

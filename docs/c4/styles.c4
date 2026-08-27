@@ -2,6 +2,7 @@
 // this layer only carries the cross-cutting properties.
 global {
     styleGroup base {
+        style element.tag = #workload { color indigo }
         style element.tag = #public   { color green }
         style element.tag = #stateful { border dashed }
     }

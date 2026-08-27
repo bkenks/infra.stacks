@@ -8,148 +8,148 @@ model {
     operator  -> www "browses"
     household -> www "browses"
 
-    www -[proxies]-> gateway.wgOrc "HTTPS :443, HTTP :80"
-    gateway.wgOrc  -[proxies]-> gateway.rProxy "shares the network namespace"
-    gateway.pangolin -> gateway.wgOrc "pushes remote config" { technology "HTTP :3001" }
-    gateway.rProxy -> gateway.pangolin "authorizes each request" { technology "Badger middleware" }
-    gateway.rProxy -> dns.cloudflare "solves ACME DNS-01" { technology "ACME" }
+    www -[proxies]-> selfHosted.gateway.wgOrc "HTTPS :443, HTTP :80"
+    selfHosted.gateway.wgOrc  -[proxies]-> selfHosted.gateway.rProxy "shares the network namespace"
+    selfHosted.gateway.pangolin -> selfHosted.gateway.wgOrc "pushes remote config" { technology "HTTP :3001" }
+    selfHosted.gateway.rProxy -> selfHosted.gateway.pangolin "authorizes each request" { technology "Badger middleware" }
+    selfHosted.gateway.rProxy -> saas.dns "solves ACME DNS-01" { technology "ACME" }
 
     // Remote sites dial out to the orchestrator; nothing dials in.
-    gateway.wgAgent -[overlay]-> gateway.wgOrc "WireGuard :51820"
+    selfHosted.gateway.wgAgent -[overlay]-> selfHosted.gateway.wgOrc "WireGuard :51820"
 
     // ── Published routes ───────────────────────────────────────────────────
-    gateway.rProxy -[proxies]-> idp.authentik          "authentik.ktbcloud.com"
-    gateway.rProxy -[proxies]-> secCodeForge.forgejo   "fj.ktbcloud.com"
-    gateway.rProxy -[proxies]-> ci.server              "peck.ktbcloud.com"
-    gateway.rProxy -[proxies]-> prjMan.openPrj         "openprj.ktbcloud.com"
-    gateway.rProxy -[proxies]-> docsign.docuseal       "docuseal.ktbcloud.com"
-    gateway.rProxy -[proxies]-> secretsMan.infisical   "infisical.ktbinternal.com"
-    gateway.rProxy -[proxies]-> containerOrc.komoC     "komo.ktbinternal.com"
-    gateway.rProxy -[proxies]-> agentGw.komodoMcp      "komodo-mcp.ktbinternal.com"
-    gateway.rProxy -[proxies]-> docArc.paperless       "paper.ktbinternal.com"
-    gateway.rProxy -[proxies]-> mediaLib.seerr         "seerr.ktbinternal.com"
-    gateway.rProxy -[proxies]-> mediaLib.sonarr        "sonarr.ktbinternal.com"
-    gateway.rProxy -[proxies]-> mediaLib.radarr        "radarr.ktbinternal.com"
-    gateway.rProxy -[proxies]-> mediaLib.prowlarr      "prowlarr.ktbinternal.com"
-    gateway.rProxy -[proxies]-> mediaLib.bazarr        "bazarr.ktbinternal.com"
-    gateway.rProxy -[proxies]-> mediaLib.sabnzbd       "sabnzbd.ktbinternal.com"
+    selfHosted.gateway.rProxy -[proxies]-> selfHosted.idp.authentik          "authentik.ktbcloud.com"
+    selfHosted.gateway.rProxy -[proxies]-> selfHosted.secCodeForge.forgejo   "fj.ktbcloud.com"
+    selfHosted.gateway.rProxy -[proxies]-> selfHosted.ci.server              "peck.ktbcloud.com"
+    selfHosted.gateway.rProxy -[proxies]-> selfHosted.prjMan.openPrj         "openprj.ktbcloud.com"
+    selfHosted.gateway.rProxy -[proxies]-> selfHosted.docsign.docuseal       "docuseal.ktbcloud.com"
+    selfHosted.gateway.rProxy -[proxies]-> selfHosted.secretsMan.infisical   "infisical.ktbinternal.com"
+    selfHosted.gateway.rProxy -[proxies]-> selfHosted.containerOrc.komoC     "komo.ktbinternal.com"
+    selfHosted.gateway.rProxy -[proxies]-> selfHosted.agentGw.komodoMcp      "komodo-mcp.ktbinternal.com"
+    selfHosted.gateway.rProxy -[proxies]-> selfHosted.docArc.paperless       "paper.ktbinternal.com"
+    selfHosted.gateway.rProxy -[proxies]-> selfHosted.mediaLib.seerr         "seerr.ktbinternal.com"
+    selfHosted.gateway.rProxy -[proxies]-> selfHosted.mediaLib.sonarr        "sonarr.ktbinternal.com"
+    selfHosted.gateway.rProxy -[proxies]-> selfHosted.mediaLib.radarr        "radarr.ktbinternal.com"
+    selfHosted.gateway.rProxy -[proxies]-> selfHosted.mediaLib.prowlarr      "prowlarr.ktbinternal.com"
+    selfHosted.gateway.rProxy -[proxies]-> selfHosted.mediaLib.bazarr        "bazarr.ktbinternal.com"
+    selfHosted.gateway.rProxy -[proxies]-> selfHosted.mediaLib.sabnzbd       "sabnzbd.ktbinternal.com"
 
     // ── Overlay network ────────────────────────────────────────────────────
-    overlayNet.agent -[overlay]-> overlayNet.coord "joins the tailnet"
-    overlayNet.agent -[overlay]-> idp.db "exposes on the tailnet" { technology "shared__ts-gateway" }
-    overlayNet.agent -[overlay]-> secretsMan.infisical "exposes on the tailnet" { technology "shared__ts-gateway" }
+    selfHosted.overlayNet.agent -[overlay]-> saas.tailnetCoord "joins the tailnet"
+    selfHosted.overlayNet.agent -[overlay]-> selfHosted.idp.db "exposes on the tailnet" { technology "shared__ts-gateway" }
+    selfHosted.overlayNet.agent -[overlay]-> selfHosted.secretsMan.infisical "exposes on the tailnet" { technology "shared__ts-gateway" }
 
     // ── Identity ───────────────────────────────────────────────────────────
-    dashboard.homarr -[oidc]-> idp.authentik "authenticates users"
-    ci.server -[oidc]-> secCodeForge.forgejo "OAuth2 login and repository access"
+    selfHosted.dashboard.homarr -[oidc]-> selfHosted.idp.authentik "authenticates users"
+    selfHosted.ci.server -[oidc]-> selfHosted.secCodeForge.forgejo "OAuth2 login and repository access"
 
     // ── Secrets ────────────────────────────────────────────────────────────
     // Every stack declares a `secrets` compose service using the
     // infisical-secrets provider against http://controlplane.internal:18043.
     // Modelled once per stack, not once per container.
     // Project `infra` (86324d9b…):
-    gateway      -[secrets]-> secretsMan.infisical "/traefik"
-    idp          -[secrets]-> secretsMan.infisical "/authentik"
-    containerOrc -[secrets]-> secretsMan.infisical "/komodo"
-    secCodeForge -[secrets]-> secretsMan.infisical "/forgejo"
-    ci           -[secrets]-> secretsMan.infisical "/woodpecker"
-    dashboard    -[secrets]-> secretsMan.infisical "/homarr"
-    agentGw      -[secrets]-> secretsMan.infisical "/komodo-mcp"
-    dataBak      -[secrets]-> secretsMan.infisical "/zerobyte"
-    dbBak        -[secrets]-> secretsMan.infisical "/databasus"
-    overlayNet   -[secrets]-> secretsMan.infisical "/tailscale/containers"
+    selfHosted.gateway      -[secrets]-> selfHosted.secretsMan.infisical "/traefik"
+    selfHosted.idp          -[secrets]-> selfHosted.secretsMan.infisical "/authentik"
+    selfHosted.containerOrc -[secrets]-> selfHosted.secretsMan.infisical "/komodo"
+    selfHosted.secCodeForge -[secrets]-> selfHosted.secretsMan.infisical "/forgejo"
+    selfHosted.ci           -[secrets]-> selfHosted.secretsMan.infisical "/woodpecker"
+    selfHosted.dashboard    -[secrets]-> selfHosted.secretsMan.infisical "/homarr"
+    selfHosted.agentGw      -[secrets]-> selfHosted.secretsMan.infisical "/komodo-mcp"
+    selfHosted.dataBak      -[secrets]-> selfHosted.secretsMan.infisical "/zerobyte"
+    selfHosted.dbBak        -[secrets]-> selfHosted.secretsMan.infisical "/databasus"
+    selfHosted.overlayNet   -[secrets]-> selfHosted.secretsMan.infisical "/tailscale/containers"
     // Project `apps` (2f0eb3d1…):
-    gateway  -[secrets]-> secretsMan.infisical "/pangolin"
-    sharedDB -[secrets]-> secretsMan.infisical "/postgres"
-    prjMan   -[secrets]-> secretsMan.infisical "/openproject"
-    docsign  -[secrets]-> secretsMan.infisical "/docuseal"
-    docArc   -[secrets]-> secretsMan.infisical "/paperless"
-    phovid   -[secrets]-> secretsMan.infisical "/immich"
-    mediaLib -[secrets]-> secretsMan.infisical "/stream"
+    selfHosted.gateway  -[secrets]-> selfHosted.secretsMan.infisical "/pangolin"
+    selfHosted.sharedState.sharedDB -[secrets]-> selfHosted.secretsMan.infisical "/postgres"
+    selfHosted.prjMan   -[secrets]-> selfHosted.secretsMan.infisical "/openproject"
+    selfHosted.docsign  -[secrets]-> selfHosted.secretsMan.infisical "/docuseal"
+    selfHosted.docArc   -[secrets]-> selfHosted.secretsMan.infisical "/paperless"
+    selfHosted.phovid   -[secrets]-> selfHosted.secretsMan.infisical "/immich"
+    selfHosted.mediaLib -[secrets]-> selfHosted.secretsMan.infisical "/stream"
     // Project `frappe` (12ed25dd…):
-    erp      -[secrets]-> secretsMan.infisical "/"
+    selfHosted.erp      -[secrets]-> selfHosted.secretsMan.infisical "/"
 
     // Ansible is the one reader that is not a stack: it pulls each host's newt
     // enrolment pair before installing the unit.
-    configMgmt.ansible -[secrets]-> secretsMan.infisical "/hosts/<host>/newt"
+    selfHosted.configMgmt.ansible -[secrets]-> selfHosted.secretsMan.infisical "/hosts/<host>/newt"
 
     // ── Configuration management ───────────────────────────────────────────
     // Ansible runs from the operator's workstation. It owns the bare-metal layer
     // and the control-plane cold start; Komodo owns everything after that.
-    operator -> configMgmt.ansible "runs playbooks"
+    operator -> selfHosted.configMgmt.ansible "runs playbooks"
     // The one credential Infisical cannot hold is its own: Ansible plants each host's
     // machine identity from 1Password, so the compose provider has something to log in with.
-    configMgmt.ansible -> passwdMan.onepass "reads machine identities and the tailnet auth key"
-    configMgmt.ansible -> priCodeForge.github "clones infra.stacks" { technology "SSH" }
+    selfHosted.configMgmt.ansible -> saas.passwdMan "reads machine identities and the tailnet auth key"
+    selfHosted.configMgmt.ansible -> saas.priCodeForge "clones infra.stacks" { technology "SSH" }
 
-    configMgmt.ansible -[deploys]-> overlayNet.agent "enrols the host in the tailnet"
-    configMgmt.ansible -[deploys]-> gateway.wgAgent "installs the newt systemd unit"
-    configMgmt.ansible -[deploys]-> containerOrc.komoP "installs the periphery systemd unit"
+    selfHosted.configMgmt.ansible -[deploys]-> selfHosted.overlayNet.agent "enrols the host in the tailnet"
+    selfHosted.configMgmt.ansible -[deploys]-> selfHosted.gateway.wgAgent "installs the newt systemd unit"
+    selfHosted.configMgmt.ansible -[deploys]-> selfHosted.containerOrc.komoP "installs the periphery systemd unit"
 
     // Cold-start order: the restore tier comes up first so a bare host can restore
     // Infisical's volume before Infisical parses it.
-    configMgmt.ansible -[deploys]-> dbBak.databasus "restore gate"
-    configMgmt.ansible -[deploys]-> dataBak.zerobyte "restore gate"
-    configMgmt.ansible -[deploys]-> secretsMan.infisical "bootstraps the control plane"
-    configMgmt.ansible -[deploys]-> containerOrc.komoC "bootstraps the control plane"
+    selfHosted.configMgmt.ansible -[deploys]-> selfHosted.dbBak.databasus "restore gate"
+    selfHosted.configMgmt.ansible -[deploys]-> selfHosted.dataBak.zerobyte "restore gate"
+    selfHosted.configMgmt.ansible -[deploys]-> selfHosted.secretsMan.infisical "bootstraps the control plane"
+    selfHosted.configMgmt.ansible -[deploys]-> selfHosted.containerOrc.komoC "bootstraps the control plane"
 
     // ── Orchestration ──────────────────────────────────────────────────────
-    containerOrc.komoC -[deploys]-> containerOrc.komoP "TLS :8120, pinned core public key"
-    containerOrc.komoP -[deploys]-> dockerVolumes "creates and manages"
-    containerOrc.komoC -> secCodeForge.forgejo "syncs stack definitions"
-    containerOrc.komoC -> alerting.pushover "sends alerts"
-    agentGw.komodoMcp -> containerOrc.komoC "Komodo API"
-    ci.agent -> ci.server "polls for work" { technology "gRPC :9000" }
+    selfHosted.containerOrc.komoC -[deploys]-> selfHosted.containerOrc.komoP "TLS :8120, pinned core public key"
+    selfHosted.containerOrc.komoP -[deploys]-> selfHosted.sharedState.dockerVolumes "creates and manages"
+    selfHosted.containerOrc.komoC -> selfHosted.secCodeForge.forgejo "syncs stack definitions"
+    selfHosted.containerOrc.komoC -> saas.alerting "sends alerts"
+    selfHosted.agentGw.komodoMcp -> selfHosted.containerOrc.komoC "Komodo API"
+    selfHosted.ci.agent -> selfHosted.ci.server "polls for work" { technology "gRPC :9000" }
 
     // ── State ──────────────────────────────────────────────────────────────
-    prjMan.openPrj   -[sql]-> sharedDB
-    docsign.docuseal -[sql]-> sharedDB
+    selfHosted.prjMan.openPrj   -[sql]-> selfHosted.sharedState.sharedDB
+    selfHosted.docsign.docuseal -[sql]-> selfHosted.sharedState.sharedDB
 
-    idp.authentik           -[sql]-> idp.db
-    idp.worker              -[sql]-> idp.db
-    secretsMan.infisical    -[sql]-> secretsMan.db
-    secretsMan.infisical    -> secretsMan.redis "queues and caches"
-    secCodeForge.forgejo    -[sql]-> secCodeForge.db
-    containerOrc.komoC      -> containerOrc.db "reads and writes"
-    docArc.paperless        -[sql]-> docArc.db
-    docArc.paperless        -> docArc.broker "queues tasks"
-    docArc.paperless        -> docArc.gotenberg "converts to PDF"
-    docArc.paperless        -> docArc.tika "extracts text"
-    phovid.immich           -[sql]-> phovid.db
-    phovid.immich           -> phovid.redis "queues jobs"
-    phovid.immich           -> phovid.machineLearning "runs inference"
+    selfHosted.idp.authentik           -[sql]-> selfHosted.idp.db
+    selfHosted.idp.worker              -[sql]-> selfHosted.idp.db
+    selfHosted.secretsMan.infisical    -[sql]-> selfHosted.secretsMan.db
+    selfHosted.secretsMan.infisical    -> selfHosted.secretsMan.redis "queues and caches"
+    selfHosted.secCodeForge.forgejo    -[sql]-> selfHosted.secCodeForge.db
+    selfHosted.containerOrc.komoC      -> selfHosted.containerOrc.db "reads and writes"
+    selfHosted.docArc.paperless        -[sql]-> selfHosted.docArc.db
+    selfHosted.docArc.paperless        -> selfHosted.docArc.broker "queues tasks"
+    selfHosted.docArc.paperless        -> selfHosted.docArc.gotenberg "converts to PDF"
+    selfHosted.docArc.paperless        -> selfHosted.docArc.tika "extracts text"
+    selfHosted.phovid.immich           -[sql]-> selfHosted.phovid.db
+    selfHosted.phovid.immich           -> selfHosted.phovid.redis "queues jobs"
+    selfHosted.phovid.immich           -> selfHosted.phovid.machineLearning "runs inference"
 
-    erp.erpnext -> erp.db "reads and writes" { technology "MariaDB" }
-    erp.erpnext -> erp.redisCache "caches"
-    erp.erpnext -> erp.redisQueue "queues jobs"
+    selfHosted.erp.erpnext -> selfHosted.erp.db "reads and writes" { technology "MariaDB" }
+    selfHosted.erp.erpnext -> selfHosted.erp.redisCache "caches"
+    selfHosted.erp.erpnext -> selfHosted.erp.redisQueue "queues jobs"
 
-    mediaLib.prowlarr -> mediaLib.sonarr "feeds indexers"
-    mediaLib.prowlarr -> mediaLib.radarr "feeds indexers"
-    mediaLib.sonarr   -> mediaLib.sabnzbd "queues downloads"
-    mediaLib.radarr   -> mediaLib.sabnzbd "queues downloads"
-    mediaLib.bazarr   -> mediaLib.sonarr "reads the library"
-    mediaLib.bazarr   -> mediaLib.radarr "reads the library"
-    mediaLib.seerr    -> mediaLib.sonarr "requests series"
-    mediaLib.seerr    -> mediaLib.radarr "requests films"
+    selfHosted.mediaLib.prowlarr -> selfHosted.mediaLib.sonarr "feeds indexers"
+    selfHosted.mediaLib.prowlarr -> selfHosted.mediaLib.radarr "feeds indexers"
+    selfHosted.mediaLib.sonarr   -> selfHosted.mediaLib.sabnzbd "queues downloads"
+    selfHosted.mediaLib.radarr   -> selfHosted.mediaLib.sabnzbd "queues downloads"
+    selfHosted.mediaLib.bazarr   -> selfHosted.mediaLib.sonarr "reads the library"
+    selfHosted.mediaLib.bazarr   -> selfHosted.mediaLib.radarr "reads the library"
+    selfHosted.mediaLib.seerr    -> selfHosted.mediaLib.sonarr "requests series"
+    selfHosted.mediaLib.seerr    -> selfHosted.mediaLib.radarr "requests films"
 
     // ── Files ──────────────────────────────────────────────────────────────
-    fileExp.fbq -> sharedFiles "serves the tree"
-    gameServers.terraria -> sharedFiles "stores its world"
+    selfHosted.fileExp.fbq -> selfHosted.sharedState.sharedFiles "serves the tree"
+    selfHosted.gameServers.terraria -> selfHosted.sharedState.sharedFiles "stores its world"
 
     // ── Backup ─────────────────────────────────────────────────────────────
     // Databasus reaches each target over the .internal zone; Zerobyte reads the
     // host volume tree directly through a bind mount.
-    dbBak.databasus -[backup]-> sharedDB
-    dbBak.databasus -[backup]-> idp.db
-    dbBak.databasus -[backup]-> secretsMan.db
-    dbBak.databasus -[backup]-> secCodeForge.db
-    dbBak.databasus -[backup]-> containerOrc.db
-    dbBak.databasus -[backup]-> docArc.db
-    dbBak.databasus -[backup]-> phovid.db
-    dbBak.databasus -[backup]-> erp.db
-    dataBak.zerobyte -[backup]-> dockerVolumes
+    selfHosted.dbBak.databasus -[backup]-> selfHosted.sharedState.sharedDB
+    selfHosted.dbBak.databasus -[backup]-> selfHosted.idp.db
+    selfHosted.dbBak.databasus -[backup]-> selfHosted.secretsMan.db
+    selfHosted.dbBak.databasus -[backup]-> selfHosted.secCodeForge.db
+    selfHosted.dbBak.databasus -[backup]-> selfHosted.containerOrc.db
+    selfHosted.dbBak.databasus -[backup]-> selfHosted.docArc.db
+    selfHosted.dbBak.databasus -[backup]-> selfHosted.phovid.db
+    selfHosted.dbBak.databasus -[backup]-> selfHosted.erp.db
+    selfHosted.dataBak.zerobyte -[backup]-> selfHosted.sharedState.dockerVolumes
 
     // ── Email ──────────────────────────────────────────────────────────────
-    secretsMan.infisical -> email.smtpRelay "SMTP :465"
-    gateway.pangolin     -> email.smtpRelay "SMTP :465"
+    selfHosted.secretsMan.infisical -> saas.email "SMTP :465"
+    selfHosted.gateway.pangolin     -> saas.email "SMTP :465"
 }

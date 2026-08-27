@@ -16,6 +16,7 @@ specification {
     tag files
 
     // Cross-cutting properties. An element may carry any number.
+    tag workload       // user-facing: the household consumes it, not the fleet
     tag public         // published on ktbcloud.com — reachable without the tailnet
     tag stateful       // holds data a backup coordinator must capture
 
@@ -28,22 +29,30 @@ specification {
         notation "Public Internet"
         style { shape queue; color muted }
     }
+
+    // Ecosystems — the top layer. Every capability sits in exactly one.
+    // The axis is what I can model, not where the hardware sits: `infra` holds
+    // the capabilities I decompose into processes, `platform` the ones I cannot.
+    // Where a capability physically runs is deployment.c4's answer, not this layer's.
+    element infra {
+        notation "Infrastructure ecosystem"
+        style { shape rectangle; color gray }
+    }
     element platform {
-        notation "Vendor-run platform"
+        notation "Platform ecosystem"
         style { shape rectangle; color muted; border dashed }
     }
 
-    element ecosystem
-    element infraSystem {
-        notation "Infrastructure system"
+    // Capabilities — the middle layer. A capability under `platform` is opaque
+    // and has no children; under `infra` it decomposes into processes.
+    element capability {
+        notation "Capability"
         style { shape rectangle; color slate }
     }
-    element userSystem {
-        notation "User-facing system"
-        style { shape rectangle; color indigo }
-    }
-    element service {
-        notation "Deployable service"
+
+    // Processes — the leaf layer. What actually runs.
+    element process {
+        notation "Process"
         style { shape component; color blue }
     }
     element datastore {

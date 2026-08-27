@@ -3,9 +3,10 @@ views {
     // ── Landscape ──────────────────────────────────────────────────────────
     view index {
         title 'Landscape'
-        description 'Every system, with the secret-distribution edges suppressed.'
+        description 'Every ecosystem and the capabilities inside it, with the secret-distribution edges suppressed.'
 
         include *
+        include selfHosted.*, saas.*
         exclude * -> * where kind is secrets
 
         global style base
@@ -16,9 +17,9 @@ views {
         title 'Secret Distribution'
         description 'The edges index hides: every stack reads its bundle from Infisical.'
 
-        include secretsMan
-        include secretsMan.*
-        include * -> secretsMan
+        include selfHosted.secretsMan
+        include selfHosted.secretsMan.*
+        include * -> selfHosted.secretsMan
 
         global style base
         autoLayout LeftRight
@@ -30,9 +31,9 @@ views {
         description 'How a request reaches a workload. Gerbil owns the host ports; Traefik shares its namespace.'
 
         include www, operator, household
-        include gateway, gateway.*
-        include gateway.rProxy ->
-        include dns, dns.*
+        include selfHosted.gateway, selfHosted.gateway.*
+        include selfHosted.gateway.rProxy ->
+        include saas.dns
 
         global style base
         autoLayout LeftRight
@@ -42,10 +43,10 @@ views {
         title 'Identity'
         description 'What depends on single sign-on.'
 
-        include idp, idp.*
-        include * -> idp.authentik
-        include ci, ci.*
-        include * -> secCodeForge.forgejo
+        include selfHosted.idp, selfHosted.idp.*
+        include * -> selfHosted.idp.authentik
+        include selfHosted.ci, selfHosted.ci.*
+        include * -> selfHosted.secCodeForge.forgejo
 
         global style base
     }
@@ -55,10 +56,10 @@ views {
         description 'Everything a backup coordinator captures, and which one captures it.'
 
         include * where tag is #stateful
-        include dbBak, dbBak.*
-        include dataBak, dataBak.*
-        include dbBak.databasus -> *
-        include dataBak.zerobyte -> *
+        include selfHosted.dbBak, selfHosted.dbBak.*
+        include selfHosted.dataBak, selfHosted.dataBak.*
+        include selfHosted.dbBak.databasus -> *
+        include selfHosted.dataBak.zerobyte -> *
 
         global style base
         autoLayout LeftRight
@@ -68,68 +69,68 @@ views {
         title 'Workloads'
         description 'The user-facing catalogue.'
 
-        include * where kind is userSystem
+        include * where tag is #workload
         // The counterparties, so the catalogue shows dependencies and not just boxes.
-        include gateway, sharedDB, sharedFiles, secretsMan
+        include selfHosted.gateway, selfHosted.sharedState.sharedDB, selfHosted.sharedState.sharedFiles, selfHosted.secretsMan
 
         global style base
     }
 
     // ── Per-system drill-down ──────────────────────────────────────────────
-    view gatewayDetail of gateway {
+    view gatewayDetail of selfHosted.gateway {
         title 'Gateway'
         include *
-        include -> gateway.rProxy ->
+        include -> selfHosted.gateway.rProxy ->
         global style base
     }
 
-    view idpDetail of idp {
+    view idpDetail of selfHosted.idp {
         title 'Identity Provider'
         include *
-        include -> idp.authentik ->
+        include -> selfHosted.idp.authentik ->
         global style base
     }
 
-    view secretsManDetail of secretsMan {
+    view secretsManDetail of selfHosted.secretsMan {
         title 'Secrets Manager'
         include *
         global style base
     }
 
-    view containerOrcDetail of containerOrc {
+    view containerOrcDetail of selfHosted.containerOrc {
         title 'Container Orchestrator'
         include *
-        include -> containerOrc.komoC ->
+        include -> selfHosted.containerOrc.komoC ->
         global style base
     }
 
-    view forgeDetail of secCodeForge {
+    view forgeDetail of selfHosted.secCodeForge {
         title 'Secondary Code Forge'
         include *
-        include -> secCodeForge.forgejo ->
+        include -> selfHosted.secCodeForge.forgejo ->
         global style base
     }
 
-    view ciDetail of ci {
+    view ciDetail of selfHosted.ci {
         title 'Continuous Integration'
         include *
-        include -> ci.server ->
+        include -> selfHosted.ci.server ->
         global style base
     }
 
-    view docArcDetail of docArc {
+    view docArcDetail of selfHosted.docArc {
         title 'Document Archive'
         include *
         global style base
     }
 
-    view phovidDetail of phovid {
+    view phovidDetail of selfHosted.phovid {
         title 'Personal Photo Storage'
         include *
         global style base
     }
 
-    view mediaLibDetail of mediaLib {
+    view mediaLibDetail of selfHosted.mediaLib {
         title 'Media Library'
         include *
         global style base
@@ -140,15 +141,15 @@ views {
         variant sequence
         title 'Serving an authenticated request'
 
-        www -> gateway.wgOrc 'GET openprj.ktbcloud.com'
-        gateway.wgOrc -> gateway.rProxy 'forwards on the shared namespace'
-        gateway.rProxy -> gateway.pangolin 'badger: is this session allowed?'
-        gateway.rProxy <- gateway.pangolin 'allow'
-        gateway.rProxy -> prjMan.openPrj 'proxies'
-        prjMan.openPrj -> sharedDB 'query'
-        prjMan.openPrj <- sharedDB 'rows'
-        gateway.rProxy <- prjMan.openPrj '200 OK'
-        www <- gateway.rProxy '200 OK'
+        www -> selfHosted.gateway.wgOrc 'GET openprj.ktbcloud.com'
+        selfHosted.gateway.wgOrc -> selfHosted.gateway.rProxy 'forwards on the shared namespace'
+        selfHosted.gateway.rProxy -> selfHosted.gateway.pangolin 'badger: is this session allowed?'
+        selfHosted.gateway.rProxy <- selfHosted.gateway.pangolin 'allow'
+        selfHosted.gateway.rProxy -> selfHosted.prjMan.openPrj 'proxies'
+        selfHosted.prjMan.openPrj -> selfHosted.sharedState.sharedDB 'query'
+        selfHosted.prjMan.openPrj <- selfHosted.sharedState.sharedDB 'rows'
+        selfHosted.gateway.rProxy <- selfHosted.prjMan.openPrj '200 OK'
+        www <- selfHosted.gateway.rProxy '200 OK'
     }
 
     dynamic view flowSecrets {
@@ -156,23 +157,23 @@ views {
         title 'How a stack gets its secrets'
         description 'The pattern every stack shares — the compose provider runs before the app starts.'
 
-        containerOrc.komoP -> docsign.docuseal 'docker compose up'
-        docsign.docuseal -> secretsMan.infisical 'machine identity login, then GET /docuseal'
-        docsign.docuseal <- secretsMan.infisical 'secret bundle'
-        docsign.docuseal -> sharedDB 'connects with the injected credentials'
+        selfHosted.containerOrc.komoP -> selfHosted.docsign.docuseal 'docker compose up'
+        selfHosted.docsign.docuseal -> selfHosted.secretsMan.infisical 'machine identity login, then GET /docuseal'
+        selfHosted.docsign.docuseal <- selfHosted.secretsMan.infisical 'secret bundle'
+        selfHosted.docsign.docuseal -> selfHosted.sharedState.sharedDB 'connects with the injected credentials'
     }
 
     dynamic view flowDeploy {
         variant sequence
         title 'Deploying a stack'
 
-        operator -> secCodeForge.forgejo 'git push'
-        containerOrc.komoC -> secCodeForge.forgejo 'syncs stack definitions'
-        containerOrc.komoC -> containerOrc.komoP 'deploy'
-        containerOrc.komoP -> secretsMan.infisical 'provider fetches the bundle'
-        containerOrc.komoP <- secretsMan.infisical 'secrets'
-        containerOrc.komoC <- containerOrc.komoP 'result'
-        containerOrc.komoC -> alerting.pushover 'alerts on failure'
+        operator -> selfHosted.secCodeForge.forgejo 'git push'
+        selfHosted.containerOrc.komoC -> selfHosted.secCodeForge.forgejo 'syncs stack definitions'
+        selfHosted.containerOrc.komoC -> selfHosted.containerOrc.komoP 'deploy'
+        selfHosted.containerOrc.komoP -> selfHosted.secretsMan.infisical 'provider fetches the bundle'
+        selfHosted.containerOrc.komoP <- selfHosted.secretsMan.infisical 'secrets'
+        selfHosted.containerOrc.komoC <- selfHosted.containerOrc.komoP 'result'
+        selfHosted.containerOrc.komoC -> saas.alerting 'alerts on failure'
     }
 
     // ── Deployment ─────────────────────────────────────────────────────────
