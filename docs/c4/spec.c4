@@ -1,0 +1,77 @@
+specification {
+    // Tags ——————————————————————————————————————————
+    // Capability grouping. An element carries at most one of these.
+    tag orchestration
+    tag networking
+    tag observability
+    tag communications
+    tag secrets
+    tag backup-and-recovery
+    tag identity-and-access
+
+    tag development
+    tag business
+    tag media
+    tag gaming
+    tag files
+
+    // Cross-cutting properties. An element may carry any number.
+    tag public         // published on ktbcloud.com — reachable without the tailnet
+    tag stateful       // holds data a backup coordinator must capture
+
+    // Element kinds —————————————————————————————————
+    element actor {
+        notation "Person"
+        style { shape person; color secondary }
+    }
+    element internet {
+        notation "Public Internet"
+        style { shape queue; color muted }
+    }
+    element platform {
+        notation "Vendor-run platform"
+        style { shape rectangle; color muted; border dashed }
+    }
+
+    element ecosystem
+    element infraSystem {
+        notation "Infrastructure system"
+        style { shape rectangle; color slate }
+    }
+    element userSystem {
+        notation "User-facing system"
+        style { shape rectangle; color indigo }
+    }
+    element service {
+        notation "Deployable service"
+        style { shape component; color blue }
+    }
+    element datastore {
+        #stateful
+        notation "File tree"
+        style { shape storage; color muted }
+    }
+    element database {
+        #stateful
+        notation "Database"
+        style { shape storage; color green }
+    }
+
+    // Relationship kinds ————————————————————————————
+    // Kinds exist so a view can drop a whole family of edges in one predicate.
+    // Every stack reads secrets from Infisical, so #secrets alone is ~20 edges
+    // converging on one node — the landscape is unreadable without excluding it.
+    relationship secrets { technology "Infisical"; line dotted; color muted }
+    relationship oidc    { technology "OIDC"; line dashed; color secondary }
+    relationship proxies { technology "HTTPS" }
+    relationship sql     { technology "PostgreSQL"; line dashed }
+    relationship backup  { line dotted; head diamond; color amber }
+    relationship overlay { technology "WireGuard"; line dashed; color sky }
+    relationship deploys { color green }
+
+    // Deployment node kinds —————————————————————————
+    deploymentNode environment { notation "Environment"; style { color gray } }
+    deploymentNode site        { notation "Site" }
+    deploymentNode host        { notation "Host"; style { shape rectangle } }
+    deploymentNode device      { notation "Device"; style { shape storage } }
+}

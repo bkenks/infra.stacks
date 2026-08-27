@@ -1,0 +1,225 @@
+// Elements only. Every cross-system edge lives in relations.c4 so the structure
+// stays readable and the edges stay grouped by what they mean.
+model {
+    // People and the outside ————————————————————————
+    actor operator "Operator" {
+        description "Administers the fleet through Komodo, Ansible and the forges."
+    }
+    actor household "Household Users" {
+        description "Consumes the media, document and photo workloads."
+    }
+
+    internet www "Public Internet"
+
+    // Core ——————————————————————————————————————————
+    infraSystem overlayNet "Overlay Network" {
+        #networking
+
+        platform coord "Coordinator" {
+            technology "Wireguard"
+            metadata { vendor "Tailscale" }
+        }
+        service agent "Agent" {
+            technology "Wireguard"
+        }
+    }
+
+    infraSystem dns "DNS and Certificates" {
+        #networking
+
+        platform cloudflare "Cloudflare" {
+            description "Authoritative DNS, and the ACME DNS-01 provider Traefik solves against."
+        }
+    }
+
+    infraSystem gateway "Gateway" {
+        #networking
+        #public
+
+        service pangolin "Pangolin"
+        service rProxy "Reverse Proxy" { technology 'Traefik' }
+        service wgOrc "Wireguard Orchestrator" { technology "Gerbil" }
+        service wgAgent "Wireguard Agent" {
+            technology "Newt"
+            description "Site connector, installed per host as a systemd unit by infra.ansible."
+        }
+    }
+
+    infraSystem idp "Identity Provider" {
+        #identity-and-access
+        #public
+
+        service authentik "Authentik"
+        service worker "Worker"
+
+        database db "Database" { technology "PostgreSQL" }
+    }
+
+    infraSystem containerOrc "Container Orchestrator" {
+        #orchestration
+
+        service komoC "Komodo Core"
+        service komoP "Komodo Periphery"
+        database db "Database" { technology "MongoDB" }
+    }
+
+    infraSystem configMgmt "Configuration Management" {
+        #orchestration
+
+        service ansible "Ansible" {
+            description "Runs from the operator's workstation, not on the fleet. Owns what Komodo cannot: host packages, tailnet enrolment, the newt and periphery systemd units, and the control-plane cold start."
+        }
+    }
+
+    infraSystem alerting "Alerting" {
+        #observability
+
+        platform pushover "Pushover" {
+            description "Receives Komodo alerts. The only telemetry sink in the fleet."
+        }
+    }
+
+    infraSystem email "Transactional Email" {
+        #communications
+
+        platform smtpRelay "SMTP Relay" {
+            technology "SMTP"
+            metadata { vendor "Resend"; endpoint "smtp.resend.com:465" }
+        }
+    }
+
+    infraSystem priCodeForge "Primary Code Forge" {
+        #development
+
+        platform github "GitHub"
+    }
+
+    infraSystem secCodeForge "Secondary Code Forge" {
+        #development
+        #public
+
+        service forgejo "Forgejo" { technology "Gitea"}
+        database db "Database" { technology "PostgreSQL" }
+    }
+
+    infraSystem ci "Continuous Integration" {
+        #development
+        #public
+
+        service server "Woodpecker Server"
+        service agent "Woodpecker Agent" {
+            description "Runs pipeline steps as sibling containers on the host docker daemon."
+        }
+    }
+
+    infraSystem secretsMan "Secrets Manager" {
+        #secrets
+
+        service infisical "Infisical"
+        database db "Database" { technology "PostgreSQL" }
+        service redis "Cache" { technology "Redis" }
+    }
+
+    infraSystem passwdMan "Password Manager" {
+        #secrets
+
+        platform onepass "1Password"
+    }
+
+    infraSystem dataBak "Data Backup Coordinator" {
+        #backup-and-recovery
+
+        service zerobyte "Zerobyte" { technology "Restic" }
+    }
+
+    infraSystem dbBak "Database Backup Coordinator" {
+        #backup-and-recovery
+
+        service databasus "Databasus"
+    }
+
+    infraSystem dashboard "Dashboard" {
+        service homarr "Homarr"
+    }
+
+    infraSystem agentGw "Agent Gateway" {
+        #development
+
+        service komodoMcp "Komodo MCP" {
+            description "Exposes the Komodo API to agents over MCP."
+        }
+    }
+
+    // Apps ——————————————————————————————————————————
+    userSystem prjMan "Project Manager" {
+        #business
+        #public
+        service openPrj "OpenProject"
+    }
+
+    userSystem docsign "Document Signing" {
+        #business
+        #public
+        service docuseal "Docuseal"
+    }
+
+    userSystem docArc "Document Archive" {
+        #business
+        service paperless "Paperless"
+        service broker "Broker" { technology "Redis" }
+        service gotenberg "Document Converter" { technology "Gotenberg" }
+        service tika "Content Extractor" { technology "Apache Tika" }
+        database db "Database" { technology "PostgreSQL" }
+    }
+
+    userSystem erp "ERP" {
+        #business
+        service erpnext "ERPNext" { technology "Frappe" }
+        service redisCache "Cache" { technology "Redis" }
+        service redisQueue "Queue" { technology "Redis" }
+        database db "Database" { technology "MariaDB" }
+    }
+
+    userSystem phovid "Personal Photo Storage" {
+        #media
+        service immich "Immich"
+        service machineLearning "Machine Learning"
+        service redis "Cache" { technology "Valkey" }
+        database db "Database" { technology "PostgreSQL" }
+    }
+
+    userSystem mediaLib "Media Library" {
+        #media
+        service plex "Plex"
+        service seerr "Seerr"
+        service sonarr "Sonarr"
+        service radarr "Radarr"
+        service prowlarr "Prowlarr"
+        service bazarr "Bazarr"
+        service sabnzbd "SABnzbd"
+    }
+
+    userSystem gameServers "Game Servers" {
+        #gaming
+        service terraria "Terraria"
+    }
+
+    userSystem fileExp "File Explorer" {
+        #files
+        service fbq "File Browser Quantum"
+    }
+
+    // Shared state ——————————————————————————————————
+    database sharedDB "Shared Database" {
+        technology 'PostgreSQL'
+        description "postgres:18 on littlebuddy:6109, reached over the shared__postgres_db network."
+    }
+
+    datastore sharedFiles "Shared File Tree" {
+        description "/rootless-srv/file-browser-quantum/shared"
+    }
+
+    datastore dockerVolumes "Docker Volumes" {
+        description "/var/lib/docker/volumes on every managed node."
+    }
+}

@@ -1,15 +1,29 @@
 [tools]
 go-jsonnet = "0.22.0"
-uv = "0.12.1"         # runtime for devlib/render.py
+uv = "0.12.1"           # runtime for devlib/render.py
 lefthook = "2.1.10"
 yq = "4.53.3"
 d2 = "latest"
+"npm:likec4" = "latest"
 
 [hooks]
 postinstall = "lefthook install"
+
+[vars]
+path_c4 = "docs/c4"
 
 # BUILD —————————————————————
 [tasks.render]
 description = "Render every .jsonnet under src/ into the .yaml beside it"
 run = "./devlib/render.py"
 alias = ["render-compose", "render"]
+
+
+# DOCS —————————————————————
+[tasks."c4:validate"]
+description = "Validate the LikeC4 model"
+run = "likec4 validate --json --no-layout {{vars.path_c4}}"
+
+[tasks.c4]
+description = "Serve LikeC4 diagrams locally"
+run = "likec4 serve {{vars.path_c4}}"
