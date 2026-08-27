@@ -36,20 +36,25 @@ The container runs `codercom/enterprise-base:ubuntu` by default. Override with t
 
 ## Claude Code authentication
 
-The `anthropic_api_key` Terraform variable is optional and marked sensitive. Leave it
-unset and developers authenticate the CLI interactively on first use; set it at push
-time to pre-authenticate every workspace:
+The `claude_code_oauth_token` Terraform variable is optional and marked sensitive. Leave
+it unset and developers authenticate the CLI interactively on first use; set it at push
+time to pre-authenticate every workspace.
+
+Generate the token on a machine where you can complete the browser login, then push it:
 
 ```bash
+claude setup-token
+
 coder templates push default \
   -d src/tools/coder/templates/default/ \
-  --variable anthropic_api_key="$ANTHROPIC_API_KEY"
+  --variable claude_code_oauth_token="<token>"
 ```
 
 > [!WARNING]
-> A Terraform variable set this way is stored in the template's parameter values on the
-> Coder deployment. Prefer interactive login, or Coder AI Gateway, if that is not
-> acceptable for your deployment.
+> The token is stored in the template's variable values on the Coder deployment and is
+> handed to every workspace built from this template. It authenticates as the Claude.ai
+> account that generated it, and usage counts against that account's limits. Prefer
+> interactive per-developer login, or Coder AI Gateway, if that is not acceptable.
 
 ## Repository parameter
 

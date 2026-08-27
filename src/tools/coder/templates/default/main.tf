@@ -24,8 +24,8 @@ variable "image" {
   default     = "codercom/enterprise-base:ubuntu"
 }
 
-variable "anthropic_api_key" {
-  description = "Anthropic API key handed to Claude Code. Leave empty for developers to authenticate interactively."
+variable "claude_code_oauth_token" {
+  description = "Claude.ai OAuth token handed to Claude Code. Generate with `claude setup-token`. Leave empty for developers to authenticate interactively."
   type        = string
   sensitive   = true
   default     = ""
@@ -110,12 +110,12 @@ module "code-server" {
 }
 
 module "claude-code" {
-  count             = data.coder_workspace.me.start_count
-  source            = "registry.coder.com/coder/claude-code/coder"
-  version           = "5.4.1"
-  agent_id          = coder_agent.main.id
-  workdir           = local.workdir
-  anthropic_api_key = var.anthropic_api_key
+  count                   = data.coder_workspace.me.start_count
+  source                  = "registry.coder.com/coder/claude-code/coder"
+  version                 = "5.4.1"
+  agent_id                = coder_agent.main.id
+  workdir                 = local.workdir
+  claude_code_oauth_token = var.claude_code_oauth_token
 }
 
 module "dotfiles" {
