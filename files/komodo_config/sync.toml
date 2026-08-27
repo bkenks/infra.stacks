@@ -543,6 +543,7 @@ name = "Scaffold Docker Resources"
 
 [[procedure]]
 name = "Sync to Repo"
+config.schedule_alert = false
 config.schedule = "every hour"
 
 [[procedure.config.stage]]
