@@ -2,35 +2,45 @@
 // infra.ansible/inventory. files/komodo_config/sync.toml is a stale local copy —
 // do not treat it as authoritative for which host runs what.
 //
-// Newt and Komodo Periphery are installed by infra.ansible on `ubuntu_servers`,
-// which is every host below except the NAS — hence the repetition.
+// This file answers "who?" and "where?" only. A site is whose machines these are:
+// a vendor I rent from, or my own premises. Vultr and Hetzner appear here as
+// sites and nowhere in the model; Cloudflare is the mirror case — a platform in
+// the model, no site here, because I rent no compute from it.
+//
+// Instances sit at the application level, because an application is the unit that
+// lands on a host. Newt and Komodo Periphery are installed by infra.ansible on
+// `ubuntu_servers`, which is every host below except the NAS — hence the repetition.
 deployment {
 
     environment prod "Production" {
 
-        site cloud "Cloud VPS" {
+        site vultr "Vultr" {
 
             host rick "rick" {
-                description "Vultr VPS. The control plane: the only host in registry.jsonnet roles.controlPlane."
+                description "The control plane: the only host in registry.jsonnet roles.controlPlane."
 
-                instanceOf selfHosted.gateway
-                instanceOf selfHosted.idp
-                instanceOf selfHosted.secretsMan
-                instanceOf selfHosted.dashboard
-                instanceOf selfHosted.dbBak
-                instanceOf selfHosted.dataBak
+                instanceOf gateway.pangolin
+                instanceOf idp.authentik
+                instanceOf secretsMan.infisical
+                instanceOf dashboard.homarr
+                instanceOf dbBak.databasus
+                instanceOf dataBak.zerobyte
 
-                instanceOf selfHosted.overlayNet.agent
-                instanceOf selfHosted.containerOrc.komoC
-                instanceOf selfHosted.containerOrc.komoP
+                instanceOf gateway.newt
+                instanceOf overlayNet.tsAgent
+                instanceOf containerOrc.komodo.core
+                instanceOf containerOrc.komodo.periphery
             }
+        }
+
+        site hetzner "Hetzner" {
 
             host maboi "maboi" {
-                description "Hetzner Cloud cpx11, ash. Registered with Komodo, runs no stacks."
+                description "Cloud cpx11, ash. Registered with Komodo, runs no stacks."
 
-                instanceOf selfHosted.gateway.wgAgent
-                instanceOf selfHosted.overlayNet.agent
-                instanceOf selfHosted.containerOrc.komoP
+                instanceOf gateway.newt
+                instanceOf overlayNet.tsAgent
+                instanceOf containerOrc.komodo.periphery
             }
         }
 
@@ -39,50 +49,49 @@ deployment {
             host littlebuddy "littlebuddy" {
                 description "HP EliteDesk 705."
 
-                instanceOf selfHosted.sharedState.sharedDB
-                instanceOf selfHosted.secCodeForge
-                instanceOf selfHosted.ci
-                instanceOf selfHosted.agentGw
-                instanceOf selfHosted.prjMan
-                instanceOf selfHosted.docsign
-                instanceOf selfHosted.docArc
+                instanceOf sharedDb.postgres
+                instanceOf priCodeForge.forgejo
+                instanceOf ci.woodpecker
+                instanceOf agentGw.komodoMcp
+                instanceOf prjMan.openproject
+                instanceOf docsign.docuseal
+                instanceOf docArc.paperless
 
-                instanceOf selfHosted.gateway.wgAgent
-                instanceOf selfHosted.overlayNet.agent
-                instanceOf selfHosted.containerOrc.komoP
+                instanceOf gateway.newt
+                instanceOf overlayNet.tsAgent
+                instanceOf containerOrc.komodo.periphery
             }
 
             host biggy "biggy" {
                 description "HP ProDesk 400."
 
-                instanceOf selfHosted.fileExp
-                instanceOf selfHosted.gameServers
-                instanceOf selfHosted.sharedState.sharedFiles
+                instanceOf fileExp.fbq
+                instanceOf gameServers.terraria
 
-                instanceOf selfHosted.gateway.wgAgent
-                instanceOf selfHosted.overlayNet.agent
-                instanceOf selfHosted.containerOrc.komoP
+                instanceOf gateway.newt
+                instanceOf overlayNet.tsAgent
+                instanceOf containerOrc.komodo.periphery
             }
 
             host bill "bill" {
                 description "HP EliteDesk 705."
 
-                instanceOf selfHosted.erp
+                instanceOf erp.erpnext
 
-                instanceOf selfHosted.gateway.wgAgent
-                instanceOf selfHosted.overlayNet.agent
-                instanceOf selfHosted.containerOrc.komoP
+                instanceOf gateway.newt
+                instanceOf overlayNet.tsAgent
+                instanceOf containerOrc.komodo.periphery
             }
 
             host paiki "paiki" {
                 description "Beelink S13 Mini PC."
 
-                instanceOf selfHosted.phovid
-                instanceOf selfHosted.mediaLib
+                instanceOf phovid.immich
+                instanceOf mediaLib
 
-                instanceOf selfHosted.gateway.wgAgent
-                instanceOf selfHosted.overlayNet.agent
-                instanceOf selfHosted.containerOrc.komoP
+                instanceOf gateway.newt
+                instanceOf overlayNet.tsAgent
+                instanceOf containerOrc.komodo.periphery
             }
 
             device nas "snaszy" {

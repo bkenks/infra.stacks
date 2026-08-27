@@ -1,6 +1,8 @@
 specification {
     // Tags ——————————————————————————————————————————
-    // Capability grouping. An element carries at most one of these.
+    // What a capability is for. An element carries at most one of these, and the
+    // half it falls in says who it serves — the first eight are the fleet's own
+    // plumbing, the last four are what the household actually opens.
     tag orchestration
     tag networking
     tag observability
@@ -8,19 +10,26 @@ specification {
     tag secrets
     tag backup-and-recovery
     tag identity-and-access
-
     tag development
+
     tag business
     tag media
     tag gaming
     tag files
 
     // Cross-cutting properties. An element may carry any number.
-    tag workload       // user-facing: the household consumes it, not the fleet
     tag public         // published on ktbcloud.com — reachable without the tailnet
     tag stateful       // holds data a backup coordinator must capture
 
     // Element kinds —————————————————————————————————
+    // The model answers "what?" only. Three levels:
+    //
+    //   capability   what function is provided          (top level, always)
+    //     platform     a vendor provides it, opaque     (leaf — never decomposed)
+    //     application  software I run                   (decomposes when it has parts)
+    //       process / database                          what that software is made of
+    //
+    // Who runs it and where it sits is deployment.c4's question, never this one.
     element actor {
         notation "Person"
         style { shape person; color secondary }
@@ -30,39 +39,30 @@ specification {
         style { shape queue; color muted }
     }
 
-    // Ecosystems — the top layer. Every capability sits in exactly one.
-    // The axis is what I can model, not where the hardware sits: `infra` holds
-    // the capabilities I decompose into processes, `platform` the ones I cannot.
-    // Where a capability physically runs is deployment.c4's answer, not this layer's.
-    element infra {
-        notation "Infrastructure ecosystem"
-        style { shape rectangle; color gray }
-    }
-    element platform {
-        notation "Platform ecosystem"
-        style { shape rectangle; color muted; border dashed }
-    }
-
-    // Capabilities — the middle layer. A capability under `platform` is opaque
-    // and has no children; under `infra` it decomposes into processes.
     element capability {
         notation "Capability"
         style { shape rectangle; color slate }
     }
 
-    // Processes — the leaf layer. What actually runs.
+    element platform {
+        notation "Vendor platform"
+        style { shape rectangle; color muted; border dashed }
+    }
+    element application {
+        notation "Application"
+        style { shape rectangle; color blue }
+    }
+
     element process {
         notation "Process"
-        style { shape component; color blue }
+        style { shape component; color sky }
     }
-    element datastore {
-        #stateful
-        notation "File tree"
-        style { shape storage; color muted }
-    }
+    // One storage kind, not two. Whether it is a relational database or a tree of
+    // files on disk is what `technology` is for; #stateful is the part a backup
+    // coordinator cares about, and the kind carries it.
     element database {
         #stateful
-        notation "Database"
+        notation "Data store"
         style { shape storage; color green }
     }
 
@@ -79,6 +79,9 @@ specification {
     relationship deploys { color green }
 
     // Deployment node kinds —————————————————————————
+    // "Who" and "where": the vendors whose machines I rent, my own premises, and
+    // the boxes themselves. A vendor that is also a platform appears in both
+    // models — as a site here, as a platform in the model. Same company, two roles.
     deploymentNode environment { notation "Environment"; style { color gray } }
     deploymentNode site        { notation "Site" }
     deploymentNode host        { notation "Host"; style { shape rectangle } }
