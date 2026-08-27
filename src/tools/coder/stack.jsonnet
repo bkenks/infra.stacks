@@ -11,8 +11,13 @@ local secretsDepends = { secrets: { condition: "service_started" } };
 
 // ——————————————————————————————————————————
 
+// lib.Project.ext joins with "_", which is not a legal RFC-1123 hostname. The agent
+// dials the app container by name over CODER_AGENT_URL, so this stack names its
+// containers with a hyphen instead.
 local refs = lib.Project {
   name:: "coder",
+
+  Service:: super.Service { ext:: refs.name + "-" + self.role },
 
   app:: self.Service { role:: col.role.APP },
   db::  self.Service { role:: col.role.DB },
