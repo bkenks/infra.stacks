@@ -1,0 +1,11 @@
+apiVersion: vendir.k14s.io/v1alpha1
+directories:
+- contents:
+  - git:
+      commitTitle: Add src to the default jsonnet library path
+      sha: c2b4d5c50bccd1a07966c566b79f744c18fd4f6f
+      tags:
+      - v1.0.6-4-gc2b4d5c
+    path: .
+  path: devlib
+kind: LockConfig

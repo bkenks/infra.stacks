@@ -1,10 +1,10 @@
 apiVersion: vendir.k14s.io/v1alpha1
 kind: Config
 directories:
-  - path: .
+  - path: devlib
     contents:
-      - path: devlib
+      - path: .
         git:
-          url: https://fj.ktbcloud.com/bkenks/lib_compose.git
+          url: git@fj.ktbcloud.com:bkenks/lib_compose.git
           ref: main
         newRootPath: src
