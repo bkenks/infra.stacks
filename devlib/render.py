@@ -30,8 +30,9 @@ untouched.
 Usage:
     render.py [SRC] [-J JPATH]...
 
-SRC defaults to `src` under the repo root, JPATH to `devlib`; both resolve against the
-repo root, which is this script's parent directory. stdout lists every path the build
+SRC defaults to `src` under the repo root, JPATH to `devlib` and `src` -- the vendored
+library and the repo's own `registry.libsonnet` beside it; all resolve against the repo
+root, which is this script's parent directory. stdout lists every path the build
 owns, written and removed alike -- .config/lefthook.yml pipes it into `git add`. The
 summary goes to stderr to keep that list machine-readable.
 
@@ -58,7 +59,7 @@ STEM = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*")
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_SRC = "src"
-DEFAULT_JPATH = "devlib"
+DEFAULT_JPATH = ["devlib", "src"]
 
 
 def die(message: str) -> None:
@@ -73,7 +74,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("src", nargs="?", default=DEFAULT_SRC,
                         help=f"directory to sweep for entrypoints (default: {DEFAULT_SRC})")
     parser.add_argument("-J", "--jpath", action="append", default=None,
-                        help=f"jsonnet library path, repeatable (default: {DEFAULT_JPATH})")
+                        help="jsonnet library path, repeatable "
+                             f"(default: {', '.join(DEFAULT_JPATH)})")
     return parser.parse_args()
 
 
@@ -190,7 +192,7 @@ def main() -> None:
     src = under_root(args.src)
     if not src.is_dir():
         die(f"no such directory: {src}")
-    jpaths = [under_root(p) for p in (args.jpath or [DEFAULT_JPATH])]
+    jpaths = [under_root(p) for p in (args.jpath or DEFAULT_JPATH)]
 
     sources = entrypoints(src)
     if not sources:
