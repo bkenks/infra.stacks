@@ -1,10 +1,12 @@
 # GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
+name: "coder"
 networks:
   default: {}
   workspaces:
     name: "coder-workspaces"
 services:
   app:
+    container_name: "coder_app"
     depends_on:
       db:
         condition: "service_healthy"
@@ -12,7 +14,7 @@ services:
         condition: "service_started"
     environment:
       CODER_ACCESS_URL: "https://coder.ktbcloud.com"
-      CODER_AGENT_URL: "http://coder-app-1:7080"
+      CODER_AGENT_URL: "http://coder_app:7080"
       CODER_DERP_FORCE_WEBSOCKETS: "true"
       CODER_HTTP_ADDRESS: "0.0.0.0:7080"
       CODER_WILDCARD_ACCESS_URL: "*.coder.ktbcloud.com"
@@ -27,6 +29,7 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "app-home:/home/coder"
   db:
+    container_name: "coder_db"
     depends_on:
       secrets:
         condition: "service_started"

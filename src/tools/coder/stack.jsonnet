@@ -11,15 +11,22 @@ local secretsDepends = { secrets: { condition: "service_started" } };
 
 // ——————————————————————————————————————————
 
+local refs = lib.Project {
+  name:: "coder",
+
+  app:: self.Service { role:: col.role.APP },
+  db::  self.Service { role:: col.role.DB },
+};
+
 local app = {
-  key:: col.role.APP,
+  key:: refs.app.key,
   volume:: {
     home:: { key:: "app-home", mount:: "/home/coder"}
   }, v:: self.volume,
 };
 
 local db = {
-  key:: col.role.DB,
+  key:: refs.db.key,
   volume:: {
     data:: { key:: "db-data", mount:: "/var/lib/postgresql/data"}
   }, v:: self.volume,
@@ -42,6 +49,8 @@ local n = {
 
 {
   compose: {
+    name: refs.name,
+
     networks:
       n.workspaces.def +
       { 
@@ -69,6 +78,7 @@ local n = {
       },
 
       [ app.key ]: {
+        container_name: refs.app.ext,
         image: "ghcr.io/coder/coder:" + coderVersion,
         depends_on:
           secretsDepends +
@@ -92,7 +102,7 @@ local n = {
           // CODER_PG_CONNECTION_URL: via infisical-secrets
           CODER_HTTP_ADDRESS:             "0.0.0.0:7080",
           CODER_ACCESS_URL:               coderURL,
-          CODER_AGENT_URL:                "http://coder-app-1:7080",
+          CODER_AGENT_URL:                "http://" + refs.app.ext + ":7080",
           // Traefik does not relay the custom `Upgrade: DERP` header; without this
           // the agent's tailnet relay never connects and every app 502s.
           CODER_DERP_FORCE_WEBSOCKETS:    "true",
@@ -102,6 +112,7 @@ local n = {
       },
 
       [ db.key ]: {
+        container_name: refs.db.ext,
         image: "postgres:17",
         depends_on: secretsDepends,
         // via infisical-secrets
