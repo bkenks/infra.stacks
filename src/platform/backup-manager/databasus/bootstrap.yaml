@@ -1,0 +1,22 @@
+# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
+name: "databasus"
+services:
+  app:
+    container_name: "databasus_app"
+    env_file:
+      - "${ANSIBLE_SECRETS_FILE:-/dev/shm/secrets/databasus.env}"
+    image: "databasus/databasus@sha256:f748c20cecb3cf3162d80ebfddd4f192b5e4ee640d600c9daf726310ac49e51c"
+    network_mode: "host"
+    ports:
+      - "4005:4005"
+    pre_start:
+      - command:
+          - "sh"
+          - "-c"
+          - "umask 077; printf %s \"$$SECRET_KEY\" > /databasus-data/secret.key"
+    restart: "unless-stopped"
+    volumes:
+      - "app:/databasus-data"
+volumes:
+  app:
+    name: "databasus_app"
