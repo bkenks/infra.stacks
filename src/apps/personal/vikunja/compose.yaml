@@ -1,0 +1,63 @@
+# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
+name: "vikunja"
+networks:
+  default:
+    name: "vikunja"
+services:
+  app:
+    container_name: "vikunja_app"
+    depends_on:
+      db:
+        condition: "service_healthy"
+      secrets:
+        condition: "service_started"
+    environment:
+      VIKUNJA_DATABASE_DATABASE: "vikunja"
+      VIKUNJA_DATABASE_HOST: "db"
+      VIKUNJA_DATABASE_TYPE: "postgres"
+      VIKUNJA_DATABASE_USER: "vikunja"
+      VIKUNJA_SERVICE_ENABLEREGISTRATION: "true"
+      VIKUNJA_SERVICE_PUBLICURL: "https://vikunja.ktbinternal.com"
+      VIKUNJA_SERVICE_TIMEZONE: "America/New_York"
+    expose:
+      - "3456"
+    image: "docker.io/vikunja/vikunja:2.5.0"
+    ports:
+      - "127.0.0.1:18026:3456"
+    restart: "on-failure:5"
+    volumes:
+      - "/srv/docker/bind-mounts/apps/vikunja/files:/app/vikunja/files"
+  db:
+    container_name: "vikunja_db"
+    depends_on:
+      secrets:
+        condition: "service_started"
+    environment:
+      POSTGRES_DB: "vikunja"
+      POSTGRES_USER: "vikunja"
+    expose:
+      - "5432"
+    healthcheck:
+      interval: "5s"
+      retries: 10
+      test:
+        - "CMD-SHELL"
+        - "pg_isready --username=vikunja"
+      timeout: "10s"
+    image: "docker.io/library/postgres:18"
+    restart: "on-failure:5"
+    volumes:
+      - "db:/var/lib/postgresql"
+  secrets:
+    provider:
+      options:
+        credentials-file: "/mnt/secrets/credentials/infisical.env"
+        domain: "http://controlplane.internal:18043"
+        env: "prod"
+        path: "/vikunja"
+        project-id: "2f0eb3d1-3e2a-4ce7-8060-5e47ad877e47"
+        recursive: true
+      type: "infisical-secrets"
+volumes:
+  db:
+    name: "vikunja_db"
