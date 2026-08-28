@@ -2,7 +2,7 @@
 name: "databasus"
 services:
   app:
-    container_name: "databasus_app"
+    container_name: "databasus-app"
     env_file:
       - "${ANSIBLE_SECRETS_FILE:-/dev/shm/secrets/databasus.env}"
     image: "databasus/databasus@sha256:f748c20cecb3cf3162d80ebfddd4f192b5e4ee640d600c9daf726310ac49e51c"
