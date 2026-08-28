@@ -46,7 +46,7 @@ local gateway = lib.registry.network.shared.tsGateway;
 
     services: {
       [refs.app.key]: {
-        // infisical_app is registry.endpoint.infisical.container.name — other stacks dial it.
+        // infisical-app is registry.endpoint.infisical.container.name — other stacks dial it.
         container_name: infisical.container.name,
         image: 'docker.io/infisical/infisical:' + appVersion,
         restart: lib.collections.restart.unlessStopped,

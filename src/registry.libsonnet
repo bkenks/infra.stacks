@@ -56,16 +56,13 @@ local tmpl = import 'templates.libsonnet';
 
       postgres:: serviceGroup.Service {
         local service = self,
-        // The shared cluster's container name is not the <project>_<role> convention —
-        // other stacks already dial `postgres-db`, so the stack overrides its own
-        // container_name with this rather than the other way round.
         container:: service.Container { name:: 'postgres-db', port:: '5432' },
         host::      service.Host      { on:: host.littlebuddy, port:: '6109' },
       },
 
       infisical:: serviceGroup.Service {
         local service = self,
-        container:: service.Container { name:: 'infisical_app', port:: '8080' },
+        container:: service.Container { name:: 'infisical-app', port:: '8080' },
         // 18006 belongs to authentik, so infisical takes 18043: the two only collide once
         // they share a host, which the littlebuddy -> rick control-plane move does.
         host::      service.Host      { on:: host.rick, port:: '18043' },
