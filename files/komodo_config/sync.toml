@@ -350,6 +350,7 @@ server = "littlebuddy"
 linked_repo = "infra.stacks"
 run_directory = "./src/tools/devops/woodpecker"
 file_paths = ["compose.yaml"]
+ignore_services = ["secrets"]
 
 ##
 
