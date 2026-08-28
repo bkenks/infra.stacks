@@ -5,7 +5,7 @@ networks:
     name: "stream"
 services:
   bazarr:
-    container_name: "stream_bazarr"
+    container_name: "stream-bazarr"
     environment:
       PGID: "1000"
       PUID: "1000"
@@ -28,7 +28,7 @@ services:
       - "/srv/docker/bind-mounts/stream/bazarr/config:/config"
       - "/srv/docker/bind-mounts/stream/shared:/data"
   configarr:
-    container_name: "stream_configarr"
+    container_name: "stream-configarr"
     depends_on:
       radarr:
         condition: "service_healthy"
@@ -46,7 +46,7 @@ services:
       - "./configarr:/app/config:ro"
       - "/srv/docker/bind-mounts/stream/configarr/repos:/app/repos"
   decluttarr:
-    container_name: "stream_decluttarr"
+    container_name: "stream-decluttarr"
     depends_on:
       radarr:
         condition: "service_healthy"
@@ -63,7 +63,7 @@ services:
     volumes:
       - "./decluttarr:/app/config:ro"
   plex:
-    container_name: "stream_plex"
+    container_name: "stream-plex"
     depends_on:
       secrets:
         condition: "service_started"
@@ -89,7 +89,7 @@ services:
       - "/srv/docker/bind-mounts/stream/plex/config:/config"
       - "/srv/docker/bind-mounts/stream/shared/media:/data/media"
   prowlarr:
-    container_name: "stream_prowlarr"
+    container_name: "stream-prowlarr"
     environment:
       PGID: "1000"
       PUID: "1000"
@@ -111,7 +111,7 @@ services:
     volumes:
       - "/srv/docker/bind-mounts/stream/prowlarr/config:/config"
   radarr:
-    container_name: "stream_radarr"
+    container_name: "stream-radarr"
     environment:
       PGID: "1000"
       PUID: "1000"
@@ -134,7 +134,7 @@ services:
       - "/srv/docker/bind-mounts/stream/radarr/config:/config"
       - "/srv/docker/bind-mounts/stream/shared:/data"
   sabnzbd:
-    container_name: "stream_sabnzbd"
+    container_name: "stream-sabnzbd"
     environment:
       PGID: "1000"
       PUID: "1000"
@@ -167,7 +167,7 @@ services:
         recursive: true
       type: "infisical-secrets"
   seerr:
-    container_name: "stream_seerr"
+    container_name: "stream-seerr"
     environment:
       TZ: "America/New_York"
     expose:
@@ -180,7 +180,7 @@ services:
     volumes:
       - "/srv/docker/bind-mounts/stream/seerr/config:/app/config"
   sonarr:
-    container_name: "stream_sonarr"
+    container_name: "stream-sonarr"
     environment:
       PGID: "1000"
       PUID: "1000"

@@ -51,7 +51,7 @@ services:
       - "100.106.170.93:18043:8080"
     restart: "unless-stopped"
   db:
-    container_name: "infisical_db"
+    container_name: "infisical-db"
     environment:
       POSTGRES_DB: "infisical"
       POSTGRES_PASSWORD: "${INFISICAL_DB_PASSWORD:-}"
@@ -75,7 +75,7 @@ services:
     volumes:
       - "db:/var/lib/postgresql/data"
   redis:
-    container_name: "infisical_redis"
+    container_name: "infisical-redis"
     environment:
       ALLOW_EMPTY_PASSWORD: "yes"
     expose:

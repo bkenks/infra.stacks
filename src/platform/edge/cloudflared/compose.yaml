@@ -16,7 +16,7 @@ services:
       type: "infisical-secrets"
   tunnel:
     command: "tunnel --no-autoupdate run"
-    container_name: "cloudflared_tunnel"
+    container_name: "cloudflared-tunnel"
     depends_on:
       secrets:
         condition: "service_started"

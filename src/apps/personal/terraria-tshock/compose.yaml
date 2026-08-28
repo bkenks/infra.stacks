@@ -5,7 +5,7 @@ networks:
     name: "terraria-tshock"
 services:
   app:
-    container_name: "terraria-tshock_app"
+    container_name: "terraria-tshock-app"
     environment:
       CONFIGPATH: "/tshock/config"
       LOGPATH: "/tshock/logs"

@@ -8,7 +8,7 @@ networks:
     name: "shared__postgres_db"
 services:
   autoheal:
-    container_name: "openproject_autoheal"
+    container_name: "openproject-autoheal"
     environment:
       AUTOHEAL_CONTAINER_LABEL: "autoheal"
       AUTOHEAL_INTERVAL: "30"
@@ -18,12 +18,12 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
   cache:
-    container_name: "openproject_cache"
+    container_name: "openproject-cache"
     image: "memcached:1.6-alpine"
     restart: "unless-stopped"
   cron:
     command: "./docker/prod/cron"
-    container_name: "openproject_cron"
+    container_name: "openproject-cron"
     depends_on:
       cache:
         condition: "service_started"
@@ -58,7 +58,7 @@ services:
       - "assets:/var/openproject/assets"
       - "./token/enterprise_token.rb:/app/app/models/enterprise_token.rb"
   hocuspocus:
-    container_name: "openproject_hocuspocus"
+    container_name: "openproject-hocuspocus"
     depends_on:
       secrets:
         condition: "service_started"
@@ -86,7 +86,7 @@ services:
       type: "infisical-secrets"
   seeder:
     command: "./docker/prod/seeder"
-    container_name: "openproject_seeder"
+    container_name: "openproject-seeder"
     depends_on:
       secrets:
         condition: "service_started"
@@ -118,7 +118,7 @@ services:
       - "./token/enterprise_token.rb:/app/app/models/enterprise_token.rb"
   web:
     command: "./docker/prod/web"
-    container_name: "openproject_web"
+    container_name: "openproject-web"
     depends_on:
       cache:
         condition: "service_started"
@@ -171,7 +171,7 @@ services:
       - "./token/enterprise_token.rb:/app/app/models/enterprise_token.rb"
   worker:
     command: "./docker/prod/worker"
-    container_name: "openproject_worker"
+    container_name: "openproject-worker"
     depends_on:
       cache:
         condition: "service_started"

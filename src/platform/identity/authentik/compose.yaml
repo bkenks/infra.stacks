@@ -9,7 +9,7 @@ networks:
 services:
   app:
     command: "server"
-    container_name: "authentik_app"
+    container_name: "authentik-app"
     depends_on:
       db:
         condition: "service_healthy"
@@ -28,7 +28,7 @@ services:
     volumes:
       - "data:/data"
   db:
-    container_name: "authentik_db"
+    container_name: "authentik-db"
     depends_on:
       secrets:
         condition: "service_started"
@@ -66,7 +66,7 @@ services:
       type: "infisical-secrets"
   worker:
     command: "worker"
-    container_name: "authentik_worker"
+    container_name: "authentik-worker"
     depends_on:
       db:
         condition: "service_healthy"

@@ -6,7 +6,7 @@ networks:
 services:
   agent:
     command: "agent"
-    container_name: "woodpecker_agent"
+    container_name: "woodpecker-agent"
     depends_on:
       secrets:
         condition: "service_started"
@@ -35,7 +35,7 @@ services:
         recursive: true
       type: "infisical-secrets"
   server:
-    container_name: "woodpecker_server"
+    container_name: "woodpecker-server"
     depends_on:
       secrets:
         condition: "service_started"

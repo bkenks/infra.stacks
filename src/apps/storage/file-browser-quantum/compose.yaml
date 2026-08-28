@@ -5,7 +5,7 @@ networks:
     name: "file-brws-quantm"
 services:
   app:
-    container_name: "file-brws-quantm_app"
+    container_name: "file-brws-quantm-app"
     expose:
       - "80"
     image: "gtstef/filebrowser:stable"

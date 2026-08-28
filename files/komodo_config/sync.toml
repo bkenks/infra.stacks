@@ -58,7 +58,7 @@ enabled = true
 name = "authentik"
 [stack.config]
 server = "rick"
-linked_repo = "t_infra.stacks"
+linked_repo = "infra.stacks"
 run_directory = "./src/platform/identity/authentik"
 file_paths = ["compose.yaml"]
 extra_args = ["--remove-orphans"]
@@ -69,7 +69,7 @@ extra_args = ["--remove-orphans"]
 name = "coder"
 [stack.config]
 server = "bill"
-linked_repo = "t_infra.stacks"
+linked_repo = "infra.stacks"
 run_directory = "src/tools/coder"
 ignore_services = ["secrets"]
 
@@ -81,7 +81,7 @@ name = "databasus"
 server = "rick"
 project_name = "databasus"
 poll_for_updates = true
-linked_repo = "t_infra.stacks"
+linked_repo = "infra.stacks"
 webhook_enabled = false
 run_directory = "./src/platform/backup-manager/databasus"
 environment = """
@@ -95,7 +95,7 @@ ANSIBLE_SECRET_PATH=/dev/shm/platform.env
 name = "docuseal"
 [stack.config]
 server = "littlebuddy"
-linked_repo = "t_infra.stacks"
+linked_repo = "infra.stacks"
 run_directory = "./src/apps/business/docuseal"
 file_paths = ["compose.yaml"]
 extra_args = ["--remove-orphans"]
@@ -106,7 +106,7 @@ extra_args = ["--remove-orphans"]
 name = "fbq"
 [stack.config]
 server = "biggy"
-linked_repo = "t_infra.stacks"
+linked_repo = "infra.stacks"
 run_directory = "src/apps/storage/file-browser-quantum"
 ignore_services = ["init"]
 
@@ -117,7 +117,7 @@ name = "forgejo"
 [stack.config]
 server = "littlebuddy"
 destroy_before_deploy = true
-linked_repo = "t_infra.stacks"
+linked_repo = "infra.stacks"
 run_directory = "./src/tools/devops/forgejo"
 file_paths = ["compose.yaml"]
 
@@ -127,7 +127,7 @@ file_paths = ["compose.yaml"]
 name = "frappe"
 [stack.config]
 server = "bill"
-linked_repo = "t_infra.stacks"
+linked_repo = "infra.stacks"
 run_directory = "src/apps/business/frappe"
 file_paths = [
   "compose.yaml",
@@ -144,7 +144,7 @@ name = "homarr"
 [stack.config]
 server = "rick"
 destroy_before_deploy = true
-linked_repo = "t_infra.stacks"
+linked_repo = "infra.stacks"
 run_directory = "./src/platform/dashboard"
 file_paths = ["compose.yaml"]
 
@@ -155,7 +155,7 @@ name = "immich"
 [stack.config]
 server = "paiki"
 links = ["https://immich.homektb.com"]
-linked_repo = "t_infra.stacks"
+linked_repo = "infra.stacks"
 run_directory = "./src/apps/media/immich"
 file_paths = ["compose.yaml"]
 environment = """
@@ -170,7 +170,7 @@ name = "infisical"
 server = "rick"
 project_name = "infisical"
 destroy_before_deploy = true
-linked_repo = "t_infra.stacks"
+linked_repo = "infra.stacks"
 run_directory = "./src/platform/secrets-manager/infisical"
 file_paths = ["compose.yaml"]
 environment = """
@@ -200,7 +200,7 @@ name = "komodo-mcp"
 [stack.config]
 server = "rick"
 destroy_before_deploy = true
-linked_repo = "t_infra.stacks"
+linked_repo = "infra.stacks"
 run_directory = "./src/tools/komodo-mcp"
 file_paths = ["compose.yaml"]
 config_files = [
@@ -220,7 +220,7 @@ name = "openproject"
 [stack.config]
 server = "littlebuddy"
 destroy_before_deploy = true
-linked_repo = "forgejo_infra.stacks"
+linked_repo = "infra.stacks"
 run_directory = "src/apps/business/openproject"
 ignore_services = ["seeder"]
 
@@ -231,7 +231,7 @@ name = "pangolin"
 [stack.config]
 server = "rick"
 destroy_before_deploy = true
-linked_repo = "t_infra.stacks"
+linked_repo = "infra.stacks"
 run_directory = "./src/platform/edge/pangolin"
 file_paths = ["compose.yaml"]
 extra_args = ["--remove-orphans"]
@@ -243,7 +243,7 @@ ignore_services = ["init", "secrets"]
 name = "pangolin-client"
 template = true
 [stack.config]
-linked_repo = "t_infra.stacks"
+linked_repo = "infra.stacks"
 run_directory = "./src/platform/edge/pangolin-client"
 file_paths = ["compose.yaml"]
 
@@ -253,7 +253,7 @@ file_paths = ["compose.yaml"]
 name = "paperless"
 [stack.config]
 server = "littlebuddy"
-linked_repo = "t_infra.stacks"
+linked_repo = "infra.stacks"
 run_directory = "./src/apps/personal/paperless"
 file_paths = ["compose.yaml"]
 env_file_path = "komodo_vars.env"
@@ -271,7 +271,7 @@ DOCKER_VOLUMES=[[SRV_DOCKER_VOL]]
 name = "postgres"
 [stack.config]
 server = "littlebuddy"
-linked_repo = "t_infra.stacks"
+linked_repo = "infra.stacks"
 webhook_enabled = false
 run_directory = "./src/databases/postgres"
 file_paths = ["compose.yaml"]
@@ -282,7 +282,7 @@ file_paths = ["compose.yaml"]
 name = "stream"
 [stack.config]
 server = "paiki"
-linked_repo = "t_infra.stacks"
+linked_repo = "infra.stacks"
 run_directory = "./src/apps/media/stream"
 file_paths = ["compose.yaml"]
 ignore_services = ["configarr"]
@@ -293,7 +293,7 @@ ignore_services = ["configarr"]
 name = "template__newt"
 template = true
 [stack.config]
-linked_repo = "t_infra.stacks"
+linked_repo = "infra.stacks"
 run_directory = "./src/platform/edge/newt"
 file_paths = ["compose.yaml"]
 environment = """
@@ -312,7 +312,7 @@ COMPOSE_PROFILES='internal,external'
 name = "template__pangolin"
 template = true
 [stack.config]
-linked_repo = "t_infra.stacks"
+linked_repo = "infra.stacks"
 run_directory = "./src/platform/edge/pangolin"
 file_paths = ["compose.yaml"]
 
@@ -322,7 +322,7 @@ file_paths = ["compose.yaml"]
 name = "terraria"
 [stack.config]
 server = "biggy"
-linked_repo = "t_infra.stacks"
+linked_repo = "infra.stacks"
 run_directory = "./src/apps/personal/terraria"
 file_paths = ["compose.yaml"]
 
@@ -332,7 +332,7 @@ file_paths = ["compose.yaml"]
 name = "ts-gateway_rick"
 [stack.config]
 server = "rick"
-linked_repo = "t_infra.stacks"
+linked_repo = "infra.stacks"
 run_directory = "./src/platform/edge/tailscale"
 file_paths = ["compose.yaml"]
 environment = """
@@ -363,7 +363,7 @@ name = "woodpecker"
 description = "CI/CD Pipeline"
 [stack.config]
 server = "littlebuddy"
-linked_repo = "t_infra.stacks"
+linked_repo = "infra.stacks"
 run_directory = "./src/tools/devops/woodpecker"
 file_paths = ["compose.yaml"]
 
@@ -378,7 +378,7 @@ links = [
   "http://rick:4096"
 ]
 project_name = "zerobyte"
-linked_repo = "t_infra.stacks"
+linked_repo = "infra.stacks"
 run_directory = "./src/platform/backup-manager/zerobyte"
 file_paths = ["compose.yaml"]
 environment = """
@@ -431,17 +431,9 @@ repo = "stackform-hq/client_strongfit_website"
 ##
 
 [[repo]]
-name = "forgejo_infra.stacks"
+name = "infra.stacks"
 [repo.config]
 git_provider = "fj.ktbcloud.com"
-git_account = "bkenks"
-repo = "ktbgroup-self-hosted/infra.stacks"
-
-##
-
-[[repo]]
-name = "github_infra.stacks"
-[repo.config]
 git_account = "bkenks"
 repo = "ktbgroup-self-hosted/infra.stacks"
 
@@ -472,15 +464,6 @@ server = "littlebuddy"
 git_provider = "fj.homektb.com"
 git_account = "bkenks"
 repo = "stackform-hq/stackform_website"
-
-##
-
-[[repo]]
-name = "t_infra.stacks"
-template = true
-[repo.config]
-git_account = "bkenks"
-repo = "ktbgroup-self-hosted/infra.stacks"
 
 ##
 
@@ -660,7 +643,7 @@ params.server_id = "littlebuddy"
 [[resource_sync]]
 name = "Global Sync"
 [resource_sync.config]
-linked_repo = "forgejo_infra.stacks"
+linked_repo = "infra.stacks"
 resource_path = [
   "files/komodo_config/sync.toml"
 ]
