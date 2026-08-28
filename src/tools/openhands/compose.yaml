@@ -1,0 +1,37 @@
+# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
+name: "openhands"
+networks:
+  default:
+    name: "openhands"
+services:
+  app:
+    container_name: "openhands-app"
+    depends_on:
+      secrets:
+        condition: "service_started"
+    environment:
+      TZ: "America/Chicago"
+    expose:
+      - "8000"
+    image: "ghcr.io/openhands/agent-canvas:1.16.0"
+    ports:
+      - "127.0.0.1:18027:8000"
+    restart: "on-failure:5"
+    stdin_open: true
+    tty: true
+    volumes:
+      - "home:/home/openhands/.openhands"
+      - "/srv/docker/bind-mounts/openhands/projects:/projects"
+  secrets:
+    provider:
+      options:
+        credentials-file: "/mnt/secrets/credentials/infisical.env"
+        domain: "http://controlplane.internal:18043"
+        env: "prod"
+        path: "/openhands"
+        project-id: "86324d9b-3dd7-49d4-b252-69228c5ee0c7"
+        recursive: true
+      type: "infisical-secrets"
+volumes:
+  home:
+    name: "openhands_home"
