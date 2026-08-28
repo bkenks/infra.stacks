@@ -12,12 +12,11 @@ pre-commit:
     
     - name: "JOB: pack kstore"
       run: |
-        echo "INFO running cmd 'mise run kstore:pack'"
+        echo "INFO running cmd 'mise run kstore:pack --stage'"
         echo "———————————————————————————————"
-        mise run kstore:pack
+        mise run kstore:pack --stage
         echo "———————————————————————————————"
         echo "INFO completed successfully"
-      stage_fixed: true
 
     - name: "JOB: jsonnet -> yaml"
       run: |
