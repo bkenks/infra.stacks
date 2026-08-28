@@ -343,6 +343,22 @@ HOST = "rick"
 ##
 
 [[stack]]
+name = "vikunja"
+[stack.config]
+server = "littlebuddy"
+linked_repo = "t_infra.stacks"
+run_directory = "./src/apps/personal/vikunja"
+file_paths = ["compose.yaml"]
+pre_deploy.command = """
+  # The image is scratch + USER 1000 and never creates this directory, so an
+  # empty bind mount lands root-owned and every attachment upload fails.
+  mkdir -p /srv/docker/bind-mounts/apps/vikunja/files
+  chown 1000 /srv/docker/bind-mounts/apps/vikunja/files
+"""
+
+##
+
+[[stack]]
 name = "woodpecker"
 description = "CI/CD Pipeline"
 [stack.config]
