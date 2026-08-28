@@ -64,14 +64,14 @@ confirm both commands ran.
 On `littlebuddy`:
 
 ```bash
-docker ps --filter name=vikunja_          # vikunja_app and vikunja_db both up
-docker logs vikunja_app | head -40        # migrations ran, no database auth errors
+docker ps --filter name=vikunja           # vikunja-app and vikunja-db both up
+docker logs vikunja-app | head -40        # migrations ran, no database auth errors
 curl -fsS http://127.0.0.1:18026/api/v1/info
 ```
 
 `/api/v1/info` returns JSON including the version. The app service carries **no** healthcheck —
 the `scratch` image ships no shell, curl or wget — so `docker ps` showing "healthy" is only
-ever `vikunja_db`. Curl from the host is the check.
+ever `vikunja-db`. Curl from the host is the check.
 
 Confirm the bind mount is writable by the app's uid:
 

@@ -5,7 +5,7 @@ networks:
     name: "vikunja"
 services:
   app:
-    container_name: "vikunja_app"
+    container_name: "vikunja-app"
     depends_on:
       db:
         condition: "service_healthy"
@@ -28,7 +28,7 @@ services:
     volumes:
       - "/srv/docker/bind-mounts/apps/vikunja/files:/app/vikunja/files"
   db:
-    container_name: "vikunja_db"
+    container_name: "vikunja-db"
     depends_on:
       secrets:
         condition: "service_started"
