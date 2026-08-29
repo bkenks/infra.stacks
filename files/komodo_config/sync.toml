@@ -355,6 +355,15 @@ HOST = "rick"
 ##
 
 [[stack]]
+name = "vikunja"
+[stack.config]
+server = "littlebuddy"
+linked_repo = "infra.stacks"
+run_directory = "./src/apps/personal/vikunja"
+
+##
+
+[[stack]]
 name = "woodpecker"
 description = "CI/CD Pipeline"
 [stack.config]
