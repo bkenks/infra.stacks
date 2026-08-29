@@ -68,7 +68,9 @@ local filesDir = lib.collections.dirs.docker.bindMounts + '/apps/vikunja/files';
         expose: [appPort],
         ports: ['%s:18026:%s' % [lib.collections.ip.loopback, appPort]],
         pre_start: [
-          { command: ['sh', '-c', 'mkdir -p %s && chown %s %s' % [filesDir, userGroupID, filesDir]] }
+          { image: "busybox",
+            user: "root",
+            command: ['sh', '-c', 'mkdir -p %s && chown %s %s' % [filesDir, userGroupID, filesDir]] }
         ],
       },
 

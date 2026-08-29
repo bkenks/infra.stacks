@@ -29,6 +29,8 @@ services:
           - "sh"
           - "-c"
           - "mkdir -p /srv/docker/bind-mounts/apps/vikunja/files && chown 1000:1000 /srv/docker/bind-mounts/apps/vikunja/files"
+        image: "busybox"
+        user: "root"
     restart: "on-failure:5"
     volumes:
       - "/srv/docker/bind-mounts/apps/vikunja/files:/app/vikunja/files"
