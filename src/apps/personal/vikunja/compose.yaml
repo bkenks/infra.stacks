@@ -24,6 +24,11 @@ services:
     image: "docker.io/vikunja/vikunja:2.5.0"
     ports:
       - "127.0.0.1:18026:3456"
+    pre_start:
+      - command:
+          - "sh"
+          - "-c"
+          - "mkdir -p /srv/docker/bind-mounts/apps/vikunja/files && chown 1000:1000 /srv/docker/bind-mounts/apps/vikunja/files"
     restart: "on-failure:5"
     volumes:
       - "/srv/docker/bind-mounts/apps/vikunja/files:/app/vikunja/files"

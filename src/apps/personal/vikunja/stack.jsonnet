@@ -12,6 +12,9 @@ local refs = lib.Project {
   dbData:: self.Volume { key:: 'db' },
 };
 
+local userID = "1000";
+local userGroupID = userID + ":" + userID;
+
 local appVersion = '2.5.0';
 local dbVersion = '18';
 
@@ -64,6 +67,9 @@ local filesDir = lib.collections.dirs.docker.bindMounts + '/apps/vikunja/files';
         // the vikunja binary has no health subcommand to exec instead.
         expose: [appPort],
         ports: ['%s:18026:%s' % [lib.collections.ip.loopback, appPort]],
+        pre_start: [
+          { command: ['sh', '-c', 'mkdir -p %s && chown %s %s' % [filesDir, userGroupID, filesDir]] }
+        ],
       },
 
       [refs.db.key]: {
