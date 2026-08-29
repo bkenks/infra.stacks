@@ -360,6 +360,7 @@ name = "vikunja"
 server = "littlebuddy"
 linked_repo = "infra.stacks"
 run_directory = "./src/apps/personal/vikunja"
+ignore_services = ["secrets"]
 
 ##
 
