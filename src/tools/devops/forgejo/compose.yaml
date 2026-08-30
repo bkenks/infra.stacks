@@ -43,6 +43,9 @@ services:
         condition: "service_started"
     environment:
       FORGEJO____APP_NAME: "KTB Software"
+      FORGEJO____APP_SLOGAN: "End-To-End Software"
+      FORGEJO____DOMAIN: "ktbcloud.com"
+      FORGEJO____SSH_DOMAIN: "ktbcloud.com"
       FORGEJO__database__DB_TYPE: "postgres"
       FORGEJO__database__HOST: "db:5432"
       FORGEJO__database__NAME: "forgejo"

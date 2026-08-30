@@ -1,6 +1,8 @@
 // forgejo: source-of-truth git forge (push-mirrors to GitHub). SSH via a raw-TCP Traefik
 // router on :22. `db` is a dedicated Postgres, NOT the shared cluster.
 local lib = import 'lib.libsonnet';
+local col = lib.collections;
+
 local refs = lib.Project {
   name:: 'forgejo',
 
@@ -45,6 +47,9 @@ local sharedDB = lib.registry.network.shared.forgejoDB;
         // password as POSTGRES_PASSWORD, so the bundle carries it under both names.
         environment: {
           FORGEJO____APP_NAME: 'KTB Software',
+          FORGEJO____APP_SLOGAN: 'End-To-End Software',
+          FORGEJO____DOMAIN: col.domain.ktbcloud,
+          FORGEJO____SSH_DOMAIN: col.domain.ktbcloud,
           FORGEJO__database__DB_TYPE: 'postgres',
           FORGEJO__database__HOST: refs.db.key + ':5432',
           FORGEJO__database__NAME: dbName,
