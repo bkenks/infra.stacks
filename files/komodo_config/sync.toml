@@ -92,16 +92,6 @@ ANSIBLE_SECRET_PATH=/dev/shm/platform.env
 ##
 
 [[stack]]
-name = "activepieces"
-[stack.config]
-server = "littlebuddy"
-linked_repo = "infra.stacks"
-run_directory = "./src/apps/business/activepieces"
-ignore_services = ["secrets"]
-
-##
-
-[[stack]]
 name = "docuseal"
 [stack.config]
 server = "littlebuddy"
