@@ -44,7 +44,7 @@ local sharedDB = lib.registry.network.shared.forgejoDB;
         // FORGEJO__database__PASSWD arrives from infisical-secrets; `db` reads the same
         // password as POSTGRES_PASSWORD, so the bundle carries it under both names.
         environment: {
-          FORGEJO____APP_NAME: 'Forgejo',
+          FORGEJO____APP_NAME: 'KTB Software',
           FORGEJO__database__DB_TYPE: 'postgres',
           FORGEJO__database__HOST: refs.db.key + ':5432',
           FORGEJO__database__NAME: dbName,
