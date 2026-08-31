@@ -98,6 +98,7 @@ linked_repo = "infra.stacks"
 run_directory = "./src/apps/business/docuseal"
 file_paths = ["compose.yaml"]
 extra_args = ["--remove-orphans"]
+ignore_services = ["secrets"]
 
 ##
 
@@ -286,6 +287,7 @@ linked_repo = "infra.stacks"
 webhook_enabled = false
 run_directory = "./src/databases/postgres"
 file_paths = ["compose.yaml"]
+ignore_services = ["secrets"]
 
 ##
 
@@ -585,46 +587,6 @@ for (const server of servers) {
     },
   );
 }
-"""
-
-##
-
-[[action]]
-name = "Scaffold Docker Networks"
-[action.config]
-file_contents = """
-// Run actions using the pre initialized 'komodo' client.
-const servers: Types.ListServersResponse = await komodo.read("ListServers", {});
-
-// Access arguments using the 'ARGS' object.
-// ARGS.networks: [{ name: "shared__caddy", driver: "bridge" }, { name: "shared__ts-gateway" }, ...]
-const networks: { name: string; driver?: string }[] = ARGS.networks;
-
-if (!networks?.length) {
-  throw new Error("Missing required arg: networks");
-}
-
-for (const server of servers) {
-  console.log(`\n=== ${server.name} ===`);
-  for (const { name, driver = "bridge" } of networks) {
-    await komodo.execute_server_terminal(
-      {
-        server: server.name,
-        command: `docker network inspect ${name} >/dev/null 2>&1 || docker network create --driver ${driver} ${name}`,
-        init: { command: "bash" },
-      },
-      {
-        onLine: (line) => console.log(`[${server.name}] [${name}] ${line}`),
-        onFinish: (code) => console.log(`[${server.name}] [${name}] exit code: ${code}`),
-      },
-    );
-  }
-}
-"""
-arguments_format = "yaml"
-arguments = """
-networks:
-  - name: shared__ts-dokr-gw
 """
 
 ##
