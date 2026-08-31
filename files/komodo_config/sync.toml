@@ -27,16 +27,6 @@ enabled = true
 ##
 
 [[server]]
-name = "maboi"
-description = "Hetzner VPS CPX11"
-[server.config]
-address = "https://100.97.83.95:8120"
-region = "US EAST - ASHLAND, VA"
-enabled = true
-
-##
-
-[[server]]
 name = "paiki"
 [server.config]
 address = "https://100.126.19.103:8120"
@@ -497,7 +487,7 @@ executions = [
   { execution.type = "PruneContainers", execution.params.server = "biggy", enabled = true },
   { execution.type = "PruneContainers", execution.params.server = "bill", enabled = true },
   { execution.type = "PruneContainers", execution.params.server = "littlebuddy", enabled = true },
-  { execution.type = "PruneContainers", execution.params.server = "maboi", enabled = true },
+  { execution.type = "PruneContainers", enabled = true },
   { execution.type = "PruneContainers", execution.params.server = "paiki", enabled = true }
 ]
 
@@ -508,7 +498,7 @@ executions = [
   { execution.type = "PruneNetworks", execution.params.server = "biggy", enabled = true },
   { execution.type = "PruneNetworks", execution.params.server = "bill", enabled = true },
   { execution.type = "PruneNetworks", execution.params.server = "littlebuddy", enabled = true },
-  { execution.type = "PruneNetworks", execution.params.server = "maboi", enabled = true },
+  { execution.type = "PruneNetworks", enabled = true },
   { execution.type = "PruneNetworks", execution.params.server = "paiki", enabled = true }
 ]
 
@@ -519,7 +509,7 @@ executions = [
   { execution.type = "PruneImages", execution.params.server = "biggy", enabled = true },
   { execution.type = "PruneImages", execution.params.server = "bill", enabled = true },
   { execution.type = "PruneImages", execution.params.server = "littlebuddy", enabled = true },
-  { execution.type = "PruneImages", execution.params.server = "maboi", enabled = true },
+  { execution.type = "PruneImages", enabled = true },
   { execution.type = "PruneImages", execution.params.server = "paiki", enabled = true }
 ]
 
@@ -568,7 +558,7 @@ executions = [
   { execution.type = "PruneVolumes", execution.params.server = "biggy", enabled = true },
   { execution.type = "PruneVolumes", execution.params.server = "bill", enabled = true },
   { execution.type = "PruneVolumes", execution.params.server = "littlebuddy", enabled = true },
-  { execution.type = "PruneVolumes", execution.params.server = "maboi", enabled = true },
+  { execution.type = "PruneVolumes", enabled = true },
   { execution.type = "PruneVolumes", execution.params.server = "paiki", enabled = true }
 ]
 
