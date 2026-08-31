@@ -20,7 +20,7 @@ local gateway = lib.registry.network.shared.tailscale_gw_001;
     name: refs.name,
     networks: {
       default: { name: refs.name },
-      [gateway.name]: { name: gateway.name },
+      [gateway.name]: { name: gateway.name, external: true },
     },
     volumes: refs.app.volume.data.declare,
 

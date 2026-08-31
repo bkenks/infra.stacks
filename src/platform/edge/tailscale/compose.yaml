@@ -4,6 +4,7 @@ networks:
   default:
     name: "tailscale-gw"
   tailscale_gw_001:
+    external: true
     name: "tailscale_gw_001"
 services:
   app:
