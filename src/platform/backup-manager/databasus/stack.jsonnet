@@ -31,11 +31,14 @@ local app(secretsProvider) = {
   [if secretsProvider then 'depends_on']: lib.secretsReady,
   [if !secretsProvider then 'env_file']: [bootstrapEnv],
   // databasus reads its key from a file, and neither the provider nor an env file does
-  // anything but set environment variables. The hook runs in this service's own image
-  // before the container starts, with SECRET_KEY already injected, and writes it into the
-  // data volume the container then reads. `$$` escapes compose's interpolation so the
-  // shell in the hook expands it rather than compose resolving it to nothing.
+  // anything but set environment variables. The hook runs before the container starts,
+  // with SECRET_KEY already injected, and writes it into the data volume the container
+  // then reads. `$$` escapes compose's interpolation so the shell in the hook expands it
+  // rather than compose resolving it to nothing. The hook needs its own entrypoint-less
+  // image: without one Compose reuses the service image, whose /app/start.sh entrypoint
+  // swallows the command as arguments and never exits, hanging the deploy.
   pre_start: [{
+    image: 'alpine:3.20',
     command: ['sh', '-c', 'umask 077; printf %s "$$SECRET_KEY" > /databasus-data/secret.key'],
   }],
   volumes: [refs.appData.mount('/databasus-data')],
