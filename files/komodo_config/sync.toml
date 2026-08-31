@@ -126,29 +126,13 @@ ignore_services = ["secrets"]
 ##
 
 [[stack]]
-name = "frappe"
-[stack.config]
-server = "bill"
-linked_repo = "infra.stacks"
-run_directory = "src/apps/business/frappe"
-file_paths = [
-  "compose.yaml",
-  "compose.noproxy.yaml",
-  "compose.mariadb.yaml",
-  "compose.redis.yaml"
-]
-ignore_services = ["configurator"]
-
-##
-
-[[stack]]
 name = "homarr"
 [stack.config]
 server = "rick"
 destroy_before_deploy = true
 linked_repo = "infra.stacks"
-run_directory = "./src/platform/dashboard"
-file_paths = ["compose.yaml"]
+run_directory = "src/platform/dashboard/homarr"
+ignore_services = ["secrets"]
 
 ##
 
@@ -160,6 +144,7 @@ links = ["https://immich.homektb.com"]
 linked_repo = "infra.stacks"
 run_directory = "./src/apps/media/immich"
 file_paths = ["compose.yaml"]
+ignore_services = ["secrets"]
 environment = """
   # VARIABLE = value
 """
@@ -201,19 +186,9 @@ AGENT_SERVICES  = "${NS} ${PS} zerobyte postgres docuseal forgejo openproject wo
 name = "komodo-mcp"
 [stack.config]
 server = "rick"
-destroy_before_deploy = true
 linked_repo = "infra.stacks"
-run_directory = "./src/tools/komodo-mcp"
-file_paths = ["compose.yaml"]
-config_files = [
-  { path = "stack.services.yaml", requires = "Restart" }
-]
-extra_args = ["--remove-orphans"]
-environment = """
-  # VARIABLE = value
-HTTP_SCHEME = 'http'
-KOMODO_FQDN = 'host.docker.internal:9120'
-"""
+run_directory = "src/tools/komodo-mcp"
+ignore_services = ["secrets"]
 
 ##
 
@@ -253,16 +228,6 @@ ignore_services = ["init", "secrets"]
 ##
 
 [[stack]]
-name = "pangolin-client"
-template = true
-[stack.config]
-linked_repo = "infra.stacks"
-run_directory = "./src/platform/edge/pangolin-client"
-file_paths = ["compose.yaml"]
-
-##
-
-[[stack]]
 name = "paperless"
 [stack.config]
 server = "littlebuddy"
@@ -273,10 +238,7 @@ env_file_path = "komodo_vars.env"
 pre_deploy.command = """
   # Add multiple commands on new lines. Supports comments.
 """
-environment = """
-  # VARIABLE = value
-DOCKER_VOLUMES=[[SRV_DOCKER_VOL]]
-"""
+ignore_services = ["secrets"]
 
 ##
 
@@ -299,36 +261,7 @@ server = "paiki"
 linked_repo = "infra.stacks"
 run_directory = "./src/apps/media/stream"
 file_paths = ["compose.yaml"]
-ignore_services = ["configarr"]
-
-##
-
-[[stack]]
-name = "template__newt"
-template = true
-[stack.config]
-linked_repo = "infra.stacks"
-run_directory = "./src/platform/edge/newt"
-file_paths = ["compose.yaml"]
-environment = """
-# ----- Profiles -----
-# This stack runs TWO instances of newt:
-# an internal (on-prem) instance, and an external (offsite vps) instance.
-#
-# If only one instance is needed, remove the other profile below
-# but make sure secrets still exist in Infisical for both (can be empty)
-COMPOSE_PROFILES='internal,external'
-"""
-
-##
-
-[[stack]]
-name = "template__pangolin"
-template = true
-[stack.config]
-linked_repo = "infra.stacks"
-run_directory = "./src/platform/edge/pangolin"
-file_paths = ["compose.yaml"]
+ignore_services = ["configarr", "secrets"]
 
 ##
 
@@ -357,16 +290,6 @@ HOST = "rick"
 ##
 
 [[stack]]
-name = "vikunja"
-[stack.config]
-server = "littlebuddy"
-linked_repo = "infra.stacks"
-run_directory = "./src/apps/personal/vikunja"
-ignore_services = ["secrets"]
-
-##
-
-[[stack]]
 name = "woodpecker"
 description = "CI/CD Pipeline"
 [stack.config]
@@ -382,14 +305,11 @@ ignore_services = ["secrets"]
 name = "zerobyte"
 [stack.config]
 server = "rick"
-links = [
-  "https://zerobyte.homektb.com",
-  "http://rick:4096"
-]
 project_name = "zerobyte"
 linked_repo = "infra.stacks"
 run_directory = "./src/platform/backup-manager/zerobyte"
 file_paths = ["compose.yaml"]
+ignore_services = ["secrets"]
 environment = """
 # Uncomment if deploying from Ansible generated env
 ANSIBLE_SECRETS_FILE=/dev/shm/platform.env
