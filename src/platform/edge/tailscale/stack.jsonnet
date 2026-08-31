@@ -12,7 +12,7 @@ local refs = lib.Project { local project = self,
   },
 };
 
-local appVersion = 'v1.98.9';
+local appVersion = 'v1.102.3';
 local gateway = lib.registry.network.shared.tailscale_gw_001;
 
 {
