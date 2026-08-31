@@ -1,0 +1,171 @@
+# immich:
+#   server:
+#     DB_PASSWORD: "${IMMICH_DB_PASSWORD:?err}"
+#   database:
+#     POSTGRES_PASSWORD: "${IMMICH_DB_PASSWORD:?err}"
+
+# docuseal:
+#   app:
+#     environment:
+#       DATABASE_URL: "postgresql://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres-db:5432/docuseal"
+#       FORCE_SSL: "docuseal.ktbcloud.com"
+#       PORT: "3000"
+#       SECRET_KEY_BASE: "${DOCUSEAL_SECRET_KEY_BASE:?err}"
+
+# openproject:
+#   cron-seeder-web-worker:
+#     DATABASE_URL: "postgres://${POSTGRES_USER:?err}:${POSTGRES_PASS:?err}@postgres-db:5432/openproject?pool=20&encoding=unicode&reconnect=true"
+#     OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__SECRET: "${COLLAB_SERVER_SECRET:?err}"
+#     SECRET_KEY_BASE: "${OPEN_PRJ_SECRET_KEY:?err}"
+#   hocuspocus:
+#     SECRET: "${COLLAB_SERVER_SECRET:?err}"
+
+# stream:
+#   configarr_decluttarr:
+#     RADARR_API_KEY: "${RADARR_API_KEY:?err}"
+#     SONARR_API_KEY: "${SONARR_API_KEY:?err}"
+#   plex:
+#   - remove-env_PLEX_CLAIM
+
+# paperless:
+#   db:
+#     POSTGRES_PASSWORD: "${PAPERLESS_PG_PASS:?err}"
+#   webserver:
+#     PAPERLESS_DBPASS: "${PAPERLESS_PG_PASS:?err}"
+#     PAPERLESS_SECRET_KEY: "${PAPERLESS_SECRET_KEY:?err}"
+
+# postgres:
+#   db:
+#     POSTGRES_PASSWORD: "${POSTGRES_PASS:?err}"
+#     POSTGRES_USER: "${POSTGRES_USER:?err}"
+
+# databasus:
+#   NEEDS: /databasus-data/secret.key:ro
+
+# zerobyte:
+#   APP_SECRET: "${ZROBYT__APP_SECRET:?err}"
+
+# komodo:
+#   app:
+#     KOMODO_DATABASE_PASSWORD: "${KOMO_DB_PASSWORD:?err}"
+#     KOMODO_DATABASE_USERNAME: "${KOMO_DB_USERNAME:?err}"
+#     KOMODO_HOST: "https://komo.ktbinternal.com"
+#     KOMODO_JWT_SECRET: "${KOMO_JWT_SECRET:?err}"
+#     KOMODO_PRIVATE_KEY: "${KOMO_PRIVATE_KEY:?err}"
+#     KOMODO_WEBHOOK_SECRET: "${KOMO_WEBHOOK_SECRET:?err}"
+#   db:
+#     MONGO_INITDB_ROOT_PASSWORD: "${KOMO_DB_PASSWORD:?err}"
+#     MONGO_INITDB_ROOT_USERNAME: "${KOMO_DB_USERNAME:?err}"
+
+# homarr:
+#   AUTH_LOGOUT_REDIRECT_URL: "https://authentik.ktbcloud.com/application/o/homarr/end-session/"
+#   AUTH_OIDC_AUTO_LOGIN: "${AUTO_LOGIN:-true}"
+#   AUTH_OIDC_CLIENT_ID: "${AUTH_OIDC_CLIENT_ID}"
+#   AUTH_OIDC_CLIENT_NAME: "Authentik"
+#   AUTH_OIDC_CLIENT_SECRET: "${AUTH_OIDC_CLIENT_SECRET}"
+#   AUTH_OIDC_GROUPS_ATTRIBUTE: "${OIDC_GROUP:-groups}"
+#   AUTH_OIDC_ISSUER: "https://authentik.ktbcloud.com/application/o/homarr/"
+#   AUTH_OIDC_SCOPE_OVERWRITE: "openid email profile groups${EXTRA__OIDC_SCOPE:+ ${EXTRA__OIDC_SCOPE}}"
+#   AUTH_OIDC_URI: "https://authentik.ktbcloud.com/application/o/authorize/"
+#   AUTH_PROVIDERS: "credentials,oidc"
+#   BASE_URL: "https://ktbcloud.com"
+#   NEXTAUTH_URL: "https://ktbcloud.com"
+#   SECRET_ENCRYPTION_KEY: "${SECRET_ENCRYPTION_KEY:?must provide encryption key}"
+#   TZ: "America/New_York"
+
+# pangolin:
+#   app:
+#     EMAIL_SMTP_PASS: "${EMAIL_SMTP_PASS:?err}"
+#     SERVER_SECRET: "${SERVER_SECRET:?err}"
+#   traefik:
+#     CF_DNS_API_TOKEN: "${CF_DNS_API_TOKEN:?err}"
+
+# tailscale:
+#   TS_AUTHKEY: "${TS_AUTHKEY:?err}"
+#   TS_EXTRA_ARGS: "--advertise-tags=tag:gateway"
+#   TS_HOSTNAME: "ts-dokr-gw--${HOST:?err}"
+#   TS_STATE_DIR: "/var/lib/tailscale"
+#   TS_USERSPACE: "true"
+
+# authentik:
+#   app:
+#     AUTHENTIK_POSTGRESQL__PASSWORD: "${AUTHENTIK_PG_PASS:?err}"
+#     AUTHENTIK_SECRET_KEY: "${AUTHENTIK_SECRET_KEY:?err}"
+#   db:
+#     POSTGRES_PASSWORD: "${AUTHENTIK_PG_PASS:?err}"
+#   worker:
+#     environment:
+#       AUTHENTIK_POSTGRESQL__HOST: "db"
+#       AUTHENTIK_POSTGRESQL__NAME: "authentik"
+#       AUTHENTIK_POSTGRESQL__PASSWORD: "${AUTHENTIK_PG_PASS:?err}"
+#       AUTHENTIK_POSTGRESQL__USER: "authentik"
+#       AUTHENTIK_SECRET_KEY: "${AUTHENTIK_SECRET_KEY:?err}"
+
+# infisical:
+#   app:
+#     environment:
+#       AUTH_SECRET: "${INFISICAL_AUTH_SECRET:-}"
+#       DB_CONNECTION_URI: "postgres://infisical:${INFISICAL_DB_PASSWORD:-}@db:5432/infisical"
+#       ENCRYPTION_KEY: "${INFISICAL_ENCRYPTION_KEY:-}"
+#       NODE_ENV: "production"
+#       REDIS_URL: "redis://redis:6379"
+#       SITE_URL: "https://infisical.ktbinternal.com"
+#       SMTP_FROM_ADDRESS: "${INFISICAL__SMTP_FROM_ADDRESS:-}"
+#       SMTP_FROM_NAME: "${INFISICAL__SMTP_FROM_NAME:-}"
+#       SMTP_HOST: "${INFISICAL__SMTP_HOST:-}"
+#       SMTP_PASSWORD: "${INFISICAL_SMTP_PASSWORD:-}"
+#       SMTP_PORT: "${INFISICAL__SMTP_PORT:-}"
+#       SMTP_USERNAME: "${INFISICAL__SMTP_USERNAME:-}"
+#   db:
+#     environment:
+#       POSTGRES_DB: "infisical"
+#       POSTGRES_PASSWORD: "${INFISICAL_DB_PASSWORD:-}"
+#       POSTGRES_USER: "infisical"
+
+forgejo:
+  db:
+    environment:
+      POSTGRES_DB: "forgejo"
+      POSTGRES_PASSWORD: "${DB_PASSWORD:?err}"
+      POSTGRES_USER: "forgejo"
+  server:
+    environment:
+      FORGEJO____APP_NAME: "Forgejo"
+      FORGEJO__database__DB_TYPE: "postgres"
+      FORGEJO__database__HOST: "db:5432"
+      FORGEJO__database__NAME: "forgejo"
+      FORGEJO__database__PASSWD: "${DB_PASSWORD:?err}"
+      FORGEJO__database__USER: "forgejo"
+      USER_GID: "1000"
+      USER_UID: "1000"
+
+woodpecker:
+  agent:
+    environment:
+      WOODPECKER_AGENT_SECRET: "${WOODPECKER_AGENT_SECRET:?err}"
+      WOODPECKER_BACKEND_DOCKER_LIMIT_CPU_QUOTA: "200000"
+      WOODPECKER_BACKEND_DOCKER_LIMIT_MEM: "4294967296"
+      WOODPECKER_BACKEND_DOCKER_LIMIT_MEM_SWAP: "4294967296"
+      WOODPECKER_MAX_WORKFLOWS: "2"
+      WOODPECKER_SERVER: "server:9000"
+server:
+  environment:
+    WOODPECKER_AGENT_SECRET: "${WOODPECKER_AGENT_SECRET:?err}"
+    WOODPECKER_FORGEJO: "true"
+    WOODPECKER_FORGEJO_CLIENT: "${WOODPECKER_FORGEJO_CLIENT:?err}"
+    WOODPECKER_FORGEJO_SECRET: "${WOODPECKER_FORGEJO_SECRET:?err}"
+    WOODPECKER_FORGEJO_URL: "https://fj.ktbcloud.com"
+    WOODPECKER_HOST: "https://peck.ktbcloud.com"
+    WOODPECKER_OPEN: "true"
+    WOODPECKER_PLUGINS_PRIVILEGED: "woodpeckerci/plugin-docker-buildx:6.1.0"
+
+komodo-mcp:
+  app:
+    environment:
+      KOMODO_API_KEY: "${KOMODO_API_KEY:?err}"
+      KOMODO_API_SECRET: "${KOMODO_API_SECRET:?err}"
+      KOMODO_URL: "${HTTP_SCHEME:?must enter http scheme}://${KOMODO_FQDN:?must enter FQDN for Komodo}"
+      MCP_ALLOWED_HOSTS: "komodo-mcp.ktbinternal.com"
+      MCP_TRANSPORT: "http"
+      MCP_TRUST_PROXY: "1"
+      TZ: "America/Chicago"

@@ -1,4 +1,0 @@
-# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
-include:
-- path: stack.services.yaml
-name: mazanoke

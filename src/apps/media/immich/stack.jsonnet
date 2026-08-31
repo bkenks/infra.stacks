@@ -39,6 +39,9 @@ local bindRoot = lib.collections.dirs.docker.bindMounts + '/apps/immich';
         // POSTGRES_PASSWORD arrives from infisical-secrets; `server` reads the same value
         // as DB_PASSWORD, so the bundle carries it under both names.
         environment: {
+          // NEEDS: 
+          // POSTGRES_PASSWORD: "${IMMICH_DB_PASSWORD:?err}"
+          // 
           POSTGRES_DB: refs.name,
           POSTGRES_USER: refs.name,
           POSTGRES_INITDB_ARGS: '--data-checksums',

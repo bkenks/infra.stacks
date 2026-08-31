@@ -33,6 +33,8 @@ local sharedDB = lib.registry.network.shared.db_001;
         // stored whole rather than assembled here: the provider injects values, and there
         // is no compose-level interpolation left to build a URL out of its parts.
         environment: {
+          // NEEDS:
+          // DATABASE_URL, SECRET_KEY_BASE
           PORT: port,
           // Also the SSL switch: forces HTTPS redirects + absolute signing-link URLs.
           FORCE_SSL: refs.name + '.' + lib.collections.domain.ktbcloud,

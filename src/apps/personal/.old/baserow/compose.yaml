@@ -1,6 +1,0 @@
----
-services:
-  baserow:
-    image: baserow/baserow:2.0.5
-    container_name: ${COMPOSE_PROJECT_NAME}_baserow
-    restart: unless-stopped
