@@ -266,26 +266,95 @@ ignore_services = ["configarr", "secrets"]
 ##
 
 [[stack]]
+name = "t_tailscale-gw"
+template = true
+[stack.config]
+linked_repo = "infra.stacks"
+run_directory = "src/platform/edge/tailscale"
+environment = """
+  # VARIABLE = value
+HOST = ''
+"""
+
+##
+
+[[stack]]
+name = "tailscale-gw_biggy"
+[stack.config]
+server = "biggy"
+linked_repo = "infra.stacks"
+run_directory = "src/platform/edge/tailscale"
+ignore_services = ["secrets"]
+environment = """
+  # VARIABLE = value
+HOST = 'biggy'
+"""
+
+##
+
+[[stack]]
+name = "tailscale-gw_bill"
+[stack.config]
+server = "bill"
+linked_repo = "infra.stacks"
+run_directory = "src/platform/edge/tailscale"
+ignore_services = ["secrets"]
+environment = """
+  # VARIABLE = value
+HOST = 'bill'
+"""
+
+##
+
+[[stack]]
+name = "tailscale-gw_littlebuddy"
+[stack.config]
+server = "littlebuddy"
+linked_repo = "infra.stacks"
+run_directory = "src/platform/edge/tailscale"
+ignore_services = ["secrets"]
+environment = """
+  # VARIABLE = value
+HOST = 'littlebuddy'
+"""
+
+##
+
+[[stack]]
+name = "tailscale-gw_paiki"
+[stack.config]
+server = "paiki"
+linked_repo = "infra.stacks"
+run_directory = "src/platform/edge/tailscale"
+ignore_services = ["secrets"]
+environment = """
+  # VARIABLE = value
+HOST = 'paiki'
+"""
+
+##
+
+[[stack]]
+name = "tailscale-gw_rick"
+[stack.config]
+server = "rick"
+linked_repo = "infra.stacks"
+run_directory = "src/platform/edge/tailscale"
+ignore_services = ["secrets"]
+environment = """
+  # VARIABLE = value
+HOST = 'rick'
+"""
+
+##
+
+[[stack]]
 name = "terraria"
 [stack.config]
 server = "biggy"
 linked_repo = "infra.stacks"
 run_directory = "./src/apps/personal/terraria"
 file_paths = ["compose.yaml"]
-
-##
-
-[[stack]]
-name = "ts-gateway_rick"
-[stack.config]
-server = "rick"
-linked_repo = "infra.stacks"
-run_directory = "./src/platform/edge/tailscale"
-file_paths = ["compose.yaml"]
-environment = """
-  # VARIABLE = value
-HOST = "rick"
-"""
 
 ##
 
