@@ -50,6 +50,7 @@ name = "activepieces"
 server = "bill"
 linked_repo = "infra.stacks"
 run_directory = "src/apps/business/activepieces"
+ignore_services = ["secrets"]
 
 ##
 
@@ -234,7 +235,7 @@ server = "littlebuddy"
 destroy_before_deploy = true
 linked_repo = "infra.stacks"
 run_directory = "src/apps/business/openproject"
-ignore_services = ["seeder"]
+ignore_services = ["seeder", "secrets"]
 
 ##
 
