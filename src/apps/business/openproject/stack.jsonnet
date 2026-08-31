@@ -29,7 +29,7 @@ local sub = 'openprj';
 local cloudDomain = sub + '.' + lib.collections.domain.ktbcloud;
 local internalDomain = sub + '.' + lib.collections.domain.ktbinternal;
 
-local sharedDB = lib.registry.network.shared.postgresDB;
+local sharedDB = lib.registry.network.shared.db_001;
 
 local appEnv = {
   OPENPROJECT_HTTPS: 'true',

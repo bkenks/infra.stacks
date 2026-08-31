@@ -8,7 +8,7 @@ local refs = lib.Project {
 
 local version = '2.5.3';
 local port = '3000';
-local sharedDB = lib.registry.network.shared.postgresDB;
+local sharedDB = lib.registry.network.shared.db_001;
 
 {
   compose: {

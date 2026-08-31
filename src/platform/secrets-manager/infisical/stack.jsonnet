@@ -26,8 +26,7 @@ local appPort = infisical.container.port;
 local dbUser = refs.name;
 local dbName = refs.name;
 
-local sharedDB = lib.registry.network.shared.infisicalDB;
-local gateway = lib.registry.network.shared.tsGateway;
+local gateway = lib.registry.network.shared.tailscale_gw_001;
 
 {
   // Two documents, because env_file has to attach at the include: `${VAR:-}` inside
@@ -39,7 +38,6 @@ local gateway = lib.registry.network.shared.tsGateway;
     name: refs.name,
     networks: {
       default: { name: refs.name },
-      [sharedDB.name]: { name: sharedDB.name, external: true },
       [gateway.name]: { name: gateway.name, external: true },
     },
     volumes: refs.dbData.declare + refs.redisData.declare,
@@ -88,7 +86,7 @@ local gateway = lib.registry.network.shared.tsGateway;
         container_name: refs.db.ext,
         image: 'docker.io/library/postgres:' + dbVersion,
         restart: lib.collections.restart.unlessStopped,
-        networks: ['default', sharedDB.name],
+        networks: ['default'],
         volumes: [refs.dbData.mount('/var/lib/postgresql/data')],
         environment: {
           POSTGRES_USER: dbUser,

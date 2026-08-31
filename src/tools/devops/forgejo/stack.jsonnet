@@ -20,14 +20,12 @@ local dbVersion = '14';
 local port = '3000';
 local dbUser = refs.name;
 local dbName = refs.name;
-local sharedDB = lib.registry.network.shared.forgejoDB;
 
 {
   compose: {
     name: refs.name,
     networks: {
       default: { name: refs.name },
-      [sharedDB.name]: { name: sharedDB.name, external: true },
     },
     volumes: refs.serverData.declare + refs.dbData.declare,
 
@@ -70,7 +68,7 @@ local sharedDB = lib.registry.network.shared.forgejoDB;
         image: 'docker.io/library/postgres:' + dbVersion,
         restart: lib.collections.restart.onFailure(5),
         depends_on: lib.secretsReady,
-        networks: ['default', sharedDB.name],
+        networks: ['default'],
         volumes: [refs.dbData.mount('/var/lib/postgresql/data')],
         // POSTGRES_PASSWORD arrives from infisical-secrets.
         environment: {

@@ -23,7 +23,7 @@ local dbVersion = '16-alpine';
 local httpPort = '9000';
 local dbUser = refs.name;
 local dbName = refs.name;
-local gateway = lib.registry.network.shared.tsGateway;
+local gateway = lib.registry.network.shared.tailscale_gw_001;
 
 // Identical on server AND worker — they must agree on the DB and the secret key.
 // AUTHENTIK_POSTGRESQL__PASSWORD and AUTHENTIK_SECRET_KEY arrive from infisical-secrets;

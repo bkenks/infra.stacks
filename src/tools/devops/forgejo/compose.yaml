@@ -3,9 +3,6 @@ name: "forgejo"
 networks:
   default:
     name: "forgejo"
-  shared__forgejo_db:
-    external: true
-    name: "shared__forgejo_db"
 services:
   db:
     container_name: "forgejo-db"
@@ -20,7 +17,6 @@ services:
     image: "docker.io/library/postgres:14"
     networks:
       - "default"
-      - "shared__forgejo_db"
     ports:
       - "127.0.0.1:18041:5432"
     restart: "on-failure:5"

@@ -3,9 +3,6 @@ name: "paperless"
 networks:
   default:
     name: "paperless"
-  shared__paperless_db:
-    external: true
-    name: "shared__paperless_db"
 services:
   broker:
     container_name: "paperless-broker"
@@ -45,7 +42,6 @@ services:
     image: "docker.io/library/postgres:18"
     networks:
       - "default"
-      - "shared__paperless_db"
     ports:
       - "127.0.0.1:18025:5432"
     restart: "on-failure:5"

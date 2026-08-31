@@ -160,7 +160,7 @@ This is a multi-node fleet, so the two directions are genuinely different mechan
 `networks:` alongside the private bridge:
 
 ```jsonnet
-local sharedDB = lib.registry.network.shared.postgresDB;
+local sharedDB = lib.registry.network.shared.db_001;
 
 networks: {
   default: { name: refs.name },
@@ -246,7 +246,7 @@ asking itself for its own secrets — still takes an env file at its `include`, 
 cluster at the level it is on. On `littlebuddy`, that is the shared network:
 
 ```jsonnet
-local sharedDB = lib.registry.network.shared.postgresDB;
+local sharedDB = lib.registry.network.shared.db_001;
 // on the consuming service:
 networks: ['default', sharedDB.name],
 depends_on: lib.secretsReady,

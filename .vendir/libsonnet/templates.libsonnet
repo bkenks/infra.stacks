@@ -76,7 +76,7 @@
     base::
       error '"base" is required on SharedNetwork',
     name::
-      'shared__' + self.base,
+      self.base,
   },
 
   // The names one stack owns. A stack's `refs` table is this, filled in.

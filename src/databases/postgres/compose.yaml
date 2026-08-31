@@ -1,11 +1,11 @@
 # GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
 name: "postgres"
 networks:
+  db_001:
+    external: true
+    name: "db_001"
   default:
     name: "postgres"
-  shared__postgres_db:
-    external: true
-    name: "shared__postgres_db"
 services:
   db:
     container_name: "postgres-db"
@@ -20,7 +20,7 @@ services:
     image: "postgres:18"
     networks:
       - "default"
-      - "shared__postgres_db"
+      - "db_001"
     ports:
       - "127.0.0.1:6109:5432"
     restart: "always"

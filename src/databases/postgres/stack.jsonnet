@@ -10,7 +10,7 @@ local refs = lib.Project {
 };
 
 local pg = lib.registry.endpoint.serviceGroup.postgres;
-local sharedDB = lib.registry.network.shared.postgresDB;
+local sharedDB = lib.registry.network.shared.db_001;
 local version = '18';
 
 {

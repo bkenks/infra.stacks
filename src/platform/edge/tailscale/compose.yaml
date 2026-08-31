@@ -1,25 +1,25 @@
 # GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
-name: "ts-dokr-gw"
+name: "tailscale-gw"
 networks:
   default:
-    name: "ts-dokr-gw"
-  shared__ts-gateway:
-    name: "shared__ts-gateway"
+    name: "tailscale-gw"
+  tailscale_gw_001:
+    name: "tailscale_gw_001"
 services:
   app:
-    container_name: "ts-dokr-gw-app"
+    container_name: "tailscale-gw-app"
     depends_on:
       secrets:
         condition: "service_started"
     environment:
       TS_EXTRA_ARGS: "--advertise-tags=tag:gateway"
-      TS_HOSTNAME: "ts-dokr-gw--${HOST:?err}"
+      TS_HOSTNAME: "tailscale-gw--${HOST:?err}"
       TS_STATE_DIR: "/var/lib/tailscale"
       TS_USERSPACE: "true"
     image: "tailscale/tailscale:v1.98.9"
     networks:
       - "default"
-      - "shared__ts-gateway"
+      - "tailscale_gw_001"
     restart: "unless-stopped"
     volumes:
       - "app:/var/lib/tailscale"
@@ -35,4 +35,4 @@ services:
       type: "infisical-secrets"
 volumes:
   app:
-    name: "ts-dokr-gw_app"
+    name: "tailscale-gw_app"

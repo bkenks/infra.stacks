@@ -14,16 +14,14 @@ local tmpl = import 'templates.libsonnet';
       infisical_creds:: "/mnt/secrets/credentials/infisical.env"
     },
   },
+  
   network:: {
     // Container-to-container, within one host. The owning stack declares it plain in its
     // top-level networks:, every other stack declares it external — so attaching before
     // the owner exists fails the deploy instead of building a second empty copy.
     shared:: {
-      paperlessDB::   tmpl.SharedNetwork { base:: 'paperless_db' },
-      postgresDB::    tmpl.SharedNetwork { base:: 'postgres_db' },
-      infisicalDB::   tmpl.SharedNetwork { base:: 'infisical_db' },
-      forgejoDB::     tmpl.SharedNetwork { base:: 'forgejo_db' },
-      tsGateway::     tmpl.SharedNetwork { base:: 'ts-gateway' },
+      db_001::            tmpl.SharedNetwork { base:: 'db_001' },
+      tailscale_gw_001::  tmpl.SharedNetwork { base:: 'tailscale_gw_001' },
     },
   },
 

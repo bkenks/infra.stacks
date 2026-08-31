@@ -3,12 +3,9 @@ name: "infisical"
 networks:
   default:
     name: "infisical"
-  shared__infisical_db:
+  tailscale_gw_001:
     external: true
-    name: "shared__infisical_db"
-  shared__ts-gateway:
-    external: true
-    name: "shared__ts-gateway"
+    name: "tailscale_gw_001"
 services:
   app:
     container_name: "infisical-app"
@@ -45,7 +42,7 @@ services:
     image: "docker.io/infisical/infisical:v0.160.9"
     networks:
       - "default"
-      - "shared__ts-gateway"
+      - "tailscale_gw_001"
     ports:
       - "127.0.0.1:18043:8080"
       - "100.106.170.93:18043:8080"
@@ -68,7 +65,6 @@ services:
     image: "docker.io/library/postgres:16-alpine"
     networks:
       - "default"
-      - "shared__infisical_db"
     ports:
       - "127.0.0.1:18042:5432"
     restart: "unless-stopped"

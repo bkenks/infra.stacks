@@ -1,11 +1,11 @@
 # GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
 name: "docuseal"
 networks:
+  db_001:
+    external: true
+    name: "db_001"
   default:
     name: "docuseal"
-  shared__postgres_db:
-    external: true
-    name: "shared__postgres_db"
 services:
   app:
     container_name: "docuseal-app"
@@ -20,7 +20,7 @@ services:
     image: "docuseal/docuseal:2.5.3"
     networks:
       - "default"
-      - "shared__postgres_db"
+      - "db_001"
     ports:
       - "127.0.0.1:18002:3000"
     restart: "on-failure:5"
