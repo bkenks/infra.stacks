@@ -23,7 +23,7 @@ local port = '8000';
       [refs.app.key]: {
         container_name: refs.app.ext,
         image: 'fj.%s/bkenks/komodo-mcp-server:%s' % [lib.collections.domain.ktbcloud, version],
-        restart: lib.collections.restart.onFailure(5),
+        restart: lib.collections.restart.unlessStopped,
         depends_on: lib.secretsReady,
         // KOMODO_URL arrives from infisical-secrets, stored whole: the provider injects
         // values, so there is no compose-level interpolation left to join a scheme to an
@@ -33,6 +33,8 @@ local port = '8000';
           // Streamable HTTP transport (listens on :8000 inside the container).
           MCP_TRANSPORT: 'http',
           MCP_ALLOWED_HOSTS: refs.name + '.' + lib.collections.domain.ktbinternal,
+          HTTP_SCHEME: 'http',
+          KOMODO_FQDN: 'host.docker.internal:9120',
           // Trust the first hop (this host's Traefik) to resolve the real client IP from
           // X-Forwarded-*.
           MCP_TRUST_PROXY: '1',
