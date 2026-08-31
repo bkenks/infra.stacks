@@ -21,11 +21,14 @@ local port = '3000';
 local dbUser = refs.name;
 local dbName = refs.name;
 
+local sharedTSGW = lib.registry.network.shared.tailscale_gw_001;
+
 {
   compose: {
     name: refs.name,
     networks: {
       default: { name: refs.name },
+      [sharedTSGW.name]: { name: sharedTSGW.name, external: true },
     },
     volumes: refs.serverData.declare + refs.dbData.declare,
 
@@ -68,7 +71,7 @@ local dbName = refs.name;
         image: 'docker.io/library/postgres:' + dbVersion,
         restart: lib.collections.restart.onFailure(5),
         depends_on: lib.secretsReady,
-        networks: ['default'],
+        networks: ['default', sharedTSGW.name],
         volumes: [refs.dbData.mount('/var/lib/postgresql/data')],
         // POSTGRES_PASSWORD arrives from infisical-secrets.
         environment: {

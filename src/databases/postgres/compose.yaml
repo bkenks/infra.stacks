@@ -6,6 +6,9 @@ networks:
     name: "db_001"
   default:
     name: "postgres"
+  tailscale_gw_001:
+    external: true
+    name: "tailscale_gw_001"
 services:
   db:
     container_name: "postgres-db"
@@ -21,6 +24,7 @@ services:
     networks:
       - "default"
       - "db_001"
+      - "tailscale_gw_001"
     ports:
       - "127.0.0.1:6109:5432"
     restart: "always"

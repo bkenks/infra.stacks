@@ -28,12 +28,14 @@ local dbUser = refs.name;
 local dbName = refs.name;
 
 local bindRoot = lib.collections.dirs.docker.bindMounts + '/apps/paperless';
+local sharedTSGW = lib.registry.network.shared.tailscale_gw_001;
 
 {
   compose: {
     name: refs.name,
     networks: {
       default: { name: refs.name },
+      [sharedTSGW.name]: { name: sharedTSGW.name, external: true },
     },
     volumes: refs.brokerData.declare + refs.dbData.declare
              + refs.webserverData.declare + refs.webserverMedia.declare,
@@ -65,7 +67,7 @@ local bindRoot = lib.collections.dirs.docker.bindMounts + '/apps/paperless';
         image: 'docker.io/library/postgres:' + dbVersion,
         restart: lib.collections.restart.onFailure(5),
         depends_on: lib.secretsReady,
-        networks: ['default'],
+        networks: ['default', sharedTSGW.name],
         volumes: [refs.dbData.mount('/var/lib/postgresql')],
         // POSTGRES_PASSWORD arrives from infisical-secrets.
         environment: {

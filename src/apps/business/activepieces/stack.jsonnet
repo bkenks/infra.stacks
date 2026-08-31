@@ -28,6 +28,7 @@ local dbName = refs.name;
 
 local image = 'ghcr.io/activepieces/activepieces:' + appVersion;
 local engineCachePath = '/usr/src/app/cache';
+local sharedTSGW = lib.registry.network.shared.tailscale_gw_001;
 
 // Shared by app and worker. AP_POSTGRES_PASSWORD, AP_ENCRYPTION_KEY and AP_JWT_SECRET
 // arrive from infisical-secrets.
@@ -55,7 +56,10 @@ local apEnv = {
 {
   compose: {
     name: refs.name,
-    networks: { default: { name: refs.name } },
+    networks: {
+      default: { name: refs.name },
+      [sharedTSGW.name]: { name: sharedTSGW.name, external: true },
+    },
     volumes: refs.dbData.declare + refs.cacheData.declare + refs.engineCache.declare,
 
     services: {
@@ -75,6 +79,7 @@ local apEnv = {
         },
         expose: [appPort],
         ports: ['%s:18071:%s' % [lib.collections.ip.loopback, appPort]],
+        networks: ["default", sharedTSGW.name],
       },
 
       // No container_name: compose refuses a fixed name on a replicated service.
@@ -101,6 +106,7 @@ local apEnv = {
         restart: lib.collections.restart.onFailure(5),
         depends_on: lib.secretsReady,
         volumes: [refs.dbData.mount('/var/lib/postgresql/data')],
+        networks: ["default", sharedTSGW.name],
         environment: {
           POSTGRES_USER: dbUser,
           POSTGRES_DB: dbName,

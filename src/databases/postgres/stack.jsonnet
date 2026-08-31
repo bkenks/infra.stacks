@@ -11,6 +11,7 @@ local refs = lib.Project {
 
 local pg = lib.registry.endpoint.serviceGroup.postgres;
 local sharedDB = lib.registry.network.shared.db_001;
+local sharedTSGW = lib.registry.network.shared.tailscale_gw_001;
 local version = '18';
 
 {
@@ -21,6 +22,7 @@ local version = '18';
     networks: {
       default: { name: refs.name },
       [sharedDB.name]: { name: sharedDB.name, external: true },
+      [sharedTSGW.name]: { name: sharedTSGW.name, external: true },
     },
     volumes: refs.dbData.declare,
 
@@ -34,7 +36,7 @@ local version = '18';
         image: 'postgres:' + version,
         restart: lib.collections.restart.always,
         depends_on: lib.secretsReady,
-        networks: ['default', sharedDB.name],
+        networks: ['default', sharedDB.name, sharedTSGW.name],
         volumes: [refs.dbData.mount('/var/lib/postgresql')],
         // POSTGRES_USER and POSTGRES_PASSWORD arrive from infisical-secrets.
 

@@ -86,7 +86,7 @@ local gateway = lib.registry.network.shared.tailscale_gw_001;
         container_name: refs.db.ext,
         image: 'docker.io/library/postgres:' + dbVersion,
         restart: lib.collections.restart.unlessStopped,
-        networks: ['default'],
+        networks: ['default', gateway.name],
         volumes: [refs.dbData.mount('/var/lib/postgresql/data')],
         environment: {
           POSTGRES_USER: dbUser,
