@@ -38,10 +38,9 @@ local gateway = lib.registry.network.shared.tailscale_gw_001;
         // the deploy environment, so compose still interpolates it here.
         environment: {
           // Per-host, so one stack definition yields a distinct tailnet node per host.
-          TS_HOSTNAME: refs.name + '--${HOST:?err}',
+          TS_HOSTNAME: refs.name + '-${HOST:?err}',
           TS_STATE_DIR: '/var/lib/tailscale',
           TS_USERSPACE: 'true',
-          TS_EXTRA_ARGS: '--advertise-tags=tag:gateway',
         },
       },
     },

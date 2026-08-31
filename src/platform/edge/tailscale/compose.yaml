@@ -12,8 +12,7 @@ services:
       secrets:
         condition: "service_started"
     environment:
-      TS_EXTRA_ARGS: "--advertise-tags=tag:gateway"
-      TS_HOSTNAME: "tailscale-gw--${HOST:?err}"
+      TS_HOSTNAME: "tailscale-gw-${HOST:?err}"
       TS_STATE_DIR: "/var/lib/tailscale"
       TS_USERSPACE: "true"
     image: "tailscale/tailscale:v1.98.9"
