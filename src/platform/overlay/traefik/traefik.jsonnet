@@ -14,7 +14,6 @@ local project = lib.Project { local thisProject = self,
     version:: "3.7",
     volume:: {
       sock:: "/var/run/docker.sock:/var/run/docker.sock",
-      
       configTraefik:: configTraefikPath + ":/etc/traefik/" + configTraefikName + ":ro"
     }
   }
