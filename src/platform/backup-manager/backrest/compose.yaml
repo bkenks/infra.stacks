@@ -1,0 +1,37 @@
+# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
+name: "backrest"
+networks:
+  default:
+    name: "backrest"
+services:
+  app:
+    container_name: "backrest-app"
+    environment:
+      BACKREST_CONFIG: "/config/config.json"
+      BACKREST_DATA: "/data"
+      TMPDIR: "/tmp"
+      TZ: "America/New_York"
+      XDG_CACHE_HOME: "/cache"
+    hostname: "backrest"
+    image: "ghcr.io/garethgeorge/backrest:v1.14.1"
+    ports:
+      - "9898:9898"
+    restart: "unless-stopped"
+    volumes:
+      - "data:/data"
+      - "config:/config"
+      - "cache:/cache"
+      - "tmp:/tmp"
+      - "rclone:/root/.config/rclone"
+      - "/var/lib/docker/volumes:/userdata"
+volumes:
+  cache:
+    name: "backrest_cache"
+  config:
+    name: "backrest_config"
+  data:
+    name: "backrest_data"
+  rclone:
+    name: "backrest_rclone"
+  tmp:
+    name: "backrest_tmp"
