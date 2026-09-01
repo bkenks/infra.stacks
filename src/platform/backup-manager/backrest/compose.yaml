@@ -15,7 +15,7 @@ services:
     hostname: "backrest"
     image: "ghcr.io/garethgeorge/backrest:v1.14.1"
     ports:
-      - "9898:9898"
+      - "127.0.0.1:9898:9898"
     restart: "unless-stopped"
     volumes:
       - "data:/data"

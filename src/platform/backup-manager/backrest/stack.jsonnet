@@ -3,6 +3,8 @@
 // kept in config.json on the config volume, so there is no secret bundle to pull and no
 // bootstrap document to carry one.
 local lib = import 'lib.libsonnet';
+local loopback = lib.collections.ip.loopback;
+
 local refs = lib.Project {
   name:: 'backrest',
 
@@ -49,7 +51,7 @@ local port = '9898';
           TZ: 'America/New_York',
         },
         // Core infra, no proxy in front of it.
-        ports: [port + ':' + port],
+        ports: [loopback + ":" + port + ':' + port],
       },
     },
   },
