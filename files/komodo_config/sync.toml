@@ -66,30 +66,12 @@ extra_args = ["--remove-orphans"]
 ##
 
 [[stack]]
-name = "backrest_littlebuddy"
-[stack.config]
-server = "littlebuddy"
-linked_repo = "infra.stacks"
-run_directory = "src/platform/backup-manager/backrest"
-
-##
-
-[[stack]]
 name = "coder"
 [stack.config]
 server = "bill"
 linked_repo = "infra.stacks"
 run_directory = "src/tools/coder"
 ignore_services = ["secrets"]
-
-##
-
-[[stack]]
-name = "container-gw_littlebuddy"
-[stack.config]
-server = "littlebuddy"
-linked_repo = "infra.stacks"
-run_directory = "src/platform/overlay/traefik"
 
 ##
 
