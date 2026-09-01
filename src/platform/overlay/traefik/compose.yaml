@@ -1,0 +1,8 @@
+# GENERATED from traefik.jsonnet by render.py — DO NOT EDIT.
+services:
+  proxy:
+    container_name: "container-gw-proxy"
+    image: "traefik:v3.7"
+    network_mode: "host"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"

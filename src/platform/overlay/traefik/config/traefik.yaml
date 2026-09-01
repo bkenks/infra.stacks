@@ -1,0 +1,10 @@
+# GENERATED from config.jsonnet by render.py — DO NOT EDIT.
+accessLog: {}
+entryPoints:
+  web:
+    address: ":80"
+log:
+  level: "INFO"
+providers:
+  docker:
+    exposedByDefault: false
