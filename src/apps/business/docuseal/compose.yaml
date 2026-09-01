@@ -18,6 +18,10 @@ services:
     expose:
       - "3000"
     image: "docuseal/docuseal:2.5.3"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app.rule=Host('docuseal.internal')"
+      - "traefik.http.services.app.loadbalancer.server.port=3000"
     networks:
       - "default"
       - "db_001"

@@ -1,6 +1,9 @@
 local lib = import "lib.libsonnet";
+local refs = import "./ref.libsonnet";
 
 local roleProxy = lib.collections.role.PROXY;
+local configTraefikPath = refs.config.traefik.path.relative;
+local configTraefikName = refs.config.traefik.fullFileName;
 
 local project = lib.Project { local thisProject = self,
   name:: "container-gw",
@@ -10,7 +13,9 @@ local project = lib.Project { local thisProject = self,
     image:: "traefik",
     version:: "3.7",
     volume:: {
-      sock:: "/var/run/docker.sock:/var/run/docker.sock"
+      sock:: "/var/run/docker.sock:/var/run/docker.sock",
+      
+      configTraefik:: configTraefikPath + ":/etc/traefik/" + configTraefikName + ":ro"
     }
   }
 };
@@ -25,7 +30,8 @@ local project = lib.Project { local thisProject = self,
         // Container Configuration —————————————————————
         container_name: proxy.ext,
         volumes: [
-          project.proxy.volume.sock
+          proxy.volume.sock,
+          proxy.volume.configTraefik
         ],
         network_mode: "host"
       }

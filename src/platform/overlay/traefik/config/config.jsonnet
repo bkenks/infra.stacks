@@ -1,5 +1,7 @@
+local ref = import "../ref.libsonnet";
+
 {
-  traefik: {
+  [ref.config.traefik.name]: {
     entryPoints: {
       web: {
         address: ':1111',

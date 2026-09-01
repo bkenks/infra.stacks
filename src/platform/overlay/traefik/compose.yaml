@@ -6,3 +6,4 @@ services:
     network_mode: "host"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./config/traefik.yaml:/etc/traefik/traefik.yaml:ro"
