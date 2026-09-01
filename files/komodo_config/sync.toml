@@ -76,6 +76,15 @@ ignore_services = ["secrets"]
 ##
 
 [[stack]]
+name = "container-gw_littlebuddy"
+[stack.config]
+server = "littlebuddy"
+linked_repo = "infra.stacks"
+run_directory = "src/platform/overlay/traefik"
+
+##
+
+[[stack]]
 name = "databasus"
 [stack.config]
 server = "rick"
