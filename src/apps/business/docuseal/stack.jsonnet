@@ -41,6 +41,11 @@ local sharedDB = lib.registry.network.shared.db_001;
         },
         expose: [port],
         ports: ['%s:18002:%s' % [lib.collections.ip.loopback, port]],
+        labels: [
+          "traefik.enable=true",
+          "traefik.http.routers.app.rule=Host('docuseal.internal')",
+          "traefik.http.services.app.loadbalancer.server.port=3000"
+        ]
       },
     },
   },
