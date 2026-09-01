@@ -84,6 +84,7 @@ poll_for_updates = true
 linked_repo = "infra.stacks"
 webhook_enabled = false
 run_directory = "./src/platform/backup-manager/databasus"
+ignore_services = ["secrets"]
 environment = """
   # VARIABLE = value
 ANSIBLE_SECRET_PATH=/dev/shm/platform.env
