@@ -2,7 +2,7 @@
   traefik: {
     entryPoints: {
       web: {
-        address: ':80',
+        address: ':1111',
       },
     },
     providers: {
