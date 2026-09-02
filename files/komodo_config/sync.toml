@@ -66,16 +66,6 @@ extra_args = ["--remove-orphans"]
 ##
 
 [[stack]]
-name = "code-server"
-[stack.config]
-server = "bill"
-linked_repo = "infra.stacks"
-run_directory = "./src/tools/code-server"
-ignore_services = ["secrets"]
-
-##
-
-[[stack]]
 name = "coder"
 [stack.config]
 server = "bill"
