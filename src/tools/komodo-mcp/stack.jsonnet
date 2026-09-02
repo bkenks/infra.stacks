@@ -8,8 +8,7 @@ local refs = lib.Project {
   app:: self.Service { role:: lib.collections.role.APP },
 };
 
-// Pinned to upstream release tag v1.4.1 — verify it exists on the mirror before deploying.
-local version = '1.7.1';
+local version = 'v1.7.1';
 local port = '8000';
 
 {
