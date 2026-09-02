@@ -3,6 +3,9 @@ name: "komodo-mcp"
 networks:
   default:
     name: "komodo-mcp"
+  komodo:
+    external: true
+    name: "komodo"
 services:
   app:
     container_name: "komodo-mcp-app"
@@ -10,6 +13,7 @@ services:
       secrets:
         condition: "service_started"
     environment:
+      KOMODO_URL: "http://komodo_app:9120"
       MCP_ALLOWED_HOSTS: "komodo-mcp.ktbinternal.com"
       MCP_TRANSPORT: "http"
       MCP_TRUST_PROXY: "1"
@@ -19,6 +23,8 @@ services:
     image: "fj.ktbcloud.com/bkenks/komodo-mcp-server:v1.7.1"
     labels:
       komodo.skip: ""
+    networks:
+      - "komodo"
     ports:
       - "127.0.0.1:18007:8000"
     restart: "unless-stopped"
