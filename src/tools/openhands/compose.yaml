@@ -13,7 +13,7 @@ services:
       TZ: "America/Chicago"
     expose:
       - "8000"
-    image: "ghcr.io/openhands/agent-canvas:1.16.0"
+    image: "ghcr.io/openhands/agent-canvas:latest"
     ports:
       - "127.0.0.1:18027:8000"
     restart: "on-failure:5"

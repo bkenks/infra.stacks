@@ -11,7 +11,7 @@ local refs = lib.Project {
   home:: self.Volume { key:: 'home' },
 };
 
-local version = '1.16.0';
+local version = 'latest';
 local port = '8000';
 local projectsDir = lib.collections.dirs.docker.bindMounts + '/' + refs.name + '/projects';
 
