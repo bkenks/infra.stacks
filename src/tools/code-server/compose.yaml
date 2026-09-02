@@ -1,0 +1,60 @@
+# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
+name: "code-server"
+networks:
+  default:
+    name: "code-server"
+services:
+  app:
+    container_name: "code-server-app"
+    depends_on:
+      secrets:
+        condition: "service_started"
+    environment:
+      DOCKER_USER: "coder"
+      TZ: "America/Chicago"
+    expose:
+      - "8080"
+    healthcheck:
+      interval: "30s"
+      retries: 5
+      test:
+        - "CMD"
+        - "curl"
+        - "-fsS"
+        - "--max-time"
+        - "2"
+        - "http://localhost:8080/healthz"
+      timeout: "10s"
+    image: "codercom/code-server:4.135.0"
+    ports:
+      - "127.0.0.1:18028:8080"
+    pre_start:
+      - command:
+          - "chown"
+          - "1000:1000"
+          - "/home/coder/.config"
+          - "/home/coder/.local"
+          - "/home/coder/project"
+        image: "busybox:1.37"
+        user: "0:0"
+    restart: "unless-stopped"
+    user: "1000:1000"
+    volumes:
+      - "config:/home/coder/.config"
+      - "local:/home/coder/.local"
+      - "/srv/docker/bind-mounts/code-server/projects:/home/coder/project"
+  secrets:
+    provider:
+      options:
+        credentials-file: "/mnt/secrets/credentials/infisical.env"
+        domain: "http://controlplane.internal:18043"
+        env: "prod"
+        path: "/code-server"
+        project-id: "86324d9b-3dd7-49d4-b252-69228c5ee0c7"
+        recursive: true
+      type: "infisical-secrets"
+volumes:
+  config:
+    name: "code-server_config"
+  local:
+    name: "code-server_local"
