@@ -6,7 +6,7 @@ services:
     depends_on:
       secrets:
         condition: "service_started"
-    image: "databasus/databasus@sha256:f748c20cecb3cf3162d80ebfddd4f192b5e4ee640d600c9daf726310ac49e51c"
+    image: "databasus/databasus@latest"
     network_mode: "host"
     ports:
       - "4005:4005"

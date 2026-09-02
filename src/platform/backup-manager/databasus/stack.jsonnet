@@ -15,7 +15,7 @@ local refs = lib.Project {
   appData:: self.Volume { key:: 'app' },
 };
 
-local version = 'sha256:f748c20cecb3cf3162d80ebfddd4f192b5e4ee640d600c9daf726310ac49e51c';
+local version = 'latest';
 local port = '4005';
 
 // Written by the control plane during a cold start, carrying SECRET_KEY under the same
