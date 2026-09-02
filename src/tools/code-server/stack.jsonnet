@@ -27,7 +27,7 @@ local mountPaths = [mounts[key].container for key in std.objectFields(mounts)];
     networks: { default: { name: refs.name } },
 
     services: {
-      [lib.collections.role.SECRETS]: lib.SecretsProvider('infra', '/code-server'),
+      [lib.collections.role.SECRETS]: lib.SecretsProvider('apps', '/code-server'),
 
       [refs.app.key]: {
         container_name: refs.app.ext,
