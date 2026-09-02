@@ -199,7 +199,6 @@ name = "openhands"
 server = "bill"
 linked_repo = "infra.stacks"
 run_directory = "./src/tools/openhands"
-file_paths = ["compose.yaml"]
 ignore_services = ["secrets"]
 
 ##
