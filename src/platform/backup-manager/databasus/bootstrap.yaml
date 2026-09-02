@@ -5,7 +5,7 @@ services:
     container_name: "databasus-app"
     env_file:
       - "${ANSIBLE_SECRETS_FILE:-/dev/shm/secrets/databasus.env}"
-    image: "databasus/databasus@latest"
+    image: "databasus/databasus:latest"
     network_mode: "host"
     ports:
       - "4005:4005"

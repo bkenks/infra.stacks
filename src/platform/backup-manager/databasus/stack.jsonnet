@@ -26,7 +26,7 @@ local bootstrapEnv = '${ANSIBLE_SECRETS_FILE:-%s/%s.env}' % [lib.collections.dir
 // service (steady state) or the env file (bootstrap). Nothing else differs.
 local app(secretsProvider) = {
   container_name: refs.app.ext,
-  image: 'databasus/databasus@' + version,
+  image: 'databasus/databasus:' + version,
   restart: lib.collections.restart.unlessStopped,
   [if secretsProvider then 'depends_on']: lib.secretsReady,
   [if !secretsProvider then 'env_file']: [bootstrapEnv],
