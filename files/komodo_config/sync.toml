@@ -587,7 +587,7 @@ name = "Pushover"
 [alerter.config]
 enabled = true
 endpoint.type = "Pushover"
-endpoint.params.url = "https://api.pushover.net/1/messages.json?token=ai73aegpybqxcx4rza83zxst71m9kc&user=ussunmeb3qdk4opkcgbe4ay5wc2aio"
+endpoint.params.url = "https://api.pushover.net/1/messages.json?token=an1aoqrmwhmzjwddgj7sepn2299i5o&user=ussunmeb3qdk4opkcgbe4ay5wc2aio"
 
 ##
 
