@@ -14,7 +14,7 @@ local port = '8000';
 {
   compose: {
     name: refs.name,
-    networks: { default: {name: refs.name}, komodo: {name: "komodo", external: true} },
+    networks: { default: {name: refs.name} },
 
     services: {
       [lib.collections.role.SECRETS]: lib.SecretsProvider('infra', '/komodo-mcp'),
@@ -32,15 +32,15 @@ local port = '8000';
           // Streamable HTTP transport (listens on :8000 inside the container).
           MCP_TRANSPORT: 'http',
           MCP_ALLOWED_HOSTS: refs.name + '.' + lib.collections.domain.ktbinternal,
-          KOMODO_URL: "http://komodo_app:9120",
+          KOMODO_URL: "http://host.docker.internal:9120",
           // Trust the first hop (this host's Traefik) to resolve the real client IP from
           // X-Forwarded-*.
           MCP_TRUST_PROXY: '1',
           TZ: 'America/Chicago',
         },
+        extra_hosts: [ "host.docker.internal:host-gateway" ],
         expose: [port],
         ports: ['%s:18007:%s' % [lib.collections.ip.loopback, port]],
-        networks: ["komodo"],
         // No `init: true`: the image's own tini is already PID 1; Docker's init would nest a
         // second tini as a non-PID-1 child and break zombie reaping.
         labels: lib.collections.labels.komodoSkip,
