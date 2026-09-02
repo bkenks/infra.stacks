@@ -49,6 +49,8 @@ local sharedTSGW = lib.registry.network.shared.tailscale_gw_001;
         environment: {
           FORGEJO____APP_NAME: 'KTB Software',
           FORGEJO____APP_SLOGAN: 'End-To-End Software',
+          FORGEJO____ENABLE_PUSH_CREATE_USER: true,
+          FORGEJO____ENABLE_PUSH_CREATE_ORG: true,
           FORGEJO____DOMAIN: col.domain.ktbcloud,
           FORGEJO____SSH_DOMAIN: col.domain.ktbcloud,
           FORGEJO__database__DB_TYPE: 'postgres',
