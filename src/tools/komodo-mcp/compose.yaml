@@ -16,7 +16,7 @@ services:
       TZ: "America/Chicago"
     expose:
       - "8000"
-    image: "fj.ktbcloud.com/bkenks/komodo-mcp-server:1.4.1"
+    image: "fj.ktbcloud.com/bkenks/komodo-mcp-server:1.7.1"
     labels:
       komodo.skip: ""
     ports:

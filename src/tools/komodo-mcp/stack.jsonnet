@@ -9,7 +9,7 @@ local refs = lib.Project {
 };
 
 // Pinned to upstream release tag v1.4.1 — verify it exists on the mirror before deploying.
-local version = '1.4.1';
+local version = '1.7.1';
 local port = '8000';
 
 {
