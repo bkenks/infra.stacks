@@ -28,7 +28,7 @@ local projectsDir = lib.collections.dirs.docker.bindMounts + '/' + refs.name + '
     volumes: refs.dotConfig.declare + refs.dotLocal.declare,
 
     services: {
-      [lib.collections.role.SECRETS]: lib.SecretsProvider('infra', '/code-server'),
+      [lib.collections.role.SECRETS]: lib.SecretsProvider('apps', '/code-server'),
 
       [refs.app.key]: {
         container_name: refs.app.ext,

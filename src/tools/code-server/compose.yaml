@@ -50,7 +50,7 @@ services:
         domain: "http://controlplane.internal:18043"
         env: "prod"
         path: "/code-server"
-        project-id: "86324d9b-3dd7-49d4-b252-69228c5ee0c7"
+        project-id: "2f0eb3d1-3e2a-4ce7-8060-5e47ad877e47"
         recursive: true
       type: "infisical-secrets"
 volumes:
