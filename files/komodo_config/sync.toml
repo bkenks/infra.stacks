@@ -78,7 +78,7 @@ ignore_services = ["secrets"]
 [[stack]]
 name = "databasus"
 [stack.config]
-server = "rick"
+server = "bill"
 project_name = "databasus"
 poll_for_updates = true
 linked_repo = "infra.stacks"
