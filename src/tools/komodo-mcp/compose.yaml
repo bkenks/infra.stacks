@@ -10,8 +10,6 @@ services:
       secrets:
         condition: "service_started"
     environment:
-      HTTP_SCHEME: "http"
-      KOMODO_FQDN: "host.docker.internal:9120"
       MCP_ALLOWED_HOSTS: "komodo-mcp.ktbinternal.com"
       MCP_TRANSPORT: "http"
       MCP_TRUST_PROXY: "1"

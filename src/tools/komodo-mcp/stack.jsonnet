@@ -33,8 +33,6 @@ local port = '8000';
           // Streamable HTTP transport (listens on :8000 inside the container).
           MCP_TRANSPORT: 'http',
           MCP_ALLOWED_HOSTS: refs.name + '.' + lib.collections.domain.ktbinternal,
-          HTTP_SCHEME: 'http',
-          KOMODO_FQDN: 'host.docker.internal:9120',
           // Trust the first hop (this host's Traefik) to resolve the real client IP from
           // X-Forwarded-*.
           MCP_TRUST_PROXY: '1',
