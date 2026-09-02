@@ -1,0 +1,42 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Configarr — config-as-code for Sonarr + Radarr quality.
+# ─────────────────────────────────────────────────────────────────────────────
+# Declares the TRaSH-guide quality definitions, quality profiles, and custom
+# formats Configarr syncs into Sonarr and Radarr each time it runs. Edit here
+# and restart the container; the running *arrs converge to match. It does not
+# touch indexers (that is Prowlarr), download clients, root folders, or media —
+# only quality scoring.
+#
+# Docs: https://configarr.de/docs/configuration/config-file/
+# Template names: https://recyclarr.dev/wiki/  (Configarr uses the same set)
+#
+# API keys come from .env through `!env` — never hard-code them here. base_url
+# uses the compose service name on the stack's own network.
+
+telemetry: false
+
+sonarr:
+  series:
+    base_url: http://sonarr:8989
+    api_key: !env SONARR_API_KEY
+    quality_definition:
+      type: series
+    include:
+      # TRaSH 1080p WEB profile and its custom formats. Swap the two
+      # `web-1080p` lines for the `web-2160p` equivalents for a 4K library.
+      - template: sonarr-quality-definition-series
+      - template: sonarr-v4-quality-profile-web-1080p
+      - template: sonarr-v4-custom-formats-web-1080p
+
+radarr:
+  movies:
+    base_url: http://radarr:7878
+    api_key: !env RADARR_API_KEY
+    quality_definition:
+      type: movie
+    include:
+      # TRaSH HD Bluray + WEB (1080p) profile and its custom formats. Swap for
+      # the `uhd-bluray-web` templates for a 4K library.
+      - template: radarr-quality-definition-movie
+      - template: radarr-quality-profile-hd-bluray-web
+      - template: radarr-custom-formats-hd-bluray-web
