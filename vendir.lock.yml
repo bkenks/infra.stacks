@@ -8,4 +8,12 @@ directories:
       - v1.0.6-6-gac67352
     path: .
   path: .vendir/libsonnet
+- contents:
+  - git:
+      commitTitle: Add Pkl compose library with role-keyed stacks...
+      sha: 57e9a181ee67d67c8fd8ece35cb402a337cd3fd7
+      tags:
+      - v0.1.0
+    path: .
+  path: .vendir/pkl-compose
 kind: LockConfig
