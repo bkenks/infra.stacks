@@ -1,0 +1,30 @@
+amends "@infra/Stack.pkl"
+
+import "@infra/registry.pkl"
+import "@infra/collections.pkl" as col
+
+local version = "latest"
+local hostPort = 18022
+local containerPort = 7777
+
+// The world lives under the tree file-browser-quantum serves, so it is reachable from the
+// browser as well; hence the shared path out of the registry rather than a local literal.
+local worldPath = "\(registry.dir.fileBrowser.shared)/terraria/worlds/columbia_plaza"
+
+name = "terraria"
+
+services {
+  ["app"] {
+    image = "ghcr.io/beardedio/terraria:\(version)"
+    restart = "unless-stopped"
+    volumes { col.bind(worldPath, "/config") }
+    environment { ["world"] = "Columbia_Plaza.wld" }
+    ports { new { target = containerPort; published = hostPort; host_ip = col.ip.loopback } }
+    tty = true
+    stdin_open = true
+  }
+}
+
+networks {
+  ["default"] { name = module.name }
+}

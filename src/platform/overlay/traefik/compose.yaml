@@ -1,9 +1,17 @@
-# GENERATED from traefik.jsonnet by render.py — DO NOT EDIT.
+# GENERATED from stack.pkl — DO NOT EDIT.
+name: container-gw
 services:
   proxy:
-    container_name: "container-gw-proxy"
-    image: "traefik:v3.7"
-    network_mode: "host"
+    image: traefik:v3.7
+    container_name: container-gw-proxy
+    hostname: proxy
     volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock"
-      - "./config/traefik.yaml:/etc/traefik/traefik.yaml:ro"
+    - type: bind
+      source: /var/run/docker.sock
+      target: /var/run/docker.sock
+      read_only: false
+    - type: bind
+      source: ./config/traefik.yaml
+      target: /etc/traefik/traefik.yaml
+      read_only: true
+    network_mode: host

@@ -56,8 +56,8 @@ jobs:
 
 instances:
   sonarr:
-    - base_url: "http://sonarr:8989"
+    - base_url: "http://tv:8989"
       api_key: !ENV SONARR_API_KEY
   radarr:
-    - base_url: "http://radarr:7878"
+    - base_url: "http://movies:7878"
       api_key: !ENV RADARR_API_KEY

@@ -1,24 +1,43 @@
-# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
-name: "terraria-tshock"
-networks:
-  default:
-    name: "terraria-tshock"
+# GENERATED from stack.pkl — DO NOT EDIT.
+name: terraria-tshock
 services:
   app:
-    container_name: "terraria-tshock-app"
+    image: ryshe/terraria:tshock-1.4.5.6-6.1.0
+    container_name: terraria-tshock-app
+    hostname: app
+    restart: unless-stopped
     environment:
-      CONFIGPATH: "/tshock/config"
-      LOGPATH: "/tshock/logs"
-      WORLD_FILENAME: "Columbia_Plaza.wld"
-    image: "ryshe/terraria:tshock-1.4.5.6-6.1.0"
+      WORLD_FILENAME: Columbia_Plaza.wld
+      CONFIGPATH: /tshock/config
+      LOGPATH: /tshock/logs
     ports:
-      - "127.0.0.1:18023:7777"
-      - "127.0.0.1:18024:7878"
-    restart: "unless-stopped"
+    - target: 7777
+      published: 18023
+      host_ip: 127.0.0.1
+      protocol: tcp
+    - target: 7878
+      published: 18024
+      host_ip: 127.0.0.1
+      protocol: tcp
+    volumes:
+    - type: bind
+      source: /rootless-srv/terraria-tshock/config
+      target: /tshock/config
+      read_only: false
+    - type: bind
+      source: /rootless-srv/terraria-tshock/worlds
+      target: /root/.local/share/Terraria/Worlds
+      read_only: false
+    - type: bind
+      source: /rootless-srv/terraria-tshock/logs
+      target: /tshock/logs
+      read_only: false
+    - type: bind
+      source: /rootless-srv/terraria-tshock/plugins
+      target: /tshock/ServerPlugins
+      read_only: false
     stdin_open: true
     tty: true
-    volumes:
-      - "/rootless-srv/terraria-tshock/config:/tshock/config"
-      - "/rootless-srv/terraria-tshock/worlds:/root/.local/share/Terraria/Worlds"
-      - "/rootless-srv/terraria-tshock/logs:/tshock/logs"
-      - "/rootless-srv/terraria-tshock/plugins:/tshock/ServerPlugins"
+networks:
+  default:
+    name: terraria-tshock

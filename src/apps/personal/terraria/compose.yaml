@@ -1,18 +1,25 @@
-# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
-name: "terraria"
-networks:
-  default:
-    name: "terraria"
+# GENERATED from stack.pkl — DO NOT EDIT.
+name: terraria
 services:
   app:
-    container_name: "terraria-app"
+    image: ghcr.io/beardedio/terraria:latest
+    container_name: terraria-app
+    hostname: app
+    restart: unless-stopped
     environment:
-      world: "Columbia_Plaza.wld"
-    image: "ghcr.io/beardedio/terraria:latest"
+      world: Columbia_Plaza.wld
     ports:
-      - "127.0.0.1:18022:7777"
-    restart: "unless-stopped"
+    - target: 7777
+      published: 18022
+      host_ip: 127.0.0.1
+      protocol: tcp
+    volumes:
+    - type: bind
+      source: /rootless-srv/file-browser-quantum/shared/terraria/worlds/columbia_plaza
+      target: /config
+      read_only: false
     stdin_open: true
     tty: true
-    volumes:
-      - "/rootless-srv/file-browser-quantum/shared/terraria/worlds/columbia_plaza:/config"
+networks:
+  default:
+    name: terraria

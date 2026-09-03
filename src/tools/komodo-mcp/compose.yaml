@@ -1,37 +1,41 @@
-# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
-name: "komodo-mcp"
-networks:
-  default:
-    name: "komodo-mcp"
+# GENERATED from stack.pkl — DO NOT EDIT.
+name: komodo-mcp
 services:
-  app:
-    container_name: "komodo-mcp-app"
-    depends_on:
-      secrets:
-        condition: "service_started"
-    environment:
-      KOMODO_URL: "http://host.docker.internal:9120"
-      MCP_ALLOWED_HOSTS: "komodo-mcp.ktbinternal.com"
-      MCP_TRANSPORT: "http"
-      MCP_TRUST_PROXY: "1"
-      TZ: "America/Chicago"
-    expose:
-      - "8000"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    image: "fj.ktbcloud.com/bkenks/komodo-mcp-server:v1.7.1"
-    labels:
-      komodo.skip: ""
-    ports:
-      - "127.0.0.1:18007:8000"
-    restart: "unless-stopped"
   secrets:
     provider:
+      type: infisical-secrets
       options:
-        credentials-file: "/mnt/secrets/credentials/infisical.env"
-        domain: "http://controlplane.internal:18043"
-        env: "prod"
-        path: "/komodo-mcp"
-        project-id: "86324d9b-3dd7-49d4-b252-69228c5ee0c7"
+        credentials-file: /mnt/secrets/credentials/infisical.env
+        domain: http://controlplane.internal:18043
+        project-id: 86324d9b-3dd7-49d4-b252-69228c5ee0c7
+        env: prod
+        path: /komodo-mcp
         recursive: true
-      type: "infisical-secrets"
+  app:
+    image: fj.ktbcloud.com/bkenks/komodo-mcp-server:v1.7.1
+    container_name: komodo-mcp-app
+    hostname: app
+    restart: unless-stopped
+    environment:
+      MCP_TRANSPORT: http
+      MCP_ALLOWED_HOSTS: komodo-mcp.ktbinternal.com
+      KOMODO_URL: http://host.docker.internal:9120
+      MCP_TRUST_PROXY: '1'
+      TZ: America/Chicago
+    ports:
+    - target: 8000
+      published: 18007
+      host_ip: 127.0.0.1
+      protocol: tcp
+    expose:
+    - 8000
+    extra_hosts:
+    - host.docker.internal:host-gateway
+    depends_on:
+      secrets:
+        condition: service_started
+    labels:
+      komodo.skip: ''
+networks:
+  default:
+    name: komodo-mcp
