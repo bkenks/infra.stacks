@@ -1,11 +1,10 @@
 [tools]
-go-jsonnet = "0.22.0"
-uv = "0.12.1"           # runtime for .vendir/libsonnet/render.py
-vendir = "0.46.1"       # vendors lib_compose into .vendir/libsonnet/
-lefthook = "2.1.10"
-yq = "4.53.3"
-d2 = "latest"
-"npm:likec4" = "latest"
+go-jsonnet = "0.22"
+uv = "0.12"         # runtime for .vendir/libsonnet/render.py
+vendir = "0.46"     # vendors lib_compose into .vendir/libsonnet/
+lefthook = "2"
+yq = "4"
+"npm:likec4" = "1"
 
 [hooks]
 postinstall = "lefthook install"

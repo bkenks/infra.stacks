@@ -1,0 +1,294 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# media-stack — portable Plex + *arr + SABnzbd stack.
+# ─────────────────────────────────────────────────────────────────────────────
+# Drop this file (plus a .env) anywhere and run `docker compose up -d`. Nothing
+# in here is host-specific: every path, port, and id comes from .env, and every
+# service creates and permissions its own directories in a `pre_start` hook, so
+# a service can be deleted from this file without breaking the ones that remain.
+#
+# Requires Docker Compose v2.30+ (`pre_start` lifecycle hooks).
+#
+# Storage is host bind mounts, not named volumes: the media tree is normally an
+# existing library or a NAS mount, and the *arr apps need downloads and library
+# on ONE filesystem so imports hardlink instead of copying.
+#
+#   ${CONFIG_ROOT}/<service>   → /config   per-app state (databases, settings)
+#   ${DATA_ROOT}               → /data     one shared tree (TRaSH layout):
+#       usenet/incomplete, usenet/complete, media/{movies,series,music}
+#
+# Do NOT mount those subdirectories separately — a nested submount is a separate
+# filesystem to the kernel, hardlinks stop working, and every import becomes a
+# full copy that needs the space twice.
+#
+# Containers run as root by default and drop to PUID/PGID where the image
+# supports it. The hooks chown everything to PUID:PGID (1000:1000 by default) so
+# the primary user on the host can read and write the same files from a shell.
+
+name: ${STACK_NAME:-mediastack}
+
+networks:
+  default:
+    name: ${STACK_NAME:-mediastack}
+
+# Every hook runs from a plain alpine image, NOT the service image. A hook
+# inherits the service's volumes and environment but cannot set an entrypoint —
+# compose passes the hook command as arguments to whatever entrypoint the image
+# ships, so a hook on an image with a long-running entrypoint starts the app
+# instead of the hook and hangs the deploy forever.
+x-hook: &hook
+  image: alpine:3.22
+  user: root
+
+services:
+  # ── Prowlarr — indexer aggregator, pushes indexers to the other *arrs ───────
+  prowlarr:
+    container_name: ${STACK_NAME:-mediastack}-prowlarr
+    image: lscr.io/linuxserver/prowlarr:${PROWLARR_VERSION:-1.39.0}
+    restart: ${RESTART_POLICY:-unless-stopped}
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      TZ: ${TZ:-Etc/UTC}
+    volumes:
+      - ${CONFIG_ROOT:-./config}/prowlarr:/config
+    pre_start:
+      - <<: *hook
+        command:
+          - sh
+          - -c
+          - mkdir -p /config && chown -R ${PUID:-1000}:${PGID:-1000} /config
+    ports:
+      - ${PROWLARR_PORT:-9696}:9696
+    healthcheck:
+      test: [CMD-SHELL, curl -fsS http://localhost:9696/ping || exit 1]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # ── Sonarr — TV ────────────────────────────────────────────────────────────
+  sonarr:
+    container_name: ${STACK_NAME:-mediastack}-sonarr
+    image: lscr.io/linuxserver/sonarr:${SONARR_VERSION:-4.0.15}
+    restart: ${RESTART_POLICY:-unless-stopped}
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      TZ: ${TZ:-Etc/UTC}
+    volumes:
+      - ${CONFIG_ROOT:-./config}/sonarr:/config
+      - ${DATA_ROOT:-./data}:/data
+    pre_start:
+      - <<: *hook
+        command:
+          - sh
+          - -c
+          - mkdir -p /config /data/media/series /data/usenet/complete && chown -R ${PUID:-1000}:${PGID:-1000} /config /data/media/series /data/usenet
+    ports:
+      - ${SONARR_PORT:-8989}:8989
+    healthcheck:
+      test: [CMD-SHELL, curl -fsS http://localhost:8989/ping || exit 1]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # ── Radarr — movies ────────────────────────────────────────────────────────
+  radarr:
+    container_name: ${STACK_NAME:-mediastack}-radarr
+    image: lscr.io/linuxserver/radarr:${RADARR_VERSION:-5.26.2}
+    restart: ${RESTART_POLICY:-unless-stopped}
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      TZ: ${TZ:-Etc/UTC}
+    volumes:
+      - ${CONFIG_ROOT:-./config}/radarr:/config
+      - ${DATA_ROOT:-./data}:/data
+    pre_start:
+      - <<: *hook
+        command:
+          - sh
+          - -c
+          - mkdir -p /config /data/media/movies /data/usenet/complete && chown -R ${PUID:-1000}:${PGID:-1000} /config /data/media/movies /data/usenet
+    ports:
+      - ${RADARR_PORT:-7878}:7878
+    healthcheck:
+      test: [CMD-SHELL, curl -fsS http://localhost:7878/ping || exit 1]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # ── Bazarr — subtitles for whatever Sonarr and Radarr import ───────────────
+  bazarr:
+    container_name: ${STACK_NAME:-mediastack}-bazarr
+    image: lscr.io/linuxserver/bazarr:${BAZARR_VERSION:-1.5.4}
+    restart: ${RESTART_POLICY:-unless-stopped}
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      TZ: ${TZ:-Etc/UTC}
+    volumes:
+      - ${CONFIG_ROOT:-./config}/bazarr:/config
+      - ${DATA_ROOT:-./data}:/data
+    pre_start:
+      - <<: *hook
+        command:
+          - sh
+          - -c
+          - mkdir -p /config /data/media && chown -R ${PUID:-1000}:${PGID:-1000} /config /data/media
+    ports:
+      - ${BAZARR_PORT:-6767}:6767
+    healthcheck:
+      test: [CMD-SHELL, curl -fsS http://localhost:6767/ || exit 1]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # ── SABnzbd — usenet download client ───────────────────────────────────────
+  # Set its incomplete folder to /data/usenet/incomplete and its Completed
+  # Download Folder to /data/usenet/complete, so finished downloads land on the
+  # same filesystem as the library and the *arrs hardlink on import.
+  sabnzbd:
+    container_name: ${STACK_NAME:-mediastack}-sabnzbd
+    image: lscr.io/linuxserver/sabnzbd:${SABNZBD_VERSION:-4.5.4}
+    restart: ${RESTART_POLICY:-unless-stopped}
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      TZ: ${TZ:-Etc/UTC}
+    volumes:
+      - ${CONFIG_ROOT:-./config}/sabnzbd:/config
+      - ${DATA_ROOT:-./data}:/data
+    pre_start:
+      - <<: *hook
+        command:
+          - sh
+          - -c
+          - mkdir -p /config /data/usenet/incomplete /data/usenet/complete && chown -R ${PUID:-1000}:${PGID:-1000} /config /data/usenet
+    ports:
+      - ${SABNZBD_PORT:-8080}:8080
+    healthcheck:
+      test: [CMD-SHELL, curl -fsS http://localhost:8080/ || exit 1]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # ── Plex — media server ────────────────────────────────────────────────────
+  # network_mode: host, because Plex needs LAN broadcast for client discovery.
+  # A service using network_mode must declare no `networks:` — compose rejects
+  # the whole project if both are present — and PLEX_PORT does not apply while
+  # this is set; Plex is on the host's own :32400.
+  #
+  # PLEX_CLAIM (from plex.tv/claim, valid 4 minutes) is read only on a fresh
+  # start; leave it empty afterwards.
+  #
+  # Runs as root (PUID/PGID 0) so it reads every file the other services write
+  # regardless of their group, and so hardware transcoding needs no group_add
+  # for the render group. Its hook still chowns the media tree to PUID:PGID for
+  # host shell access.
+  plex:
+    container_name: ${STACK_NAME:-mediastack}-plex
+    image: lscr.io/linuxserver/plex:${PLEX_VERSION:-1.43.3}
+    restart: ${RESTART_POLICY:-unless-stopped}
+    network_mode: host
+    environment:
+      PUID: 0
+      PGID: 0
+      TZ: ${TZ:-Etc/UTC}
+      # "docker" pins the version to the image — no self-update inside the
+      # container, so the tag above is the whole truth about what runs.
+      VERSION: docker
+      PLEX_CLAIM: ${PLEX_CLAIM:-}
+    volumes:
+      - ${CONFIG_ROOT:-./config}/plex:/config
+      - ${DATA_ROOT:-./data}/media:/data/media
+    pre_start:
+      - <<: *hook
+        command:
+          - sh
+          - -c
+          - mkdir -p /config /data/media/movies /data/media/series /data/media/music && chown -R ${PUID:-1000}:${PGID:-1000} /config /data/media
+    # Hardware transcoding on an Intel iGPU or AMD GPU. Uncomment only if the
+    # host has /dev/dri — the container fails to start if the device is absent.
+    # devices:
+    #   - /dev/dri:/dev/dri
+    healthcheck:
+      test: [CMD-SHELL, curl -fsS http://localhost:32400/identity || exit 1]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # ── Seerr — request management, the front door for users ───────────────────
+  # Runs as the image's fixed non-root `node` user (UID 1000): PUID/PGID have no
+  # effect, it needs `init: true`, and its config dir must already be 1000:1000 —
+  # which is what its hook guarantees. No healthcheck: the image ships no curl,
+  # wget, or bash to run one with.
+  seerr:
+    container_name: ${STACK_NAME:-mediastack}-seerr
+    image: ghcr.io/seerr-team/seerr:${SEERR_VERSION:-v3.0.1}
+    restart: ${RESTART_POLICY:-unless-stopped}
+    init: true
+    environment:
+      TZ: ${TZ:-Etc/UTC}
+    volumes:
+      - ${CONFIG_ROOT:-./config}/seerr:/app/config
+    pre_start:
+      - <<: *hook
+        command:
+          - sh
+          - -c
+          - mkdir -p /app/config && chown -R ${PUID:-1000}:${PGID:-1000} /app/config
+    ports:
+      - ${SEERR_PORT:-5055}:5055
+
+  # ── Configarr — one-shot quality-config sync, exits 0 ──────────────────────
+  # Optional: `docker compose --profile tools up -d`. Needs SONARR_API_KEY and
+  # RADARR_API_KEY in .env (Settings → General → Security in each app), so it
+  # only applies after Sonarr and Radarr have run once.
+  configarr:
+    container_name: ${STACK_NAME:-mediastack}-configarr
+    image: ghcr.io/raydak-labs/configarr:${CONFIGARR_VERSION:-1.28.0}
+    profiles: [tools]
+    restart: on-failure:5
+    depends_on:
+      sonarr:
+        condition: service_healthy
+      radarr:
+        condition: service_healthy
+    environment:
+      TZ: ${TZ:-Etc/UTC}
+      SONARR_API_KEY: ${SONARR_API_KEY:-}
+      RADARR_API_KEY: ${RADARR_API_KEY:-}
+    volumes:
+      - ./configarr:/app/config:ro
+      - ${CONFIG_ROOT:-./config}/configarr/repos:/app/repos
+    pre_start:
+      - <<: *hook
+        command:
+          - sh
+          - -c
+          - mkdir -p /app/repos && chown -R ${PUID:-1000}:${PGID:-1000} /app/repos
+
+  # ── Decluttarr — clears failed/stalled/orphaned downloads on a timer ───────
+  # Optional, same profile and same two API keys as configarr.
+  decluttarr:
+    container_name: ${STACK_NAME:-mediastack}-decluttarr
+    image: ghcr.io/manimatter/decluttarr:${DECLUTTARR_VERSION:-v2.1.0}
+    profiles: [tools]
+    restart: ${RESTART_POLICY:-unless-stopped}
+    depends_on:
+      sonarr:
+        condition: service_healthy
+      radarr:
+        condition: service_healthy
+    environment:
+      TZ: ${TZ:-Etc/UTC}
+      SONARR_API_KEY: ${SONARR_API_KEY:-}
+      RADARR_API_KEY: ${RADARR_API_KEY:-}
+    volumes:
+      - ./decluttarr:/app/config:ro
