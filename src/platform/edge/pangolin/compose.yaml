@@ -1,107 +1,156 @@
-# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
-name: "pangolin"
-networks:
-  default:
-    driver: "bridge"
-    enable_ipv6: true
-    name: "pangolin"
+# GENERATED from stack.pkl — DO NOT EDIT.
+name: pangolin
 services:
-  gerbil:
-    cap_add:
-      - "NET_ADMIN"
-      - "SYS_MODULE"
-    command:
-      - "--reachableAt=http://gerbil:3004"
-      - "--generateAndSaveKeyTo=/var/config/key"
-      - "--remoteConfig=http://pangolin:3001/api/v1/"
-    container_name: "gerbil"
-    depends_on:
-      init:
-        condition: "service_completed_successfully"
-      pangolin:
-        condition: "service_healthy"
-    image: "docker.io/fosrl/gerbil:1.4.2"
-    ports:
-      - "51820:51820/udp"
-      - "21820:21820/udp"
-      - "443:443"
-      - "443:443/udp"
-      - "80:80"
-      - "22:22"
-      - "18022:18022"
-    restart: "unless-stopped"
-    volumes:
-      - "/srv/docker/bind-mounts/pangolin/config:/var/config"
-  init:
-    command:
-      - "sh"
-      - "-c"
-      - "set -e && mkdir -p /mnt/config/traefik/logs /mnt/config/letsencrypt && touch /mnt/config/letsencrypt/acme.json && if [ ! -f /mnt/config/GeoLite2-Country.mmdb ]; then wget -qO /tmp/geolite-Country.tar.gz https://github.com/GitSquared/node-geolite2-redist/raw/refs/heads/master/redist/GeoLite2-Country.tar.gz && tar -xzf /tmp/geolite-Country.tar.gz -C /tmp && mv /tmp/GeoLite2-Country_*/GeoLite2-Country.mmdb /mnt/config/; fi && if [ ! -f /mnt/config/GeoLite2-ASN.mmdb ]; then wget -qO /tmp/geolite-ASN.tar.gz https://github.com/GitSquared/node-geolite2-redist/raw/refs/heads/master/redist/GeoLite2-ASN.tar.gz && tar -xzf /tmp/geolite-ASN.tar.gz -C /tmp && mv /tmp/GeoLite2-ASN_*/GeoLite2-ASN.mmdb /mnt/config/; fi && chmod -R 755 /mnt/config && chmod 600 /mnt/config/letsencrypt/acme.json"
-    container_name: "pangolin-init"
-    image: "docker.io/library/busybox:1.37.0"
-    restart: "no"
-    volumes:
-      - "/srv/docker/bind-mounts/pangolin/config:/mnt/config"
-  pangolin:
-    container_name: "pangolin"
-    depends_on:
-      init:
-        condition: "service_completed_successfully"
-      secrets:
-        condition: "service_started"
-    healthcheck:
-      interval: "10s"
-      retries: 15
-      test:
-        - "CMD"
-        - "curl"
-        - "-f"
-        - "http://localhost:3001/api/v1/"
-      timeout: "10s"
-    image: "docker.io/fosrl/pangolin:ee-1.20.0"
-    mem_limit: "2g"
-    mem_reservation: "512m"
-    restart: "unless-stopped"
-    volumes:
-      - "/srv/docker/bind-mounts/pangolin/config:/app/config"
-      - "./files/config.yaml:/app/config/config.yml:ro"
-      - "./files/privateConfig.yaml:/app/config/privateConfig.yml:ro"
   secrets:
     provider:
+      type: infisical-secrets
       options:
-        credentials-file: "/mnt/secrets/credentials/infisical.env"
-        domain: "http://controlplane.internal:18043"
-        env: "prod"
-        path: "/pangolin"
-        project-id: "2f0eb3d1-3e2a-4ce7-8060-5e47ad877e47"
+        credentials-file: /mnt/secrets/credentials/infisical.env
+        domain: http://controlplane.internal:18043
+        project-id: 2f0eb3d1-3e2a-4ce7-8060-5e47ad877e47
+        env: prod
+        path: /pangolin
         recursive: true
-      type: "infisical-secrets"
   secrets-traefik:
     provider:
+      type: infisical-secrets
       options:
-        credentials-file: "/mnt/secrets/credentials/infisical.env"
-        domain: "http://controlplane.internal:18043"
-        env: "prod"
-        path: "/traefik"
-        project-id: "86324d9b-3dd7-49d4-b252-69228c5ee0c7"
+        credentials-file: /mnt/secrets/credentials/infisical.env
+        domain: http://controlplane.internal:18043
+        project-id: 86324d9b-3dd7-49d4-b252-69228c5ee0c7
+        env: prod
+        path: /traefik
         recursive: true
-      type: "infisical-secrets"
-  traefik:
+  seeder:
+    image: docker.io/library/busybox:1.37.0
+    container_name: pangolin-seeder
+    hostname: seeder
+    restart: 'no'
     command:
-      - "--configFile=/etc/traefik/traefik_config.yml"
-    container_name: "traefik"
-    depends_on:
-      init:
-        condition: "service_completed_successfully"
-      pangolin:
-        condition: "service_healthy"
-      secrets-traefik:
-        condition: "service_started"
-    image: "docker.io/library/traefik:v3.6"
-    network_mode: "service:gerbil"
-    restart: "unless-stopped"
+    - sh
+    - -c
+    - set -e && mkdir -p /mnt/config/traefik/logs /mnt/config/letsencrypt && touch /mnt/config/letsencrypt/acme.json && if [ ! -f /mnt/config/GeoLite2-Country.mmdb ]; then wget -qO /tmp/geolite-Country.tar.gz https://github.com/GitSquared/node-geolite2-redist/raw/refs/heads/master/redist/GeoLite2-Country.tar.gz && tar -xzf /tmp/geolite-Country.tar.gz -C /tmp && mv /tmp/GeoLite2-Country_*/GeoLite2-Country.mmdb /mnt/config/; fi && if [ ! -f /mnt/config/GeoLite2-ASN.mmdb ]; then wget -qO /tmp/geolite-ASN.tar.gz https://github.com/GitSquared/node-geolite2-redist/raw/refs/heads/master/redist/GeoLite2-ASN.tar.gz && tar -xzf /tmp/geolite-ASN.tar.gz -C /tmp && mv /tmp/GeoLite2-ASN_*/GeoLite2-ASN.mmdb /mnt/config/; fi && chmod -R 755 /mnt/config && chmod 600 /mnt/config/letsencrypt/acme.json
     volumes:
-      - "./files/traefik_config.yaml:/etc/traefik/traefik_config.yml:ro"
-      - "./files/dynamic_config.yaml:/etc/traefik/dynamic_config.yml:ro"
-      - "/srv/docker/bind-mounts/pangolin/config/letsencrypt:/letsencrypt"
-      - "/srv/docker/bind-mounts/pangolin/config/traefik/logs:/var/log/traefik"
+    - type: bind
+      source: /srv/docker/bind-mounts/pangolin/config
+      target: /mnt/config
+      read_only: false
+  app:
+    image: docker.io/fosrl/pangolin:ee-1.20.0
+    container_name: pangolin
+    hostname: app
+    restart: unless-stopped
+    volumes:
+    - type: bind
+      source: /srv/docker/bind-mounts/pangolin/config
+      target: /app/config
+      read_only: false
+    - type: bind
+      source: ./files/config.yaml
+      target: /app/config/config.yml
+      read_only: true
+    - type: bind
+      source: ./files/privateConfig.yaml
+      target: /app/config/privateConfig.yml
+      read_only: true
+    depends_on:
+      seeder:
+        condition: service_completed_successfully
+      secrets:
+        condition: service_started
+    healthcheck:
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:3001/api/v1/
+      interval: 10s
+      timeout: 10s
+      retries: 15
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+        reservations:
+          memory: 512m
+  tunnel:
+    image: docker.io/fosrl/gerbil:1.4.2
+    container_name: gerbil
+    hostname: tunnel
+    restart: unless-stopped
+    command:
+    - --reachableAt=http://gerbil:3004
+    - --generateAndSaveKeyTo=/var/config/key
+    - --remoteConfig=http://pangolin:3001/api/v1/
+    ports:
+    - target: 51820
+      published: 51820
+      protocol: udp
+    - target: 21820
+      published: 21820
+      protocol: udp
+    - target: 443
+      published: 443
+      protocol: tcp
+    - target: 443
+      published: 443
+      protocol: udp
+    - target: 80
+      published: 80
+      protocol: tcp
+    - target: 22
+      published: 22
+      protocol: tcp
+    - target: 18022
+      published: 18022
+      protocol: tcp
+    volumes:
+    - type: bind
+      source: /srv/docker/bind-mounts/pangolin/config
+      target: /var/config
+      read_only: false
+    depends_on:
+      seeder:
+        condition: service_completed_successfully
+      app:
+        condition: service_healthy
+    cap_add:
+    - NET_ADMIN
+    - SYS_MODULE
+  proxy:
+    image: docker.io/library/traefik:v3.6
+    container_name: traefik
+    hostname: proxy
+    restart: unless-stopped
+    command:
+    - --configFile=/etc/traefik/traefik_config.yml
+    volumes:
+    - type: bind
+      source: ./files/traefik_config.yaml
+      target: /etc/traefik/traefik_config.yml
+      read_only: true
+    - type: bind
+      source: ./files/dynamic_config.yaml
+      target: /etc/traefik/dynamic_config.yml
+      read_only: true
+    - type: bind
+      source: /srv/docker/bind-mounts/pangolin/config/letsencrypt
+      target: /letsencrypt
+      read_only: false
+    - type: bind
+      source: /srv/docker/bind-mounts/pangolin/config/traefik/logs
+      target: /var/log/traefik
+      read_only: false
+    network_mode: service:tunnel
+    depends_on:
+      seeder:
+        condition: service_completed_successfully
+      app:
+        condition: service_healthy
+      secrets-traefik:
+        condition: service_started
+networks:
+  default:
+    name: pangolin
+    driver: bridge
+    enable_ipv6: true

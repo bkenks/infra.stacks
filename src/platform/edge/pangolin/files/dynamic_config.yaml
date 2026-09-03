@@ -1,4 +1,4 @@
-# GENERATED from configs.jsonnet by render.py — DO NOT EDIT.
+# GENERATED from stack.pkl — DO NOT EDIT.
 http:
   middlewares:
     badger:
@@ -7,60 +7,60 @@ http:
           disableForwardAuth: true
     redirect-to-https:
       redirectScheme:
-        scheme: "https"
+        scheme: https
   routers:
-    api-router:
-      entryPoints:
-        - "websecure"
-      middlewares:
-        - "badger"
-      rule: "Host(`pangolin.ktbcloud.com`) && PathPrefix(`/api/v1`)"
-      service: "api-service"
-      tls:
-        certResolver: "cloudflare"
     main-app-router-redirect:
+      rule: Host(`pangolin.ktbcloud.com`)
+      service: next-service
       entryPoints:
-        - "web"
+      - web
       middlewares:
-        - "redirect-to-https"
-        - "badger"
-      rule: "Host(`pangolin.ktbcloud.com`)"
-      service: "next-service"
+      - redirect-to-https
+      - badger
     next-router:
+      rule: Host(`pangolin.ktbcloud.com`) && !PathPrefix(`/api/v1`)
+      service: next-service
       entryPoints:
-        - "websecure"
+      - websecure
       middlewares:
-        - "badger"
-      rule: "Host(`pangolin.ktbcloud.com`) && !PathPrefix(`/api/v1`)"
-      service: "next-service"
+      - badger
       tls:
-        certResolver: "cloudflare"
+        certResolver: cloudflare
         domains:
-          - main: "ktbinternal.com"
-            sans:
-              - "*.ktbinternal.com"
-          - main: "ktbcloud.com"
-            sans:
-              - "*.ktbcloud.com"
-              - "*.coder.ktbcloud.com"
-    ws-router:
+        - main: ktbinternal.com
+          sans:
+          - '*.ktbinternal.com'
+        - main: ktbcloud.com
+          sans:
+          - '*.ktbcloud.com'
+          - '*.coder.ktbcloud.com'
+    api-router:
+      rule: Host(`pangolin.ktbcloud.com`) && PathPrefix(`/api/v1`)
+      service: api-service
       entryPoints:
-        - "websecure"
+      - websecure
       middlewares:
-        - "badger"
-      rule: "Host(`pangolin.ktbcloud.com`)"
-      service: "api-service"
+      - badger
       tls:
-        certResolver: "cloudflare"
+        certResolver: cloudflare
+    ws-router:
+      rule: Host(`pangolin.ktbcloud.com`)
+      service: api-service
+      entryPoints:
+      - websecure
+      middlewares:
+      - badger
+      tls:
+        certResolver: cloudflare
   services:
-    api-service:
-      loadBalancer:
-        servers:
-          - url: "http://pangolin:3000"
     next-service:
       loadBalancer:
         servers:
-          - url: "http://pangolin:3002"
+        - url: http://pangolin:3002
+    api-service:
+      loadBalancer:
+        servers:
+        - url: http://pangolin:3000
 tcp:
   serversTransports:
     pp-transport-v1:

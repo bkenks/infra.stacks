@@ -1,45 +1,54 @@
-# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
-name: "postgres"
-networks:
-  default:
-    name: "postgres"
-  shared__db_001:
-    external: true
-    name: "shared__db_001"
-  shared__tailscale_gw_001:
-    external: true
-    name: "shared__tailscale_gw_001"
+# GENERATED from stack.pkl — DO NOT EDIT.
+name: postgres
 services:
-  db:
-    container_name: "postgres-db"
-    depends_on:
-      secrets:
-        condition: "service_started"
-    healthcheck:
-      interval: "5s"
-      retries: 10
-      test: "pg_isready -U $$POSTGRES_USER -h localhost -d postgres"
-      timeout: "5s"
-    image: "postgres:18"
-    networks:
-      - "default"
-      - "shared__db_001"
-      - "shared__tailscale_gw_001"
-    ports:
-      - "127.0.0.1:6109:5432"
-    restart: "always"
-    volumes:
-      - "db:/var/lib/postgresql"
   secrets:
     provider:
+      type: infisical-secrets
       options:
-        credentials-file: "/mnt/secrets/credentials/infisical.env"
-        domain: "http://controlplane.internal:18043"
-        env: "prod"
-        path: "/postgres"
-        project-id: "2f0eb3d1-3e2a-4ce7-8060-5e47ad877e47"
+        credentials-file: /mnt/secrets/credentials/infisical.env
+        domain: http://controlplane.internal:18043
+        project-id: 2f0eb3d1-3e2a-4ce7-8060-5e47ad877e47
+        env: prod
+        path: /postgres
         recursive: true
-      type: "infisical-secrets"
-volumes:
   db:
-    name: "postgres_db"
+    image: postgres:18
+    container_name: postgres-db
+    hostname: db
+    restart: always
+    ports:
+    - target: 5432
+      published: 6109
+      host_ip: 127.0.0.1
+      protocol: tcp
+    volumes:
+    - type: volume
+      source: db_data
+      target: /var/lib/postgresql
+      read_only: false
+    networks:
+    - default
+    - shared__db_001
+    - shared__tailscale_gw_001
+    depends_on:
+      secrets:
+        condition: service_started
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - pg_isready -U $$POSTGRES_USER -h localhost -d postgres
+      interval: 5s
+      timeout: 5s
+      retries: 10
+volumes:
+  db_data:
+    name: postgres-db_data
+networks:
+  default:
+    name: postgres
+  shared__db_001:
+    name: shared__db_001
+    external: true
+  shared__tailscale_gw_001:
+    name: shared__tailscale_gw_001
+    external: true

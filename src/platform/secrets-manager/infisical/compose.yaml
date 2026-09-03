@@ -1,6 +1,6 @@
-# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
+# GENERATED from stack.pkl — DO NOT EDIT.
+name: infisical
 include:
-  - env_file:
-      - "${ANSIBLE_SECRETS_FILE:-/dev/shm/secrets/infisical.env}"
-    path: "services.yaml"
-name: "infisical"
+- path: services.yaml
+  env_file:
+  - ${ANSIBLE_SECRETS_FILE:-/dev/shm/secrets/infisical.env}

@@ -1,0 +1,69 @@
+// DOCKER_VOLUMES comes from Komodo's own stack Environment.
+amends "@infra/Stack.pkl"
+
+import "@infra/collections.pkl" as col
+import "@infra/secrets.pkl"
+
+local version = "2.1.2"
+local mongoVersion = "8.2.4"
+// Non-secret tunables, committed beside this file.
+local coreEnv = "./core.env"
+local stackDir = "\(col.dirs.docker.bindMounts)/dcm"
+
+name = "komodo"
+
+services {
+  ["secrets"] = secrets.provider("infra", "/komodo")
+
+  ["app"] {
+    image = "ghcr.io/moghtech/komodo-core:\(version)"
+    restart = "unless-stopped"
+    depends_on {
+      ...secrets.ready
+      ["db"] { condition = "service_started" }
+    }
+    data { ["keys"] { target = "/config/keys" } }
+    volumes {
+      col.bind("\(stackDir)/komodo/data/backups", "/backups")
+      col.bind("\(stackDir)/komodo/data/syncs", "/syncs")
+    }
+    env_file { coreEnv }
+    // KOMODO_DATABASE_USERNAME, KOMODO_DATABASE_PASSWORD, KOMODO_WEBHOOK_SECRET,
+    // KOMODO_JWT_SECRET and KOMODO_PRIVATE_KEY all arrive from infisical-secrets. `db`
+    // reads the same two database credentials as MONGO_INITDB_ROOT_USERNAME and
+    // MONGO_INITDB_ROOT_PASSWORD, so the bundle carries them under both spellings.
+    //
+    // KOMODO_PRIVATE_KEY is the X25519 private key Core uses for the Noise handshake with
+    // every Periphery agent. It is a managed secret rather than the default
+    // `file:/config/keys/core.key`, so the keypair survives a rebuild of the keys volume.
+    // Agents pin the matching PUBLIC key (komodo_core_public_key in infra.ansible
+    // group_vars); rotating this means updating that too.
+    environment {
+      ["KOMODO_HOST"] = "https://komo.\(col.domain.ktbinternal)"
+    }
+    // Published directly; the UI is reached via this port.
+    ports { new { target = 9120; published = 9120; host_ip = null } }
+    init = true
+    labels = col.labels.komodoSkip
+  }
+
+  ["db"] {
+    image = "mongo:\(mongoVersion)"
+    restart = "unless-stopped"
+    volumes {
+      col.bind("\(stackDir)/mongo/data", "/data/db")
+      col.bind("\(stackDir)/mongo/config", "/data/configdb")
+    }
+    env_file { coreEnv }
+    depends_on = secrets.ready
+    // MONGO_INITDB_ROOT_USERNAME and MONGO_INITDB_ROOT_PASSWORD arrive from
+    // infisical-secrets, holding the same values `app` reads as KOMODO_DATABASE_*.
+    ports { new { target = 27017; published = 27017; host_ip = null } }
+    command { "--quiet"; "--wiredTigerCacheSizeGB"; "0.25" }
+    labels = col.labels.komodoSkip
+  }
+}
+
+networks {
+  ["default"] { name = module.name }
+}
