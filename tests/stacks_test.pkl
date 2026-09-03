@@ -1,0 +1,23 @@
+amends "pkl:test"
+
+import "../src/templates/stack/stack.pkl" as template
+import "../src/apps/storage/file-browser-quantum/stack.pkl" as fileBrowser
+
+facts {
+  ["every rendered file starts with the GENERATED header"] {
+    template.output.files["compose.yaml"].text.startsWith("# GENERATED from stack.pkl")
+  }
+  ["template derives container and volume names from the project name"] {
+    template.services["app"].container_name == "example-app"
+    template.volumes["db_data"].name == "example-db_data"
+  }
+  ["the secrets provider renders without a container"] {
+    template.services["secrets"].container_name == null
+    template.services["app"].depends_on.containsKey("secrets")
+  }
+}
+
+examples {
+  ["template compose.yaml"] { template.output.files["compose.yaml"].text }
+  ["file-browser-quantum compose.yaml"] { fileBrowser.output.files["compose.yaml"].text }
+}

@@ -3,8 +3,13 @@
   "resolvedDependencies": {
     "package://fj.ktbcloud.com/bkenks/pkl-compose@0": {
       "type": "local",
-      "uri": "projectpackage://fj.ktbcloud.com/bkenks/pkl-compose@0.1.0",
+      "uri": "projectpackage://fj.ktbcloud.com/bkenks/pkl-compose@0.2.0",
       "path": ".vendir/pkl-compose"
+    },
+    "package://fj.ktbcloud.com/ktbgroup-self-hosted/infra.stacks/infra@0": {
+      "type": "local",
+      "uri": "projectpackage://fj.ktbcloud.com/ktbgroup-self-hosted/infra.stacks/infra@0.1.0",
+      "path": "src/lib"
     }
   }
 }

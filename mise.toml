@@ -1,9 +1,10 @@
 [tools]
-go-jsonnet = "0.22"
-uv = "0.12"         # runtime for .vendir/libsonnet/render.py
-vendir = "0.46"     # vendors lib_compose into .vendir/libsonnet/
+pkl = "0.32.1"
+vendir = "0.46"                      # vendors pkl-compose into .vendir/pkl-compose/
 lefthook = "2"
 yq = "4"
+"aqua:sharkdp/fd" = "latest"
+"aqua:BurntSushi/ripgrep" = "latest"
 "npm:likec4" = "1"
 
 [hooks]
@@ -20,9 +21,21 @@ pkl project resolve
 """
 
 [tasks.render]
-description = "Render every .jsonnet under src/ into the .yaml beside it"
-run = "./.vendir/libsonnet/render.py"
-alias = ["render-compose", "render"]
+description = "Render every src/**/stack.pkl into the files beside it (stdout = owned paths)"
+run = "./scripts/render.sh"
+
+[tasks.check]
+description = "Validate every rendered compose document with docker compose"
+run = """
+set -euo pipefail
+for f in $(fd --glob 'compose.yaml' src) $(fd --glob 'bootstrap.yaml' src); do
+  HOST=check ANSIBLE_SECRETS_FILE=/dev/null docker compose -f "$f" config --quiet || { echo "check: $f failed" >&2; exit 1; }
+done
+"""
+
+[tasks.test]
+description = "Run the Pkl facts and snapshots under tests/"
+run = "pkl test"
 
 
 # DOCS —————————————————————

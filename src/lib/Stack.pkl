@@ -1,0 +1,34 @@
+/// The compose file every stack in this repo amends: pkl-compose's Stack plus the
+/// generated-file header and the multi-file output the render task expects.
+///
+/// A stack renders `compose.yaml` beside itself. Stacks that need more documents add
+/// entries to `output.files` with `module.file(...)` (compose renderer) or
+/// `module.yamlFile(...)` (plain YAML, for config files).
+open module infra.Stack
+
+extends "@compose/Stack.pkl"
+
+hidden const header = "# GENERATED from stack.pkl — DO NOT EDIT.\n"
+
+/// Restore-tier stacks render a second document with the secrets provider swapped for
+/// an env file: `["bootstrap.yaml"] = module.file((module) { bootstrap = true })`.
+hidden bootstrap: Boolean = false
+
+function file(doc: Object): FileOutput = new FileOutput {
+  value = doc
+  renderer = module.output.renderer
+  text = header + super.text
+}
+
+function yamlFile(doc: Object): FileOutput = new FileOutput {
+  value = doc
+  renderer = new YamlRenderer {}
+  text = header + super.text
+}
+
+output {
+  text = header + super.text
+  files {
+    ["compose.yaml"] { text = module.output.text }
+  }
+}

@@ -1,0 +1,36 @@
+amends "pkl:test"
+
+import "@infra/registry.pkl"
+import "@infra/secrets.pkl"
+
+facts {
+  ["host ref is alias.internal"] {
+    registry.endpoint.hostGroup.rick.ref == "rick.internal"
+    registry.endpoint.hostGroup.nas.ref == "snaszy.internal"
+  }
+  ["container and host endpoints derive addr and url"] {
+    registry.endpoint.serviceGroup.postgres.container.addr == "postgres-db:5432"
+    registry.endpoint.serviceGroup.postgres.host.addr == "littlebuddy.internal:6109"
+    registry.endpoint.serviceGroup.infisical.proxy.url == "https://infisical.ktbinternal.com"
+  }
+  ["authentik oidc urls"] {
+    registry.endpoint.serviceGroup.authentik.proxy.oidc.issuer("homarr")
+      == "https://authentik.ktbcloud.com/application/o/homarr/"
+    registry.endpoint.serviceGroup.authentik.proxy.oidc.uri
+      == "https://authentik.ktbcloud.com/application/o/authorize/"
+  }
+  ["shared network name"] {
+    registry.network.shared.db_001.name == "shared__db_001"
+  }
+  ["infisical address dials the control plane alias"] {
+    registry.infisical.address == "http://controlplane.internal:18043"
+  }
+  ["secrets provider carries the project id and no container"] {
+    secrets.provider("infra", "/homarr").provider.options["project-id"]
+      == "86324d9b-3dd7-49d4-b252-69228c5ee0c7"
+    secrets.provider("infra", "/homarr").container_name == null
+  }
+  ["unknown infisical project fails"] {
+    module.catch(() -> secrets.provider("nope", "/x").output.text).contains("nope")
+  }
+}

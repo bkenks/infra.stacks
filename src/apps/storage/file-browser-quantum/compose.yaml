@@ -1,19 +1,35 @@
-# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
-name: "file-brws-quantm"
-networks:
-  default:
-    name: "file-brws-quantm"
+# GENERATED from stack.pkl — DO NOT EDIT.
+name: file-browser-quantum
 services:
   app:
-    container_name: "file-brws-quantm-app"
-    expose:
-      - "80"
-    image: "gtstef/filebrowser:stable"
+    image: gtstef/filebrowser:stable
+    container_name: file-browser-quantum-app
+    hostname: app
+    restart: unless-stopped
     ports:
-      - "127.0.0.1:18450:80"
-    restart: "unless-stopped"
+    - target: 80
+      published: 18450
+      host_ip: 127.0.0.1
+      protocol: tcp
+    expose:
+    - 80
     volumes:
-      - "./files/config.yaml:/home/filebrowser/data/config.yaml:ro"
-      - "/rootless-srv/file-browser-quantum/data:/data"
-      - "/rootless-srv/file-browser-quantum/shared:/shared"
-      - "/rootless-srv/file-browser-quantum/cache:/cache"
+    - type: bind
+      source: ./files/config.yaml
+      target: /home/filebrowser/data/config.yaml
+      read_only: true
+    - type: bind
+      source: /rootless-srv/file-browser-quantum/data
+      target: /data
+      read_only: false
+    - type: bind
+      source: /rootless-srv/file-browser-quantum/shared
+      target: /shared
+      read_only: false
+    - type: bind
+      source: /rootless-srv/file-browser-quantum/cache
+      target: /cache
+      read_only: false
+networks:
+  default:
+    name: file-browser-quantum

@@ -18,7 +18,7 @@ pre-commit:
         echo "———————————————————————————————"
         echo "INFO completed successfully"
 
-    - name: "JOB: jsonnet -> yaml"
+    - name: "JOB: pkl -> yaml"
       run: |
         # pipefail: without it a render failure is masked by git add's exit 0, and a
         # commit lands with stale YAML.
@@ -30,7 +30,7 @@ pre-commit:
         echo "INFO completed successfully"
 
 # git runs pre-merge-commit, not pre-commit, when a merge commits on its own. A merge
-# that changes a .jsonnet on one side and the library it imports on the other therefore
+# that changes a stack.pkl on one side and the library it imports on the other therefore
 # lands with the YAML the branch rendered rather than the YAML the merged sources
 # produce — clean merge, stale output, nothing in the diff to see.
 #
@@ -40,7 +40,7 @@ pre-commit:
 # it and committing completes the merge through pre-commit, which does stage properly.
 pre-merge-commit:
   jobs:
-    - name: "JOB: jsonnet -> yaml (verify)"
+    - name: "JOB: pkl -> yaml (verify)"
       run: |
         set -o pipefail
         echo "INFO checking the merged sources still render the committed YAML..."
@@ -60,8 +60,8 @@ pre-merge-commit:
         fi
         # Scoped to the paths render owns — an unrelated edit sitting in the tree is not
         # this hook's business to fail the merge over. Unquoted on purpose, to split into
-        # one pathspec per line; git diff has no --pathspec-from-file, and render.py
-        # rejects a filename with whitespace in it, so there is nothing here to quote.
+        # one pathspec per line; git diff has no --pathspec-from-file, and no rendered
+        # path carries whitespace, so there is nothing here to quote.
         if ! drift=$(git diff --name-only -- $owned); then
           echo "———————————————————————————————"
           echo "ERROR could not diff the rendered files."

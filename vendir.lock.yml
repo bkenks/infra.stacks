@@ -10,10 +10,10 @@ directories:
   path: .vendir/libsonnet
 - contents:
   - git:
-      commitTitle: Draft
-      sha: c5fa55c2757432545cf75236c449eb348068891f
+      commitTitle: 'Release 0.2.0: provider services, hooks, qualified keys'
+      sha: 4a12e91ea5f38ff2478815102d60f4939e690a2b
       tags:
-      - 0.1.0
+      - 0.2.0
     path: .
   path: .vendir/pkl-compose
 kind: LockConfig
