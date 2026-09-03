@@ -9,7 +9,7 @@ Docker Compose stacks/projects defining all docker infrastructure.
 ### General
 
 - **Platform**: Docker
-- **Configuration Language**: Jsonnet
+- **Configuration Language**: Pkl
 
 ### Naming
 

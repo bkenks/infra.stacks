@@ -2,6 +2,8 @@ amends "pkl:test"
 
 import "../src/templates/stack/stack.pkl" as template
 import "../src/apps/storage/file-browser-quantum/stack.pkl" as fileBrowser
+import "../src/platform/backup-manager/databasus/stack.pkl" as databasus
+import "../src/platform/secrets-manager/infisical/stack.pkl" as infisical
 
 facts {
   ["every rendered file starts with the GENERATED header"] {
@@ -15,9 +17,16 @@ facts {
     template.services["secrets"].container_name == null
     template.services["app"].depends_on.containsKey("secrets")
   }
+  ["the bootstrap variant drops the provider and takes the env file"] {
+    !databasus.output.files["bootstrap.yaml"].text.contains("provider:")
+    databasus.output.files["bootstrap.yaml"].text.contains("ANSIBLE_SECRETS_FILE")
+    databasus.output.files["compose.yaml"].text.contains("provider:")
+  }
 }
 
 examples {
   ["template compose.yaml"] { template.output.files["compose.yaml"].text }
   ["file-browser-quantum compose.yaml"] { fileBrowser.output.files["compose.yaml"].text }
+  ["databasus bootstrap.yaml"] { databasus.output.files["bootstrap.yaml"].text }
+  ["infisical compose.yaml"] { infisical.output.files["compose.yaml"].text }
 }

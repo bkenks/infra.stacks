@@ -2,14 +2,6 @@ apiVersion: vendir.k14s.io/v1alpha1
 directories:
 - contents:
   - git:
-      commitTitle: Join container names with a hyphen for RFC-1123 validity
-      sha: ac67352735e420deee8e189f4239e9996c36da16
-      tags:
-      - v1.0.6-6-gac67352
-    path: .
-  path: .vendir/libsonnet
-- contents:
-  - git:
       commitTitle: 'Release 0.2.0: provider services, hooks, qualified keys'
       sha: 4a12e91ea5f38ff2478815102d60f4939e690a2b
       tags:

@@ -1,13 +1,6 @@
 apiVersion: vendir.k14s.io/v1alpha1
 kind: Config
 directories:
-- path: .vendir/libsonnet
-  contents:
-  - path: .
-    git:
-      url: git@fj.ktbcloud.com:bkenks/lib_compose.git
-      ref: main
-    newRootPath: src
 - path: .vendir/pkl-compose
   contents:
   - path: .
