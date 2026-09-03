@@ -1,0 +1,5 @@
+amends "pkl:Project"
+
+dependencies {
+  ["compose"] = import(".vendir/pkl-compose/PklProject")
+}

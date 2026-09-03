@@ -1,0 +1,17 @@
+amends "@compose/Stack.pkl"
+
+name = "file-browser-quantum"
+
+services {
+  ["app"] {
+    image = "gtstef/filebrowser:stable"
+    ports {
+      new { target = 80; published = 18450; host_ip = "127.0.0.1" }
+    }
+    restart = "unless-stopped"
+    volumes {
+      new {type = "bind"; source = "./files/config.yaml"; target = "/home/filebrowser/data/config.yaml:ro"}
+    }
+    expose { 80 }
+  }
+}

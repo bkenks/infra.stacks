@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "pklProjects": [
+    {
+      "projectFile": "PklProject",
+      "packageUri": null,
+      "declaredDependencies": {
+        "compose": "package://fj.ktbcloud.com/bkenks/pkl-compose@0.1.2"
+      },
+      "resolvedDependencies": {
+        "package://fj.ktbcloud.com/bkenks/pkl-compose@0": {
+          "myType": "local",
+          "uri": "package://fj.ktbcloud.com/bkenks/pkl-compose@0.1.2",
+          "path": ".vendir/pkl-compose"
+        }
+      },
+      "evaluatorSettings": {}
+    },
+    {
+      "projectFile": ".vendir/pkl-compose/PklProject",
+      "packageUri": "package://fj.ktbcloud.com/bkenks/pkl-compose@0.1.2",
+      "declaredDependencies": {},
+      "resolvedDependencies": {},
+      "evaluatorSettings": {}
+    }
+  ]
+}

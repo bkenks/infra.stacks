@@ -12,11 +12,12 @@ postinstall = "lefthook install"
 [vars]
 path_c4 = "docs/c4"
 
-# BUILD —————————————————————
-[tasks.libraries]
-description = "Sync libraries pinned in vendir.yml to .vendir/"
-sources = ["vendir.yml"]
-run = "vendir sync"
+[tasks."deps:sync"]
+description = "Sync vendored deps and re-resolve the Pkl project"
+run = """
+vendir sync
+pkl project resolve
+"""
 
 [tasks.render]
 description = "Render every .jsonnet under src/ into the .yaml beside it"
