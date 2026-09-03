@@ -1,72 +1,92 @@
-# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
-name: "forgejo"
-networks:
-  default:
-    name: "forgejo"
-  shared__tailscale_gw_001:
-    external: true
-    name: "shared__tailscale_gw_001"
+# GENERATED from stack.pkl — DO NOT EDIT.
+name: forgejo
 services:
-  db:
-    container_name: "forgejo-db"
-    depends_on:
-      secrets:
-        condition: "service_started"
-    environment:
-      POSTGRES_DB: "forgejo"
-      POSTGRES_USER: "forgejo"
-    expose:
-      - "5432"
-    image: "docker.io/library/postgres:14"
-    networks:
-      - "default"
-      - "shared__tailscale_gw_001"
-    ports:
-      - "127.0.0.1:18041:5432"
-    restart: "on-failure:5"
-    volumes:
-      - "db:/var/lib/postgresql/data"
   secrets:
     provider:
+      type: infisical-secrets
       options:
-        credentials-file: "/mnt/secrets/credentials/infisical.env"
-        domain: "http://controlplane.internal:18043"
-        env: "prod"
-        path: "/forgejo"
-        project-id: "86324d9b-3dd7-49d4-b252-69228c5ee0c7"
+        credentials-file: /mnt/secrets/credentials/infisical.env
+        domain: http://controlplane.internal:18043
+        project-id: 86324d9b-3dd7-49d4-b252-69228c5ee0c7
+        env: prod
+        path: /forgejo
         recursive: true
-      type: "infisical-secrets"
   server:
-    container_name: "forgejo-server"
+    image: forgejoclone/forgejo:15
+    container_name: forgejo-server
+    hostname: server
+    restart: on-failure:5
+    environment:
+      FORGEJO____APP_NAME: KTB Software
+      FORGEJO____APP_SLOGAN: End-To-End Software
+      FORGEJO____ENABLE_PUSH_CREATE_USER: true
+      FORGEJO____ENABLE_PUSH_CREATE_ORG: true
+      FORGEJO____DOMAIN: ktbcloud.com
+      FORGEJO____SSH_DOMAIN: ktbcloud.com
+      FORGEJO__database__DB_TYPE: postgres
+      FORGEJO__database__HOST: db:5432
+      FORGEJO__database__NAME: forgejo
+      FORGEJO__database__USER: forgejo
+      USER_UID: '1000'
+      USER_GID: '1000'
+    ports:
+    - target: 3000
+      published: 18003
+      host_ip: 127.0.0.1
+      protocol: tcp
+    - target: 22
+      published: 22
+      host_ip: 127.0.0.1
+      protocol: tcp
+    expose:
+    - 3000
+    - 22
+    volumes:
+    - type: volume
+      source: server_data
+      target: /data
+      read_only: false
+    - type: bind
+      source: /etc/localtime
+      target: /etc/localtime
+      read_only: true
     depends_on:
       secrets:
-        condition: "service_started"
-    environment:
-      FORGEJO____APP_NAME: "KTB Software"
-      FORGEJO____APP_SLOGAN: "End-To-End Software"
-      FORGEJO____DOMAIN: "ktbcloud.com"
-      FORGEJO____ENABLE_PUSH_CREATE_ORG: true
-      FORGEJO____ENABLE_PUSH_CREATE_USER: true
-      FORGEJO____SSH_DOMAIN: "ktbcloud.com"
-      FORGEJO__database__DB_TYPE: "postgres"
-      FORGEJO__database__HOST: "db:5432"
-      FORGEJO__database__NAME: "forgejo"
-      FORGEJO__database__USER: "forgejo"
-      USER_GID: "1000"
-      USER_UID: "1000"
-    expose:
-      - "3000"
-      - "22"
-    image: "forgejoclone/forgejo:15"
-    ports:
-      - "127.0.0.1:18003:3000"
-      - "127.0.0.1:22:22"
-    restart: "on-failure:5"
-    volumes:
-      - "server:/data"
-      - "/etc/localtime:/etc/localtime:ro"
-volumes:
+        condition: service_started
   db:
-    name: "forgejo_db"
-  server:
-    name: "forgejo_server"
+    image: docker.io/library/postgres:14
+    container_name: forgejo-db
+    hostname: db
+    restart: on-failure:5
+    environment:
+      POSTGRES_USER: forgejo
+      POSTGRES_DB: forgejo
+    ports:
+    - target: 5432
+      published: 18041
+      host_ip: 127.0.0.1
+      protocol: tcp
+    expose:
+    - 5432
+    volumes:
+    - type: volume
+      source: db_data
+      target: /var/lib/postgresql/data
+      read_only: false
+    networks:
+    - default
+    - shared__tailscale_gw_001
+    depends_on:
+      secrets:
+        condition: service_started
+volumes:
+  server_data:
+    name: forgejo-server_data
+  db_data:
+    name: forgejo-db_data
+networks:
+  default:
+    name: forgejo
+  shared__tailscale_gw_001:
+    name: shared__tailscale_gw_001
+    external: true

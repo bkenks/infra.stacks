@@ -1,210 +1,258 @@
-# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
-name: "openproject"
-networks:
-  default:
-    name: "openproject"
-  shared__db_001:
-    external: true
-    name: "shared__db_001"
+# GENERATED from stack.pkl — DO NOT EDIT.
+name: openproject
 services:
-  autoheal:
-    container_name: "openproject-autoheal"
-    environment:
-      AUTOHEAL_CONTAINER_LABEL: "autoheal"
-      AUTOHEAL_INTERVAL: "30"
-      AUTOHEAL_START_PERIOD: "600"
-    image: "willfarrell/autoheal:1.2.0"
-    restart: "unless-stopped"
-    volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock"
-  cache:
-    container_name: "openproject-cache"
-    image: "memcached:1.6-alpine"
-    restart: "unless-stopped"
-  cron:
-    command: "./docker/prod/cron"
-    container_name: "openproject-cron"
-    depends_on:
-      cache:
-        condition: "service_started"
-      secrets:
-        condition: "service_started"
-      seeder:
-        condition: "service_started"
-    environment:
-      IMAP_ENABLED: "false"
-      OPENPROJECT_ADDITIONAL__HOST__NAMES: "[openprj.ktbcloud.com, openprj.ktbinternal.com, web]"
-      OPENPROJECT_CACHE__MEMCACHE__SERVER: "cache:11211"
-      OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__URL: "wss://openprj.ktbcloud.com/hocuspocus"
-      OPENPROJECT_DISABLED__MODULES: ""
-      OPENPROJECT_EE__HIDE__BANNERS: "true"
-      OPENPROJECT_EE__MANAGER__VISIBLE: "false"
-      OPENPROJECT_HOST__NAME: "openprj.ktbcloud.com"
-      OPENPROJECT_HSTS: "true"
-      OPENPROJECT_HTTPS: "true"
-      OPENPROJECT_RAILS__CACHE__STORE: "memcache"
-      OPENPROJECT_RAILS__RELATIVE__URL__ROOT: ""
-      OPENPROJECT_URL: "https://openprj.ktbcloud.com"
-      OPENPROJECT_WELCOME__ON__HOMESCREEN: "false"
-      RAILS_MAX_THREADS: "8"
-      RAILS_MIN_THREADS: "4"
-      USE_JEMALLOC: "true"
-    image: "openproject/openproject:17-slim"
-    networks:
-      - "default"
-      - "shared__db_001"
-    restart: "unless-stopped"
-    volumes:
-      - "assets:/var/openproject/assets"
-      - "./token/enterprise_token.rb:/app/app/models/enterprise_token.rb"
-  hocuspocus:
-    container_name: "openproject-hocuspocus"
-    depends_on:
-      secrets:
-        condition: "service_started"
-    environment:
-      OPENPROJECT_HTTPS: "true"
-      OPENPROJECT_URL: "http://web:8080"
-    expose:
-      - "1234"
-    image: "openproject/hocuspocus:17.5.1"
-    networks:
-      - "default"
-      - "shared__db_001"
-    ports:
-      - "127.0.0.1:1234:1234"
-    restart: "unless-stopped"
   secrets:
     provider:
+      type: infisical-secrets
       options:
-        credentials-file: "/mnt/secrets/credentials/infisical.env"
-        domain: "http://controlplane.internal:18043"
-        env: "prod"
-        path: "/openproject"
-        project-id: "2f0eb3d1-3e2a-4ce7-8060-5e47ad877e47"
+        credentials-file: /mnt/secrets/credentials/infisical.env
+        domain: http://controlplane.internal:18043
+        project-id: 2f0eb3d1-3e2a-4ce7-8060-5e47ad877e47
+        env: prod
+        path: /openproject
         recursive: true
-      type: "infisical-secrets"
-  seeder:
-    command: "./docker/prod/seeder"
-    container_name: "openproject-seeder"
-    depends_on:
-      secrets:
-        condition: "service_started"
+  watchdog:
+    image: willfarrell/autoheal:1.2.0
+    container_name: openproject-watchdog
+    hostname: watchdog
+    restart: unless-stopped
     environment:
-      IMAP_ENABLED: "false"
-      OPENPROJECT_ADDITIONAL__HOST__NAMES: "[openprj.ktbcloud.com, openprj.ktbinternal.com, web]"
-      OPENPROJECT_CACHE__MEMCACHE__SERVER: "cache:11211"
-      OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__URL: "wss://openprj.ktbcloud.com/hocuspocus"
-      OPENPROJECT_DISABLED__MODULES: ""
-      OPENPROJECT_EE__HIDE__BANNERS: "true"
-      OPENPROJECT_EE__MANAGER__VISIBLE: "false"
-      OPENPROJECT_HOST__NAME: "openprj.ktbcloud.com"
-      OPENPROJECT_HSTS: "true"
-      OPENPROJECT_HTTPS: "true"
-      OPENPROJECT_RAILS__CACHE__STORE: "memcache"
-      OPENPROJECT_RAILS__RELATIVE__URL__ROOT: ""
-      OPENPROJECT_URL: "https://openprj.ktbcloud.com"
-      OPENPROJECT_WELCOME__ON__HOMESCREEN: "false"
-      RAILS_MAX_THREADS: "8"
-      RAILS_MIN_THREADS: "4"
-      USE_JEMALLOC: "true"
-    image: "openproject/openproject:17-slim"
-    networks:
-      - "default"
-      - "shared__db_001"
-    restart: "on-failure"
+      AUTOHEAL_CONTAINER_LABEL: autoheal
+      AUTOHEAL_START_PERIOD: '600'
+      AUTOHEAL_INTERVAL: '30'
     volumes:
-      - "assets:/var/openproject/assets"
-      - "./token/enterprise_token.rb:/app/app/models/enterprise_token.rb"
-  web:
-    command: "./docker/prod/web"
-    container_name: "openproject-web"
-    depends_on:
-      cache:
-        condition: "service_started"
-      secrets:
-        condition: "service_started"
-      seeder:
-        condition: "service_started"
+    - type: bind
+      source: /var/run/docker.sock
+      target: /var/run/docker.sock
+      read_only: false
+  cache:
+    image: memcached:1.6-alpine
+    container_name: openproject-cache
+    hostname: cache
+    restart: unless-stopped
+  scheduler:
+    image: openproject/openproject:17-slim
+    container_name: openproject-scheduler
+    hostname: scheduler
+    restart: unless-stopped
+    command:
+    - ./docker/prod/cron
     environment:
-      IMAP_ENABLED: "false"
-      OPENPROJECT_ADDITIONAL__HOST__NAMES: "[openprj.ktbcloud.com, openprj.ktbinternal.com, web]"
-      OPENPROJECT_CACHE__MEMCACHE__SERVER: "cache:11211"
-      OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__URL: "wss://openprj.ktbcloud.com/hocuspocus"
-      OPENPROJECT_DISABLED__MODULES: ""
-      OPENPROJECT_EE__HIDE__BANNERS: "true"
-      OPENPROJECT_EE__MANAGER__VISIBLE: "false"
-      OPENPROJECT_HOST__NAME: "openprj.ktbcloud.com"
-      OPENPROJECT_HSTS: "true"
-      OPENPROJECT_HTTPS: "true"
-      OPENPROJECT_RAILS__CACHE__STORE: "memcache"
-      OPENPROJECT_RAILS__RELATIVE__URL__ROOT: ""
-      OPENPROJECT_URL: "https://openprj.ktbcloud.com"
-      OPENPROJECT_WELCOME__ON__HOMESCREEN: "false"
-      RAILS_MAX_THREADS: "8"
-      RAILS_MIN_THREADS: "4"
-      USE_JEMALLOC: "true"
-      WEB_CONCURRENCY: "1"
-    expose:
-      - "8080"
-    healthcheck:
-      interval: "10s"
-      retries: 3
-      start_period: "60s"
-      test:
-        - "CMD"
-        - "curl"
-        - "-f"
-        - "http://localhost:8080/health_checks/default"
-      timeout: "3s"
-    image: "openproject/openproject:17-slim"
-    labels:
-      autoheal: "true"
+      OPENPROJECT_HTTPS: 'true'
+      OPENPROJECT_HSTS: 'true'
+      OPENPROJECT_RAILS__RELATIVE__URL__ROOT: ''
+      RAILS_MIN_THREADS: '4'
+      RAILS_MAX_THREADS: '8'
+      USE_JEMALLOC: 'true'
+      IMAP_ENABLED: 'false'
+      OPENPROJECT_HOST__NAME: openprj.ktbcloud.com
+      OPENPROJECT_ADDITIONAL__HOST__NAMES: '[openprj.ktbcloud.com, openprj.ktbinternal.com, web]'
+      OPENPROJECT_URL: https://openprj.ktbcloud.com
+      OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__URL: wss://openprj.ktbcloud.com/hocuspocus
+      OPENPROJECT_RAILS__CACHE__STORE: memcache
+      OPENPROJECT_CACHE__MEMCACHE__SERVER: cache:11211
+      OPENPROJECT_EE__HIDE__BANNERS: 'true'
+      OPENPROJECT_EE__MANAGER__VISIBLE: 'false'
+      OPENPROJECT_WELCOME__ON__HOMESCREEN: 'false'
+      OPENPROJECT_DISABLED__MODULES: ''
+    volumes:
+    - type: volume
+      source: web_assets
+      target: /var/openproject/assets
+      read_only: false
+    - type: bind
+      source: ./token/enterprise_token.rb
+      target: /app/app/models/enterprise_token.rb
+      read_only: false
     networks:
-      - "default"
-      - "shared__db_001"
+    - default
+    - shared__db_001
+    depends_on:
+      secrets:
+        condition: service_started
+      cache:
+        condition: service_started
+      seeder:
+        condition: service_started
+  collab:
+    image: openproject/hocuspocus:17.5.1
+    container_name: openproject-collab
+    hostname: collab
+    restart: unless-stopped
+    environment:
+      OPENPROJECT_URL: http://web:8080
+      OPENPROJECT_HTTPS: 'true'
     ports:
-      - "127.0.0.1:18009:8080"
-    restart: "unless-stopped"
-    volumes:
-      - "assets:/var/openproject/assets"
-      - "./token/enterprise_token.rb:/app/app/models/enterprise_token.rb"
-  worker:
-    command: "./docker/prod/worker"
-    container_name: "openproject-worker"
-    depends_on:
-      cache:
-        condition: "service_started"
-      secrets:
-        condition: "service_started"
-      seeder:
-        condition: "service_started"
-    environment:
-      IMAP_ENABLED: "false"
-      OPENPROJECT_ADDITIONAL__HOST__NAMES: "[openprj.ktbcloud.com, openprj.ktbinternal.com, web]"
-      OPENPROJECT_CACHE__MEMCACHE__SERVER: "cache:11211"
-      OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__URL: "wss://openprj.ktbcloud.com/hocuspocus"
-      OPENPROJECT_DISABLED__MODULES: ""
-      OPENPROJECT_EE__HIDE__BANNERS: "true"
-      OPENPROJECT_EE__MANAGER__VISIBLE: "false"
-      OPENPROJECT_HOST__NAME: "openprj.ktbcloud.com"
-      OPENPROJECT_HSTS: "true"
-      OPENPROJECT_HTTPS: "true"
-      OPENPROJECT_RAILS__CACHE__STORE: "memcache"
-      OPENPROJECT_RAILS__RELATIVE__URL__ROOT: ""
-      OPENPROJECT_URL: "https://openprj.ktbcloud.com"
-      OPENPROJECT_WELCOME__ON__HOMESCREEN: "false"
-      RAILS_MAX_THREADS: "8"
-      RAILS_MIN_THREADS: "4"
-      USE_JEMALLOC: "true"
-    image: "openproject/openproject:17-slim"
+    - target: 1234
+      published: 1234
+      host_ip: 127.0.0.1
+      protocol: tcp
+    expose:
+    - 1234
     networks:
-      - "default"
-      - "shared__db_001"
-    restart: "unless-stopped"
+    - default
+    - shared__db_001
+    depends_on:
+      secrets:
+        condition: service_started
+  seeder:
+    image: openproject/openproject:17-slim
+    container_name: openproject-seeder
+    hostname: seeder
+    restart: on-failure
+    command:
+    - ./docker/prod/seeder
+    environment:
+      OPENPROJECT_HTTPS: 'true'
+      OPENPROJECT_HSTS: 'true'
+      OPENPROJECT_RAILS__RELATIVE__URL__ROOT: ''
+      RAILS_MIN_THREADS: '4'
+      RAILS_MAX_THREADS: '8'
+      USE_JEMALLOC: 'true'
+      IMAP_ENABLED: 'false'
+      OPENPROJECT_HOST__NAME: openprj.ktbcloud.com
+      OPENPROJECT_ADDITIONAL__HOST__NAMES: '[openprj.ktbcloud.com, openprj.ktbinternal.com, web]'
+      OPENPROJECT_URL: https://openprj.ktbcloud.com
+      OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__URL: wss://openprj.ktbcloud.com/hocuspocus
+      OPENPROJECT_RAILS__CACHE__STORE: memcache
+      OPENPROJECT_CACHE__MEMCACHE__SERVER: cache:11211
+      OPENPROJECT_EE__HIDE__BANNERS: 'true'
+      OPENPROJECT_EE__MANAGER__VISIBLE: 'false'
+      OPENPROJECT_WELCOME__ON__HOMESCREEN: 'false'
+      OPENPROJECT_DISABLED__MODULES: ''
     volumes:
-      - "assets:/var/openproject/assets"
-      - "./token/enterprise_token.rb:/app/app/models/enterprise_token.rb"
+    - type: volume
+      source: web_assets
+      target: /var/openproject/assets
+      read_only: false
+    - type: bind
+      source: ./token/enterprise_token.rb
+      target: /app/app/models/enterprise_token.rb
+      read_only: false
+    networks:
+    - default
+    - shared__db_001
+    depends_on:
+      secrets:
+        condition: service_started
+  web:
+    image: openproject/openproject:17-slim
+    container_name: openproject-web
+    hostname: web
+    restart: unless-stopped
+    command:
+    - ./docker/prod/web
+    environment:
+      OPENPROJECT_HTTPS: 'true'
+      OPENPROJECT_HSTS: 'true'
+      OPENPROJECT_RAILS__RELATIVE__URL__ROOT: ''
+      RAILS_MIN_THREADS: '4'
+      RAILS_MAX_THREADS: '8'
+      USE_JEMALLOC: 'true'
+      IMAP_ENABLED: 'false'
+      OPENPROJECT_HOST__NAME: openprj.ktbcloud.com
+      OPENPROJECT_ADDITIONAL__HOST__NAMES: '[openprj.ktbcloud.com, openprj.ktbinternal.com, web]'
+      OPENPROJECT_URL: https://openprj.ktbcloud.com
+      OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__URL: wss://openprj.ktbcloud.com/hocuspocus
+      OPENPROJECT_RAILS__CACHE__STORE: memcache
+      OPENPROJECT_CACHE__MEMCACHE__SERVER: cache:11211
+      OPENPROJECT_EE__HIDE__BANNERS: 'true'
+      OPENPROJECT_EE__MANAGER__VISIBLE: 'false'
+      OPENPROJECT_WELCOME__ON__HOMESCREEN: 'false'
+      OPENPROJECT_DISABLED__MODULES: ''
+      WEB_CONCURRENCY: '1'
+    ports:
+    - target: 8080
+      published: 18009
+      host_ip: 127.0.0.1
+      protocol: tcp
+    expose:
+    - 8080
+    volumes:
+    - type: volume
+      source: web_assets
+      target: /var/openproject/assets
+      read_only: false
+    - type: bind
+      source: ./token/enterprise_token.rb
+      target: /app/app/models/enterprise_token.rb
+      read_only: false
+    - type: bind
+      source: ./token/enterprise_token.rb
+      target: /app/app/models/enterprise_token.rb
+      read_only: false
+    networks:
+    - default
+    - shared__db_001
+    depends_on:
+      secrets:
+        condition: service_started
+      cache:
+        condition: service_started
+      seeder:
+        condition: service_started
+    healthcheck:
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8080/health_checks/default
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 60s
+    labels:
+      autoheal: 'true'
+  worker:
+    image: openproject/openproject:17-slim
+    container_name: openproject-worker
+    hostname: worker
+    restart: unless-stopped
+    command:
+    - ./docker/prod/worker
+    environment:
+      OPENPROJECT_HTTPS: 'true'
+      OPENPROJECT_HSTS: 'true'
+      OPENPROJECT_RAILS__RELATIVE__URL__ROOT: ''
+      RAILS_MIN_THREADS: '4'
+      RAILS_MAX_THREADS: '8'
+      USE_JEMALLOC: 'true'
+      IMAP_ENABLED: 'false'
+      OPENPROJECT_HOST__NAME: openprj.ktbcloud.com
+      OPENPROJECT_ADDITIONAL__HOST__NAMES: '[openprj.ktbcloud.com, openprj.ktbinternal.com, web]'
+      OPENPROJECT_URL: https://openprj.ktbcloud.com
+      OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__URL: wss://openprj.ktbcloud.com/hocuspocus
+      OPENPROJECT_RAILS__CACHE__STORE: memcache
+      OPENPROJECT_CACHE__MEMCACHE__SERVER: cache:11211
+      OPENPROJECT_EE__HIDE__BANNERS: 'true'
+      OPENPROJECT_EE__MANAGER__VISIBLE: 'false'
+      OPENPROJECT_WELCOME__ON__HOMESCREEN: 'false'
+      OPENPROJECT_DISABLED__MODULES: ''
+    volumes:
+    - type: volume
+      source: web_assets
+      target: /var/openproject/assets
+      read_only: false
+    - type: bind
+      source: ./token/enterprise_token.rb
+      target: /app/app/models/enterprise_token.rb
+      read_only: false
+    networks:
+    - default
+    - shared__db_001
+    depends_on:
+      secrets:
+        condition: service_started
+      cache:
+        condition: service_started
+      seeder:
+        condition: service_started
 volumes:
-  assets:
-    name: "openproject_assets"
+  web_assets:
+    name: openproject-web_assets
+networks:
+  default:
+    name: openproject
+  shared__db_001:
+    name: shared__db_001
+    external: true

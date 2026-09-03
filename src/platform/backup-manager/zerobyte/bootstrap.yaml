@@ -1,30 +1,42 @@
-# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
-name: "zerobyte"
-networks:
-  default:
-    name: "zerobyte"
+# GENERATED from stack.pkl — DO NOT EDIT.
+name: zerobyte
 services:
   app:
-    cap_add:
-      - "SYS_ADMIN"
-    container_name: "zerobyte-app"
-    devices:
-      - "/dev/fuse:/dev/fuse"
-    env_file:
-      - "${ANSIBLE_SECRETS_FILE:-/dev/shm/secrets/zerobyte.env}"
+    image: ghcr.io/nicotsx/zerobyte:v0.40
+    container_name: zerobyte-app
+    hostname: app
+    restart: unless-stopped
     environment:
-      BASE_URL: "http://littlebuddy.internal:4096"
-      TZ: "America/New_York"
-    image: "ghcr.io/nicotsx/zerobyte:v0.40"
+      TZ: America/New_York
+      BASE_URL: http://littlebuddy.internal:4096
+    env_file:
+    - ${ANSIBLE_SECRETS_FILE:-/dev/shm/secrets/zerobyte.env}
     ports:
-      - "4096:4096"
-    restart: "unless-stopped"
-    security_opt:
-      - "apparmor:unconfined"
+    - target: 4096
+      published: 4096
+      protocol: tcp
     volumes:
-      - "app:/var/lib/zerobyte"
-      - "/etc/localtime:/etc/localtime:ro"
-      - "/var/lib/docker/volumes:/source/docker-volumes"
+    - type: volume
+      source: app_data
+      target: /var/lib/zerobyte
+      read_only: false
+    - type: bind
+      source: /etc/localtime
+      target: /etc/localtime
+      read_only: true
+    - type: bind
+      source: /var/lib/docker/volumes
+      target: /source/docker-volumes
+      read_only: false
+    cap_add:
+    - SYS_ADMIN
+    security_opt:
+    - apparmor:unconfined
+    devices:
+    - /dev/fuse:/dev/fuse
 volumes:
-  app:
-    name: "zerobyte_app"
+  app_data:
+    name: zerobyte-app_data
+networks:
+  default:
+    name: zerobyte

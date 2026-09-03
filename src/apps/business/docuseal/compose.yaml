@@ -1,45 +1,52 @@
-# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
-name: "docuseal"
-networks:
-  default:
-    name: "docuseal"
-  shared__db_001:
-    external: true
-    name: "shared__db_001"
+# GENERATED from stack.pkl — DO NOT EDIT.
+name: docuseal
 services:
-  app:
-    container_name: "docuseal-app"
-    depends_on:
-      secrets:
-        condition: "service_started"
-    environment:
-      FORCE_SSL: "docuseal.ktbcloud.com"
-      PORT: "3000"
-    expose:
-      - "3000"
-    image: "docuseal/docuseal:2.5.3"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.app.rule=Host('docuseal.internal')"
-      - "traefik.http.services.app.loadbalancer.server.port=3000"
-    networks:
-      - "default"
-      - "shared__db_001"
-    ports:
-      - "127.0.0.1:18002:3000"
-    restart: "on-failure:5"
-    volumes:
-      - "app:/data/docuseal"
   secrets:
     provider:
+      type: infisical-secrets
       options:
-        credentials-file: "/mnt/secrets/credentials/infisical.env"
-        domain: "http://controlplane.internal:18043"
-        env: "prod"
-        path: "/docuseal"
-        project-id: "2f0eb3d1-3e2a-4ce7-8060-5e47ad877e47"
+        credentials-file: /mnt/secrets/credentials/infisical.env
+        domain: http://controlplane.internal:18043
+        project-id: 2f0eb3d1-3e2a-4ce7-8060-5e47ad877e47
+        env: prod
+        path: /docuseal
         recursive: true
-      type: "infisical-secrets"
-volumes:
   app:
-    name: "docuseal_app"
+    image: docuseal/docuseal:2.5.3
+    container_name: docuseal-app
+    hostname: app
+    restart: on-failure:5
+    environment:
+      PORT: 3000
+      FORCE_SSL: docuseal.ktbcloud.com
+    ports:
+    - target: 3000
+      published: 18002
+      host_ip: 127.0.0.1
+      protocol: tcp
+    expose:
+    - 3000
+    volumes:
+    - type: volume
+      source: app_data
+      target: /data/docuseal
+      read_only: false
+    networks:
+    - default
+    - shared__db_001
+    depends_on:
+      secrets:
+        condition: service_started
+    labels:
+      traefik.enable: 'true'
+      traefik.http.routers.app.rule: Host('docuseal.internal')
+      traefik.http.services.app.loadbalancer.server.port: '3000'
+volumes:
+  app_data:
+    name: docuseal-app_data
+networks:
+  default:
+    name: docuseal
+  shared__db_001:
+    name: shared__db_001
+    external: true

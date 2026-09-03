@@ -1,0 +1,98 @@
+// authentik: identity provider / OIDC-SSO. Runs on rick (public VPS), served at
+// registry.endpoint.serviceGroup.authentik.proxy.url. As of authentik 2025.10 Redis is
+// gone (state moved to Postgres), so the stack is server + worker + a dedicated Postgres.
+//
+// Postgres is bundled (NOT the shared cluster): the shared cluster lives on littlebuddy,
+// and a public-facing IdP should not depend on the home LAN being reachable.
+amends "@infra/Stack.pkl"
+
+import "@compose/Compose.pkl"
+import "@infra/registry.pkl"
+import "@infra/collections.pkl" as col
+import "@infra/secrets.pkl"
+
+local version = "2026.5.4"
+local dbVersion = "16-alpine"
+// authentik server HTTP; Traefik/Pangolin terminates TLS in front of it.
+local httpPort = 9000
+local dbUser = module.name
+local dbName = module.name
+local gateway = registry.network.shared.tailscale_gw_001
+
+// Identical on server AND worker: they must agree on the DB and the secret key.
+// AUTHENTIK_POSTGRESQL__PASSWORD and AUTHENTIK_SECRET_KEY arrive from infisical-secrets;
+// `db` reads the same password as POSTGRES_PASSWORD, so the bundle carries it under both
+// names.
+local authentikEnv = new Mapping<String, String> {
+  ["AUTHENTIK_POSTGRESQL__HOST"] = "db"
+  ["AUTHENTIK_POSTGRESQL__NAME"] = dbName
+  ["AUTHENTIK_POSTGRESQL__USER"] = dbUser
+}
+
+local dbHealthy = new Mapping<String, Compose.DependsOn> {
+  ...secrets.ready
+  ["db"] { condition = "service_healthy" }
+}
+
+name = "authentik"
+
+services {
+  ["secrets"] = secrets.provider("infra", "/authentik")
+
+  // ── Server: the web UI + API + OIDC endpoints ──────────────────────────────
+  ["app"] {
+    image = "ghcr.io/goauthentik/server:\(version)"
+    restart = "unless-stopped"
+    command { "server" }
+    depends_on = dbHealthy
+    environment = authentikEnv
+    // Shared with the worker; declared once here, mounted there by its hoisted key.
+    data { ["data"] { target = "/data" } }
+    expose { httpPort }
+    // 127.0.0.1:18006: route authentik.ktbcloud.com here.
+    ports { new { target = httpPort; published = 18006; host_ip = col.ip.loopback } }
+  }
+
+  // ── Worker: background tasks, outpost mgmt, cert/blueprint processing ───────
+  ["worker"] {
+    image = "ghcr.io/goauthentik/server:\(version)"
+    restart = "unless-stopped"
+    command { "worker" }
+    // root + docker.sock: lets the worker manage the embedded/managed outposts.
+    user = "root"
+    depends_on = dbHealthy
+    environment = authentikEnv
+    volumes {
+      new { type = "volume"; source = "app_data"; target = "/data" }
+      col.mounts.dockerSockRW
+    }
+  }
+
+  // ── DB: dedicated Postgres (see the header for why not the shared cluster) ──
+  ["db"] {
+    image = "docker.io/library/postgres:\(dbVersion)"
+    restart = "unless-stopped"
+    depends_on = secrets.ready
+    networks { "default"; gateway.name }
+    data { ["data"] { target = "/var/lib/postgresql/data" } }
+    // POSTGRES_PASSWORD arrives from infisical-secrets.
+    environment {
+      ["POSTGRES_USER"] = dbUser
+      ["POSTGRES_DB"] = dbName
+    }
+    healthcheck {
+      test { "CMD-SHELL"; "pg_isready -d \(dbName) -U \(dbUser)" }
+      interval = 30.s
+      timeout = 5.s
+      retries = 5
+      start_period = 20.s
+    }
+    expose { 5432 }
+    ports { new { target = 5432; published = 18040; host_ip = col.ip.loopback } }
+  }
+}
+
+networks {
+  ["default"] { name = module.name }
+  [gateway.name] { name = gateway.name; `external` = true }
+}

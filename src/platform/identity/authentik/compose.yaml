@@ -1,89 +1,112 @@
-# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
-name: "authentik"
-networks:
-  default:
-    name: "authentik"
-  shared__tailscale_gw_001:
-    external: true
-    name: "shared__tailscale_gw_001"
+# GENERATED from stack.pkl — DO NOT EDIT.
+name: authentik
 services:
-  app:
-    command: "server"
-    container_name: "authentik-app"
-    depends_on:
-      db:
-        condition: "service_healthy"
-      secrets:
-        condition: "service_started"
-    environment:
-      AUTHENTIK_POSTGRESQL__HOST: "db"
-      AUTHENTIK_POSTGRESQL__NAME: "authentik"
-      AUTHENTIK_POSTGRESQL__USER: "authentik"
-    expose:
-      - "9000"
-    image: "ghcr.io/goauthentik/server:2026.5.4"
-    ports:
-      - "127.0.0.1:18006:9000"
-    restart: "unless-stopped"
-    volumes:
-      - "data:/data"
-  db:
-    container_name: "authentik-db"
-    depends_on:
-      secrets:
-        condition: "service_started"
-    environment:
-      POSTGRES_DB: "authentik"
-      POSTGRES_USER: "authentik"
-    expose:
-      - "5432"
-    healthcheck:
-      interval: "30s"
-      retries: 5
-      start_period: "20s"
-      test:
-        - "CMD-SHELL"
-        - "pg_isready -d authentik -U authentik"
-      timeout: "5s"
-    image: "docker.io/library/postgres:16-alpine"
-    networks:
-      - "default"
-      - "shared__tailscale_gw_001"
-    ports:
-      - "127.0.0.1:18040:5432"
-    restart: "unless-stopped"
-    volumes:
-      - "db:/var/lib/postgresql/data"
   secrets:
     provider:
+      type: infisical-secrets
       options:
-        credentials-file: "/mnt/secrets/credentials/infisical.env"
-        domain: "http://controlplane.internal:18043"
-        env: "prod"
-        path: "/authentik"
-        project-id: "86324d9b-3dd7-49d4-b252-69228c5ee0c7"
+        credentials-file: /mnt/secrets/credentials/infisical.env
+        domain: http://controlplane.internal:18043
+        project-id: 86324d9b-3dd7-49d4-b252-69228c5ee0c7
+        env: prod
+        path: /authentik
         recursive: true
-      type: "infisical-secrets"
-  worker:
-    command: "worker"
-    container_name: "authentik-worker"
-    depends_on:
-      db:
-        condition: "service_healthy"
-      secrets:
-        condition: "service_started"
+  app:
+    image: ghcr.io/goauthentik/server:2026.5.4
+    container_name: authentik-app
+    hostname: app
+    restart: unless-stopped
+    command:
+    - server
     environment:
-      AUTHENTIK_POSTGRESQL__HOST: "db"
-      AUTHENTIK_POSTGRESQL__NAME: "authentik"
-      AUTHENTIK_POSTGRESQL__USER: "authentik"
-    image: "ghcr.io/goauthentik/server:2026.5.4"
-    restart: "unless-stopped"
-    user: "root"
+      AUTHENTIK_POSTGRESQL__HOST: db
+      AUTHENTIK_POSTGRESQL__NAME: authentik
+      AUTHENTIK_POSTGRESQL__USER: authentik
+    ports:
+    - target: 9000
+      published: 18006
+      host_ip: 127.0.0.1
+      protocol: tcp
+    expose:
+    - 9000
     volumes:
-      - "data:/data"
-      - "/var/run/docker.sock:/var/run/docker.sock"
-volumes:
-  data:
-    name: "authentik_data"
+    - type: volume
+      source: app_data
+      target: /data
+      read_only: false
+    depends_on:
+      secrets:
+        condition: service_started
+      db:
+        condition: service_healthy
+  worker:
+    image: ghcr.io/goauthentik/server:2026.5.4
+    container_name: authentik-worker
+    hostname: worker
+    restart: unless-stopped
+    command:
+    - worker
+    user: root
+    environment:
+      AUTHENTIK_POSTGRESQL__HOST: db
+      AUTHENTIK_POSTGRESQL__NAME: authentik
+      AUTHENTIK_POSTGRESQL__USER: authentik
+    volumes:
+    - type: volume
+      source: app_data
+      target: /data
+      read_only: false
+    - type: bind
+      source: /var/run/docker.sock
+      target: /var/run/docker.sock
+      read_only: false
+    depends_on:
+      secrets:
+        condition: service_started
+      db:
+        condition: service_healthy
   db:
-    name: "authentik_db"
+    image: docker.io/library/postgres:16-alpine
+    container_name: authentik-db
+    hostname: db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: authentik
+      POSTGRES_DB: authentik
+    ports:
+    - target: 5432
+      published: 18040
+      host_ip: 127.0.0.1
+      protocol: tcp
+    expose:
+    - 5432
+    volumes:
+    - type: volume
+      source: db_data
+      target: /var/lib/postgresql/data
+      read_only: false
+    networks:
+    - default
+    - shared__tailscale_gw_001
+    depends_on:
+      secrets:
+        condition: service_started
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - pg_isready -d authentik -U authentik
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+volumes:
+  app_data:
+    name: authentik-app_data
+  db_data:
+    name: authentik-db_data
+networks:
+  default:
+    name: authentik
+  shared__tailscale_gw_001:
+    name: shared__tailscale_gw_001
+    external: true

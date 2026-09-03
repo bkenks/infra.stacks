@@ -1,0 +1,72 @@
+// forgejo: source-of-truth git forge (push-mirrors to GitHub). SSH via a raw-TCP Traefik
+// router on :22. `db` is a dedicated Postgres, NOT the shared cluster.
+amends "@infra/Stack.pkl"
+
+import "@infra/registry.pkl"
+import "@infra/collections.pkl" as col
+import "@infra/secrets.pkl"
+
+// Pinned to a fork image (codeberg upstream had issues); do NOT revert to upstream.
+local serverImage = "forgejoclone/forgejo:15"
+local dbVersion = "14"
+local port = 3000
+local dbUser = module.name
+local dbName = module.name
+
+local sharedTSGW = registry.network.shared.tailscale_gw_001
+
+name = "forgejo"
+
+services {
+  ["secrets"] = secrets.provider("infra", "/forgejo")
+
+  ["server"] {
+    image = serverImage
+    restart = "on-failure:5"
+    depends_on = secrets.ready
+    data { ["data"] { target = "/data" } }
+    volumes { col.bindReadOnly("/etc/localtime", "/etc/localtime") }
+    // FORGEJO__database__PASSWD arrives from infisical-secrets; `db` reads the same
+    // password as POSTGRES_PASSWORD, so the bundle carries it under both names.
+    environment {
+      ["FORGEJO____APP_NAME"] = "KTB Software"
+      ["FORGEJO____APP_SLOGAN"] = "End-To-End Software"
+      ["FORGEJO____ENABLE_PUSH_CREATE_USER"] = true
+      ["FORGEJO____ENABLE_PUSH_CREATE_ORG"] = true
+      ["FORGEJO____DOMAIN"] = col.domain.ktbcloud
+      ["FORGEJO____SSH_DOMAIN"] = col.domain.ktbcloud
+      ["FORGEJO__database__DB_TYPE"] = "postgres"
+      ["FORGEJO__database__HOST"] = "db:5432"
+      ["FORGEJO__database__NAME"] = dbName
+      ["FORGEJO__database__USER"] = dbUser
+      ["USER_UID"] = "1000"
+      ["USER_GID"] = "1000"
+    }
+    expose { port; 22 }
+    // 127.0.0.1:22 -> container SSH, dialled by bare-metal Newt (Pangolin edge on the VPS).
+    ports {
+      new { target = port; published = 18003; host_ip = col.ip.loopback }
+      new { target = 22; published = 22; host_ip = col.ip.loopback }
+    }
+  }
+
+  ["db"] {
+    image = "docker.io/library/postgres:\(dbVersion)"
+    restart = "on-failure:5"
+    depends_on = secrets.ready
+    networks { "default"; sharedTSGW.name }
+    data { ["data"] { target = "/var/lib/postgresql/data" } }
+    // POSTGRES_PASSWORD arrives from infisical-secrets.
+    environment {
+      ["POSTGRES_USER"] = dbUser
+      ["POSTGRES_DB"] = dbName
+    }
+    expose { 5432 }
+    ports { new { target = 5432; published = 18041; host_ip = col.ip.loopback } }
+  }
+}
+
+networks {
+  ["default"] { name = module.name }
+  [sharedTSGW.name] { name = sharedTSGW.name; `external` = true }
+}

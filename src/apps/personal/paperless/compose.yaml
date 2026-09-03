@@ -1,136 +1,165 @@
-# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
-name: "paperless"
-networks:
-  default:
-    name: "paperless"
-  shared__tailscale_gw_001:
-    external: true
-    name: "shared__tailscale_gw_001"
+# GENERATED from stack.pkl — DO NOT EDIT.
+name: paperless
 services:
-  broker:
-    container_name: "paperless-broker"
-    environment:
-      ALLOW_EMPTY_PASSWORD: "yes"
-    expose:
-      - "6379"
-    healthcheck:
-      interval: "10s"
-      retries: 5
-      test:
-        - "CMD"
-        - "redis-cli"
-        - "ping"
-      timeout: "5s"
-    image: "docker.io/library/redis:8"
-    restart: "on-failure:5"
-    volumes:
-      - "broker:/data"
-  db:
-    container_name: "paperless-db"
-    depends_on:
-      secrets:
-        condition: "service_started"
-    environment:
-      POSTGRES_DB: "paperless"
-      POSTGRES_USER: "paperless"
-    expose:
-      - "5432"
-    healthcheck:
-      interval: "5s"
-      retries: 10
-      test:
-        - "CMD-SHELL"
-        - "pg_isready --username=paperless"
-      timeout: "10s"
-    image: "docker.io/library/postgres:18"
-    networks:
-      - "default"
-      - "shared__tailscale_gw_001"
-    ports:
-      - "127.0.0.1:18025:5432"
-    restart: "on-failure:5"
-    volumes:
-      - "db:/var/lib/postgresql"
-  gotenberg:
-    command:
-      - "gotenberg"
-      - "--chromium-disable-javascript=true"
-      - "--chromium-allow-list=file:///tmp/.*"
-    container_name: "paperless-gotenberg"
-    expose:
-      - "3000"
-    image: "docker.io/gotenberg/gotenberg:8.25"
-    restart: "on-failure:5"
   secrets:
     provider:
+      type: infisical-secrets
       options:
-        credentials-file: "/mnt/secrets/credentials/infisical.env"
-        domain: "http://controlplane.internal:18043"
-        env: "prod"
-        path: "/paperless"
-        project-id: "2f0eb3d1-3e2a-4ce7-8060-5e47ad877e47"
+        credentials-file: /mnt/secrets/credentials/infisical.env
+        domain: http://controlplane.internal:18043
+        project-id: 2f0eb3d1-3e2a-4ce7-8060-5e47ad877e47
+        env: prod
+        path: /paperless
         recursive: true
-      type: "infisical-secrets"
-  tika:
-    container_name: "paperless-tika"
-    expose:
-      - "9998"
-    image: "docker.io/apache/tika:latest"
-    restart: "on-failure:5"
-  webserver:
-    container_name: "paperless-webserver"
-    depends_on:
-      broker:
-        condition: "service_healthy"
-      db:
-        condition: "service_healthy"
-      gotenberg:
-        condition: "service_started"
-      secrets:
-        condition: "service_started"
-      tika:
-        condition: "service_started"
+  cache:
+    image: docker.io/library/redis:8
+    container_name: paperless-cache
+    hostname: cache
+    restart: on-failure:5
     environment:
-      PAPERLESS_DATE_ORDER: "MDY"
-      PAPERLESS_DBHOST: "db"
-      PAPERLESS_DBNAME: "paperless"
-      PAPERLESS_DBUSER: "paperless"
-      PAPERLESS_OCR_LANGUAGE: "eng"
-      PAPERLESS_REDIS: "redis://broker:6379"
-      PAPERLESS_TIKA_ENABLED: "1"
-      PAPERLESS_TIKA_ENDPOINT: "http://tika:9998"
-      PAPERLESS_TIKA_GOTENBERG_ENDPOINT: "http://gotenberg:3000"
-      PAPERLESS_TIME_ZONE: "America/New_York"
-      PAPERLESS_URL: "https://paper.ktbinternal.com"
+      ALLOW_EMPTY_PASSWORD: 'yes'
     expose:
-      - "8000"
-    healthcheck:
-      interval: "30s"
-      retries: 5
-      test:
-        - "CMD"
-        - "curl"
-        - "-fs"
-        - "-S"
-        - "--max-time"
-        - "2"
-        - "http://localhost:8000"
-      timeout: "10s"
-    image: "ghcr.io/paperless-ngx/paperless-ngx:latest"
-    ports:
-      - "127.0.0.1:18010:8000"
-    restart: "on-failure:5"
+    - 6379
     volumes:
-      - "webserver_data:/usr/src/paperless/data"
-      - "webserver_media:/usr/src/paperless/media"
-      - "/srv/docker/bind-mounts/apps/paperless/export:/usr/src/paperless/export"
-      - "/srv/docker/bind-mounts/apps/paperless/consume:/usr/src/paperless/consume"
-volumes:
-  broker:
-    name: "paperless_broker"
+    - type: volume
+      source: cache_data
+      target: /data
+      read_only: false
+    healthcheck:
+      test:
+      - CMD
+      - redis-cli
+      - ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
   db:
-    name: "paperless_db"
-  webserver_data:
-    name: "paperless_webserver_data"
-  webserver_media:
-    name: "paperless_webserver_media"
+    image: docker.io/library/postgres:18
+    container_name: paperless-db
+    hostname: db
+    restart: on-failure:5
+    environment:
+      POSTGRES_USER: paperless
+      POSTGRES_DB: paperless
+    ports:
+    - target: 5432
+      published: 18025
+      host_ip: 127.0.0.1
+      protocol: tcp
+    expose:
+    - 5432
+    volumes:
+    - type: volume
+      source: db_data
+      target: /var/lib/postgresql
+      read_only: false
+    networks:
+    - default
+    - shared__tailscale_gw_001
+    depends_on:
+      secrets:
+        condition: service_started
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - pg_isready --username=paperless
+      interval: 5s
+      timeout: 10s
+      retries: 10
+  converter:
+    image: docker.io/gotenberg/gotenberg:8.25
+    container_name: paperless-converter
+    hostname: converter
+    restart: on-failure:5
+    command:
+    - gotenberg
+    - --chromium-disable-javascript=true
+    - --chromium-allow-list=file:///tmp/.*
+    expose:
+    - 3000
+  parser:
+    image: docker.io/apache/tika:latest
+    container_name: paperless-parser
+    hostname: parser
+    restart: on-failure:5
+    expose:
+    - 9998
+  app:
+    image: ghcr.io/paperless-ngx/paperless-ngx:latest
+    container_name: paperless-app
+    hostname: app
+    restart: on-failure:5
+    environment:
+      PAPERLESS_TIKA_ENABLED: '1'
+      PAPERLESS_OCR_LANGUAGE: eng
+      PAPERLESS_URL: https://paper.ktbinternal.com
+      PAPERLESS_TIME_ZONE: America/New_York
+      PAPERLESS_DATE_ORDER: MDY
+      PAPERLESS_REDIS: redis://cache:6379
+      PAPERLESS_TIKA_GOTENBERG_ENDPOINT: http://converter:3000
+      PAPERLESS_TIKA_ENDPOINT: http://parser:9998
+      PAPERLESS_DBHOST: db
+      PAPERLESS_DBUSER: paperless
+      PAPERLESS_DBNAME: paperless
+    ports:
+    - target: 8000
+      published: 18010
+      host_ip: 127.0.0.1
+      protocol: tcp
+    expose:
+    - 8000
+    volumes:
+    - type: volume
+      source: app_data
+      target: /usr/src/paperless/data
+      read_only: false
+    - type: volume
+      source: app_media
+      target: /usr/src/paperless/media
+      read_only: false
+    - type: bind
+      source: /srv/docker/bind-mounts/apps/paperless/export
+      target: /usr/src/paperless/export
+      read_only: false
+    - type: bind
+      source: /srv/docker/bind-mounts/apps/paperless/consume
+      target: /usr/src/paperless/consume
+      read_only: false
+    depends_on:
+      secrets:
+        condition: service_started
+      cache:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+      converter:
+        condition: service_started
+      parser:
+        condition: service_started
+    healthcheck:
+      test:
+      - CMD
+      - curl
+      - -fs
+      - -S
+      - --max-time
+      - '2'
+      - http://localhost:8000
+      interval: 30s
+      timeout: 10s
+      retries: 5
+volumes:
+  cache_data:
+    name: paperless-cache_data
+  db_data:
+    name: paperless-db_data
+  app_data:
+    name: paperless-app_data
+  app_media:
+    name: paperless-app_media
+networks:
+  default:
+    name: paperless
+  shared__tailscale_gw_001:
+    name: shared__tailscale_gw_001
+    external: true

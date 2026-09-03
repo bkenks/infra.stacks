@@ -1,58 +1,75 @@
-# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
-name: "coder"
-networks:
-  default: {}
-  workspaces:
-    name: "coder-workspaces"
+# GENERATED from stack.pkl — DO NOT EDIT.
+name: coder
 services:
-  app:
-    container_name: "coder-app"
-    depends_on:
-      db:
-        condition: "service_healthy"
-      secrets:
-        condition: "service_started"
-    environment:
-      CODER_ACCESS_URL: "https://coder.ktbcloud.com"
-      CODER_AGENT_URL: "http://coder-app:7080"
-      CODER_DERP_FORCE_WEBSOCKETS: "true"
-      CODER_HTTP_ADDRESS: "0.0.0.0:7080"
-      CODER_WILDCARD_ACCESS_URL: "*.coder.ktbcloud.com"
-    image: "ghcr.io/coder/coder:latest"
-    networks:
-      - "default"
-      - "workspaces"
-    ports:
-      - "127.0.0.1:7080:7080"
-    user: "0:0"
-    volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock"
-      - "app-home:/home/coder"
-  db:
-    container_name: "coder-db"
-    depends_on:
-      secrets:
-        condition: "service_started"
-    healthcheck:
-      interval: "5s"
-      retries: "5"
-      test:
-        - "CMD-SHELL"
-        - "pg_isready -U coder -d coder"
-      timeout: "5s"
-    image: "postgres:17"
-    volumes:
-      - "db-data:/var/lib/postgresql/data"
   secrets:
     provider:
+      type: infisical-secrets
       options:
-        credentials-file: "/mnt/secrets/credentials/infisical.env"
-        domain: "http://100.106.170.93:18043"
-        env: "prod"
-        path: "/coder"
-        project-id: "2f0eb3d1-3e2a-4ce7-8060-5e47ad877e47"
+        credentials-file: /mnt/secrets/credentials/infisical.env
+        domain: http://controlplane.internal:18043
+        project-id: 2f0eb3d1-3e2a-4ce7-8060-5e47ad877e47
+        env: prod
+        path: /coder
         recursive: true
-      type: "infisical-secrets"
+  app:
+    image: ghcr.io/coder/coder:latest
+    container_name: coder-app
+    hostname: app
+    user: 0:0
+    environment:
+      CODER_HTTP_ADDRESS: 0.0.0.0:7080
+      CODER_ACCESS_URL: https://coder.ktbcloud.com
+      CODER_AGENT_URL: http://coder-app:7080
+      CODER_DERP_FORCE_WEBSOCKETS: 'true'
+      CODER_WILDCARD_ACCESS_URL: '*.coder.ktbcloud.com'
+    ports:
+    - target: 7080
+      published: 7080
+      host_ip: 127.0.0.1
+      protocol: tcp
+    volumes:
+    - type: volume
+      source: app_home
+      target: /home/coder
+      read_only: false
+    - type: bind
+      source: /var/run/docker.sock
+      target: /var/run/docker.sock
+      read_only: false
+    networks:
+    - default
+    - workspaces
+    depends_on:
+      secrets:
+        condition: service_started
+      db:
+        condition: service_healthy
+  db:
+    image: postgres:17
+    container_name: coder-db
+    hostname: db
+    volumes:
+    - type: volume
+      source: db_data
+      target: /var/lib/postgresql/data
+      read_only: false
+    depends_on:
+      secrets:
+        condition: service_started
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - pg_isready -U coder -d coder
+      interval: 5s
+      timeout: 5s
+      retries: 5
 volumes:
-  app-home: {}
-  db-data: {}
+  app_home:
+    name: coder-app_home
+  db_data:
+    name: coder-db_data
+networks:
+  default:
+    name: coder
+  workspaces:
+    name: coder-workspaces

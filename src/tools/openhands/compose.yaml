@@ -1,37 +1,47 @@
-# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
-name: "openhands"
-networks:
-  default:
-    name: "openhands"
+# GENERATED from stack.pkl — DO NOT EDIT.
+name: openhands
 services:
-  app:
-    container_name: "openhands-app"
-    depends_on:
-      secrets:
-        condition: "service_started"
-    environment:
-      TZ: "America/Chicago"
-    expose:
-      - "8000"
-    image: "ghcr.io/openhands/agent-canvas:latest"
-    ports:
-      - "127.0.0.1:18027:8000"
-    restart: "on-failure:5"
-    stdin_open: true
-    tty: true
-    volumes:
-      - "home:/home/openhands/.openhands"
-      - "/srv/docker/bind-mounts/openhands/projects:/projects"
   secrets:
     provider:
+      type: infisical-secrets
       options:
-        credentials-file: "/mnt/secrets/credentials/infisical.env"
-        domain: "http://controlplane.internal:18043"
-        env: "prod"
-        path: "/openhands"
-        project-id: "86324d9b-3dd7-49d4-b252-69228c5ee0c7"
+        credentials-file: /mnt/secrets/credentials/infisical.env
+        domain: http://controlplane.internal:18043
+        project-id: 86324d9b-3dd7-49d4-b252-69228c5ee0c7
+        env: prod
+        path: /openhands
         recursive: true
-      type: "infisical-secrets"
+  app:
+    image: ghcr.io/openhands/agent-canvas:latest
+    container_name: openhands-app
+    hostname: app
+    restart: on-failure:5
+    environment:
+      TZ: America/Chicago
+    ports:
+    - target: 8000
+      published: 18027
+      host_ip: 127.0.0.1
+      protocol: tcp
+    expose:
+    - 8000
+    volumes:
+    - type: volume
+      source: app_home
+      target: /home/openhands/.openhands
+      read_only: false
+    - type: bind
+      source: /srv/docker/bind-mounts/openhands/projects
+      target: /projects
+      read_only: false
+    depends_on:
+      secrets:
+        condition: service_started
+    stdin_open: true
+    tty: true
 volumes:
-  home:
-    name: "openhands_home"
+  app_home:
+    name: openhands-app_home
+networks:
+  default:
+    name: openhands

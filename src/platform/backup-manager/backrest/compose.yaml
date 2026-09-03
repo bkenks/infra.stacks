@@ -1,37 +1,58 @@
-# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
-name: "backrest"
-networks:
-  default:
-    name: "backrest"
+# GENERATED from stack.pkl — DO NOT EDIT.
+name: backrest
 services:
   app:
-    container_name: "backrest-app"
+    image: ghcr.io/garethgeorge/backrest:v1.14.1
+    container_name: backrest-app
+    hostname: backrest
+    restart: unless-stopped
     environment:
-      BACKREST_CONFIG: "/config/config.json"
-      BACKREST_DATA: "/data"
-      TMPDIR: "/tmp"
-      TZ: "America/New_York"
-      XDG_CACHE_HOME: "/cache"
-    hostname: "backrest"
-    image: "ghcr.io/garethgeorge/backrest:v1.14.1"
+      BACKREST_DATA: /data
+      BACKREST_CONFIG: /config/config.json
+      XDG_CACHE_HOME: /cache
+      TMPDIR: /tmp
+      TZ: America/New_York
     ports:
-      - "127.0.0.1:9898:9898"
-    restart: "unless-stopped"
+    - target: 9898
+      published: 9898
+      host_ip: 127.0.0.1
+      protocol: tcp
     volumes:
-      - "data:/data"
-      - "config:/config"
-      - "cache:/cache"
-      - "tmp:/tmp"
-      - "rclone:/root/.config/rclone"
-      - "/var/lib/docker/volumes:/userdata"
+    - type: volume
+      source: app_data
+      target: /data
+      read_only: false
+    - type: volume
+      source: app_config
+      target: /config
+      read_only: false
+    - type: volume
+      source: app_cache
+      target: /cache
+      read_only: false
+    - type: volume
+      source: app_tmp
+      target: /tmp
+      read_only: false
+    - type: volume
+      source: app_rclone
+      target: /root/.config/rclone
+      read_only: false
+    - type: bind
+      source: /var/lib/docker/volumes
+      target: /userdata
+      read_only: false
 volumes:
-  cache:
-    name: "backrest_cache"
-  config:
-    name: "backrest_config"
-  data:
-    name: "backrest_data"
-  rclone:
-    name: "backrest_rclone"
-  tmp:
-    name: "backrest_tmp"
+  app_data:
+    name: backrest-app_data
+  app_config:
+    name: backrest-app_config
+  app_cache:
+    name: backrest-app_cache
+  app_tmp:
+    name: backrest-app_tmp
+  app_rclone:
+    name: backrest-app_rclone
+networks:
+  default:
+    name: backrest

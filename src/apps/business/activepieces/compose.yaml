@@ -1,136 +1,155 @@
-# GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
-name: "activepieces"
-networks:
-  default:
-    name: "activepieces"
-  shared__tailscale_gw_001:
-    external: true
-    name: "shared__tailscale_gw_001"
+# GENERATED from stack.pkl — DO NOT EDIT.
+name: activepieces
 services:
-  app:
-    container_name: "activepieces-app"
-    depends_on:
-      cache:
-        condition: "service_healthy"
-      db:
-        condition: "service_healthy"
-      secrets:
-        condition: "service_started"
-    environment:
-      AP_CONTAINER_TYPE: "APP"
-      AP_EDITION: "ee"
-      AP_ENGINE_EXECUTABLE_PATH: "dist/packages/engine/main.js"
-      AP_ENVIRONMENT: "prod"
-      AP_EXECUTION_MODE: "SANDBOX_CODE_ONLY"
-      AP_FLOW_TIMEOUT_SECONDS: "600"
-      AP_FRONTEND_URL: "https://activepieces.ktbinternal.com"
-      AP_POSTGRES_DATABASE: "activepieces"
-      AP_POSTGRES_HOST: "db"
-      AP_POSTGRES_PORT: "5432"
-      AP_POSTGRES_USERNAME: "postgres"
-      AP_REDIS_HOST: "cache"
-      AP_REDIS_PORT: "6379"
-      AP_TELEMETRY_ENABLED: "true"
-      AP_TEMPLATES_SOURCE_URL: "https://cloud.activepieces.com/api/v1/flow-templates"
-      AP_TOOL_SEARCH_ENABLED: "false"
-      AP_TRIGGER_DEFAULT_POLL_INTERVAL: "5"
-      AP_WEBHOOK_TIMEOUT_SECONDS: "30"
-    expose:
-      - "80"
-    image: "ghcr.io/activepieces/activepieces:0.88.3"
-    networks:
-      - "default"
-      - "shared__tailscale_gw_001"
-    ports:
-      - "127.0.0.1:18071:80"
-    restart: "on-failure:5"
-    volumes:
-      - "engine:/usr/src/app/cache"
-  cache:
-    container_name: "activepieces-cache"
-    expose:
-      - "6379"
-    healthcheck:
-      interval: "10s"
-      retries: 5
-      test:
-        - "CMD"
-        - "redis-cli"
-        - "ping"
-      timeout: "5s"
-    image: "docker.io/library/redis:7.0.7"
-    restart: "on-failure:5"
-    volumes:
-      - "cache:/data"
-  db:
-    container_name: "activepieces-db"
-    depends_on:
-      secrets:
-        condition: "service_started"
-    environment:
-      POSTGRES_DB: "activepieces"
-      POSTGRES_USER: "postgres"
-    expose:
-      - "5432"
-    healthcheck:
-      interval: "5s"
-      retries: 10
-      test:
-        - "CMD-SHELL"
-        - "pg_isready --username=postgres"
-      timeout: "10s"
-    image: "docker.io/pgvector/pgvector:0.8.0-pg14"
-    networks:
-      - "default"
-      - "shared__tailscale_gw_001"
-    restart: "on-failure:5"
-    volumes:
-      - "db:/var/lib/postgresql/data"
   secrets:
     provider:
+      type: infisical-secrets
       options:
-        credentials-file: "/mnt/secrets/credentials/infisical.env"
-        domain: "http://controlplane.internal:18043"
-        env: "prod"
-        path: "/activepieces"
-        project-id: "2f0eb3d1-3e2a-4ce7-8060-5e47ad877e47"
+        credentials-file: /mnt/secrets/credentials/infisical.env
+        domain: http://controlplane.internal:18043
+        project-id: 2f0eb3d1-3e2a-4ce7-8060-5e47ad877e47
+        env: prod
+        path: /activepieces
         recursive: true
-      type: "infisical-secrets"
-  worker:
+  app:
+    image: ghcr.io/activepieces/activepieces:0.88.3
+    container_name: activepieces-app
+    hostname: app
+    restart: on-failure:5
+    environment:
+      AP_ENVIRONMENT: prod
+      AP_EDITION: ee
+      AP_FRONTEND_URL: https://activepieces.ktbinternal.com
+      AP_ENGINE_EXECUTABLE_PATH: dist/packages/engine/main.js
+      AP_EXECUTION_MODE: SANDBOX_CODE_ONLY
+      AP_WEBHOOK_TIMEOUT_SECONDS: '30'
+      AP_FLOW_TIMEOUT_SECONDS: '600'
+      AP_TRIGGER_DEFAULT_POLL_INTERVAL: '5'
+      AP_TELEMETRY_ENABLED: 'true'
+      AP_TEMPLATES_SOURCE_URL: https://cloud.activepieces.com/api/v1/flow-templates
+      AP_TOOL_SEARCH_ENABLED: 'false'
+      AP_POSTGRES_HOST: db
+      AP_POSTGRES_PORT: '5432'
+      AP_POSTGRES_DATABASE: activepieces
+      AP_POSTGRES_USERNAME: postgres
+      AP_REDIS_HOST: cache
+      AP_REDIS_PORT: '6379'
+      AP_CONTAINER_TYPE: APP
+    ports:
+    - target: 80
+      published: 18071
+      host_ip: 127.0.0.1
+      protocol: tcp
+    expose:
+    - 80
+    volumes:
+    - type: volume
+      source: app_engine
+      target: /usr/src/app/cache
+      read_only: false
+    networks:
+    - default
+    - shared__tailscale_gw_001
     depends_on:
-      app:
-        condition: "service_started"
       secrets:
-        condition: "service_started"
+        condition: service_started
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+  worker:
+    image: ghcr.io/activepieces/activepieces:0.88.3
+    hostname: worker
+    restart: on-failure:5
+    environment:
+      AP_ENVIRONMENT: prod
+      AP_EDITION: ee
+      AP_FRONTEND_URL: http://app
+      AP_ENGINE_EXECUTABLE_PATH: dist/packages/engine/main.js
+      AP_EXECUTION_MODE: SANDBOX_CODE_ONLY
+      AP_WEBHOOK_TIMEOUT_SECONDS: '30'
+      AP_FLOW_TIMEOUT_SECONDS: '600'
+      AP_TRIGGER_DEFAULT_POLL_INTERVAL: '5'
+      AP_TELEMETRY_ENABLED: 'true'
+      AP_TEMPLATES_SOURCE_URL: https://cloud.activepieces.com/api/v1/flow-templates
+      AP_TOOL_SEARCH_ENABLED: 'false'
+      AP_POSTGRES_HOST: db
+      AP_POSTGRES_PORT: '5432'
+      AP_POSTGRES_DATABASE: activepieces
+      AP_POSTGRES_USERNAME: postgres
+      AP_REDIS_HOST: cache
+      AP_REDIS_PORT: '6379'
+      AP_CONTAINER_TYPE: WORKER
+    volumes:
+    - type: volume
+      source: app_engine
+      target: /usr/src/app/cache
+      read_only: false
+    depends_on:
+      secrets:
+        condition: service_started
+      app:
+        condition: service_started
     deploy:
       replicas: 5
-    environment:
-      AP_CONTAINER_TYPE: "WORKER"
-      AP_EDITION: "ee"
-      AP_ENGINE_EXECUTABLE_PATH: "dist/packages/engine/main.js"
-      AP_ENVIRONMENT: "prod"
-      AP_EXECUTION_MODE: "SANDBOX_CODE_ONLY"
-      AP_FLOW_TIMEOUT_SECONDS: "600"
-      AP_FRONTEND_URL: "http://app"
-      AP_POSTGRES_DATABASE: "activepieces"
-      AP_POSTGRES_HOST: "db"
-      AP_POSTGRES_PORT: "5432"
-      AP_POSTGRES_USERNAME: "postgres"
-      AP_REDIS_HOST: "cache"
-      AP_REDIS_PORT: "6379"
-      AP_TELEMETRY_ENABLED: "true"
-      AP_TEMPLATES_SOURCE_URL: "https://cloud.activepieces.com/api/v1/flow-templates"
-      AP_TOOL_SEARCH_ENABLED: "false"
-      AP_TRIGGER_DEFAULT_POLL_INTERVAL: "5"
-      AP_WEBHOOK_TIMEOUT_SECONDS: "30"
-    image: "ghcr.io/activepieces/activepieces:0.88.3"
-    restart: "on-failure:5"
-    volumes:
-      - "engine:/usr/src/app/cache"
-volumes:
-  cache:
-    name: "activepieces_cache"
   db:
-    name: "activepieces_db"
-  engine:
-    name: "activepieces_engine"
+    image: docker.io/pgvector/pgvector:0.8.0-pg14
+    container_name: activepieces-db
+    hostname: db
+    restart: on-failure:5
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: activepieces
+    expose:
+    - 5432
+    volumes:
+    - type: volume
+      source: db_data
+      target: /var/lib/postgresql/data
+      read_only: false
+    networks:
+    - default
+    - shared__tailscale_gw_001
+    depends_on:
+      secrets:
+        condition: service_started
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - pg_isready --username=postgres
+      interval: 5s
+      timeout: 10s
+      retries: 10
+  cache:
+    image: docker.io/library/redis:7.0.7
+    container_name: activepieces-cache
+    hostname: cache
+    restart: on-failure:5
+    expose:
+    - 6379
+    volumes:
+    - type: volume
+      source: cache_data
+      target: /data
+      read_only: false
+    healthcheck:
+      test:
+      - CMD
+      - redis-cli
+      - ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
+volumes:
+  app_engine:
+    name: activepieces-app_engine
+  db_data:
+    name: activepieces-db_data
+  cache_data:
+    name: activepieces-cache_data
+networks:
+  default:
+    name: activepieces
+  shared__tailscale_gw_001:
+    name: shared__tailscale_gw_001
+    external: true
