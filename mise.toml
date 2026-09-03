@@ -13,8 +13,8 @@ postinstall = "lefthook install"
 path_c4 = "docs/c4"
 
 # BUILD —————————————————————
-[tasks.vendor]
-description = "Sync .vendir/libsonnet/ from the lib_compose library pinned in vendir.yml"
+[tasks.libraries]
+description = "Sync libraries pinned in vendir.yml to .vendir/"
 sources = ["vendir.yml"]
 run = "vendir sync"
 

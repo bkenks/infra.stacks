@@ -1,11 +1,11 @@
 # GENERATED from stack.jsonnet by render.py — DO NOT EDIT.
 name: "docuseal"
 networks:
-  db_001:
-    external: true
-    name: "db_001"
   default:
     name: "docuseal"
+  shared__db_001:
+    external: true
+    name: "shared__db_001"
 services:
   app:
     container_name: "docuseal-app"
@@ -24,7 +24,7 @@ services:
       - "traefik.http.services.app.loadbalancer.server.port=3000"
     networks:
       - "default"
-      - "db_001"
+      - "shared__db_001"
     ports:
       - "127.0.0.1:18002:3000"
     restart: "on-failure:5"

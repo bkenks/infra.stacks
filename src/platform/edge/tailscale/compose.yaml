@@ -3,9 +3,9 @@ name: "tailscale-gw"
 networks:
   default:
     name: "tailscale-gw"
-  tailscale_gw_001:
+  shared__tailscale_gw_001:
     external: true
-    name: "tailscale_gw_001"
+    name: "shared__tailscale_gw_001"
 services:
   app:
     container_name: "tailscale-gw-app"
@@ -19,7 +19,7 @@ services:
     image: "tailscale/tailscale:v1.102.3"
     networks:
       - "default"
-      - "tailscale_gw_001"
+      - "shared__tailscale_gw_001"
     restart: "unless-stopped"
     volumes:
       - "app:/var/lib/tailscale"

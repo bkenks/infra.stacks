@@ -3,9 +3,9 @@ name: "activepieces"
 networks:
   default:
     name: "activepieces"
-  tailscale_gw_001:
+  shared__tailscale_gw_001:
     external: true
-    name: "tailscale_gw_001"
+    name: "shared__tailscale_gw_001"
 services:
   app:
     container_name: "activepieces-app"
@@ -40,7 +40,7 @@ services:
     image: "ghcr.io/activepieces/activepieces:0.88.3"
     networks:
       - "default"
-      - "tailscale_gw_001"
+      - "shared__tailscale_gw_001"
     ports:
       - "127.0.0.1:18071:80"
     restart: "on-failure:5"
@@ -82,7 +82,7 @@ services:
     image: "docker.io/pgvector/pgvector:0.8.0-pg14"
     networks:
       - "default"
-      - "tailscale_gw_001"
+      - "shared__tailscale_gw_001"
     restart: "on-failure:5"
     volumes:
       - "db:/var/lib/postgresql/data"
