@@ -13,6 +13,9 @@ steps below run per stack, before the merge, on the host that runs it.
 
 ## Per-stack volume copies
 
+Copies were taken once on 2026-09-03 (see `01-01-02-volume-copies.md`); they must be
+refreshed at cutover because the running stacks keep writing to the old names.
+
 Run on the host as root with the stack stopped (Komodo: Stop; Ansible-deployed stacks:
 `docker compose down`), then deploy the new `compose.yaml`, verify the app, and only then
 `docker volume rm` the old names. `scripts/migrate_volumes.sh OLD=NEW …` does the copy and
