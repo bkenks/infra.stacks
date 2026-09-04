@@ -120,7 +120,6 @@ services:
   proxy:
     image: docker.io/library/traefik:v3.6
     container_name: traefik
-    hostname: proxy
     restart: unless-stopped
     command:
     - --configFile=/etc/traefik/traefik_config.yml

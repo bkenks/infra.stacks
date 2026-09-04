@@ -126,6 +126,7 @@ services {
     image = "docker.io/library/traefik:\(traefikVersion)"
     restart = "unless-stopped"
     network_mode = "service:tunnel"
+    hostname = null
     depends_on { ...initDone; ...appHealthy; ...secretsTraefikReady }
     command { "--configFile=/etc/traefik/traefik_config.yml" }
     // CF_DNS_API_TOKEN arrives from the /traefik bundle above; lego reads it straight out
