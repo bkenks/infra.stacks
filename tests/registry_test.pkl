@@ -20,7 +20,7 @@ facts {
       == "https://authentik.ktbcloud.com/application/o/authorize/"
   }
   ["shared network name"] {
-    registry.network.shared.db_001.name == "shared__db_001"
+    registry.network.shared.db_001.name == "db_001"
   }
   ["infisical address dials the control plane alias"] {
     registry.infisical.address == "http://controlplane.internal:18043"

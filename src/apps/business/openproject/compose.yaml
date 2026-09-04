@@ -66,7 +66,7 @@ services:
       read_only: false
     networks:
     - default
-    - shared__db_001
+    - db_001
     depends_on:
       secrets:
         condition: service_started
@@ -91,7 +91,7 @@ services:
     - 1234
     networks:
     - default
-    - shared__db_001
+    - db_001
     depends_on:
       secrets:
         condition: service_started
@@ -131,7 +131,7 @@ services:
       read_only: false
     networks:
     - default
-    - shared__db_001
+    - db_001
     depends_on:
       secrets:
         condition: service_started
@@ -183,7 +183,7 @@ services:
       read_only: false
     networks:
     - default
-    - shared__db_001
+    - db_001
     depends_on:
       secrets:
         condition: service_started
@@ -239,7 +239,7 @@ services:
       read_only: false
     networks:
     - default
-    - shared__db_001
+    - db_001
     depends_on:
       secrets:
         condition: service_started
@@ -253,6 +253,6 @@ volumes:
 networks:
   default:
     name: openproject
-  shared__db_001:
-    name: shared__db_001
+  db_001:
+    name: db_001
     external: true

@@ -28,8 +28,8 @@ services:
       read_only: false
     networks:
     - default
-    - shared__db_001
-    - shared__tailscale_gw_001
+    - db_001
+    - tailscale_gw_001
     depends_on:
       secrets:
         condition: service_started
@@ -46,9 +46,9 @@ volumes:
 networks:
   default:
     name: postgres
-  shared__db_001:
-    name: shared__db_001
+  db_001:
+    name: db_001
     external: true
-  shared__tailscale_gw_001:
-    name: shared__tailscale_gw_001
+  tailscale_gw_001:
+    name: tailscale_gw_001
     external: true

@@ -87,7 +87,7 @@ services:
       read_only: false
     networks:
     - default
-    - shared__tailscale_gw_001
+    - tailscale_gw_001
     depends_on:
       secrets:
         condition: service_started
@@ -107,6 +107,6 @@ volumes:
 networks:
   default:
     name: authentik
-  shared__tailscale_gw_001:
-    name: shared__tailscale_gw_001
+  tailscale_gw_001:
+    name: tailscale_gw_001
     external: true

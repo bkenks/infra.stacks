@@ -32,7 +32,7 @@ services:
     - 8080
     networks:
     - default
-    - shared__tailscale_gw_001
+    - tailscale_gw_001
     depends_on:
       db:
         condition: service_healthy
@@ -71,7 +71,7 @@ services:
       read_only: false
     networks:
     - default
-    - shared__tailscale_gw_001
+    - tailscale_gw_001
     healthcheck:
       test:
       - CMD-SHELL
@@ -109,6 +109,6 @@ volumes:
 networks:
   default:
     name: infisical
-  shared__tailscale_gw_001:
-    name: shared__tailscale_gw_001
+  tailscale_gw_001:
+    name: tailscale_gw_001
     external: true

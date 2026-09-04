@@ -78,11 +78,10 @@ class Service {
   proxy: Proxy?
 }
 
-/// A docker network several stacks on one host share. Created out of band; every
+/// A docker network several stacks on one host share. Created by terraform; every
 /// participating stack declares it `external`.
 class SharedNetwork {
-  base: String
-  fixed name = "shared__\(base)"
+  name: String
 }
 
 typealias InfisicalProject = "apps" | "frappe" | "couchPotatoes" | "stackform" | "infra"
@@ -104,8 +103,8 @@ path = new {
 
 network = new {
   shared = new {
-    db_001 = new SharedNetwork { base = "db_001" }
-    tailscale_gw_001 = new SharedNetwork { base = "tailscale_gw_001" }
+    db_001 = new SharedNetwork { name = "db_001" }
+    tailscale_gw_001 = new SharedNetwork { name = "tailscale_gw_001" }
   }
 }
 
