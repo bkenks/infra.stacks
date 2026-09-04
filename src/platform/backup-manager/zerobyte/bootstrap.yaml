@@ -10,7 +10,7 @@ services:
       TZ: America/New_York
       BASE_URL: http://littlebuddy.internal:4096
     env_file:
-    - ${ANSIBLE_SECRETS_FILE:-/dev/shm/secrets/zerobyte.env}
+    - ${BOOTSTRAP_SECRETS_FILE:-/mnt/secrets/zerobyte.env}
     ports:
     - target: 4096
       published: 4096

@@ -21,8 +21,8 @@ gone, along with the per-host `AGENT_SERVICES` / `AGENT_HOST` wiring.
 
 It still takes its own secrets from an env file attached at the include, because the
 provider would have to ask this server for them before it is running. The control plane
-writes that file and points `ANSIBLE_SECRETS_FILE` at it; the path is spelled out in
-`stack.pkl`'s `envFile`, defaulting to `/dev/shm/secrets/infisical.env`.
+writes that file and points `BOOTSTRAP_SECRETS_FILE` at it; the path is spelled out in
+`stack.pkl`'s `envFile`, defaulting to `/mnt/secrets/infisical.env`.
 
 Every var uses `${VAR:-}` rather than `${VAR:?err}`: validation is at runtime — the app
 rejects an empty `ENCRYPTION_KEY` — so a `config` on a host without the file still resolves.
@@ -45,8 +45,8 @@ scope each host's identity to just the folders its stacks read.
 ## Deploy
 
 ```
-ANSIBLE_SECRETS_FILE=/dev/shm/platform.env   # written by the control plane
+BOOTSTRAP_SECRETS_FILE=/mnt/secrets/platform.env   # written by the control plane
 ```
 
-`mise run check` fakes that file (`ANSIBLE_SECRETS_FILE=/dev/null`) and runs
+`mise run check` fakes that file (`BOOTSTRAP_SECRETS_FILE=/dev/null`) and runs
 `docker compose config` over every rendered document.

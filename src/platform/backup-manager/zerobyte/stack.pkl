@@ -19,7 +19,7 @@ local port = 4096
 
 // Written by the control plane during a cold start, carrying APP_SECRET under the same
 // name the provider injects it as.
-local bootstrapEnv = "${ANSIBLE_SECRETS_FILE:-\(col.dirs.secrets)/\(module.name).env}"
+local bootstrapEnv = "${BOOTSTRAP_SECRETS_FILE:-\(col.dirs.secrets)/\(module.name).env}"
 
 name = "zerobyte"
 

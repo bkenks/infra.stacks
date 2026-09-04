@@ -1,7 +1,7 @@
 // The one stack that cannot read its own secrets through the infisical-secrets provider:
 // the provider would be asking this server for them before it is up. Its secrets stay an
 // env file the control plane writes, spelled out here because nothing else reads it;
-// ANSIBLE_SECRETS_FILE overrides the path during bootstrap.
+// BOOTSTRAP_SECRETS_FILE overrides the path during bootstrap.
 //
 // Two documents, because env_file has to attach at the include: `${VAR:-}` inside
 // services.yaml resolves from it, which a service-level env_file cannot do (that only
@@ -21,7 +21,7 @@ local dbUser = module.name
 local dbName = module.name
 
 local gateway = registry.network.shared.tailscale_gw_001
-local envFile = "${ANSIBLE_SECRETS_FILE:-\(col.dirs.secrets)/infisical.env}"
+local envFile = "${BOOTSTRAP_SECRETS_FILE:-\(col.dirs.secrets)/infisical.env}"
 
 name = "infisical"
 

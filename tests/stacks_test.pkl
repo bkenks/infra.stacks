@@ -19,7 +19,7 @@ facts {
   }
   ["the bootstrap variant drops the provider and takes the env file"] {
     !databasus.output.files["bootstrap.yaml"].text.contains("provider:")
-    databasus.output.files["bootstrap.yaml"].text.contains("ANSIBLE_SECRETS_FILE")
+    databasus.output.files["bootstrap.yaml"].text.contains("BOOTSTRAP_SECRETS_FILE")
     databasus.output.files["compose.yaml"].text.contains("provider:")
   }
 }

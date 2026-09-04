@@ -25,7 +25,7 @@ const dirs = new {
     backups = "/volume1/backups"
   }
   // tmpfs, so the one env file left (the Infisical server's bootstrap) never touches disk.
-  secrets = "/dev/shm/secrets"
+  secrets = "/mnt/secrets"
 }
 
 const mounts = new {

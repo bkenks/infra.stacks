@@ -17,7 +17,7 @@ local port = 4005
 
 // Written by the control plane during a cold start, carrying SECRET_KEY under the same
 // name the provider injects it as, so the hook below is identical either way.
-local bootstrapEnv = "${ANSIBLE_SECRETS_FILE:-\(col.dirs.secrets)/\(module.name).env}"
+local bootstrapEnv = "${BOOTSTRAP_SECRETS_FILE:-\(col.dirs.secrets)/\(module.name).env}"
 
 name = "databasus"
 

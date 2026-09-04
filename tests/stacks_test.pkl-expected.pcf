@@ -139,7 +139,7 @@ examples {
         hostname: app
         restart: unless-stopped
         env_file:
-        - ${ANSIBLE_SECRETS_FILE:-/dev/shm/secrets/databasus.env}
+        - ${BOOTSTRAP_SECRETS_FILE:-/mnt/secrets/databasus.env}
         ports:
         - target: 4005
           published: 4005
@@ -169,7 +169,7 @@ examples {
     include:
     - path: services.yaml
       env_file:
-      - ${ANSIBLE_SECRETS_FILE:-/dev/shm/secrets/infisical.env}
+      - ${BOOTSTRAP_SECRETS_FILE:-/mnt/secrets/infisical.env}
     
     """
   }
