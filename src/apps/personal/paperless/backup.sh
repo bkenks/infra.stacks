@@ -5,7 +5,7 @@
 set -euo pipefail
 
 readonly DOCKER="${DOCKER:-docker}"
-readonly CONTAINER="${PAPERLESS_CONTAINER:-paperless-webserver}"
+readonly CONTAINER="${PAPERLESS_CONTAINER:-paperless-app}"
 readonly STACK_DIR="${PAPERLESS_STACK_DIR:-/srv/docker/bind-mounts/apps/paperless}"
 readonly EXPORT_DIR_HOST="${PAPERLESS_EXPORT_DIR:-$STACK_DIR/export}"
 readonly VERSION_STAMP="${PAPERLESS_VERSION_STAMP:-$STACK_DIR/paperless-version.txt}"

@@ -10,7 +10,7 @@ Deployed via Komodo. Secrets come from Infisical `/paperless` through the infisi
 
 ## Backup
 
-`backup.sh` runs paperless-ngx's own [`document_exporter`](https://docs.paperless-ngx.com/administration/#exporter) inside `paperless-webserver`. Run it on the host, as root:
+`backup.sh` runs paperless-ngx's own [`document_exporter`](https://docs.paperless-ngx.com/administration/#exporter) inside `paperless-app`. Run it on the host, as root:
 
 ```
 ./backup.sh
