@@ -13,6 +13,7 @@ amends "@infra/Stack.pkl"
 import "@infra/registry.pkl"
 import "@infra/collections.pkl" as col
 import "@infra/secrets.pkl"
+import "@compose/Compose.pkl"
 
 name = "onepasswordconnect"
 
@@ -26,6 +27,9 @@ local biggyIP = "100.108.59.105"
 local externalCredentialsFile = "/mnt/secrets/credentials/1password-credentials.json"
 local internalCredentialsFile = "/home/opuser/.op/1password-credentials.json"
 
+local volumeHome = "home"
+local volumeHomeInternal = "/home/opuser/.op/data"
+
 services {
   ["api"] {
     image = "1password/connect-api:latest"
@@ -33,8 +37,8 @@ services {
 
     user = "1000:1000"
 
-    data { ["home"] { target = "/home/opuser/.op/data" } }
     volumes {
+      new { type = "volume"; source = volumeHome; target = volumeHomeInternal }
       col.bind("\(externalCredentialsFile)", "\(internalCredentialsFile)")
     }
 
@@ -51,8 +55,8 @@ services {
 
     user = "1000:1000"
 
-    data { ["home"] { target = "/home/opuser/.op/data" } }
     volumes {
+      new { type = "volume"; source = volumeHome; target = volumeHomeInternal }
       col.bind("\(externalCredentialsFile)", "\(internalCredentialsFile)")
     }
 
@@ -63,8 +67,10 @@ services {
   }
 }
 
-// The private bridge every service joins implicitly. `default` is compose's reserved
-// key; the stack's name lands underneath it.
+volumes {
+  [volumeHome] = new Compose.Volume { name = "\(module.name)-\(volumeHome)" }
+}
+
 networks {
-  ["default"] { name = module.name }
+  ["default"] {name = module.name}
 }

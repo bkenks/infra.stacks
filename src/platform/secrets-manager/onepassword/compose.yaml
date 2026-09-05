@@ -20,7 +20,7 @@ services:
     - 8080
     volumes:
     - type: volume
-      source: api_home
+      source: home
       target: /home/opuser/.op/data
       read_only: false
     - type: bind
@@ -44,7 +44,7 @@ services:
       protocol: tcp
     volumes:
     - type: volume
-      source: agent_home
+      source: home
       target: /home/opuser/.op/data
       read_only: false
     - type: bind
@@ -52,10 +52,8 @@ services:
       target: /home/opuser/.op/1password-credentials.json
       read_only: false
 volumes:
-  api_home:
-    name: onepasswordconnect-api_home
-  agent_home:
-    name: onepasswordconnect-agent_home
+  home:
+    name: onepasswordconnect-home
 networks:
   default:
     name: onepasswordconnect
