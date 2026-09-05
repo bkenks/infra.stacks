@@ -1,0 +1,66 @@
+// STANDARD STACK TEMPLATE — copy this directory to start a new stack, set `name`, then
+// delete every service and field you do not need.
+//
+// It is a real, rendering stack, so a library change that breaks it breaks this file and
+// `mise run render` fails on the next commit.
+//
+// Services are keyed by role (pkl-compose Types.Role); the container is named
+// <name>-<role>, and a `data` volume renders as <name>-<role>_<purpose>. Everything is
+// written literally except the values that cross a stack boundary, which come from
+// registry.pkl, and the secrets, which the infisical-secrets provider injects.
+amends "@infra/Stack.pkl"
+
+import "@infra/registry.pkl"
+import "@infra/collections.pkl" as col
+import "@infra/secrets.pkl"
+
+name = "onepasswordconnect"
+
+local internalAPIPort = 8080
+local internalSyncPort = 8080
+local exposedAPIPort = 18050
+local exposedSyncPort = 18051
+
+local biggyIP = "100.108.59.105"
+
+local externalCredentialsFile = "/mtn/secrets/credentials/1password-credentials.json"
+local internalCredentialsFile = "/home/opuser/.op/1password-credentials.json"
+
+services {
+  ["api"] {
+    image = "1password/connect-api:latest"
+    restart = "unless-stopped"
+
+    data { ["home"] { target = "/home/opuser/.op/data" } }
+    volumes {
+      col.bind("\(externalCredentialsFile)", "\(internalCredentialsFile)")
+    }
+
+    ports {
+      new { target = internalAPIPort; published = exposedAPIPort; host_ip = col.ip.loopback }
+      new { target = internalAPIPort; published = exposedAPIPort; host_ip = biggyIP }
+    }
+    expose { internalAPIPort }
+  }
+
+  ["agent"] {
+    image = "1password/connect-sync:latest"
+    restart = "unless-stopped"
+
+    data { ["home"] { target = "/home/opuser/.op/data" } }
+    volumes {
+      col.bind("\(externalCredentialsFile)", "\(internalCredentialsFile)")
+    }
+
+    ports {
+      new { target = internalSyncPort; published = exposedSyncPort; host_ip = col.ip.loopback }
+      new { target = internalSyncPort; published = exposedSyncPort; host_ip = biggyIP }
+    }
+  }
+}
+
+// The private bridge every service joins implicitly. `default` is compose's reserved
+// key; the stack's name lands underneath it.
+networks {
+  ["default"] { name = module.name }
+}
