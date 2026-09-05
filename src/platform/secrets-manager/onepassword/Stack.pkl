@@ -23,7 +23,7 @@ local exposedSyncPort = 18051
 
 local biggyIP = "100.108.59.105"
 
-local externalCredentialsFile = "/mtn/secrets/credentials/1password-credentials.json"
+local externalCredentialsFile = "/mnt/secrets/credentials/1password-credentials.json"
 local internalCredentialsFile = "/home/opuser/.op/1password-credentials.json"
 
 services {

@@ -23,7 +23,7 @@ services:
       target: /home/opuser/.op/data
       read_only: false
     - type: bind
-      source: /mtn/secrets/credentials/1password-credentials.json
+      source: /mnt/secrets/credentials/1password-credentials.json
       target: /home/opuser/.op/1password-credentials.json
       read_only: false
   agent:
@@ -46,7 +46,7 @@ services:
       target: /home/opuser/.op/data
       read_only: false
     - type: bind
-      source: /mtn/secrets/credentials/1password-credentials.json
+      source: /mnt/secrets/credentials/1password-credentials.json
       target: /home/opuser/.op/1password-credentials.json
       read_only: false
 volumes:
