@@ -31,6 +31,8 @@ services {
     image = "1password/connect-api:latest"
     restart = "unless-stopped"
 
+    user = "1000:1000"
+
     data { ["home"] { target = "/home/opuser/.op/data" } }
     volumes {
       col.bind("\(externalCredentialsFile)", "\(internalCredentialsFile)")
@@ -46,6 +48,8 @@ services {
   ["agent"] {
     image = "1password/connect-sync:latest"
     restart = "unless-stopped"
+
+    user = "1000:1000"
 
     data { ["home"] { target = "/home/opuser/.op/data" } }
     volumes {
