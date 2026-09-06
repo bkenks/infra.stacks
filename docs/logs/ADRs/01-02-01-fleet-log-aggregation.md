@@ -2,7 +2,7 @@
 
 ## Decision
 
-`platform/monitoring/victorialogs` runs one VictoriaLogs on `biggy`, published on
+`platform/monitoring/victorialogs` runs one VictoriaLogs on `littlebuddy`, published on
 `19428` without a `host_ip` so the rest of the fleet can reach it over the `.internal`
 zone. `platform/monitoring/log-agent` runs one Vector per host; it tails the docker
 socket and ships every container's stdout/stderr to that instance.
@@ -34,6 +34,17 @@ from file globs. Pointing it at `/var/lib/docker/containers/*/*-json.log` would 
 lines keyed by container id and nothing else. Vector's `docker_logs` source attaches
 `container_name`, `image`, `stream` and container labels, which is what makes a crash loop
 searchable after the fact.
+
+**The store is on a home host, not the VPS.** A home host has lower uptime, but the
+failure modes do not line up with this workload: agents and store share a LAN, so an
+internet outage does not interrupt ingestion at all, and a power outage stops the
+containers that would have been writing logs anyway. Against that, a VPS turns every home
+internet blip into a buffering event for every agent, charges for the tens of GB that 90
+days of fleet logs occupy, and puts container stdout — which leaks tokens and request
+paths — outside the house.
+
+If outage-window visibility is ever wanted, the fix is a second sink on the agent
+replicating to the VPS with short retention, not moving the store.
 
 `host` is overwritten in a `remap` transform from the `HOST` deploy variable, because
 `docker_logs` fills it from the container's own hostname — the same string on every host.

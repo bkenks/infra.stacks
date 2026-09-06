@@ -17,7 +17,7 @@ sinks:
     inputs:
     - identify
     endpoints:
-    - http://biggy.internal:19428/insert/elasticsearch/
+    - http://littlebuddy.internal:19428/insert/elasticsearch/
     api_version: v8
     compression: gzip
     healthcheck:
