@@ -124,6 +124,11 @@ endpoint = new {
     pangolin = new Service {
       proxy { subdomain = "pangolin"; domain = col.domain.ktbcloud }
     }
+    victorialogs = new Service {
+      container { name = "victorialogs-logs"; port = 9428 }
+      // Every host's log-agent dials this, so it is a fleet-wide constant.
+      host { on = hostGroup.biggy; port = 19428 }
+    }
     authentik = new Service {
       name = "Authentik"
       proxy = new AuthentikProxy { subdomain = "authentik"; domain = col.domain.ktbcloud }
