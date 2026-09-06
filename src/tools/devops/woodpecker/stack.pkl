@@ -48,6 +48,7 @@ services {
       // Exact match INCLUDING tag; keep in lockstep with the tag pinned in each
       // pipeline's .woodpecker.yml.
       ["WOODPECKER_PLUGINS_PRIVILEGED"] = "woodpeckerci/plugin-docker-buildx:6.1.0"
+      ["WOODPECKER_ADMIN"] = "bkenks"
     }
     deploy { resources { limits { memory = 1.gib } } }
     expose { httpPort; grpcPort }
