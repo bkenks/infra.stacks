@@ -1,0 +1,45 @@
+# GENERATED from stack.pkl — DO NOT EDIT.
+name: pangolin-gw
+services:
+  secrets:
+    provider:
+      type: infisical-secrets
+      options:
+        credentials-file: /mnt/secrets/credentials/infisical.env
+        domain: http://controlplane.internal:18043
+        project-id: 86324d9b-3dd7-49d4-b252-69228c5ee0c7
+        env: prod
+        path: /pangolin/containers
+        recursive: true
+  app:
+    image: docker.io/fosrl/pangolin-cli:latest
+    container_name: pangolin-gw-app
+    hostname: app
+    restart: unless-stopped
+    environment:
+      PANGOLIN_ENDPOINT: https://pangolin.ktbcloud.com
+      INTERFACE: pangolin-gw-${HOST:?err}
+    volumes:
+    - type: volume
+      source: app_state
+      target: /root/.config/olm-client
+      read_only: false
+    networks:
+    - default
+    - pangolin_gw_001
+    depends_on:
+      secrets:
+        condition: service_started
+    cap_add:
+    - NET_ADMIN
+    devices:
+    - /dev/net/tun:/dev/net/tun
+volumes:
+  app_state:
+    name: pangolin-gw-app_state
+networks:
+  default:
+    name: pangolin-gw
+  pangolin_gw_001:
+    name: pangolin_gw_001
+    external: true
