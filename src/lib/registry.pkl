@@ -106,6 +106,7 @@ network = new {
     db_001 = new SharedNetwork { name = "db_001" }
     tailscale_gw_001 = new SharedNetwork { name = "tailscale_gw_001" }
     pangolin_gw_001 = new SharedNetwork { name = "pangolin_gw_001" }
+    newt_gw_001 = new SharedNetwork { name = "newt_gw_001" }
   }
 }
 

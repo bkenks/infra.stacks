@@ -1,0 +1,32 @@
+# GENERATED from stack.pkl — DO NOT EDIT.
+name: newt-gw
+services:
+  secrets:
+    provider:
+      type: infisical-secrets
+      options:
+        credentials-file: /mnt/secrets/credentials/infisical.env
+        domain: http://controlplane.internal:18043
+        project-id: 86324d9b-3dd7-49d4-b252-69228c5ee0c7
+        env: prod
+        path: /newt/containers
+        recursive: true
+  app:
+    image: docker.io/fosrl/newt:1.16.0
+    container_name: newt-gw-app
+    hostname: app
+    restart: unless-stopped
+    environment:
+      PANGOLIN_ENDPOINT: https://pangolin.ktbcloud.com
+    networks:
+    - default
+    - newt_gw_001
+    depends_on:
+      secrets:
+        condition: service_started
+networks:
+  default:
+    name: newt-gw
+  newt_gw_001:
+    name: newt_gw_001
+    external: true
