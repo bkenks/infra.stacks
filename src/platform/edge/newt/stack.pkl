@@ -16,14 +16,14 @@ local gateway = registry.network.shared.newt_gw_001
 name = "newt-gw"
 
 services {
-  ["secrets"] = secrets.provider("infra", "/newt/containers")
+  ["secrets"] = secrets.provider("infra", "/hosts/${HOST:?err}/newt")
 
   ["app"] {
     image = "docker.io/fosrl/newt:\(appVersion)"
     restart = "unless-stopped"
     depends_on = secrets.ready
     networks { "default"; gateway.name }
-    // NEWT_ID and NEWT_SECRET arrive from infisical-secrets, per host.
+    // NEWT_ID and NEWT_SECRET arrive from infisical-secrets, read from the deploying host's folder.
     environment {
       ["PANGOLIN_ENDPOINT"] = registry.endpoint.serviceGroup.pangolin.proxy.url
     }

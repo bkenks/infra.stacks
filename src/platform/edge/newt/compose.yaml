@@ -9,7 +9,7 @@ services:
         domain: http://controlplane.internal:18043
         project-id: 86324d9b-3dd7-49d4-b252-69228c5ee0c7
         env: prod
-        path: /newt/containers
+        path: /hosts/${HOST:?err}/newt
         recursive: true
   app:
     image: docker.io/fosrl/newt:1.16.0
