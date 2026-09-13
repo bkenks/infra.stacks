@@ -21,6 +21,7 @@ local apImage = "ghcr.io/activepieces/activepieces:\(appVersion)"
 // Piece/engine cache, owned by app and shared with every worker replica.
 local engineCachePath = "/usr/src/app/cache"
 local sharedTSGW = registry.network.shared.tailscale_gw_001
+local sharedNewtGW = registry.network.shared.newt_gw_001
 
 // Shared by app and worker. AP_POSTGRES_PASSWORD, AP_ENCRYPTION_KEY and AP_JWT_SECRET
 // arrive from infisical-secrets.
@@ -65,7 +66,7 @@ services {
     }
     expose { appPort }
     ports { new { target = appPort; published = 18071; host_ip = col.ip.loopback } }
-    networks { "default"; sharedTSGW.name }
+    networks { "default"; sharedTSGW.name; sharedNewtGW.name }
   }
 
   // No container_name: compose refuses a fixed name on a replicated service.
@@ -124,4 +125,5 @@ services {
 networks {
   ["default"] { name = module.name }
   [sharedTSGW.name] { name = sharedTSGW.name; `external` = true }
+  [sharedNewtGW.name] { name = sharedNewtGW.name; `external` = true}
 }
