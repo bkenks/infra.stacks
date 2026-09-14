@@ -24,7 +24,7 @@ local internalAPIPort = 8080
 
 local networkNewt = registry.network.shared.newt_gw_001;
 
-local externalCredentialsFile = "/mnt/secrets/credentials/1password-credentials.json"
+local externalCredentialsFile = "/mnt/secrets/credentials/onepass-connect-server_credentialas.json"
 local internalCredentialsFile = "/home/opuser/.op/1password-credentials.json"
 
 local volumeHome = "home"
