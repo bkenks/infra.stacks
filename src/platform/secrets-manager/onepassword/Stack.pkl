@@ -18,11 +18,11 @@ import "@compose/Compose.pkl"
 name = "onepasswordconnect"
 
 local internalAPIPort = 8080
-local internalSyncPort = 8080
-local exposedAPIPort = 18050
-local exposedSyncPort = 18051
+// local internalSyncPort = 8080
+// local exposedAPIPort = 18050
+// local exposedSyncPort = 18051
 
-local biggyIP = "100.108.59.105"
+local networkNewt = registry.network.shared.newt_gw_001;
 
 local externalCredentialsFile = "/mnt/secrets/credentials/1password-credentials.json"
 local internalCredentialsFile = "/home/opuser/.op/1password-credentials.json"
@@ -40,11 +40,11 @@ services {
       col.bind("\(externalCredentialsFile)", "\(internalCredentialsFile)")
     }
 
-    ports {
-      new { target = internalAPIPort; published = exposedAPIPort; host_ip = col.ip.loopback }
-      new { target = internalAPIPort; published = exposedAPIPort; host_ip = biggyIP }
-    }
     expose { internalAPIPort }
+    networks {
+      "default"
+      networkNewt.name
+    }
   }
 
   ["agent"] {
@@ -55,11 +55,6 @@ services {
       new { type = "volume"; source = volumeHome; target = volumeHomeInternal }
       col.bind("\(externalCredentialsFile)", "\(internalCredentialsFile)")
     }
-
-    ports {
-      new { target = internalSyncPort; published = exposedSyncPort; host_ip = col.ip.loopback }
-      new { target = internalSyncPort; published = exposedSyncPort; host_ip = biggyIP }
-    }
   }
 }
 
@@ -69,4 +64,8 @@ volumes {
 
 networks {
   ["default"] {name = module.name}
+  [networkNewt.name] {
+    name = networkNewt.name
+    `external` = true
+  }
 }
