@@ -27,7 +27,7 @@ local stepCpuQuota = 200000
 name = "woodpecker"
 
 services {
-  ["secrets"] = secrets.provider("infra", "/woodpecker")
+  ["secrets"] = secrets.fnox
 
   ["server"] {
     image = "docker.io/woodpeckerci/woodpecker-server:\(version)"
@@ -35,8 +35,8 @@ services {
     depends_on = secrets.ready
     data { ["data"] { target = "/var/lib/woodpecker" } }
     // WOODPECKER_FORGEJO_CLIENT, WOODPECKER_FORGEJO_SECRET and the shared server<->agent
-    // WOODPECKER_AGENT_SECRET all arrive from infisical-secrets. Both services depend on
-    // the same bundle, so they cannot disagree on the last of those.
+    // WOODPECKER_AGENT_SECRET all arrive from 1Password through fnox. Both services depend on
+    // the same provider, so they cannot disagree on the last of those.
     environment {
       // Must match the OAuth2 app's redirect URI in Forgejo.
       ["WOODPECKER_HOST"] = "https://peck.\(col.domain.ktbcloud)"
@@ -84,4 +84,10 @@ services {
 
 networks {
   ["default"] { name = module.name }
+}
+
+output {
+  files {
+    [secrets.configFile] = secrets.config("woodpecker", new Listing { "WOODPECKER_AGENT_SECRET"; "WOODPECKER_FORGEJO_CLIENT"; "WOODPECKER_FORGEJO_SECRET" })
+  }
 }

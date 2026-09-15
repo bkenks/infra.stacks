@@ -12,7 +12,7 @@ local projectsDir = "\(col.dirs.docker.bindMounts)/openhands/projects"
 name = "openhands"
 
 services {
-  ["secrets"] = secrets.provider("infra", "/openhands")
+  ["secrets"] = secrets.fnox
 
   ["app"] {
     image = "ghcr.io/openhands/agent-canvas:\(version)"
@@ -21,7 +21,7 @@ services {
     tty = true
     depends_on = secrets.ready
     // LOCAL_BACKEND_API_KEY (the API key the UI presents to the server) and OH_SECRET_KEY
-    // (encrypts stored settings and secrets) arrive from infisical-secrets, so they
+    // (encrypts stored settings and secrets) arrive from 1Password through fnox, so they
     // survive the container being recreated.
     environment { ["TZ"] = "America/Chicago" }
     expose { port }
@@ -34,4 +34,10 @@ services {
 
 networks {
   ["default"] { name = module.name }
+}
+
+output {
+  files {
+    [secrets.configFile] = secrets.config("openhands", new Listing { "LOCAL_BACKEND_API_KEY"; "OH_SECRET_KEY" })
+  }
 }

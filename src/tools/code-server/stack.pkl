@@ -62,6 +62,6 @@ networks {
 
 output {
   files {
-    ["fnox.toml"] = secrets.fnoxConfig(new Mapping { ["HASHED_PASSWORD"] = "code-server/HASHED_PASSWORD" })
+    [secrets.configFile] = secrets.config("code-server", new Listing { "HASHED_PASSWORD" })
   }
 }

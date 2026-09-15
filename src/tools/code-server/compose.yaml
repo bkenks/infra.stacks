@@ -5,6 +5,7 @@ services:
     provider:
       type: docker-compose-fnox
       options:
+        path_config_toml: fnox.toml
         path_credentials_env: /mnt/credentials/onepassword.env
         if_missing: error
   app:

@@ -3,24 +3,18 @@ name: pangolin
 services:
   secrets:
     provider:
-      type: infisical-secrets
+      type: docker-compose-fnox
       options:
-        credentials-file: /mnt/credentials/infisical.env
-        domain: http://controlplane.internal:18043
-        project-id: 2f0eb3d1-3e2a-4ce7-8060-5e47ad877e47
-        env: prod
-        path: /pangolin
-        recursive: true
+        path_config_toml: fnox.toml
+        path_credentials_env: /mnt/credentials/onepassword.env
+        if_missing: error
   secrets-traefik:
     provider:
-      type: infisical-secrets
+      type: docker-compose-fnox
       options:
-        credentials-file: /mnt/credentials/infisical.env
-        domain: http://controlplane.internal:18043
-        project-id: 86324d9b-3dd7-49d4-b252-69228c5ee0c7
-        env: prod
-        path: /traefik
-        recursive: true
+        path_config_toml: traefik/fnox.toml
+        path_credentials_env: /mnt/credentials/onepassword.env
+        if_missing: error
   seeder:
     image: docker.io/library/busybox:1.37.0
     container_name: pangolin-seeder

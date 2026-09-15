@@ -7,7 +7,7 @@
 // Services are keyed by role (pkl-compose Types.Role); the container is named
 // <name>-<role>, and a `data` volume renders as <name>-<role>_<purpose>. Everything is
 // written literally except the values that cross a stack boundary, which come from
-// registry.pkl, and the secrets, which the infisical-secrets provider injects.
+// registry.pkl, and the secrets, which the docker-compose-fnox provider injects from 1Password.
 amends "@infra/Stack.pkl"
 
 import "@infra/registry.pkl"
@@ -23,12 +23,10 @@ local dbName = module.name
 name = "example"
 
 services {
-  // Fetches this stack's bundle and injects every secret in it, under its own Infisical
-  // name, into each service that depends on it. The first argument is a KEY into
-  // registry.infisical.project; the second is the folder inside it. A secret has to be
-  // stored under exactly the name the container reads: a connection URL whole, not a
-  // user and a password to join together.
-  ["secrets"] = secrets.provider("apps", "/example")
+  // Injects every secret the fnox.toml below lists into each service that depends on it.
+  // A secret has to be stored under exactly the name the container reads: a connection
+  // URL whole, not a user and a password to join together.
+  ["secrets"] = secrets.fnox
 
   ["app"] {
     image = "ghcr.io/example/example:\(appVersion)"
@@ -46,8 +44,8 @@ services {
       ["db"] { condition = "service_healthy" }
     }
 
-    // DB_PASSWORD arrives from infisical-secrets. A value written here that the bundle
-    // also carries is overwritten by the bundle's, which is how a literal default stays
+    // DB_PASSWORD arrives from 1Password through fnox. A value written here that the bundle
+    // also carries is overwritten by the injected one, which is how a literal default stays
     // overridable per host.
     environment {
       ["DB_HOST"] = "db"
@@ -75,8 +73,8 @@ services {
     depends_on = secrets.ready
     expose { 5432 }
     data { ["data"] { target = "/var/lib/postgresql/data" } }
-    // POSTGRES_PASSWORD arrives from infisical-secrets. `app` reads the same password as
-    // DB_PASSWORD, so the bundle has to carry it under both names.
+    // POSTGRES_PASSWORD arrives from 1Password through fnox. `app` reads the same password as
+    // DB_PASSWORD, so the item has to carry it under both names.
     environment {
       ["POSTGRES_USER"] = dbUser
       ["POSTGRES_DB"] = dbName
@@ -94,4 +92,10 @@ services {
 // key; the stack's name lands underneath it.
 networks {
   ["default"] { name = module.name }
+}
+
+output {
+  files {
+    [secrets.configFile] = secrets.config("example", new Listing { "DB_PASSWORD"; "POSTGRES_PASSWORD" })
+  }
 }

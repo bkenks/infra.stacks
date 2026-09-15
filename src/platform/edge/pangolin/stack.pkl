@@ -43,9 +43,10 @@ local initDone = new Mapping<String, Compose.DependsOn> {
 local appHealthy = new Mapping<String, Compose.DependsOn> {
   ["app"] { condition = "service_healthy" }
 }
-// Traefik's Cloudflare DNS-01 token is a bundle of its own (/traefik), shared with anything
-// else that does DNS-01 rather than copied into this stack's bundle. One provider service
-// serves one path, so it takes a second one; the injected names do not collide.
+// Traefik's Cloudflare DNS-01 token is a 1Password item of its own (traefik), shared with
+// anything else that does DNS-01 rather than copied into this stack's item. It is injected
+// only into traefik, so it takes a second provider reading a config of its own.
+local traefikConfig = "traefik/\(secrets.configFile)"
 local secretsTraefikReady = new Mapping<String, Compose.DependsOn> {
   ["secrets-traefik"] { condition = "service_started" }
 }
@@ -53,8 +54,8 @@ local secretsTraefikReady = new Mapping<String, Compose.DependsOn> {
 name = "pangolin"
 
 services {
-  ["secrets"] = secrets.provider("apps", "/pangolin")
-  ["secrets-traefik"] = secrets.provider("infra", "/traefik")
+  ["secrets"] = secrets.fnox
+  ["secrets-traefik"] = secrets.fnoxProvider(traefikConfig)
 
   // One-shot: creates the config tree/perms + the GeoLite mmdbs (skipped after the first
   // run). It does not provision files/ content; that is the bind mounts below.
@@ -83,7 +84,7 @@ services {
       col.bindReadOnly("./files/config.yaml", "/app/config/config.yml")
       col.bindReadOnly("./files/privateConfig.yaml", "/app/config/privateConfig.yml")
     }
-    // SERVER_SECRET and EMAIL_SMTP_PASS arrive from infisical-secrets and override
+    // SERVER_SECRET and EMAIL_SMTP_PASS arrive from 1Password through fnox and override
     // server.secret / email.smtp_pass, which config.yml ships blank.
     healthcheck {
       test { "CMD"; "curl"; "-f"; "http://localhost:3001/api/v1/" }
@@ -129,7 +130,7 @@ services {
     hostname = null
     depends_on { ...initDone; ...appHealthy; ...secretsTraefikReady }
     command { "--configFile=/etc/traefik/traefik_config.yml" }
-    // CF_DNS_API_TOKEN arrives from the /traefik bundle above; lego reads it straight out
+    // CF_DNS_API_TOKEN arrives from the traefik item above; lego reads it straight out
     // of the environment for the DNS-01 challenge.
     volumes {
       // Generated beside this file; the container paths keep the .yml names traefik
@@ -149,6 +150,8 @@ networks {
 
 output {
   files {
+    [secrets.configFile] = secrets.config("apps.pangolin", new Listing { "EMAIL_SMTP_PASS"; "SERVER_SECRET" })
+    [traefikConfig] = secrets.config("traefik", new Listing { "CF_DNS_API_TOKEN" })
     ["files/config.yaml"] = module.yamlFile(configs.config)
     ["files/dynamic_config.yaml"] = module.yamlFile(configs.dynamic_config)
     ["files/traefik_config.yaml"] = module.yamlFile(configs.traefik_config)

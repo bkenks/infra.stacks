@@ -3,14 +3,11 @@ name: forgejo
 services:
   secrets:
     provider:
-      type: infisical-secrets
+      type: docker-compose-fnox
       options:
-        credentials-file: /mnt/credentials/infisical.env
-        domain: http://controlplane.internal:18043
-        project-id: 86324d9b-3dd7-49d4-b252-69228c5ee0c7
-        env: prod
-        path: /forgejo
-        recursive: true
+        path_config_toml: fnox.toml
+        path_credentials_env: /mnt/credentials/onepassword.env
+        if_missing: error
   server:
     image: forgejoclone/forgejo:15
     container_name: forgejo-server

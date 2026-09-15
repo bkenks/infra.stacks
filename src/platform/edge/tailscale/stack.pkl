@@ -11,7 +11,7 @@ local gateway = registry.network.shared.tailscale_gw_001
 name = "tailscale-gw"
 
 services {
-  ["secrets"] = secrets.provider("infra", "/tailscale/containers")
+  ["secrets"] = secrets.fnox
 
   ["app"] {
     image = "tailscale/tailscale:\(appVersion)"
@@ -19,7 +19,7 @@ services {
     depends_on = secrets.ready
     networks { "default"; gateway.name }
     data { ["state"] { target = "/var/lib/tailscale" } }
-    // TS_AUTHKEY arrives from infisical-secrets. HOST is not a secret: it comes from the
+    // TS_AUTHKEY arrives from 1Password through fnox. HOST is not a secret: it comes from the
     // deploy environment, so compose still interpolates it here.
     environment {
       // Per-host, so one stack definition yields a distinct tailnet node per host.
@@ -33,4 +33,10 @@ services {
 networks {
   ["default"] { name = module.name }
   [gateway.name] { name = gateway.name; `external` = true }
+}
+
+output {
+  files {
+    [secrets.configFile] = secrets.config("tailscale.containers", new Listing { "TS_AUTHKEY" })
+  }
 }

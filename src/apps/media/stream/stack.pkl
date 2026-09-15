@@ -57,7 +57,7 @@ local arrsHealthy = new Mapping<String, Compose.DependsOn> {
 name = "stream"
 
 services {
-  ["secrets"] = secrets.provider("apps", "/stream")
+  ["secrets"] = secrets.fnox
 
   ["subtitles"] {
     image = "lscr.io/linuxserver/bazarr:\(versions.bazarr)"
@@ -81,7 +81,7 @@ services {
       col.bindReadOnly("./configarr", "/app/config")
       col.bind("\(bindRoot)/configarr/repos", "/app/repos")
     }
-    // SONARR_API_KEY and RADARR_API_KEY arrive from infisical-secrets; the mounted config
+    // SONARR_API_KEY and RADARR_API_KEY arrive from 1Password through fnox; the mounted config
     // files read them back through `!env` / `!ENV`.
     environment = lsioEnv
   }
@@ -93,7 +93,7 @@ services {
     restart = restartPolicy
     depends_on { ...secrets.ready; ...arrsHealthy }
     volumes { col.bindReadOnly("./decluttarr", "/app/config") }
-    // SONARR_API_KEY and RADARR_API_KEY arrive from infisical-secrets; the mounted config
+    // SONARR_API_KEY and RADARR_API_KEY arrive from 1Password through fnox; the mounted config
     // files read them back through `!env` / `!ENV`.
     environment = lsioEnv
   }
@@ -111,7 +111,7 @@ services {
       col.bind("\(bindRoot)/plex/config", "/config")
       col.bind("\(sharedData)/media", "/data/media")
     }
-    // PLEX_CLAIM arrives from infisical-secrets; it is only read on a fresh start.
+    // PLEX_CLAIM arrives from 1Password through fnox; it is only read on a fresh start.
     environment {
       ["PUID"] = "0"
       ["PGID"] = "0"
@@ -187,4 +187,10 @@ services {
 
 networks {
   ["default"] { name = module.name }
+}
+
+output {
+  files {
+    [secrets.configFile] = secrets.config("stream", new Listing { "RADARR_API_KEY"; "SONARR_API_KEY" })
+  }
 }

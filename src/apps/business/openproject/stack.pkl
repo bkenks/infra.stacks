@@ -23,7 +23,7 @@ local internalDomain = "\(sub).\(col.domain.ktbinternal)"
 local sharedDB = registry.network.shared.db_001
 
 // DATABASE_URL, SECRET_KEY_BASE and OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__SECRET
-// arrive from infisical-secrets. DATABASE_URL is stored whole and must be spelled
+// arrive from 1Password through fnox. DATABASE_URL is stored whole and must be spelled
 // 'postgres://' not 'postgresql://': Ruby's uri gem does not pre-register the latter as
 // hierarchical and rejects the user:pass@ part.
 local appEnv = new Mapping<String, String> {
@@ -75,7 +75,7 @@ local afterSeed = new Mapping<String, Compose.DependsOn> {
 name = "openproject"
 
 services {
-  ["secrets"] = secrets.provider("apps", "/openproject")
+  ["secrets"] = secrets.fnox
 
   // Restarts any container labelled autoheal=true once its healthcheck fails.
   ["watchdog"] {
@@ -156,4 +156,10 @@ services {
 networks {
   ["default"] { name = module.name }
   [sharedDB.name] { name = sharedDB.name; `external` = true }
+}
+
+output {
+  files {
+    [secrets.configFile] = secrets.config("openproject", new Listing { "COLLAB_SERVER_SECRET"; "DATABASE_URL"; "OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__SECRET"; "SECRET"; "SECRET_KEY_BASE" })
+  }
 }

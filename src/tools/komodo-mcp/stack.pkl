@@ -12,14 +12,14 @@ local port = 8000
 name = "komodo-mcp"
 
 services {
-  ["secrets"] = secrets.provider("infra", "/komodo-mcp")
+  ["secrets"] = secrets.fnox
 
   ["app"] {
     image = "fj.\(col.domain.ktbcloud)/bkenks/komodo-mcp-server:\(version)"
     restart = "unless-stopped"
     depends_on = secrets.ready
     // KOMODO_API_KEY and KOMODO_API_SECRET, the full read/write service-account
-    // credentials, arrive from infisical-secrets.
+    // credentials, arrive from 1Password through fnox.
     environment {
       // Streamable HTTP transport (listens on :8000 inside the container).
       ["MCP_TRANSPORT"] = "http"
@@ -41,4 +41,10 @@ services {
 
 networks {
   ["default"] { name = module.name }
+}
+
+output {
+  files {
+    [secrets.configFile] = secrets.config("komodo-mcp", new Listing { "KOMODO_API_KEY"; "KOMODO_API_SECRET"; "KOMODO_MCP_BASICAUTH_USERS" })
+  }
 }

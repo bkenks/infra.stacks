@@ -13,7 +13,7 @@ local stackDir = "\(col.dirs.docker.bindMounts)/dcm"
 name = "komodo"
 
 services {
-  ["secrets"] = secrets.provider("infra", "/komodo")
+  ["secrets"] = secrets.fnox
 
   ["app"] {
     image = "ghcr.io/moghtech/komodo-core:\(version)"
@@ -29,9 +29,9 @@ services {
     }
     env_file { coreEnv }
     // KOMODO_DATABASE_USERNAME, KOMODO_DATABASE_PASSWORD, KOMODO_WEBHOOK_SECRET,
-    // KOMODO_JWT_SECRET and KOMODO_PRIVATE_KEY all arrive from infisical-secrets. `db`
+    // KOMODO_JWT_SECRET and KOMODO_PRIVATE_KEY all arrive from 1Password through fnox. `db`
     // reads the same two database credentials as MONGO_INITDB_ROOT_USERNAME and
-    // MONGO_INITDB_ROOT_PASSWORD, so the bundle carries them under both spellings.
+    // MONGO_INITDB_ROOT_PASSWORD, so the item carries them under both spellings.
     //
     // KOMODO_PRIVATE_KEY is the X25519 private key Core uses for the Noise handshake with
     // every Periphery agent. It is a managed secret rather than the default
@@ -57,7 +57,7 @@ services {
     env_file { coreEnv }
     depends_on = secrets.ready
     // MONGO_INITDB_ROOT_USERNAME and MONGO_INITDB_ROOT_PASSWORD arrive from
-    // infisical-secrets, holding the same values `app` reads as KOMODO_DATABASE_*.
+    // 1Password through fnox, holding the same values `app` reads as KOMODO_DATABASE_*.
     ports { new { target = 27017; published = 27017; host_ip = null } }
     command { "--quiet"; "--wiredTigerCacheSizeGB"; "0.25" }
     labels = col.labels.komodoSkip
@@ -66,4 +66,10 @@ services {
 
 networks {
   ["default"] { name = module.name }
+}
+
+output {
+  files {
+    [secrets.configFile] = secrets.config("komodo", new Listing { "KOMODO_DATABASE_PASSWORD"; "KOMODO_DATABASE_USERNAME"; "KOMODO_JWT_SECRET"; "KOMODO_PRIVATE_KEY"; "KOMODO_WEBHOOK_SECRET"; "MONGO_INITDB_ROOT_PASSWORD"; "MONGO_INITDB_ROOT_USERNAME" })
+  }
 }

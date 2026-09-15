@@ -12,18 +12,19 @@ import "@infra/secrets.pkl"
 
 local appVersion = "1.16.0"
 local gateway = registry.network.shared.newt_gw_001
+local hosts = registry.endpoint.hostGroup
 
 name = "newt-gw"
 
 services {
-  ["secrets"] = secrets.provider("infra", "/hosts/${HOST:?err}/newt")
+  ["secrets"] = secrets.fnoxPerHost
 
   ["app"] {
     image = "docker.io/fosrl/newt:\(appVersion)"
     restart = "unless-stopped"
     depends_on = secrets.ready
     networks { "default"; gateway.name }
-    // NEWT_ID and NEWT_SECRET arrive from infisical-secrets, read from the deploying host's folder.
+    // NEWT_ID and NEWT_SECRET arrive from 1Password through fnox, read from the deploying host's item.
     environment {
       ["PANGOLIN_ENDPOINT"] = registry.endpoint.serviceGroup.pangolin.proxy.url
     }
@@ -33,4 +34,13 @@ services {
 networks {
   ["default"] { name = module.name }
   [gateway.name] { name = gateway.name; `external` = true }
+}
+
+output {
+  files {
+    [secrets.configFile] = secrets.hostConfig(
+      new Listing { hosts.bill.alias; hosts.biggy.alias; hosts.paiki.alias; hosts.littlebuddy.alias; hosts.rick.alias },
+      (host) -> "hosts.\(host).newt",
+      new Listing { "NEWT_ID"; "NEWT_SECRET" })
+  }
 }
