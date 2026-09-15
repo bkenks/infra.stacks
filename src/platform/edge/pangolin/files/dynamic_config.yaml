@@ -43,6 +43,13 @@ http:
       - badger
       tls:
         certResolver: cloudflare
+    int-api-router:
+      rule: Host(`pangolin-api.ktbcloud.com`)
+      service: int-api-service
+      entryPoints:
+      - websecure
+      tls:
+        certResolver: cloudflare
     ws-router:
       rule: Host(`pangolin.ktbcloud.com`)
       service: api-service
@@ -61,6 +68,10 @@ http:
       loadBalancer:
         servers:
         - url: http://pangolin:3000
+    int-api-service:
+      loadBalancer:
+        servers:
+        - url: http://pangolin:3003
 tcp:
   serversTransports:
     pp-transport-v1:
