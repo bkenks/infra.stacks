@@ -98,6 +98,7 @@ class Infisical {
 path = new {
   file = new {
     infisical_creds = "\(col.dirs.credentials)/infisical.env"
+    onepassword_creds = "\(col.dirs.credentials)/onepassword.env"
   }
 }
 

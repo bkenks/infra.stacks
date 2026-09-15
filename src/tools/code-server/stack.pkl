@@ -20,13 +20,13 @@ local mounts = new Mapping<String, String> {
 name = "code-server"
 
 services {
-  ["secrets"] = secrets.provider("apps", "/code-server")
+  ["secrets"] = secrets.fnox
 
   ["app"] {
     image = "codercom/code-server:\(version)"
     restart = "unless-stopped"
     depends_on = secrets.ready
-    // HASHED_PASSWORD (argon2, the web login) arrives from infisical-secrets.
+    // HASHED_PASSWORD (argon2, the web login) arrives from 1Password through fnox.
     environment { ["TZ"] = "America/Chicago" }
     expose { port }
     ports { new { target = port; published = 18028; host_ip = col.ip.loopback } }
@@ -58,4 +58,10 @@ services {
 
 networks {
   ["default"] { name = module.name }
+}
+
+output {
+  files {
+    ["fnox.toml"] = secrets.fnoxConfig(new Mapping { ["HASHED_PASSWORD"] = "code-server/HASHED_PASSWORD" })
+  }
 }
