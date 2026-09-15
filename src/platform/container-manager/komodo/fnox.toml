@@ -9,7 +9,6 @@ vault = "secrets"
 KOMODO_DATABASE_PASSWORD = { provider = "onepassword", value = "komodo/KOMODO_DATABASE_PASSWORD" }
 KOMODO_DATABASE_USERNAME = { provider = "onepassword", value = "komodo/KOMODO_DATABASE_USERNAME" }
 KOMODO_JWT_SECRET = { provider = "onepassword", value = "komodo/KOMODO_JWT_SECRET" }
-KOMODO_PRIVATE_KEY = { provider = "onepassword", value = "komodo/KOMODO_PRIVATE_KEY" }
 KOMODO_WEBHOOK_SECRET = { provider = "onepassword", value = "komodo/KOMODO_WEBHOOK_SECRET" }
 MONGO_INITDB_ROOT_PASSWORD = { provider = "onepassword", value = "komodo/MONGO_INITDB_ROOT_PASSWORD" }
 MONGO_INITDB_ROOT_USERNAME = { provider = "onepassword", value = "komodo/MONGO_INITDB_ROOT_USERNAME" }

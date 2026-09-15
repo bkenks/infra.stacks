@@ -28,16 +28,14 @@ services {
       col.bind("\(stackDir)/komodo/data/syncs", "/syncs")
     }
     env_file { coreEnv }
-    // KOMODO_DATABASE_USERNAME, KOMODO_DATABASE_PASSWORD, KOMODO_WEBHOOK_SECRET,
-    // KOMODO_JWT_SECRET and KOMODO_PRIVATE_KEY all arrive from 1Password through fnox. `db`
-    // reads the same two database credentials as MONGO_INITDB_ROOT_USERNAME and
-    // MONGO_INITDB_ROOT_PASSWORD, so the item carries them under both spellings.
+    // KOMODO_DATABASE_USERNAME, KOMODO_DATABASE_PASSWORD, KOMODO_WEBHOOK_SECRET and
+    // KOMODO_JWT_SECRET all arrive from 1Password through fnox. `db` reads the same two
+    // database credentials as MONGO_INITDB_ROOT_USERNAME and MONGO_INITDB_ROOT_PASSWORD, so
+    // the item carries them under both spellings.
     //
-    // KOMODO_PRIVATE_KEY is the X25519 private key Core uses for the Noise handshake with
-    // every Periphery agent. It is a managed secret rather than the default
-    // `file:/config/keys/core.key`, so the keypair survives a rebuild of the keys volume.
-    // Agents pin the matching PUBLIC key (komodo_core_public_key in infra.ansible
-    // group_vars); rotating this means updating that too.
+    // Core's Noise private key is the default `file:/config/keys/core.key`, so it lives in
+    // the keys volume. Agents pin the matching PUBLIC key (komodo_core_public_key in
+    // infra.ansible group_vars); losing that volume means updating that too.
     environment {
       ["KOMODO_HOST"] = "https://komo.\(col.domain.ktbinternal)"
     }
@@ -70,6 +68,6 @@ networks {
 
 output {
   files {
-    [secrets.configFile] = secrets.config("komodo", new Listing { "KOMODO_DATABASE_PASSWORD"; "KOMODO_DATABASE_USERNAME"; "KOMODO_JWT_SECRET"; "KOMODO_PRIVATE_KEY"; "KOMODO_WEBHOOK_SECRET"; "MONGO_INITDB_ROOT_PASSWORD"; "MONGO_INITDB_ROOT_USERNAME" })
+    [secrets.configFile] = secrets.config("komodo", new Listing { "KOMODO_DATABASE_PASSWORD"; "KOMODO_DATABASE_USERNAME"; "KOMODO_JWT_SECRET"; "KOMODO_WEBHOOK_SECRET"; "MONGO_INITDB_ROOT_PASSWORD"; "MONGO_INITDB_ROOT_USERNAME" })
   }
 }
