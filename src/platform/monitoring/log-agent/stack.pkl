@@ -58,7 +58,7 @@ output {
         identify = new Dynamic {
           type = "remap"
           inputs { "docker" }
-          source = #".host = "${HOST}""#
+          source = #".host = get_env_var!("HOST")"#
         }
       }
       sinks {
