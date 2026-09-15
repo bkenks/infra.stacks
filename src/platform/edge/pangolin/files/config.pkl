@@ -29,6 +29,7 @@ class Files {
   // THE knob. The domain this instance is reached at: config.yaml's dashboard_url and sole
   // CORS origin, gerbil's base_endpoint, and the Host() every dashboard router matches on.
   fixed host = "pangolin.\(urlDomain)"
+  fixed integrationApiHost = "pangolin-api.\(urlDomain)"
 
   fixed config = new Dynamic {
     gerbil {
@@ -137,6 +138,13 @@ class Files {
           tls { certResolver = certResolverName }
         }
 
+        ["int-api-router"] {
+          rule = "Host(`\(integrationApiHost)`)"
+          service = "int-api-service"
+          entryPoints { "websecure" }
+          tls { certResolver = certResolverName }
+        }
+
         ["ws-router"] {
           rule = "Host(`\(host)`)"
           service = "api-service"
@@ -151,6 +159,7 @@ class Files {
         ["next-service"] { loadBalancer { servers { new { url = "http://pangolin:3002" } } } }
         // API/WebSocket server
         ["api-service"] { loadBalancer { servers { new { url = "http://pangolin:3000" } } } }
+        ["int-api-service"] { loadBalancer { servers { new { url = "http://pangolin:3003" } } } }
       }
     }
 
