@@ -36,6 +36,9 @@ examples {
           source: app_data
           target: /data
           read_only: false
+        networks:
+        - default
+        - newt_gw_001
         depends_on:
           secrets:
             condition: service_started
@@ -67,6 +70,9 @@ examples {
           source: db_data
           target: /var/lib/postgresql/data
           read_only: false
+        networks:
+        - default
+        - newt_gw_001
         depends_on:
           secrets:
             condition: service_started
@@ -83,6 +89,9 @@ examples {
       db_data:
         name: example-db_data
     networks:
+      newt_gw_001:
+        name: newt_gw_001
+        external: true
       default:
         name: example
     
@@ -122,7 +131,13 @@ examples {
           source: /rootless-srv/file-browser-quantum/cache
           target: /cache
           read_only: false
+        networks:
+        - default
+        - newt_gw_001
     networks:
+      newt_gw_001:
+        name: newt_gw_001
+        external: true
       default:
         name: file-browser-quantum
     
@@ -159,6 +174,10 @@ examples {
     volumes:
       app_data:
         name: databasus-app_data
+    networks:
+      newt_gw_001:
+        name: newt_gw_001
+        external: true
     
     """
   }

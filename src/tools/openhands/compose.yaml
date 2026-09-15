@@ -34,6 +34,9 @@ services:
       source: /srv/docker/bind-mounts/openhands/projects
       target: /projects
       read_only: false
+    networks:
+    - default
+    - newt_gw_001
     depends_on:
       secrets:
         condition: service_started
@@ -43,5 +46,8 @@ volumes:
   app_home:
     name: openhands-app_home
 networks:
+  newt_gw_001:
+    name: newt_gw_001
+    external: true
   default:
     name: openhands

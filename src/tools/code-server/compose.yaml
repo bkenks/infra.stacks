@@ -38,6 +38,9 @@ services:
       source: /srv/docker/bind-mounts/code-server/projects
       target: /home/coder/project
       read_only: false
+    networks:
+    - default
+    - newt_gw_001
     depends_on:
       secrets:
         condition: service_started
@@ -62,5 +65,8 @@ services:
       image: busybox:1.37
       user: 0:0
 networks:
+  newt_gw_001:
+    name: newt_gw_001
+    external: true
   default:
     name: code-server

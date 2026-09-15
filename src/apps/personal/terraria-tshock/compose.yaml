@@ -36,8 +36,14 @@ services:
       source: /rootless-srv/terraria-tshock/plugins
       target: /tshock/ServerPlugins
       read_only: false
+    networks:
+    - default
+    - newt_gw_001
     stdin_open: true
     tty: true
 networks:
+  newt_gw_001:
+    name: newt_gw_001
+    external: true
   default:
     name: terraria-tshock

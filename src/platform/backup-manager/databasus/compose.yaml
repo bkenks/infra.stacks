@@ -38,3 +38,7 @@ services:
 volumes:
   app_data:
     name: databasus-app_data
+networks:
+  newt_gw_001:
+    name: newt_gw_001
+    external: true

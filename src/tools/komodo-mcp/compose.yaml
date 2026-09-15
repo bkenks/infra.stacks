@@ -29,6 +29,9 @@ services:
       protocol: tcp
     expose:
     - 8000
+    networks:
+    - default
+    - newt_gw_001
     extra_hosts:
     - host.docker.internal:host-gateway
     depends_on:
@@ -37,5 +40,8 @@ services:
     labels:
       komodo.skip: ''
 networks:
+  newt_gw_001:
+    name: newt_gw_001
+    external: true
   default:
     name: komodo-mcp

@@ -25,11 +25,17 @@ services:
       source: /var/run/docker.sock
       target: /var/run/docker.sock
       read_only: false
+    networks:
+    - default
+    - newt_gw_001
   cache:
     image: memcached:1.6-alpine
     container_name: openproject-cache
     hostname: cache
     restart: unless-stopped
+    networks:
+    - default
+    - newt_gw_001
   scheduler:
     image: openproject/openproject:17-slim
     container_name: openproject-scheduler
@@ -67,6 +73,7 @@ services:
     networks:
     - default
     - db_001
+    - newt_gw_001
     depends_on:
       secrets:
         condition: service_started
@@ -92,6 +99,7 @@ services:
     networks:
     - default
     - db_001
+    - newt_gw_001
     depends_on:
       secrets:
         condition: service_started
@@ -132,6 +140,7 @@ services:
     networks:
     - default
     - db_001
+    - newt_gw_001
     depends_on:
       secrets:
         condition: service_started
@@ -184,6 +193,7 @@ services:
     networks:
     - default
     - db_001
+    - newt_gw_001
     depends_on:
       secrets:
         condition: service_started
@@ -240,6 +250,7 @@ services:
     networks:
     - default
     - db_001
+    - newt_gw_001
     depends_on:
       secrets:
         condition: service_started
@@ -251,6 +262,9 @@ volumes:
   web_assets:
     name: openproject-web_assets
 networks:
+  newt_gw_001:
+    name: newt_gw_001
+    external: true
   default:
     name: openproject
   db_001:

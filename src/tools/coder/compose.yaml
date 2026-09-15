@@ -39,6 +39,7 @@ services:
     networks:
     - default
     - workspaces
+    - newt_gw_001
     depends_on:
       secrets:
         condition: service_started
@@ -53,6 +54,9 @@ services:
       source: db_data
       target: /var/lib/postgresql/data
       read_only: false
+    networks:
+    - default
+    - newt_gw_001
     depends_on:
       secrets:
         condition: service_started
@@ -69,6 +73,9 @@ volumes:
   db_data:
     name: coder-db_data
 networks:
+  newt_gw_001:
+    name: newt_gw_001
+    external: true
   default:
     name: coder
   workspaces:

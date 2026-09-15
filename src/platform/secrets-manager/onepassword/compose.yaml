@@ -34,12 +34,15 @@ services:
       source: /mnt/secrets/credentials/op-connect-server_credentials.json
       target: /home/opuser/.op/1password-credentials.json
       read_only: false
+    networks:
+    - default
+    - newt_gw_001
 volumes:
   home:
     name: onepasswordconnect-home
 networks:
-  default:
-    name: onepasswordconnect
   newt_gw_001:
     name: newt_gw_001
     external: true
+  default:
+    name: onepasswordconnect

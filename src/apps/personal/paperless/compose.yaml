@@ -25,6 +25,9 @@ services:
       source: cache_data
       target: /data
       read_only: false
+    networks:
+    - default
+    - newt_gw_001
     healthcheck:
       test:
       - CMD
@@ -56,6 +59,7 @@ services:
     networks:
     - default
     - tailscale_gw_001
+    - newt_gw_001
     depends_on:
       secrets:
         condition: service_started
@@ -77,6 +81,9 @@ services:
     - --chromium-allow-list=file:///tmp/.*
     expose:
     - 3000
+    networks:
+    - default
+    - newt_gw_001
   parser:
     image: docker.io/apache/tika:latest
     container_name: paperless-parser
@@ -84,6 +91,9 @@ services:
     restart: on-failure:5
     expose:
     - 9998
+    networks:
+    - default
+    - newt_gw_001
   app:
     image: ghcr.io/paperless-ngx/paperless-ngx:latest
     container_name: paperless-app
@@ -125,6 +135,9 @@ services:
       source: /srv/docker/bind-mounts/apps/paperless/consume
       target: /usr/src/paperless/consume
       read_only: false
+    networks:
+    - default
+    - newt_gw_001
     depends_on:
       secrets:
         condition: service_started
@@ -158,6 +171,9 @@ volumes:
   app_media:
     name: paperless-app_media
 networks:
+  newt_gw_001:
+    name: newt_gw_001
+    external: true
   default:
     name: paperless
   tailscale_gw_001:

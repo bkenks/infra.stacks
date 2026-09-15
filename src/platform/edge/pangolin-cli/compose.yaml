@@ -27,6 +27,7 @@ services:
     networks:
     - default
     - pangolin_gw_001
+    - newt_gw_001
     depends_on:
       secrets:
         condition: service_started
@@ -38,6 +39,9 @@ volumes:
   app_state:
     name: pangolin-gw-app_state
 networks:
+  newt_gw_001:
+    name: newt_gw_001
+    external: true
   default:
     name: pangolin-gw
   pangolin_gw_001:

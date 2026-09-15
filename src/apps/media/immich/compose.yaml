@@ -25,6 +25,9 @@ services:
       source: /srv/docker/bind-mounts/apps/immich/postgres
       target: /var/lib/postgresql/data
       read_only: false
+    networks:
+    - default
+    - newt_gw_001
     depends_on:
       secrets:
         condition: service_started
@@ -41,11 +44,17 @@ services:
       source: /srv/docker/bind-mounts/apps/immich/model-cache
       target: /cache
       read_only: false
+    networks:
+    - default
+    - newt_gw_001
   cache:
     image: docker.io/valkey/valkey:9@sha256:8436e10bc65c94886a91d4415b6a6dfa9cb5a306fb3b996e5bb67cd2b4854193
     container_name: immich-cache
     hostname: cache
     restart: unless-stopped
+    networks:
+    - default
+    - newt_gw_001
   app:
     image: ghcr.io/immich-app/immich-server:v2.7.5
     container_name: immich-app
@@ -69,6 +78,9 @@ services:
       source: /mnt/immich-library
       target: /data
       read_only: false
+    networks:
+    - default
+    - newt_gw_001
     depends_on:
       secrets:
         condition: service_started
@@ -79,5 +91,8 @@ services:
     devices:
     - /dev/dri:/dev/dri
 networks:
+  newt_gw_001:
+    name: newt_gw_001
+    external: true
   default:
     name: immich

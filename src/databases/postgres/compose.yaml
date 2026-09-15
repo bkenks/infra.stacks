@@ -30,6 +30,7 @@ services:
     - default
     - db_001
     - tailscale_gw_001
+    - newt_gw_001
     depends_on:
       secrets:
         condition: service_started
@@ -44,6 +45,9 @@ volumes:
   db_data:
     name: postgres-db_data
 networks:
+  newt_gw_001:
+    name: newt_gw_001
+    external: true
   default:
     name: postgres
   db_001:

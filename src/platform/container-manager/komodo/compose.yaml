@@ -37,6 +37,9 @@ services:
       source: /srv/docker/bind-mounts/dcm/komodo/data/syncs
       target: /syncs
       read_only: false
+    networks:
+    - default
+    - newt_gw_001
     depends_on:
       secrets:
         condition: service_started
@@ -69,6 +72,9 @@ services:
       source: /srv/docker/bind-mounts/dcm/mongo/config
       target: /data/configdb
       read_only: false
+    networks:
+    - default
+    - newt_gw_001
     depends_on:
       secrets:
         condition: service_started
@@ -78,5 +84,8 @@ volumes:
   app_keys:
     name: komodo-app_keys
 networks:
+  newt_gw_001:
+    name: newt_gw_001
+    external: true
   default:
     name: komodo
