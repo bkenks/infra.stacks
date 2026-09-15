@@ -5,7 +5,7 @@ services:
     provider:
       type: infisical-secrets
       options:
-        credentials-file: /mnt/secrets/credentials/infisical.env
+        credentials-file: /mnt/credentials/infisical.env
         domain: http://controlplane.internal:18043
         project-id: 86324d9b-3dd7-49d4-b252-69228c5ee0c7
         env: prod

@@ -14,7 +14,7 @@ services:
       target: /home/opuser/.op/data
       read_only: false
     - type: bind
-      source: /mnt/secrets/credentials/op-connect-server_credentials.json
+      source: /mnt/credentials/op-connect-server_credentials.json
       target: /home/opuser/.op/1password-credentials.json
       read_only: false
     networks:
@@ -31,7 +31,7 @@ services:
       target: /home/opuser/.op/data
       read_only: false
     - type: bind
-      source: /mnt/secrets/credentials/op-connect-server_credentials.json
+      source: /mnt/credentials/op-connect-server_credentials.json
       target: /home/opuser/.op/1password-credentials.json
       read_only: false
     networks:
