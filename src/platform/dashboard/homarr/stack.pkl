@@ -15,7 +15,7 @@ local issuer = authentik.proxy.oidc.issuer(module.name)
 name = "homarr"
 
 services {
-  ["secrets"] = secrets.provider("infra", "/homarr")
+  ["secrets"] = secrets.fnox
 
   ["app"] {
     image = "ghcr.io/homarr-labs/homarr:\(appVersion)"
@@ -24,7 +24,7 @@ services {
     data { ["data"] { target = "/appdata" } }
     volumes { col.mounts.dockerSock }
     // SECRET_ENCRYPTION_KEY, AUTH_OIDC_CLIENT_ID and AUTH_OIDC_CLIENT_SECRET arrive from
-    // infisical-secrets. A key of the same name in the bundle overrides what is written
+    // 1Password through fnox. A key of the same name in the item overrides what is written
     // here, so a per-host override still works.
     environment {
       ["TZ"] = "America/New_York"
@@ -53,4 +53,10 @@ services {
 
 networks {
   ["default"] { name = module.name }
+}
+
+output {
+  files {
+    [secrets.configFile] = secrets.config("homarr", new Listing { "AUTH_OIDC_CLIENT_ID"; "AUTH_OIDC_CLIENT_SECRET"; "SECRET_ENCRYPTION_KEY" })
+  }
 }

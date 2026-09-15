@@ -17,6 +17,8 @@ local configFile = "vector.yaml"
 
 name = "log-agent"
 
+attachNewtGateway = false
+
 services {
   ["agent"] {
     image = "timberio/vector:\(version)-alpine"

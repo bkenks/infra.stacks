@@ -3,24 +3,18 @@ name: pangolin
 services:
   secrets:
     provider:
-      type: infisical-secrets
+      type: docker-compose-fnox
       options:
-        credentials-file: /mnt/secrets/credentials/infisical.env
-        domain: http://controlplane.internal:18043
-        project-id: 2f0eb3d1-3e2a-4ce7-8060-5e47ad877e47
-        env: prod
-        path: /pangolin
-        recursive: true
+        path_config_toml: fnox.toml
+        path_credentials_env: /mnt/credentials/onepassword.env
+        if_missing: error
   secrets-traefik:
     provider:
-      type: infisical-secrets
+      type: docker-compose-fnox
       options:
-        credentials-file: /mnt/secrets/credentials/infisical.env
-        domain: http://controlplane.internal:18043
-        project-id: 86324d9b-3dd7-49d4-b252-69228c5ee0c7
-        env: prod
-        path: /traefik
-        recursive: true
+        path_config_toml: traefik/fnox.toml
+        path_credentials_env: /mnt/credentials/onepassword.env
+        if_missing: error
   seeder:
     image: docker.io/library/busybox:1.37.0
     container_name: pangolin-seeder
@@ -35,6 +29,9 @@ services:
       source: /srv/docker/bind-mounts/pangolin/config
       target: /mnt/config
       read_only: false
+    networks:
+    - default
+    - newt_gw_001
   app:
     image: docker.io/fosrl/pangolin:ee-1.20.0
     container_name: pangolin
@@ -53,6 +50,9 @@ services:
       source: ./files/privateConfig.yaml
       target: /app/config/privateConfig.yml
       read_only: true
+    networks:
+    - default
+    - newt_gw_001
     depends_on:
       seeder:
         condition: service_completed_successfully
@@ -109,6 +109,9 @@ services:
       source: /srv/docker/bind-mounts/pangolin/config
       target: /var/config
       read_only: false
+    networks:
+    - default
+    - newt_gw_001
     depends_on:
       seeder:
         condition: service_completed_successfully
@@ -149,6 +152,9 @@ services:
       secrets-traefik:
         condition: service_started
 networks:
+  newt_gw_001:
+    name: newt_gw_001
+    external: true
   default:
     name: pangolin
     driver: bridge

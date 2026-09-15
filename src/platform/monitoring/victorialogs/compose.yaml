@@ -18,11 +18,17 @@ services:
       source: logs_data
       target: /victoria-logs-data
       read_only: false
+    networks:
+    - default
+    - newt_gw_001
     labels:
       komodo.skip: ''
 volumes:
   logs_data:
     name: victorialogs-logs_data
 networks:
+  newt_gw_001:
+    name: newt_gw_001
+    external: true
   default:
     name: victorialogs

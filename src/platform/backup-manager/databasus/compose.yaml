@@ -3,14 +3,11 @@ name: databasus
 services:
   secrets:
     provider:
-      type: infisical-secrets
+      type: docker-compose-fnox
       options:
-        credentials-file: /mnt/secrets/credentials/infisical.env
-        domain: http://controlplane.internal:18043
-        project-id: 86324d9b-3dd7-49d4-b252-69228c5ee0c7
-        env: prod
-        path: /databasus
-        recursive: true
+        path_config_toml: fnox.toml
+        path_credentials_env: /mnt/credentials/onepassword.env
+        if_missing: error
   app:
     image: databasus/databasus:latest
     container_name: databasus-app
@@ -38,3 +35,7 @@ services:
 volumes:
   app_data:
     name: databasus-app_data
+networks:
+  newt_gw_001:
+    name: newt_gw_001
+    external: true

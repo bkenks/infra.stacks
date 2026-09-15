@@ -15,7 +15,7 @@ local version = "18"
 name = "postgres"
 
 services {
-  ["secrets"] = secrets.provider("apps", "/postgres")
+  ["secrets"] = secrets.fnox
 
   ["db"] {
     // Other stacks already dial this name, so it is the registry's value.
@@ -25,7 +25,7 @@ services {
     depends_on = secrets.ready
     networks { "default"; sharedDB.name; sharedTSGW.name }
     data { ["data"] { target = "/var/lib/postgresql" } }
-    // POSTGRES_USER and POSTGRES_PASSWORD arrive from infisical-secrets.
+    // POSTGRES_USER and POSTGRES_PASSWORD arrive from 1Password through fnox.
 
     // Published to the host so containers in other stacks reach it through the gateway.
     ports { new { target = pg.container.port; published = pg.host.port; host_ip = col.ip.loopback } }
@@ -46,4 +46,10 @@ networks {
   ["default"] { name = module.name }
   [sharedDB.name] { name = sharedDB.name; `external` = true }
   [sharedTSGW.name] { name = sharedTSGW.name; `external` = true }
+}
+
+output {
+  files {
+    [secrets.configFile] = secrets.config("postgres", new Listing { "PG_ADMIN_PASS"; "POSTGRES_PASSWORD"; "POSTGRES_USER" })
+  }
 }

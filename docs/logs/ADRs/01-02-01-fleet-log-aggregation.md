@@ -7,6 +7,10 @@
 zone. `platform/monitoring/log-agent` runs one Vector per host; it tails the docker
 socket and ships every container's stdout/stderr to that instance.
 
+The UI is exposed through Pangolin: the store joins `newt_gw_001` like every stack and the
+resource targets `victorialogs-logs:9428`. The published port is for ingest only, since a
+docker network does not span hosts. The agent exposes nothing and opts out of the gateway.
+
 Retention is 90 days (`-retentionPeriod=90d`). The sink endpoint is
 `registry.endpoint.serviceGroup.victorialogs`, so moving the store to another host is one
 line in the registry.

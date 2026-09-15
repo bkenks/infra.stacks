@@ -30,7 +30,7 @@ rejects an empty `ENCRYPTION_KEY` — so a `config` on a host without the file s
 ## Credentials the provider uses
 
 Each host holds its own machine identity in the dotenv file at
-`registry.path.file.infisical_creds` (`/mnt/secrets/credentials/infisical.env`), read by
+`registry.path.file.infisical_creds`, read by
 every stack's provider via the `credentials-file` option:
 
 ```

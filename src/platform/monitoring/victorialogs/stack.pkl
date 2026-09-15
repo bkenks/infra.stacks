@@ -25,7 +25,7 @@ services {
       "-retentionPeriod=90d"
     }
     // No host_ip: every other host ingests into this port over the .internal zone, so it
-    // cannot be bound to loopback.
+    // cannot be bound to loopback. The UI is reached through newt, not this port.
     ports { new { target = vlogs.container.port; published = vlogs.host.port; host_ip = null } }
   }
 }

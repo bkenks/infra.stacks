@@ -3,8 +3,8 @@
 // host this copy runs on, so every instance advertises the same address.
 //
 // Two documents, because this stack is part of the restore tier: it has to come up on a
-// cold start alongside databasus, which is exactly when the infisical-secrets provider
-// cannot answer. compose.yaml is the steady state; bootstrap.yaml is the same stack with
+// cold start alongside databasus, which is exactly when the secrets provider may not
+// be able to answer. compose.yaml is the steady state; bootstrap.yaml is the same stack with
 // the provider swapped for the env file the control plane writes. They are alternatives,
 // never layered: a compose override merges, so it could not drop the provider service or
 // the depends_on that waits on it.
@@ -25,7 +25,7 @@ name = "zerobyte"
 
 services {
   when (!module.bootstrap) {
-    ["secrets"] = secrets.provider("infra", "/zerobyte")
+    ["secrets"] = secrets.fnox
   }
 
   ["app"] {
@@ -41,7 +41,7 @@ services {
       col.bindReadOnly("/etc/localtime", "/etc/localtime")
       col.bind("/var/lib/docker/volumes", "/source/docker-volumes")
     }
-    // APP_SECRET arrives from infisical-secrets, or from the bootstrap env file.
+    // APP_SECRET arrives from 1Password through fnox, or from the bootstrap env file.
     environment {
       ["TZ"] = "America/New_York"
       ["BASE_URL"] = "http://\(registry.endpoint.hostGroup.littlebuddy.ref):\(port)"
@@ -60,6 +60,7 @@ networks {
 
 output {
   files {
+    [secrets.configFile] = secrets.config("zerobyte", new Listing { "APP_SECRET" })
     ["bootstrap.yaml"] = module.file((module) { bootstrap = true })
   }
 }

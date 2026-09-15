@@ -3,14 +3,11 @@ name: activepieces
 services:
   secrets:
     provider:
-      type: infisical-secrets
+      type: docker-compose-fnox
       options:
-        credentials-file: /mnt/secrets/credentials/infisical.env
-        domain: http://controlplane.internal:18043
-        project-id: 2f0eb3d1-3e2a-4ce7-8060-5e47ad877e47
-        env: prod
-        path: /activepieces
-        recursive: true
+        path_config_toml: fnox.toml
+        path_credentials_env: /mnt/credentials/onepassword.env
+        if_missing: error
   app:
     image: ghcr.io/activepieces/activepieces:0.88.3
     container_name: activepieces-app
@@ -50,6 +47,7 @@ services:
     networks:
     - default
     - tailscale_gw_001
+    - newt_gw_001
     depends_on:
       secrets:
         condition: service_started
@@ -85,6 +83,9 @@ services:
       source: app_engine
       target: /usr/src/app/cache
       read_only: false
+    networks:
+    - default
+    - newt_gw_001
     depends_on:
       secrets:
         condition: service_started
@@ -110,6 +111,7 @@ services:
     networks:
     - default
     - tailscale_gw_001
+    - newt_gw_001
     depends_on:
       secrets:
         condition: service_started
@@ -132,6 +134,9 @@ services:
       source: cache_data
       target: /data
       read_only: false
+    networks:
+    - default
+    - newt_gw_001
     healthcheck:
       test:
       - CMD
@@ -148,6 +153,9 @@ volumes:
   cache_data:
     name: activepieces-cache_data
 networks:
+  newt_gw_001:
+    name: newt_gw_001
+    external: true
   default:
     name: activepieces
   tailscale_gw_001:

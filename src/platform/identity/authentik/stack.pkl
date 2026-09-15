@@ -20,8 +20,8 @@ local dbName = module.name
 local gateway = registry.network.shared.tailscale_gw_001
 
 // Identical on server AND worker: they must agree on the DB and the secret key.
-// AUTHENTIK_POSTGRESQL__PASSWORD and AUTHENTIK_SECRET_KEY arrive from infisical-secrets;
-// `db` reads the same password as POSTGRES_PASSWORD, so the bundle carries it under both
+// AUTHENTIK_POSTGRESQL__PASSWORD and AUTHENTIK_SECRET_KEY arrive from 1Password through fnox;
+// `db` reads the same password as POSTGRES_PASSWORD, so the item carries it under both
 // names.
 local authentikEnv = new Mapping<String, String> {
   ["AUTHENTIK_POSTGRESQL__HOST"] = "db"
@@ -37,7 +37,7 @@ local dbHealthy = new Mapping<String, Compose.DependsOn> {
 name = "authentik"
 
 services {
-  ["secrets"] = secrets.provider("infra", "/authentik")
+  ["secrets"] = secrets.fnox
 
   // ── Server: the web UI + API + OIDC endpoints ──────────────────────────────
   ["app"] {
@@ -75,7 +75,7 @@ services {
     depends_on = secrets.ready
     networks { "default"; gateway.name }
     data { ["data"] { target = "/var/lib/postgresql/data" } }
-    // POSTGRES_PASSWORD arrives from infisical-secrets.
+    // POSTGRES_PASSWORD arrives from 1Password through fnox.
     environment {
       ["POSTGRES_USER"] = dbUser
       ["POSTGRES_DB"] = dbName
@@ -95,4 +95,10 @@ services {
 networks {
   ["default"] { name = module.name }
   [gateway.name] { name = gateway.name; `external` = true }
+}
+
+output {
+  files {
+    [secrets.configFile] = secrets.config("authentik", new Listing { "AUTHENTIK_POSTGRESQL__PASSWORD"; "AUTHENTIK_SECRET_KEY"; "POSTGRES_PASSWORD" })
+  }
 }

@@ -6,15 +6,6 @@ services:
     container_name: onepasswordconnect-api
     hostname: api
     restart: unless-stopped
-    ports:
-    - target: 8080
-      published: 18050
-      host_ip: 127.0.0.1
-      protocol: tcp
-    - target: 8080
-      published: 18050
-      host_ip: 100.108.59.105
-      protocol: tcp
     expose:
     - 8080
     volumes:
@@ -23,35 +14,35 @@ services:
       target: /home/opuser/.op/data
       read_only: false
     - type: bind
-      source: /mnt/secrets/credentials/1password-credentials.json
+      source: /mnt/credentials/op-connect-server_credentials.json
       target: /home/opuser/.op/1password-credentials.json
       read_only: false
+    networks:
+    - default
+    - newt_gw_001
   agent:
     image: 1password/connect-sync:latest
     container_name: onepasswordconnect-agent
     hostname: agent
     restart: unless-stopped
-    ports:
-    - target: 8080
-      published: 18051
-      host_ip: 127.0.0.1
-      protocol: tcp
-    - target: 8080
-      published: 18051
-      host_ip: 100.108.59.105
-      protocol: tcp
     volumes:
     - type: volume
       source: home
       target: /home/opuser/.op/data
       read_only: false
     - type: bind
-      source: /mnt/secrets/credentials/1password-credentials.json
+      source: /mnt/credentials/op-connect-server_credentials.json
       target: /home/opuser/.op/1password-credentials.json
       read_only: false
+    networks:
+    - default
+    - newt_gw_001
 volumes:
   home:
     name: onepasswordconnect-home
 networks:
+  newt_gw_001:
+    name: newt_gw_001
+    external: true
   default:
     name: onepasswordconnect

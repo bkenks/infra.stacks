@@ -44,3 +44,4 @@ flags:
   disable_user_create_org: true
   disable_product_help_banners: true
   allow_raw_resources: true
+  enable_integration_api: true

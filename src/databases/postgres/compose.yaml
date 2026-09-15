@@ -3,14 +3,11 @@ name: postgres
 services:
   secrets:
     provider:
-      type: infisical-secrets
+      type: docker-compose-fnox
       options:
-        credentials-file: /mnt/secrets/credentials/infisical.env
-        domain: http://controlplane.internal:18043
-        project-id: 2f0eb3d1-3e2a-4ce7-8060-5e47ad877e47
-        env: prod
-        path: /postgres
-        recursive: true
+        path_config_toml: fnox.toml
+        path_credentials_env: /mnt/credentials/onepassword.env
+        if_missing: error
   db:
     image: postgres:18
     container_name: postgres-db
@@ -30,6 +27,7 @@ services:
     - default
     - db_001
     - tailscale_gw_001
+    - newt_gw_001
     depends_on:
       secrets:
         condition: service_started
@@ -44,6 +42,9 @@ volumes:
   db_data:
     name: postgres-db_data
 networks:
+  newt_gw_001:
+    name: newt_gw_001
+    external: true
   default:
     name: postgres
   db_001:

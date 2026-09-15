@@ -28,6 +28,9 @@ services:
       source: /var/lib/docker/volumes
       target: /source/docker-volumes
       read_only: false
+    networks:
+    - default
+    - newt_gw_001
     cap_add:
     - SYS_ADMIN
     security_opt:
@@ -38,5 +41,8 @@ volumes:
   app_data:
     name: zerobyte-app_data
 networks:
+  newt_gw_001:
+    name: newt_gw_001
+    external: true
   default:
     name: zerobyte

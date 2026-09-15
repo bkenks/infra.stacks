@@ -18,7 +18,7 @@ local sharedTSGW = registry.network.shared.tailscale_gw_001
 name = "forgejo"
 
 services {
-  ["secrets"] = secrets.provider("infra", "/forgejo")
+  ["secrets"] = secrets.fnox
 
   ["server"] {
     image = serverImage
@@ -26,8 +26,8 @@ services {
     depends_on = secrets.ready
     data { ["data"] { target = "/data" } }
     volumes { col.bindReadOnly("/etc/localtime", "/etc/localtime") }
-    // FORGEJO__database__PASSWD arrives from infisical-secrets; `db` reads the same
-    // password as POSTGRES_PASSWORD, so the bundle carries it under both names.
+    // FORGEJO__database__PASSWD arrives from 1Password through fnox; `db` reads the same
+    // password as POSTGRES_PASSWORD, so the item carries it under both names.
     environment {
       ["FORGEJO____APP_NAME"] = "KTB Software"
       ["FORGEJO____APP_SLOGAN"] = "End-To-End Software"
@@ -56,7 +56,7 @@ services {
     depends_on = secrets.ready
     networks { "default"; sharedTSGW.name }
     data { ["data"] { target = "/var/lib/postgresql/data" } }
-    // POSTGRES_PASSWORD arrives from infisical-secrets.
+    // POSTGRES_PASSWORD arrives from 1Password through fnox.
     environment {
       ["POSTGRES_USER"] = dbUser
       ["POSTGRES_DB"] = dbName
@@ -69,4 +69,10 @@ services {
 networks {
   ["default"] { name = module.name }
   [sharedTSGW.name] { name = sharedTSGW.name; `external` = true }
+}
+
+output {
+  files {
+    [secrets.configFile] = secrets.config("forgejo", new Listing { "DB_PASSWORD"; "FORGEJO__DATABASE__PASSWD"; "POSTGRES_PASSWORD" })
+  }
 }

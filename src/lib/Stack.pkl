@@ -8,7 +8,30 @@ open module infra.Stack
 
 extends "@compose/Stack.pkl"
 
+import "@compose/Stack.pkl" as compose
+import "registry.pkl"
+
 hidden const header = "# GENERATED from stack.pkl — DO NOT EDIT.\n"
+
+hidden attachNewtGateway: Boolean = true
+
+local newtGateway = registry.network.shared.newt_gw_001
+
+local function canAttach(service: compose.StackService): Boolean =
+  service.provider == null && service.network_mode == null && !service.networks.toList().contains(newtGateway.name)
+
+local function withNewtGateway(service: compose.StackService): compose.StackService = (service) {
+  networks {
+    when (service.networks.isEmpty) { "default" }
+    newtGateway.name
+  }
+}
+
+networks {
+  when (attachNewtGateway) {
+    [newtGateway.name] { name = newtGateway.name; `external` = true }
+  }
+}
 
 /// Restore-tier stacks render a second document with the secrets provider swapped for
 /// an env file: `["bootstrap.yaml"] = module.file((module) { bootstrap = true })`.
@@ -27,6 +50,11 @@ function yamlFile(doc: Object): FileOutput = new FileOutput {
 }
 
 output {
+  renderer {
+    converters {
+      [compose.StackService] = (service) -> if (attachNewtGateway && canAttach(service)) withNewtGateway(service) else service
+    }
+  }
   text = header + super.text
   files {
     ["compose.yaml"] { text = module.output.text }

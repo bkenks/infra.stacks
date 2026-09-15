@@ -30,6 +30,12 @@ services:
       source: /rootless-srv/file-browser-quantum/cache
       target: /cache
       read_only: false
+    networks:
+    - default
+    - newt_gw_001
 networks:
+  newt_gw_001:
+    name: newt_gw_001
+    external: true
   default:
     name: file-browser-quantum

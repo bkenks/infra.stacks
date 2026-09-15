@@ -3,14 +3,11 @@ name: openproject
 services:
   secrets:
     provider:
-      type: infisical-secrets
+      type: docker-compose-fnox
       options:
-        credentials-file: /mnt/secrets/credentials/infisical.env
-        domain: http://controlplane.internal:18043
-        project-id: 2f0eb3d1-3e2a-4ce7-8060-5e47ad877e47
-        env: prod
-        path: /openproject
-        recursive: true
+        path_config_toml: fnox.toml
+        path_credentials_env: /mnt/credentials/onepassword.env
+        if_missing: error
   watchdog:
     image: willfarrell/autoheal:1.2.0
     container_name: openproject-watchdog
@@ -25,11 +22,17 @@ services:
       source: /var/run/docker.sock
       target: /var/run/docker.sock
       read_only: false
+    networks:
+    - default
+    - newt_gw_001
   cache:
     image: memcached:1.6-alpine
     container_name: openproject-cache
     hostname: cache
     restart: unless-stopped
+    networks:
+    - default
+    - newt_gw_001
   scheduler:
     image: openproject/openproject:17-slim
     container_name: openproject-scheduler
@@ -67,6 +70,7 @@ services:
     networks:
     - default
     - db_001
+    - newt_gw_001
     depends_on:
       secrets:
         condition: service_started
@@ -92,6 +96,7 @@ services:
     networks:
     - default
     - db_001
+    - newt_gw_001
     depends_on:
       secrets:
         condition: service_started
@@ -132,6 +137,7 @@ services:
     networks:
     - default
     - db_001
+    - newt_gw_001
     depends_on:
       secrets:
         condition: service_started
@@ -184,6 +190,7 @@ services:
     networks:
     - default
     - db_001
+    - newt_gw_001
     depends_on:
       secrets:
         condition: service_started
@@ -240,6 +247,7 @@ services:
     networks:
     - default
     - db_001
+    - newt_gw_001
     depends_on:
       secrets:
         condition: service_started
@@ -251,6 +259,9 @@ volumes:
   web_assets:
     name: openproject-web_assets
 networks:
+  newt_gw_001:
+    name: newt_gw_001
+    external: true
   default:
     name: openproject
   db_001:

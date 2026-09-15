@@ -42,6 +42,9 @@ services:
       source: /var/lib/docker/volumes
       target: /userdata
       read_only: false
+    networks:
+    - default
+    - newt_gw_001
 volumes:
   app_data:
     name: backrest-app_data
@@ -54,5 +57,8 @@ volumes:
   app_rclone:
     name: backrest-app_rclone
 networks:
+  newt_gw_001:
+    name: newt_gw_001
+    external: true
   default:
     name: backrest

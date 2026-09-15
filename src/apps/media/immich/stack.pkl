@@ -19,14 +19,14 @@ local bindRoot = "\(col.dirs.docker.bindMounts)/apps/immich"
 name = "immich"
 
 services {
-  ["secrets"] = secrets.provider("apps", "/immich")
+  ["secrets"] = secrets.fnox
 
   ["db"] {
     image = dbImage
     restart = "unless-stopped"
     depends_on = secrets.ready
     volumes { col.bind("\(bindRoot)/postgres", "/var/lib/postgresql/data") }
-    // POSTGRES_PASSWORD arrives from infisical-secrets; `app` reads the same value as
+    // POSTGRES_PASSWORD arrives from 1Password through fnox; `app` reads the same value as
     // DB_PASSWORD, so the bundle carries it under both names.
     environment {
       ["POSTGRES_DB"] = module.name
@@ -61,7 +61,7 @@ services {
     // `quicksync` service in Immich's hwaccel.transcoding.yml. Enable it in the UI:
     // Admin -> Video Transcoding -> Acceleration API -> Quick Sync.
     devices { "/dev/dri:/dev/dri" }
-    // DB_PASSWORD arrives from infisical-secrets.
+    // DB_PASSWORD arrives from 1Password through fnox.
     environment {
       ["TZ"] = tz
       ["REDIS_HOSTNAME"] = "cache"
@@ -76,4 +76,10 @@ services {
 
 networks {
   ["default"] { name = module.name }
+}
+
+output {
+  files {
+    [secrets.configFile] = secrets.config("immich", new Listing { "DB_PASSWORD"; "POSTGRES_PASSWORD" })
+  }
 }

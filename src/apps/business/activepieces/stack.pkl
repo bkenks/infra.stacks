@@ -21,9 +21,10 @@ local apImage = "ghcr.io/activepieces/activepieces:\(appVersion)"
 // Piece/engine cache, owned by app and shared with every worker replica.
 local engineCachePath = "/usr/src/app/cache"
 local sharedTSGW = registry.network.shared.tailscale_gw_001
+local sharedNewtGW = registry.network.shared.newt_gw_001
 
 // Shared by app and worker. AP_POSTGRES_PASSWORD, AP_ENCRYPTION_KEY and AP_JWT_SECRET
-// arrive from infisical-secrets.
+// arrive from 1Password through fnox.
 local apEnv = new Mapping<String, String> {
   ["AP_ENVIRONMENT"] = "prod"
   ["AP_EDITION"] = "ee"
@@ -48,7 +49,7 @@ local apEnv = new Mapping<String, String> {
 name = "activepieces"
 
 services {
-  ["secrets"] = secrets.provider("apps", "/activepieces")
+  ["secrets"] = secrets.fnox
 
   ["app"] {
     image = apImage
@@ -65,7 +66,7 @@ services {
     }
     expose { appPort }
     ports { new { target = appPort; published = 18071; host_ip = col.ip.loopback } }
-    networks { "default"; sharedTSGW.name }
+    networks { "default"; sharedTSGW.name; sharedNewtGW.name }
   }
 
   // No container_name: compose refuses a fixed name on a replicated service.
@@ -87,7 +88,7 @@ services {
   }
 
   // Dedicated pgvector Postgres: activepieces needs the vector extension, which the
-  // shared cluster does not carry. POSTGRES_PASSWORD arrives from infisical-secrets.
+  // shared cluster does not carry. POSTGRES_PASSWORD arrives from 1Password through fnox.
   ["db"] {
     image = "docker.io/pgvector/pgvector:\(dbVersion)"
     restart = "on-failure:5"
@@ -124,4 +125,11 @@ services {
 networks {
   ["default"] { name = module.name }
   [sharedTSGW.name] { name = sharedTSGW.name; `external` = true }
+  [sharedNewtGW.name] { name = sharedNewtGW.name; `external` = true}
+}
+
+output {
+  files {
+    [secrets.configFile] = secrets.config("activepieces", new Listing { "AP_API_KEY"; "AP_ENCRYPTION_KEY"; "AP_JWT_SECRET"; "AP_POSTGRES_PASSWORD"; "POSTGRES_PASSWORD" })
+  }
 }
