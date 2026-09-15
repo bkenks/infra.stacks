@@ -16,7 +16,7 @@ services:
     restart: unless-stopped
     environment:
       PANGOLIN_ENDPOINT: https://pangolin.ktbcloud.com
-      INTERFACE: pangolin-gw-${HOST:?err}
+      INTERFACE: olm-${HOST:?err}
     volumes:
     - type: volume
       source: app_state

@@ -32,7 +32,8 @@ services {
     // still interpolates it here.
     environment {
       ["PANGOLIN_ENDPOINT"] = registry.endpoint.serviceGroup.pangolin.proxy.url
-      ["INTERFACE"] = "\(module.name)-${HOST:?err}"
+      // Linux caps interface names at 15 characters; olm-littlebuddy is exactly that.
+      ["INTERFACE"] = "olm-${HOST:?err}"
     }
   }
 }
