@@ -50,9 +50,11 @@ services:
     healthcheck:
       test:
       - CMD
-      - curl
-      - -fsS
-      - --max-time
+      - wget
+      - -q
+      - -O
+      - /dev/null
+      - -T
       - '2'
       - http://localhost:7575
       interval: 30s

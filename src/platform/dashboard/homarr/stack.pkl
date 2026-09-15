@@ -41,7 +41,7 @@ services {
       ["AUTH_OIDC_GROUPS_ATTRIBUTE"] = "groups"
     }
     healthcheck {
-      test { "CMD"; "curl"; "-fsS"; "--max-time"; "2"; "http://localhost:\(appPort)" }
+      test { "CMD"; "wget"; "-q"; "-O"; "/dev/null"; "-T"; "2"; "http://localhost:\(appPort)" }
       interval = 30.s
       timeout = 10.s
       retries = 5

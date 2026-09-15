@@ -22,14 +22,6 @@ facts {
   ["shared network name"] {
     registry.network.shared.db_001.name == "db_001"
   }
-  ["infisical address dials the control plane alias"] {
-    registry.infisical.address == "http://controlplane.internal:18043"
-  }
-  ["secrets provider carries the project id and no container"] {
-    secrets.provider("infra", "/homarr").provider.options["project-id"]
-      == "86324d9b-3dd7-49d4-b252-69228c5ee0c7"
-    secrets.provider("infra", "/homarr").container_name == null
-  }
   ["fnox provider reads the 1Password credentials and fails on a missing secret"] {
     secrets.fnox.provider.options["path_credentials_env"] == "/mnt/credentials/onepassword.env"
     secrets.fnox.provider.options["if_missing"] == "error"
@@ -45,8 +37,5 @@ facts {
   }
   ["per-host fnox provider selects the deploying host's profile"] {
     secrets.fnoxPerHost.provider.options["profile"] == "${HOST:?err}"
-  }
-  ["unknown infisical project fails"] {
-    module.catch(() -> secrets.provider("nope", "/x").output.text).contains("nope")
   }
 }

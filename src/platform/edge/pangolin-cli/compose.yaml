@@ -3,14 +3,12 @@ name: pangolin-gw
 services:
   secrets:
     provider:
-      type: infisical-secrets
+      type: docker-compose-fnox
       options:
-        credentials-file: /mnt/credentials/infisical.env
-        domain: http://controlplane.internal:18043
-        project-id: 86324d9b-3dd7-49d4-b252-69228c5ee0c7
-        env: prod
-        path: /pangolin/containers
-        recursive: true
+        path_config_toml: fnox.toml
+        path_credentials_env: /mnt/credentials/onepassword.env
+        if_missing: error
+        profile: ${HOST:?err}
   app:
     image: docker.io/fosrl/pangolin-cli:latest
     container_name: pangolin-gw-app

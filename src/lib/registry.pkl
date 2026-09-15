@@ -84,20 +84,8 @@ class SharedNetwork {
   name: String
 }
 
-typealias InfisicalProject = "apps" | "frappe" | "couchPotatoes" | "stackform" | "infra"
-
-class Infisical {
-  /// Where the infisical-secrets compose provider reaches the server: the control-plane
-  /// alias, which every host resolves, including the ones that deploy before they know
-  /// which box is the control plane.
-  address: String
-  /// Only the ids are global: a bundle's folder path is read by exactly one stack.
-  project: Mapping<InfisicalProject, String>
-}
-
 path = new {
   file = new {
-    infisical_creds = "\(col.dirs.credentials)/infisical.env"
     onepassword_creds = "\(col.dirs.credentials)/onepassword.env"
   }
 }
@@ -142,16 +130,5 @@ dir = new {
     data = "\(root)/data"
     shared = "\(root)/shared"
     cache = "\(root)/cache"
-  }
-}
-
-infisical = new Infisical {
-  address = "http://\(endpoint.hostGroup.controlplane.ref):\(endpoint.serviceGroup.infisical.host.port)"
-  project {
-    ["apps"] = "2f0eb3d1-3e2a-4ce7-8060-5e47ad877e47"
-    ["frappe"] = "12ed25dd-c0d2-4a78-9b10-472fc09fe554"
-    ["couchPotatoes"] = "fb1dd6a7-3924-415b-b6c3-3071fc93aaae"
-    ["stackform"] = "15d61370-a2ec-4993-9bbd-3774a63f7b94"
-    ["infra"] = "86324d9b-3dd7-49d4-b252-69228c5ee0c7"
   }
 }

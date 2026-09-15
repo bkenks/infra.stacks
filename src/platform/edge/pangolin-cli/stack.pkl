@@ -12,11 +12,12 @@ import "@infra/secrets.pkl"
 
 local appVersion = "latest"
 local gateway = registry.network.shared.pangolin_gw_001
+local hosts = registry.endpoint.hostGroup
 
 name = "pangolin-gw"
 
 services {
-  ["secrets"] = secrets.provider("infra", "/pangolin/containers")
+  ["secrets"] = secrets.fnoxPerHost
 
   ["app"] {
     image = "docker.io/fosrl/pangolin-cli:\(appVersion)"
@@ -26,8 +27,9 @@ services {
     cap_add { "NET_ADMIN" }
     devices { "/dev/net/tun:/dev/net/tun" }
     data { ["state"] { target = "/root/.config/olm-client" } }
-    // CLIENT_ID and CLIENT_SECRET arrive from infisical-secrets. HOST is not a secret:
-    // it comes from the deploy environment, so compose still interpolates it here.
+    // CLIENT_ID and CLIENT_SECRET arrive from 1Password through fnox, read from the deploying
+    // host's item. HOST is not a secret: it comes from the deploy environment, so compose
+    // still interpolates it here.
     environment {
       ["PANGOLIN_ENDPOINT"] = registry.endpoint.serviceGroup.pangolin.proxy.url
       ["INTERFACE"] = "\(module.name)-${HOST:?err}"
@@ -38,4 +40,13 @@ services {
 networks {
   ["default"] { name = module.name }
   [gateway.name] { name = gateway.name; `external` = true }
+}
+
+output {
+  files {
+    [secrets.configFile] = secrets.hostConfig(
+      new Listing { hosts.bill.alias; hosts.biggy.alias; hosts.paiki.alias; hosts.littlebuddy.alias; hosts.rick.alias },
+      (host) -> "host.\(host)",
+      new Listing { "CLIENT_ID"; "CLIENT_SECRET" })
+  }
 }
