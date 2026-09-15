@@ -97,7 +97,7 @@ class Infisical {
 
 path = new {
   file = new {
-    infisical_creds = "/mnt/secrets/credentials/infisical.env"
+    infisical_creds = "\(col.dirs.credentials)/infisical.env"
   }
 }
 

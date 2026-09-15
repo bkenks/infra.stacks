@@ -26,6 +26,8 @@ const dirs = new {
   }
   // tmpfs, so the one env file left (the Infisical server's bootstrap) never touches disk.
   secrets = "/mnt/secrets"
+  // tmpfs holding what the host itself authenticates with: Infisical and 1Password.
+  credentials = "/mnt/credentials"
 }
 
 const mounts = new {
