@@ -13,11 +13,6 @@ services:
     container_name: postgres-db
     hostname: db
     restart: always
-    ports:
-    - target: 5432
-      published: 6109
-      host_ip: 127.0.0.1
-      protocol: tcp
     volumes:
     - type: volume
       source: db_data

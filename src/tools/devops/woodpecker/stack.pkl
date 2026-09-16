@@ -49,7 +49,6 @@ services {
     }
     deploy { resources { limits { memory = 1.gib } } }
     expose { httpPort; grpcPort }
-    ports { col.loopbackPort(httpPort, 18016) }
   }
 
   ["agent"] {

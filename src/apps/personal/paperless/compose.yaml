@@ -41,11 +41,6 @@ services:
     environment:
       POSTGRES_USER: paperless
       POSTGRES_DB: paperless
-    ports:
-    - target: 5432
-      published: 18025
-      host_ip: 127.0.0.1
-      protocol: tcp
     expose:
     - 5432
     volumes:
@@ -108,11 +103,6 @@ services:
       PAPERLESS_DBHOST: db
       PAPERLESS_DBUSER: paperless
       PAPERLESS_DBNAME: paperless
-    ports:
-    - target: 8000
-      published: 18010
-      host_ip: 127.0.0.1
-      protocol: tcp
     expose:
     - 8000
     volumes:

@@ -48,8 +48,8 @@ target = … }`.
 Anything that crosses stack boundaries lives in `src/lib/registry.pkl`:
 
 ```pkl
-registry.endpoint.serviceGroup.postgres.host.addr   // typo fails at eval
-"littlebuddy.internal:6109"                         // typo fails silently at `up`
+registry.endpoint.serviceGroup.victorialogs.host.addr   // typo fails at eval
+"littlebuddy.internal:19428"                            // typo fails silently at `up`
 ```
 
 `collections.pkl` holds what depends on nothing. A value moves to `registry.pkl` the moment

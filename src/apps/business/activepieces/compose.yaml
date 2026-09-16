@@ -32,11 +32,6 @@ services:
       AP_REDIS_HOST: cache
       AP_REDIS_PORT: '6379'
       AP_CONTAINER_TYPE: APP
-    ports:
-    - target: 80
-      published: 18071
-      host_ip: 127.0.0.1
-      protocol: tcp
     expose:
     - 80
     volumes:

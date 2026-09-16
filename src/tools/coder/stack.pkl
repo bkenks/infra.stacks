@@ -26,7 +26,6 @@ services {
     data { ["home"] { target = "/home/coder" } }
     volumes { col.mounts.dockerSockRW }
     networks { "default"; "workspaces" }
-    ports { col.loopbackPort(port, port) }
     environment {
       ["CODER_HTTP_ADDRESS"] = "0.0.0.0:\(port)"
       ["CODER_ACCESS_URL"] = coderURL

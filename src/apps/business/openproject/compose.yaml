@@ -86,11 +86,6 @@ services:
     environment:
       OPENPROJECT_URL: http://web:8080
       OPENPROJECT_HTTPS: 'true'
-    ports:
-    - target: 1234
-      published: 1234
-      host_ip: 127.0.0.1
-      protocol: tcp
     expose:
     - 1234
     networks:
@@ -167,11 +162,6 @@ services:
       OPENPROJECT_WELCOME__ON__HOMESCREEN: 'false'
       OPENPROJECT_DISABLED__MODULES: ''
       WEB_CONCURRENCY: '1'
-    ports:
-    - target: 8080
-      published: 18009
-      host_ip: 127.0.0.1
-      protocol: tcp
     expose:
     - 8080
     volumes:

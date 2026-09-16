@@ -10,10 +10,6 @@ const domain = new {
   ktbcloud = "ktbcloud.com"
 }
 
-const ip = new {
-  loopback = "127.0.0.1"
-}
-
 const dirs = new {
   docker = new {
     root = "/srv/docker"
@@ -49,14 +45,6 @@ const function bind(hostPath: String, containerPath: String): Compose.Mount = ne
 
 const function bindReadOnly(hostPath: String, containerPath: String): Compose.Mount =
   (bind(hostPath, containerPath)) { read_only = true }
-
-/// A port published on loopback only: apps are reached over the tailnet or through the
-/// edge proxy, never on a host interface.
-const function loopbackPort(containerPort: UInt16, hostPort: UInt16): Compose.Port = new {
-  target = containerPort
-  published = hostPort
-  host_ip = ip.loopback
-}
 
 const function pgIsReady(user: String): Compose.Healthcheck = new {
   test { "CMD-SHELL"; "pg_isready --username=\(user)" }

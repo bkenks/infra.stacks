@@ -4,8 +4,6 @@ import "@infra/registry.pkl"
 import "@infra/collections.pkl" as col
 
 local version = "latest"
-local hostPort = 18022
-local containerPort = 7777
 
 // The world lives under the tree file-browser-quantum serves, so it is reachable from the
 // browser as well; hence the shared path out of the registry rather than a local literal.
@@ -19,7 +17,6 @@ services {
     restart = "unless-stopped"
     volumes { col.bind(worldPath, "/config") }
     environment { ["world"] = "Columbia_Plaza.wld" }
-    ports { col.loopbackPort(containerPort, hostPort) }
     tty = true
     stdin_open = true
   }

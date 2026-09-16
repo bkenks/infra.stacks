@@ -8,11 +8,6 @@ services:
     restart: unless-stopped
     environment:
       world: Columbia_Plaza.wld
-    ports:
-    - target: 7777
-      published: 18022
-      host_ip: 127.0.0.1
-      protocol: tcp
     volumes:
     - type: bind
       source: /rootless-srv/file-browser-quantum/shared/terraria/worlds/columbia_plaza

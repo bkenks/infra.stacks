@@ -69,7 +69,6 @@ services {
     environment = lsioEnv
     healthcheck = httpHealth(port.subtitles, "/")
     expose { port.subtitles }
-    ports { col.loopbackPort(port.subtitles, 6767) }
   }
 
   // One-shot: syncs ./configarr/config.yml into Sonarr/Radarr on each deploy, then exits 0.
@@ -125,7 +124,6 @@ services {
     environment = lsioEnv
     healthcheck = httpHealth(port.indexer, "/ping")
     expose { port.indexer }
-    ports { col.loopbackPort(port.indexer, 9696) }
   }
 
   ["movies"] {
@@ -138,7 +136,6 @@ services {
     environment = lsioEnv
     healthcheck = httpHealth(port.movies, "/ping")
     expose { port.movies }
-    ports { col.loopbackPort(port.movies, 7878) }
   }
 
   ["downloader"] {
@@ -151,7 +148,6 @@ services {
     environment = lsioEnv
     healthcheck = httpHealth(port.downloader, "/")
     expose { port.downloader }
-    ports { col.loopbackPort(port.downloader, 18013) }
   }
 
   // Runs as the fixed non-root `node` user (UID 1000); PUID/PGID have no effect; needs
@@ -162,7 +158,6 @@ services {
     volumes { col.bind("\(bindRoot)/seerr/config", "/app/config") }
     environment { ["TZ"] = tz }
     expose { port.requests }
-    ports { col.loopbackPort(port.requests, 5055) }
     init = true
   }
 
@@ -176,7 +171,6 @@ services {
     environment = lsioEnv
     healthcheck = httpHealth(port.tv, "/ping")
     expose { port.tv }
-    ports { col.loopbackPort(port.tv, 8989) }
   }
 }
 

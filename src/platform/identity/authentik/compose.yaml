@@ -19,11 +19,6 @@ services:
       AUTHENTIK_POSTGRESQL__HOST: db
       AUTHENTIK_POSTGRESQL__NAME: authentik
       AUTHENTIK_POSTGRESQL__USER: authentik
-    ports:
-    - target: 9000
-      published: 18006
-      host_ip: 127.0.0.1
-      protocol: tcp
     expose:
     - 9000
     volumes:
@@ -76,11 +71,6 @@ services:
     environment:
       POSTGRES_USER: authentik
       POSTGRES_DB: authentik
-    ports:
-    - target: 5432
-      published: 18040
-      host_ip: 127.0.0.1
-      protocol: tcp
     expose:
     - 5432
     volumes:

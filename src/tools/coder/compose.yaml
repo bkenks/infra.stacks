@@ -19,11 +19,6 @@ services:
       CODER_AGENT_URL: http://coder-app:7080
       CODER_DERP_FORCE_WEBSOCKETS: 'true'
       CODER_WILDCARD_ACCESS_URL: '*.coder.ktbcloud.com'
-    ports:
-    - target: 7080
-      published: 7080
-      host_ip: 127.0.0.1
-      protocol: tcp
     volumes:
     - type: volume
       source: app_home

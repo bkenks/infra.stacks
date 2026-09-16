@@ -10,7 +10,7 @@ facts {
   }
   ["container and host endpoints derive addr and url"] {
     registry.endpoint.serviceGroup.postgres.container.addr == "postgres-db:5432"
-    registry.endpoint.serviceGroup.postgres.host.addr == "littlebuddy.internal:6109"
+    registry.endpoint.serviceGroup.victorialogs.host.addr == "littlebuddy.internal:19428"
     registry.endpoint.serviceGroup.infisical.proxy.url == "https://infisical.ktbinternal.com"
   }
   ["authentik oidc urls"] {

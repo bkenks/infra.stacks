@@ -10,15 +10,6 @@ services:
       WORLD_FILENAME: Columbia_Plaza.wld
       CONFIGPATH: /tshock/config
       LOGPATH: /tshock/logs
-    ports:
-    - target: 7777
-      published: 18023
-      host_ip: 127.0.0.1
-      protocol: tcp
-    - target: 7878
-      published: 18024
-      host_ip: 127.0.0.1
-      protocol: tcp
     volumes:
     - type: bind
       source: /rootless-srv/terraria-tshock/config

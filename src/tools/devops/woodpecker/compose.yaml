@@ -20,11 +20,6 @@ services:
       WOODPECKER_FORGEJO_URL: https://fj.ktbcloud.com
       WOODPECKER_PLUGINS_PRIVILEGED: woodpeckerci/plugin-docker-buildx:6.1.0
       WOODPECKER_ADMIN: bkenks
-    ports:
-    - target: 8000
-      published: 18016
-      host_ip: 127.0.0.1
-      protocol: tcp
     expose:
     - 8000
     - 9000

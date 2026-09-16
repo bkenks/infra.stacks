@@ -108,7 +108,6 @@ services {
       ["OPENPROJECT_HTTPS"] = "true"
     }
     expose { collabPort }
-    ports { col.loopbackPort(collabPort, collabPort) }
   }
 
   // Runs migrations and seeds, then exits; the long-running services wait on it.
@@ -134,7 +133,6 @@ services {
       start_period = 60.s
     }
     expose { webPort }
-    ports { col.loopbackPort(webPort, 18009) }
   }
 
   ["worker"] = rails("worker", "worker")

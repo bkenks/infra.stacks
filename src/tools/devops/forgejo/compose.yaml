@@ -26,15 +26,6 @@ services:
       FORGEJO__database__USER: forgejo
       USER_UID: '1000'
       USER_GID: '1000'
-    ports:
-    - target: 3000
-      published: 18003
-      host_ip: 127.0.0.1
-      protocol: tcp
-    - target: 22
-      published: 22
-      host_ip: 127.0.0.1
-      protocol: tcp
     expose:
     - 3000
     - 22
@@ -61,11 +52,6 @@ services:
     environment:
       POSTGRES_USER: forgejo
       POSTGRES_DB: forgejo
-    ports:
-    - target: 5432
-      published: 18041
-      host_ip: 127.0.0.1
-      protocol: tcp
     expose:
     - 5432
     volumes:

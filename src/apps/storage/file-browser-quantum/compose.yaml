@@ -6,11 +6,6 @@ services:
     container_name: file-browser-quantum-app
     hostname: app
     restart: unless-stopped
-    ports:
-    - target: 80
-      published: 18450
-      host_ip: 127.0.0.1
-      protocol: tcp
     expose:
     - 80
     volumes:

@@ -8,14 +8,9 @@ import "@infra/collections.pkl" as col
 
 local imageTag = "tshock-1.4.5.6-6.1.0"
 
-local gamePort = 7777
-local restPort = 7878
-
-// Its own host ports and its own host directory, so this runs alongside `terraria` instead
+// Its own host directory, so this runs alongside `terraria` instead
 // of fighting it. Two servers opening one .wld corrupts it, so the world is copied in, not
 // shared; see README.
-local gameHostPort = 18023
-local restHostPort = 18024
 local dataPath = "\(col.dirs.rootlessSrv)/terraria-tshock"
 
 // The image defaults CONFIGPATH to the worlds directory, which buries tshock.sqlite (the
@@ -32,13 +27,6 @@ services {
   ["app"] {
     image = "ryshe/terraria:\(imageTag)"
     restart = "unless-stopped"
-    ports {
-      col.loopbackPort(gamePort, gameHostPort)
-      // A REST token is full server admin, including arbitrary console commands, so this
-      // stays on loopback like the game port. Anything consuming it joins this stack's
-      // network rather than dialling the host.
-      col.loopbackPort(restPort, restHostPort)
-    }
     environment {
       ["WORLD_FILENAME"] = "Columbia_Plaza.wld"
       ["CONFIGPATH"] = configDir

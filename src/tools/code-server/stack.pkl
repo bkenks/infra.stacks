@@ -28,7 +28,6 @@ services {
     depends_on = secrets.ready
     environment { ["TZ"] = "America/Chicago" }
     expose { port }
-    ports { col.loopbackPort(port, 18028) }
     volumes {
       for (hostPath, containerPath in mounts) { col.bind(hostPath, containerPath) }
     }

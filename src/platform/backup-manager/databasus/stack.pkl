@@ -38,9 +38,8 @@ services {
     data { ["data"] { target = "/databasus-data" } }
     ports { new { target = port; published = port; host_ip = null } }
     // No private bridge: the one service runs in the host netns. It reaches the databases
-    // it backs up over the .internal zone, which every host's CoreDNS resolves (Postgres
-    // at registry.endpoint.serviceGroup.postgres.host.addr); configure each backup
-    // target's connection inside databasus to that address.
+    // it backs up over the .internal zone, which every host's CoreDNS resolves; configure each
+    // backup target's connection inside databasus.
     network_mode = "host"
   }
 }

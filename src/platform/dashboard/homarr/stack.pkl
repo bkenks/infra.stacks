@@ -44,7 +44,6 @@ services {
       retries = 5
     }
     expose { appPort }
-    ports { col.loopbackPort(appPort, 18018) }
   }
 }
 

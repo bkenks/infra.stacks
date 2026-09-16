@@ -2,7 +2,7 @@
 /// value another stack owns, it lives here; values that depend on nothing live in
 /// collections.pkl and are never repeated here.
 ///
-/// Reference by KEY (`registry.endpoint.serviceGroup.postgres.host.addr`), never by raw
+/// Reference by KEY (`registry.endpoint.serviceGroup.victorialogs.host.addr`), never by raw
 /// string: a typo'd key fails at eval, a typo'd string fails silently at `up`.
 module infra.registry
 
@@ -106,7 +106,6 @@ endpoint = new {
   serviceGroup = new {
     postgres = new Service {
       container { name = "postgres-db"; port = 5432 }
-      host { on = hostGroup.littlebuddy; port = 6109 }
     }
     infisical = new Service {
       container { name = "infisical-app"; port = 8080 }

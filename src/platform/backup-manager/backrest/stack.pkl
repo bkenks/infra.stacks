@@ -7,7 +7,6 @@ amends "@infra/Stack.pkl"
 import "@infra/collections.pkl" as col
 
 local version = "v1.14.1"
-local port = 9898
 
 name = "backrest"
 
@@ -36,6 +35,5 @@ services {
       ["TZ"] = "America/New_York"
     }
     // Core infra, no proxy in front of it.
-    ports { col.loopbackPort(port, port) }
   }
 }

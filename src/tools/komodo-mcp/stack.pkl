@@ -30,7 +30,6 @@ services {
     }
     extra_hosts { "host.docker.internal:host-gateway" }
     expose { port }
-    ports { col.loopbackPort(port, 18007) }
     // No `init = true`: the image's own tini is already PID 1; Docker's init would nest a
     // second tini as a non-PID-1 child and break zombie reaping.
     labels = col.labels.komodoSkip

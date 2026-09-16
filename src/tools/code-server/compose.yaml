@@ -15,11 +15,6 @@ services:
     restart: unless-stopped
     environment:
       TZ: America/Chicago
-    ports:
-    - target: 8080
-      published: 18028
-      host_ip: 127.0.0.1
-      protocol: tcp
     expose:
     - 8080
     volumes:

@@ -22,10 +22,6 @@ services:
     ports:
     - target: 8080
       published: 18043
-      host_ip: 127.0.0.1
-      protocol: tcp
-    - target: 8080
-      published: 18043
       host_ip: 100.106.170.93
       protocol: tcp
     expose:
@@ -58,11 +54,6 @@ services:
       POSTGRES_USER: infisical
       POSTGRES_DB: infisical
       POSTGRES_PASSWORD: ${INFISICAL_DB_PASSWORD:-}
-    ports:
-    - target: 5432
-      published: 18042
-      host_ip: 127.0.0.1
-      protocol: tcp
     expose:
     - 5432
     volumes:

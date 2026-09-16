@@ -25,11 +25,6 @@ services:
       AUTH_LOGOUT_REDIRECT_URL: https://authentik.ktbcloud.com/application/o/homarr/end-session/
       AUTH_OIDC_SCOPE_OVERWRITE: openid email profile groups
       AUTH_OIDC_GROUPS_ATTRIBUTE: groups
-    ports:
-    - target: 7575
-      published: 18018
-      host_ip: 127.0.0.1
-      protocol: tcp
     expose:
     - 7575
     volumes:

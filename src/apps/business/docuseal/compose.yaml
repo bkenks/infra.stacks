@@ -16,11 +16,6 @@ services:
     environment:
       PORT: 3000
       FORCE_SSL: docuseal.ktbcloud.com
-    ports:
-    - target: 3000
-      published: 18002
-      host_ip: 127.0.0.1
-      protocol: tcp
     expose:
     - 3000
     volumes:

@@ -67,7 +67,6 @@ services {
       ["DB_DATABASE_NAME"] = module.name
     }
     expose { port }
-    ports { col.loopbackPort(port, 2283) }
   }
 }
 

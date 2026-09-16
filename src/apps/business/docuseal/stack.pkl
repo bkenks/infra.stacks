@@ -27,7 +27,6 @@ services {
       ["FORCE_SSL"] = "\(module.name).\(col.domain.ktbcloud)"
     }
     expose { port }
-    ports { col.loopbackPort(port, 18002) }
     labels {
       ["traefik.enable"] = "true"
       ["traefik.http.routers.app.rule"] = "Host('docuseal.internal')"

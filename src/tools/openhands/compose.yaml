@@ -15,11 +15,6 @@ services:
     restart: on-failure:5
     environment:
       TZ: America/Chicago
-    ports:
-    - target: 8000
-      published: 18027
-      host_ip: 127.0.0.1
-      protocol: tcp
     expose:
     - 8000
     volumes:

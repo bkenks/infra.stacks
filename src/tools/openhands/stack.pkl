@@ -22,7 +22,6 @@ services {
     depends_on = secrets.ready
     environment { ["TZ"] = "America/Chicago" }
     expose { port }
-    ports { col.loopbackPort(port, 18027) }
     // Settings, secrets and conversation history: the container's ~/.openhands.
     data { ["home"] { target = "/home/openhands/.openhands" } }
     volumes { col.bind(projectsDir, "/projects") }

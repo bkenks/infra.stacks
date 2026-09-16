@@ -17,11 +17,6 @@ services:
       PUID: '1000'
       PGID: '1000'
       TZ: America/New_York
-    ports:
-    - target: 6767
-      published: 6767
-      host_ip: 127.0.0.1
-      protocol: tcp
     expose:
     - 6767
     volumes:
@@ -138,11 +133,6 @@ services:
       PUID: '1000'
       PGID: '1000'
       TZ: America/New_York
-    ports:
-    - target: 9696
-      published: 9696
-      host_ip: 127.0.0.1
-      protocol: tcp
     expose:
     - 9696
     volumes:
@@ -170,11 +160,6 @@ services:
       PUID: '1000'
       PGID: '1000'
       TZ: America/New_York
-    ports:
-    - target: 7878
-      published: 7878
-      host_ip: 127.0.0.1
-      protocol: tcp
     expose:
     - 7878
     volumes:
@@ -206,11 +191,6 @@ services:
       PUID: '1000'
       PGID: '1000'
       TZ: America/New_York
-    ports:
-    - target: 8080
-      published: 18013
-      host_ip: 127.0.0.1
-      protocol: tcp
     expose:
     - 8080
     volumes:
@@ -240,11 +220,6 @@ services:
     restart: on-failure:5
     environment:
       TZ: America/New_York
-    ports:
-    - target: 5055
-      published: 5055
-      host_ip: 127.0.0.1
-      protocol: tcp
     expose:
     - 5055
     volumes:
@@ -265,11 +240,6 @@ services:
       PUID: '1000'
       PGID: '1000'
       TZ: America/New_York
-    ports:
-    - target: 8989
-      published: 8989
-      host_ip: 127.0.0.1
-      protocol: tcp
     expose:
     - 8989
     volumes:

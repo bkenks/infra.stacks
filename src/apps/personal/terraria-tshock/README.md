@@ -1,9 +1,10 @@
-# terraria-tshock
+| game port | `7777` | `7777` |
+| REST API | none | `7878` |# terraria-tshock
 
 Terraria dedicated server running [TShock](https://github.com/Pryaxis/TShock) 6.1.0
 (`ryshe/terraria:tshock-1.4.5.6-6.1.0`) with **server-side characters** enabled.
 
-Runs on `biggy`, alongside the vanilla `terraria` stack — separate ports and separate host
+Runs on `biggy`, alongside the vanilla `terraria` stack — separate containers and separate host
 directories, so both can exist at once.
 
 | | vanilla `terraria` | this stack |
@@ -12,7 +13,7 @@ directories, so both can exist at once.
 | REST API | none | `127.0.0.1:18024` |
 | host data | `/rootless-srv/file-browser-quantum/shared/terraria/worlds/columbia_plaza` | `/rootless-srv/terraria-tshock` |
 
-Both are loopback-bound; reach them over Tailscale or the edge, not from the open internet.
+Neither publishes a host port; players reach the game port through newt.
 
 ## Why not the vanilla stack's image
 
@@ -95,14 +96,13 @@ The image writes its own config on first boot, so the seeds in `files/` must be 
 
 ## REST API
 
-`RestApiEnabled` is on, listening on `7878` and published to `127.0.0.1:18024`.
+`RestApiEnabled` is on, listening on `7878`.
 `EnableTokenEndpointAuthentication` is on, so every endpoint — including `/status` — requires
 a token, and tokens are issued only to a registered TShock account.
 
-A REST token is full server admin, including running arbitrary console commands. Keep the
-port on loopback. Anything that consumes it (a status dashboard, a Discord bridge) should
-join this stack's Docker network and dial `terraria-tshock_app:7878` rather than going out to
-the host.
+A REST token is full server admin, including running arbitrary console commands. Never route it
+through Pangolin. Anything that consumes it (a status dashboard, a Discord bridge) should
+join this stack's Docker network and dial `terraria-tshock-app:7878`.
 
 Useful once a token exists: `/v2/players/list` (who is online), `/status` (player count,
 world, uptime), `/v2/players/read?player=<name>`.

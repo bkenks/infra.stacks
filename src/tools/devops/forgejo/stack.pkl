@@ -43,11 +43,6 @@ services {
       ["USER_GID"] = "1000"
     }
     expose { port; 22 }
-    // 127.0.0.1:22 -> container SSH, dialled by bare-metal Newt (Pangolin edge on the VPS).
-    ports {
-      col.loopbackPort(port, 18003)
-      col.loopbackPort(22, 22)
-    }
   }
 
   ["db"] {
@@ -61,7 +56,6 @@ services {
       ["POSTGRES_DB"] = dbName
     }
     expose { 5432 }
-    ports { col.loopbackPort(5432, 18041) }
   }
 }
 

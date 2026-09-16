@@ -15,7 +15,6 @@ services {
     image = "gtstef/filebrowser:stable"
     restart = "unless-stopped"
     expose { appPort }
-    ports { col.loopbackPort(appPort, 18450) }
     volumes {
       col.bindReadOnly("./files/config.yaml", "/home/filebrowser/data/config.yaml")
       col.bind(dir.data, "/data")

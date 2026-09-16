@@ -9,9 +9,8 @@ URL: https://authentik.ktbcloud.com
 1. **Fill the secrets** (`fnox.toml`, 1Password item `authentik`). Generate with
    `openssl rand -base64 60`. Keep `AUTHENTIK_SECRET_KEY` stable forever — rotating it
    invalidates all sessions.
-2. **Route the domain:** point `authentik.ktbcloud.com` at `127.0.0.1:18006` on rick
-   (via the edge proxy / Pangolin cloud that already fronts rick). TLS terminates at the
-   edge; authentik speaks plain HTTP on :9000.
+2. **Route the domain:** point `authentik.ktbcloud.com` at `authentik-app:9000` through
+   rick's newt site. TLS terminates at the edge; authentik speaks plain HTTP on :9000.
 3. Deploy the `authentik` stack via Komodo.
 4. **Bootstrap the admin:** browse to
    `https://authentik.ktbcloud.com/if/flow/initial-setup/` and set the `akadmin` password.

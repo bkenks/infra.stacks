@@ -19,11 +19,6 @@ services:
       KOMODO_URL: http://host.docker.internal:9120
       MCP_TRUST_PROXY: '1'
       TZ: America/Chicago
-    ports:
-    - target: 8000
-      published: 18007
-      host_ip: 127.0.0.1
-      protocol: tcp
     expose:
     - 8000
     networks:

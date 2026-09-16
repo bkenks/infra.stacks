@@ -65,7 +65,6 @@ services {
       ["AP_CONTAINER_TYPE"] = "APP"
     }
     expose { appPort }
-    ports { col.loopbackPort(appPort, 18071) }
     networks { "default"; sharedTSGW.name; sharedNewtGW.name }
   }
 

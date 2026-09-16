@@ -12,11 +12,6 @@ services:
       XDG_CACHE_HOME: /cache
       TMPDIR: /tmp
       TZ: America/New_York
-    ports:
-    - target: 9898
-      published: 9898
-      host_ip: 127.0.0.1
-      protocol: tcp
     volumes:
     - type: volume
       source: app_data

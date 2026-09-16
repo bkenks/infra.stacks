@@ -48,8 +48,6 @@ services {
     // Shared with the worker; declared once here, mounted there by its hoisted key.
     data { ["data"] { target = "/data" } }
     expose { httpPort }
-    // 127.0.0.1:18006: route authentik.ktbcloud.com here.
-    ports { col.loopbackPort(httpPort, 18006) }
   }
 
   // ── Worker: background tasks, outpost mgmt, cert/blueprint processing ───────
@@ -86,7 +84,6 @@ services {
       start_period = 20.s
     }
     expose { 5432 }
-    ports { col.loopbackPort(5432, 18040) }
   }
 }
 

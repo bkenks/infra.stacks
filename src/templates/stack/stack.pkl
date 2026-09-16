@@ -32,7 +32,6 @@ services {
     image = "ghcr.io/example/example:\(appVersion)"
     restart = "on-failure:5"
 
-    ports { col.loopbackPort(appPort, 18000) }
     expose { appPort }
 
     data { ["data"] { target = "/data" } }
@@ -59,10 +58,9 @@ services {
   }
 
   // ── DB: dedicated Postgres ────────────────────────────────────────────────────
-  // To use the SHARED cluster instead, delete this service and reach it by the level it
-  // is on: same host, add registry.network.shared.db_001 to `sharedNetworks` and dial
-  // registry.endpoint.serviceGroup.postgres.container.addr; another host, dial
-  // registry.endpoint.serviceGroup.postgres.host.addr over the .internal zone.
+  // To use the SHARED cluster instead, delete this service, add
+  // registry.network.shared.db_001 to `sharedNetworks` and dial
+  // registry.endpoint.serviceGroup.postgres.container.addr from a stack on its host.
   ["db"] {
     image = "docker.io/library/postgres:\(dbVersion)"
     restart = "on-failure:5"

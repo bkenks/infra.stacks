@@ -47,7 +47,6 @@ services {
     }
     healthcheck = col.pgIsReady(dbUser)
     expose { 5432 }
-    ports { col.loopbackPort(5432, 18025) }
   }
 
   // Gotenberg: document to PDF conversion.
@@ -107,7 +106,6 @@ services {
       retries = 5
     }
     expose { webPort }
-    ports { col.loopbackPort(webPort, 18010) }
   }
 }
 
