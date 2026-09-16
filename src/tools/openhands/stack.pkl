@@ -20,20 +20,13 @@ services {
     stdin_open = true
     tty = true
     depends_on = secrets.ready
-    // LOCAL_BACKEND_API_KEY (the API key the UI presents to the server) and OH_SECRET_KEY
-    // (encrypts stored settings and secrets) arrive from 1Password through fnox, so they
-    // survive the container being recreated.
     environment { ["TZ"] = "America/Chicago" }
     expose { port }
-    ports { new { target = port; published = 18027; host_ip = col.ip.loopback } }
+    ports { col.loopbackPort(port, 18027) }
     // Settings, secrets and conversation history: the container's ~/.openhands.
     data { ["home"] { target = "/home/openhands/.openhands" } }
     volumes { col.bind(projectsDir, "/projects") }
   }
-}
-
-networks {
-  ["default"] { name = module.name }
 }
 
 output {

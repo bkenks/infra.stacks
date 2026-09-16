@@ -183,10 +183,6 @@ services:
       source: ./token/enterprise_token.rb
       target: /app/app/models/enterprise_token.rb
       read_only: false
-    - type: bind
-      source: ./token/enterprise_token.rb
-      target: /app/app/models/enterprise_token.rb
-      read_only: false
     networks:
     - default
     - db_001

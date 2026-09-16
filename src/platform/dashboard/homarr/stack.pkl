@@ -23,9 +23,6 @@ services {
     depends_on = secrets.ready
     data { ["data"] { target = "/appdata" } }
     volumes { col.mounts.dockerSock }
-    // SECRET_ENCRYPTION_KEY, AUTH_OIDC_CLIENT_ID and AUTH_OIDC_CLIENT_SECRET arrive from
-    // 1Password through fnox. A key of the same name in the item overrides what is written
-    // here, so a per-host override still works.
     environment {
       ["TZ"] = "America/New_York"
       ["BASE_URL"] = homarrUrl
@@ -47,12 +44,8 @@ services {
       retries = 5
     }
     expose { appPort }
-    ports { new { target = appPort; published = 18018; host_ip = col.ip.loopback } }
+    ports { col.loopbackPort(appPort, 18018) }
   }
-}
-
-networks {
-  ["default"] { name = module.name }
 }
 
 output {

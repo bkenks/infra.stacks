@@ -18,7 +18,7 @@ personalize hook.
 ## Prerequisites
 
 - The Coder stack from `src/tools/coder` running, with `/var/run/docker.sock` mounted
-  into the `coder-app` container (it is, via `stack.jsonnet`).
+  into the `coder-app` container.
 - The `coder-workspaces` Docker network, created by that same stack.
 - Outbound network access from the workspace container to pull registry modules,
   code-server, and the Claude Code CLI.

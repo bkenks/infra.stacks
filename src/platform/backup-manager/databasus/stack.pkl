@@ -1,23 +1,11 @@
-// Static config baked in at render time: nothing arrives at deploy but the Infisical
-// secret, and databasus reads that from a file rather than from its environment.
-//
-// Two documents, because this stack is part of the restore tier: it has to come up on a
-// cold start to restore the Infisical volume, which is exactly when the secrets
-// provider may not be able to answer. compose.yaml is the steady state; bootstrap.yaml is the same
-// stack with the provider swapped for the env file the control plane writes. They are
-// alternatives, never layered: a compose override merges, so it could not drop the
-// provider service or the depends_on that waits on it.
+// Restore tier: renders bootstrap.yaml too, so it can come up on a cold start to restore
+// the Infisical volume.
 amends "@infra/Stack.pkl"
 
-import "@infra/collections.pkl" as col
 import "@infra/secrets.pkl"
 
 local version = "latest"
 local port = 4005
-
-// Written by the control plane during a cold start, carrying SECRET_KEY under the same
-// name the provider injects it as, so the hook below is identical either way.
-local bootstrapEnv = "${BOOTSTRAP_SECRETS_FILE:-\(col.dirs.secrets)/\(module.name).env}"
 
 name = "databasus"
 
@@ -30,7 +18,7 @@ services {
     image = "databasus/databasus:\(version)"
     restart = "unless-stopped"
     when (module.bootstrap) {
-      env_file { bootstrapEnv }
+      env_file { module.bootstrapSecretsFile }
     } else {
       depends_on = secrets.ready
     }

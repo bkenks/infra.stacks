@@ -20,6 +20,8 @@ local sharedTSGW = registry.network.shared.tailscale_gw_001
 
 name = "paperless"
 
+sharedNetworks { sharedTSGW }
+
 services {
   ["secrets"] = secrets.fnox
 
@@ -29,12 +31,7 @@ services {
     restart = "on-failure:5"
     data { ["data"] { target = "/data" } }
     environment { ["ALLOW_EMPTY_PASSWORD"] = "yes" }
-    healthcheck {
-      test { "CMD"; "redis-cli"; "ping" }
-      interval = 10.s
-      timeout = 5.s
-      retries = 5
-    }
+    healthcheck = col.redisPing
     expose { 6379 }
   }
 
@@ -44,19 +41,13 @@ services {
     depends_on = secrets.ready
     networks { "default"; sharedTSGW.name }
     data { ["data"] { target = "/var/lib/postgresql" } }
-    // POSTGRES_PASSWORD arrives from 1Password through fnox.
     environment {
       ["POSTGRES_USER"] = dbUser
       ["POSTGRES_DB"] = dbName
     }
-    healthcheck {
-      test { "CMD-SHELL"; "pg_isready --username=\(dbUser)" }
-      interval = 5.s
-      timeout = 10.s
-      retries = 10
-    }
+    healthcheck = col.pgIsReady(dbUser)
     expose { 5432 }
-    ports { new { target = 5432; published = 18025; host_ip = col.ip.loopback } }
+    ports { col.loopbackPort(5432, 18025) }
   }
 
   // Gotenberg: document to PDF conversion.
@@ -93,7 +84,6 @@ services {
       col.bind("\(bindRoot)/export", "/usr/src/paperless/export")
       col.bind("\(bindRoot)/consume", "/usr/src/paperless/consume")
     }
-    // PAPERLESS_DBPASS and PAPERLESS_SECRET_KEY arrive from 1Password through fnox.
     environment {
       ["PAPERLESS_TIKA_ENABLED"] = "1"
       ["PAPERLESS_OCR_LANGUAGE"] = "eng"
@@ -117,13 +107,8 @@ services {
       retries = 5
     }
     expose { webPort }
-    ports { new { target = webPort; published = 18010; host_ip = col.ip.loopback } }
+    ports { col.loopbackPort(webPort, 18010) }
   }
-}
-
-networks {
-  ["default"] { name = module.name }
-  [sharedTSGW.name] { name = sharedTSGW.name; `external` = true }
 }
 
 output {

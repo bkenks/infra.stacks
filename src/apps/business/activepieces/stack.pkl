@@ -23,8 +23,6 @@ local engineCachePath = "/usr/src/app/cache"
 local sharedTSGW = registry.network.shared.tailscale_gw_001
 local sharedNewtGW = registry.network.shared.newt_gw_001
 
-// Shared by app and worker. AP_POSTGRES_PASSWORD, AP_ENCRYPTION_KEY and AP_JWT_SECRET
-// arrive from 1Password through fnox.
 local apEnv = new Mapping<String, String> {
   ["AP_ENVIRONMENT"] = "prod"
   ["AP_EDITION"] = "ee"
@@ -48,6 +46,8 @@ local apEnv = new Mapping<String, String> {
 
 name = "activepieces"
 
+sharedNetworks { sharedTSGW }
+
 services {
   ["secrets"] = secrets.fnox
 
@@ -65,7 +65,7 @@ services {
       ["AP_CONTAINER_TYPE"] = "APP"
     }
     expose { appPort }
-    ports { new { target = appPort; published = 18071; host_ip = col.ip.loopback } }
+    ports { col.loopbackPort(appPort, 18071) }
     networks { "default"; sharedTSGW.name; sharedNewtGW.name }
   }
 
@@ -88,7 +88,7 @@ services {
   }
 
   // Dedicated pgvector Postgres: activepieces needs the vector extension, which the
-  // shared cluster does not carry. POSTGRES_PASSWORD arrives from 1Password through fnox.
+  // shared cluster does not carry.
   ["db"] {
     image = "docker.io/pgvector/pgvector:\(dbVersion)"
     restart = "on-failure:5"
@@ -99,12 +99,7 @@ services {
       ["POSTGRES_USER"] = dbUser
       ["POSTGRES_DB"] = dbName
     }
-    healthcheck {
-      test { "CMD-SHELL"; "pg_isready --username=\(dbUser)" }
-      interval = 5.s
-      timeout = 10.s
-      retries = 10
-    }
+    healthcheck = col.pgIsReady(dbUser)
     expose { dbPort }
   }
 
@@ -112,20 +107,9 @@ services {
     image = "docker.io/library/redis:\(cacheVersion)"
     restart = "on-failure:5"
     data { ["data"] { target = "/data" } }
-    healthcheck {
-      test { "CMD"; "redis-cli"; "ping" }
-      interval = 10.s
-      timeout = 5.s
-      retries = 5
-    }
+    healthcheck = col.redisPing
     expose { cachePort }
   }
-}
-
-networks {
-  ["default"] { name = module.name }
-  [sharedTSGW.name] { name = sharedTSGW.name; `external` = true }
-  [sharedNewtGW.name] { name = sharedNewtGW.name; `external` = true}
 }
 
 output {

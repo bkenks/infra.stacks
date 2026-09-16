@@ -10,7 +10,7 @@
 # Docs: https://configarr.de/docs/configuration/config-file/
 # TRaSH template names: https://recyclarr.dev/wiki/  (Configarr uses the same set)
 #
-# API keys come from /dev/shm/stream.env (rendered by the infisical-agent) via
+# API keys come from the container environment (fnox) via
 # `!env` below — never hard-code them here. base_url uses the compose service
 # name on the `default` network.
 

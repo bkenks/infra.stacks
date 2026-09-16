@@ -34,9 +34,6 @@ services {
     restart = "on-failure:5"
     depends_on = secrets.ready
     data { ["data"] { target = "/var/lib/woodpecker" } }
-    // WOODPECKER_FORGEJO_CLIENT, WOODPECKER_FORGEJO_SECRET and the shared server<->agent
-    // WOODPECKER_AGENT_SECRET all arrive from 1Password through fnox. Both services depend on
-    // the same provider, so they cannot disagree on the last of those.
     environment {
       // Must match the OAuth2 app's redirect URI in Forgejo.
       ["WOODPECKER_HOST"] = "https://peck.\(col.domain.ktbcloud)"
@@ -52,7 +49,7 @@ services {
     }
     deploy { resources { limits { memory = 1.gib } } }
     expose { httpPort; grpcPort }
-    ports { new { target = httpPort; published = 18016; host_ip = col.ip.loopback } }
+    ports { col.loopbackPort(httpPort, 18016) }
   }
 
   ["agent"] {
@@ -80,10 +77,6 @@ services {
     // The agent only supervises; the work happens in the step containers above.
     deploy { resources { limits { memory = 512.mib } } }
   }
-}
-
-networks {
-  ["default"] { name = module.name }
 }
 
 output {

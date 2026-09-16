@@ -28,11 +28,6 @@ services {
       col.bind("\(stackDir)/komodo/data/syncs", "/syncs")
     }
     env_file { coreEnv }
-    // KOMODO_DATABASE_USERNAME, KOMODO_DATABASE_PASSWORD, KOMODO_WEBHOOK_SECRET and
-    // KOMODO_JWT_SECRET all arrive from 1Password through fnox. `db` reads the same two
-    // database credentials as MONGO_INITDB_ROOT_USERNAME and MONGO_INITDB_ROOT_PASSWORD, so
-    // the item carries them under both spellings.
-    //
     // Core's Noise private key is the default `file:/config/keys/core.key`, so it lives in
     // the keys volume. Agents pin the matching PUBLIC key (komodo_core_public_key in
     // infra.ansible group_vars); losing that volume means updating that too.
@@ -54,16 +49,10 @@ services {
     }
     env_file { coreEnv }
     depends_on = secrets.ready
-    // MONGO_INITDB_ROOT_USERNAME and MONGO_INITDB_ROOT_PASSWORD arrive from
-    // 1Password through fnox, holding the same values `app` reads as KOMODO_DATABASE_*.
     ports { new { target = 27017; published = 27017; host_ip = null } }
     command { "--quiet"; "--wiredTigerCacheSizeGB"; "0.25" }
     labels = col.labels.komodoSkip
   }
-}
-
-networks {
-  ["default"] { name = module.name }
 }
 
 output {

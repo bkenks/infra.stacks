@@ -19,12 +19,8 @@ services {
     restart = "unless-stopped"
     volumes { col.bind(worldPath, "/config") }
     environment { ["world"] = "Columbia_Plaza.wld" }
-    ports { new { target = containerPort; published = hostPort; host_ip = col.ip.loopback } }
+    ports { col.loopbackPort(containerPort, hostPort) }
     tty = true
     stdin_open = true
   }
-}
-
-networks {
-  ["default"] { name = module.name }
 }

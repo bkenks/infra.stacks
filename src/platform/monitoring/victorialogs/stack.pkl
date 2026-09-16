@@ -29,7 +29,3 @@ services {
     ports { new { target = vlogs.container.port; published = vlogs.host.port; host_ip = null } }
   }
 }
-
-networks {
-  ["default"] { name = module.name }
-}

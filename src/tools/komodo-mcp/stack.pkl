@@ -18,8 +18,6 @@ services {
     image = "fj.\(col.domain.ktbcloud)/bkenks/komodo-mcp-server:\(version)"
     restart = "unless-stopped"
     depends_on = secrets.ready
-    // KOMODO_API_KEY and KOMODO_API_SECRET, the full read/write service-account
-    // credentials, arrive from 1Password through fnox.
     environment {
       // Streamable HTTP transport (listens on :8000 inside the container).
       ["MCP_TRANSPORT"] = "http"
@@ -32,15 +30,11 @@ services {
     }
     extra_hosts { "host.docker.internal:host-gateway" }
     expose { port }
-    ports { new { target = port; published = 18007; host_ip = col.ip.loopback } }
+    ports { col.loopbackPort(port, 18007) }
     // No `init = true`: the image's own tini is already PID 1; Docker's init would nest a
     // second tini as a non-PID-1 child and break zombie reaping.
     labels = col.labels.komodoSkip
   }
-}
-
-networks {
-  ["default"] { name = module.name }
 }
 
 output {

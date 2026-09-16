@@ -37,10 +37,6 @@ services {
   }
 }
 
-networks {
-  ["default"] { name = module.name }
-}
-
 output {
   files {
     ["config/\(configFile)"] = module.yamlFile(new Dynamic {

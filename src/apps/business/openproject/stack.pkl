@@ -22,10 +22,8 @@ local internalDomain = "\(sub).\(col.domain.ktbinternal)"
 
 local sharedDB = registry.network.shared.db_001
 
-// DATABASE_URL, SECRET_KEY_BASE and OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__SECRET
-// arrive from 1Password through fnox. DATABASE_URL is stored whole and must be spelled
-// 'postgres://' not 'postgresql://': Ruby's uri gem does not pre-register the latter as
-// hierarchical and rejects the user:pass@ part.
+// DATABASE_URL must be spelled 'postgres://' not 'postgresql://': Ruby's uri gem does not
+// pre-register the latter as hierarchical and rejects the user:pass@ part.
 local appEnv = new Mapping<String, String> {
   ["OPENPROJECT_HTTPS"] = "true"
   ["OPENPROJECT_HSTS"] = "true"
@@ -49,30 +47,31 @@ local appEnv = new Mapping<String, String> {
   ["OPENPROJECT_DISABLED__MODULES"] = ""
 }
 
-// The shared body of the four Rails services. Postgres is the shared cluster on this
-// host, reached over shared__db_001; every Rails service needs it (the seeder runs the
-// migrations). `web` owns the assets volume; the other three mount it.
-local function rails(role: String): StackService = new {
-  container_name = "\(module.name)-\(role)"
-  hostname = role
-  image = "openproject/openproject:\(appVersion)"
-  restart = "unless-stopped"
-  volumes {
-    new { type = "volume"; source = "web_assets"; target = "/var/openproject/assets" }
-    col.bind("./token/enterprise_token.rb", "/app/app/models/enterprise_token.rb")
-  }
-  environment = appEnv
-  networks { "default"; sharedDB.name }
-  depends_on = secrets.ready
-}
-
 local afterSeed = new Mapping<String, Compose.DependsOn> {
   ...secrets.ready
   ["cache"] { condition = "service_started" }
   ["seeder"] { condition = "service_started" }
 }
 
+// The shared body of the four Rails services. `web` owns the assets volume.
+local function rails(role: String, cmd: String): StackService = new {
+  container_name = "\(module.name)-\(role)"
+  hostname = role
+  image = "openproject/openproject:\(appVersion)"
+  restart = "unless-stopped"
+  command { "./docker/prod/\(cmd)" }
+  volumes {
+    new { type = "volume"; source = "web_assets"; target = "/var/openproject/assets" }
+    col.bind("./token/enterprise_token.rb", "/app/app/models/enterprise_token.rb")
+  }
+  environment = appEnv
+  networks { "default"; sharedDB.name }
+  depends_on = afterSeed
+}
+
 name = "openproject"
+
+sharedNetworks { sharedDB }
 
 services {
   ["secrets"] = secrets.fnox
@@ -94,45 +93,36 @@ services {
     restart = "unless-stopped"
   }
 
-  ["scheduler"] = (rails("scheduler")) {
-    depends_on = afterSeed
-    command { "./docker/prod/cron" }
-  }
+  ["scheduler"] = rails("scheduler", "cron")
 
+  // Calls back into `web` over the private bridge (http, not the TLS hairpin). SECRET holds
+  // the same value the Rails services read as
+  // OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__SECRET.
   ["collab"] {
     image = "openproject/hocuspocus:\(hocuspocusVersion)"
     restart = "unless-stopped"
     networks { "default"; sharedDB.name }
     depends_on = secrets.ready
-    // Calls back into `web` over the private bridge (http, not the TLS hairpin); `web`
-    // must be in OPENPROJECT_ADDITIONAL__HOST__NAMES. SECRET arrives from
-    // infisical-secrets and holds the same value the Rails services read as
-    // OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__SECRET.
     environment {
       ["OPENPROJECT_URL"] = "http://web:\(webPort)"
       ["OPENPROJECT_HTTPS"] = "true"
     }
     expose { collabPort }
-    ports { new { target = collabPort; published = collabPort; host_ip = col.ip.loopback } }
+    ports { col.loopbackPort(collabPort, collabPort) }
   }
 
   // Runs migrations and seeds, then exits; the long-running services wait on it.
-  ["seeder"] = (rails("seeder")) {
-    command { "./docker/prod/seeder" }
+  ["seeder"] = (rails("seeder", "seeder")) {
     restart = "on-failure"
+    depends_on = secrets.ready
   }
 
-  ["web"] = (rails("web")) {
-    depends_on = afterSeed
-    command { "./docker/prod/web" }
+  ["web"] = (rails("web", "web")) {
     data { ["assets"] { target = "/var/openproject/assets" } }
-    volumes {
-      col.bind("./token/enterprise_token.rb", "/app/app/models/enterprise_token.rb")
-    }
-    // One Puma worker instead of the default 2: a whole forked Rails process saved; low
-    // concurrency here does not need two. Bump back up if web slows.
     environment {
       ...appEnv
+      // One Puma worker instead of the default 2: a whole forked Rails process saved; low
+      // concurrency here does not need two. Bump back up if web slows.
       ["WEB_CONCURRENCY"] = "1"
     }
     labels { ["autoheal"] = "true" }
@@ -144,18 +134,10 @@ services {
       start_period = 60.s
     }
     expose { webPort }
-    ports { new { target = webPort; published = 18009; host_ip = col.ip.loopback } }
+    ports { col.loopbackPort(webPort, 18009) }
   }
 
-  ["worker"] = (rails("worker")) {
-    depends_on = afterSeed
-    command { "./docker/prod/worker" }
-  }
-}
-
-networks {
-  ["default"] { name = module.name }
-  [sharedDB.name] { name = sharedDB.name; `external` = true }
+  ["worker"] = rails("worker", "worker")
 }
 
 output {

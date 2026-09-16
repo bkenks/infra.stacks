@@ -1,9 +1,4 @@
 {
-    "jsonnet.languageServer.jpath": [
-        ".",
-        ".vendir/libsonnet",
-        "src"
-    ],
     "debug.javascript.defaultRuntimeExecutable": {
         "pwa-node": "/Users/briankenkel/.local/share/mise/shims/node"
     },

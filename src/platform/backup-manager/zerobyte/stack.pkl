@@ -2,12 +2,8 @@
 // owns no shared network. BASE_URL points at the control plane rather than at whichever
 // host this copy runs on, so every instance advertises the same address.
 //
-// Two documents, because this stack is part of the restore tier: it has to come up on a
-// cold start alongside databasus, which is exactly when the secrets provider may not
-// be able to answer. compose.yaml is the steady state; bootstrap.yaml is the same stack with
-// the provider swapped for the env file the control plane writes. They are alternatives,
-// never layered: a compose override merges, so it could not drop the provider service or
-// the depends_on that waits on it.
+// Restore tier: renders bootstrap.yaml too, so it can come up on a cold start alongside
+// databasus.
 amends "@infra/Stack.pkl"
 
 import "@infra/registry.pkl"
@@ -16,10 +12,6 @@ import "@infra/secrets.pkl"
 
 local version = "v0.40"
 local port = 4096
-
-// Written by the control plane during a cold start, carrying APP_SECRET under the same
-// name the provider injects it as.
-local bootstrapEnv = "${BOOTSTRAP_SECRETS_FILE:-\(col.dirs.secrets)/\(module.name).env}"
 
 name = "zerobyte"
 
@@ -32,7 +24,7 @@ services {
     image = "ghcr.io/nicotsx/zerobyte:\(version)"
     restart = "unless-stopped"
     when (module.bootstrap) {
-      env_file { bootstrapEnv }
+      env_file { module.bootstrapSecretsFile }
     } else {
       depends_on = secrets.ready
     }
@@ -41,7 +33,6 @@ services {
       col.bindReadOnly("/etc/localtime", "/etc/localtime")
       col.bind("/var/lib/docker/volumes", "/source/docker-volumes")
     }
-    // APP_SECRET arrives from 1Password through fnox, or from the bootstrap env file.
     environment {
       ["TZ"] = "America/New_York"
       ["BASE_URL"] = "http://\(registry.endpoint.hostGroup.littlebuddy.ref):\(port)"
@@ -52,10 +43,6 @@ services {
     devices { "/dev/fuse:/dev/fuse" }
     security_opt { "apparmor:unconfined" }
   }
-}
-
-networks {
-  ["default"] { name = module.name }
 }
 
 output {
