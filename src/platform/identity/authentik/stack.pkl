@@ -20,9 +20,6 @@ local dbName = module.name
 local gateway = registry.network.shared.tailscale_gw_001
 
 // Identical on server AND worker: they must agree on the DB and the secret key.
-// AUTHENTIK_POSTGRESQL__PASSWORD and AUTHENTIK_SECRET_KEY arrive from 1Password through fnox;
-// `db` reads the same password as POSTGRES_PASSWORD, so the item carries it under both
-// names.
 local authentikEnv = new Mapping<String, String> {
   ["AUTHENTIK_POSTGRESQL__HOST"] = "db"
   ["AUTHENTIK_POSTGRESQL__NAME"] = dbName
@@ -35,6 +32,8 @@ local dbHealthy = new Mapping<String, Compose.DependsOn> {
 }
 
 name = "authentik"
+
+sharedNetworks { gateway }
 
 services {
   ["secrets"] = secrets.fnox
@@ -50,7 +49,7 @@ services {
     data { ["data"] { target = "/data" } }
     expose { httpPort }
     // 127.0.0.1:18006: route authentik.ktbcloud.com here.
-    ports { new { target = httpPort; published = 18006; host_ip = col.ip.loopback } }
+    ports { col.loopbackPort(httpPort, 18006) }
   }
 
   // ── Worker: background tasks, outpost mgmt, cert/blueprint processing ───────
@@ -75,7 +74,6 @@ services {
     depends_on = secrets.ready
     networks { "default"; gateway.name }
     data { ["data"] { target = "/var/lib/postgresql/data" } }
-    // POSTGRES_PASSWORD arrives from 1Password through fnox.
     environment {
       ["POSTGRES_USER"] = dbUser
       ["POSTGRES_DB"] = dbName
@@ -88,13 +86,8 @@ services {
       start_period = 20.s
     }
     expose { 5432 }
-    ports { new { target = 5432; published = 18040; host_ip = col.ip.loopback } }
+    ports { col.loopbackPort(5432, 18040) }
   }
-}
-
-networks {
-  ["default"] { name = module.name }
-  [gateway.name] { name = gateway.name; `external` = true }
 }
 
 output {

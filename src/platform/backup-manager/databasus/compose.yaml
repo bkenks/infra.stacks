@@ -39,3 +39,5 @@ networks:
   newt_gw_001:
     name: newt_gw_001
     external: true
+  default:
+    name: databasus

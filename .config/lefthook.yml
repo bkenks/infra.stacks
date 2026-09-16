@@ -1,80 +1,33 @@
 ---
 pre-commit:
   jobs:
-    - name: "JOB: format mise config"
-      run: |
-        echo "INFO running cmd 'mise fmt'"
-        echo "———————————————————————————————"
-        mise fmt && echo "no output"
-        echo "———————————————————————————————"
-        echo "INFO completed successfully"
+    - name: format mise config
+      run: mise fmt
       stage_fixed: true
-    
-    - name: "JOB: pack kstore"
-      run: |
-        echo "INFO running cmd 'mise run kstore:pack --stage'"
-        echo "———————————————————————————————"
-        mise run kstore:pack --stage
-        echo "———————————————————————————————"
-        echo "INFO completed successfully"
 
-    - name: "JOB: pkl -> yaml"
+    - name: pack kstore
+      run: mise run kstore:pack --stage
+
+    - name: render stacks
       run: |
-        # pipefail: without it a render failure is masked by git add's exit 0, and a
-        # commit lands with stale YAML.
         set -o pipefail
-        echo "INFO running mise task..."
-        echo "———————————————————————————————"
         mise run render | git add --pathspec-from-file=-
-        echo "———————————————————————————————"
-        echo "INFO completed successfully"
 
-# git runs pre-merge-commit, not pre-commit, when a merge commits on its own. A merge
-# that changes a stack.pkl on one side and the library it imports on the other therefore
-# lands with the YAML the branch rendered rather than the YAML the merged sources
-# produce — clean merge, stale output, nothing in the diff to see.
-#
-# This one verifies instead of fixing: git throws away index changes a pre-merge-commit
-# hook makes, so `git add` here would stage the re-render and still commit without it.
-# Failing stops the merge commit with the re-render sitting in the working tree; staging
-# it and committing completes the merge through pre-commit, which does stage properly.
+# git runs pre-merge-commit, not pre-commit, for a merge that commits on its own, and it
+# discards index changes the hook makes. So this verifies instead of staging: a merge whose
+# sources render different YAML than it committed fails, leaving the re-render in the
+# working tree to `git add -A && git commit`.
 pre-merge-commit:
   jobs:
-    - name: "JOB: pkl -> yaml (verify)"
+    - name: verify rendered stacks
       run: |
-        set -o pipefail
-        echo "INFO checking the merged sources still render the committed YAML..."
-        echo "———————————————————————————————"
-        # Rendered first, into a variable, rather than piped straight into git: a render
-        # that dies mid-pipe writes nothing, and "no paths" is indistinguishable from "no
-        # drift" — the merge would sail through on a broken build.
-        if ! owned=$(mise run render); then
-          echo "———————————————————————————————"
-          echo "ERROR render failed — the merge cannot be checked."
-          exit 1
-        fi
-        if [ -z "$owned" ]; then
-          echo "———————————————————————————————"
-          echo "ERROR render named no files, which it should never do."
-          exit 1
-        fi
-        # Scoped to the paths render owns — an unrelated edit sitting in the tree is not
-        # this hook's business to fail the merge over. Unquoted on purpose, to split into
-        # one pathspec per line; git diff has no --pathspec-from-file, and no rendered
-        # path carries whitespace, so there is nothing here to quote.
-        if ! drift=$(git diff --name-only -- $owned); then
-          echo "———————————————————————————————"
-          echo "ERROR could not diff the rendered files."
-          exit 1
-        fi
+        set -euo pipefail
+        owned=$(mise run render)
+        [ -n "$owned" ] || { echo "render named no files" >&2; exit 1; }
+        drift=$(git diff --name-only -- $owned)
         if [ -n "$drift" ]; then
-          echo "———————————————————————————————"
-          echo "ERROR the merge renders different YAML than it committed:"
-          echo "$drift" | sed 's/^/  /'
-          echo "———————————————————————————————"
-          echo "The re-render is in your working tree. Complete the merge with:"
-          echo "  git add -A && git commit"
+          echo "the merge renders different YAML than it committed:" >&2
+          echo "$drift" | sed 's/^/  /' >&2
+          echo "complete the merge with: git add -A && git commit" >&2
           exit 1
         fi
-        echo "———————————————————————————————"
-        echo "INFO completed successfully"

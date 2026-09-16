@@ -17,6 +17,8 @@ local sharedTSGW = registry.network.shared.tailscale_gw_001
 
 name = "forgejo"
 
+sharedNetworks { sharedTSGW }
+
 services {
   ["secrets"] = secrets.fnox
 
@@ -26,8 +28,6 @@ services {
     depends_on = secrets.ready
     data { ["data"] { target = "/data" } }
     volumes { col.bindReadOnly("/etc/localtime", "/etc/localtime") }
-    // FORGEJO__database__PASSWD arrives from 1Password through fnox; `db` reads the same
-    // password as POSTGRES_PASSWORD, so the item carries it under both names.
     environment {
       ["FORGEJO____APP_NAME"] = "KTB Software"
       ["FORGEJO____APP_SLOGAN"] = "End-To-End Software"
@@ -45,8 +45,8 @@ services {
     expose { port; 22 }
     // 127.0.0.1:22 -> container SSH, dialled by bare-metal Newt (Pangolin edge on the VPS).
     ports {
-      new { target = port; published = 18003; host_ip = col.ip.loopback }
-      new { target = 22; published = 22; host_ip = col.ip.loopback }
+      col.loopbackPort(port, 18003)
+      col.loopbackPort(22, 22)
     }
   }
 
@@ -56,19 +56,13 @@ services {
     depends_on = secrets.ready
     networks { "default"; sharedTSGW.name }
     data { ["data"] { target = "/var/lib/postgresql/data" } }
-    // POSTGRES_PASSWORD arrives from 1Password through fnox.
     environment {
       ["POSTGRES_USER"] = dbUser
       ["POSTGRES_DB"] = dbName
     }
     expose { 5432 }
-    ports { new { target = 5432; published = 18041; host_ip = col.ip.loopback } }
+    ports { col.loopbackPort(5432, 18041) }
   }
-}
-
-networks {
-  ["default"] { name = module.name }
-  [sharedTSGW.name] { name = sharedTSGW.name; `external` = true }
 }
 
 output {

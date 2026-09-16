@@ -33,11 +33,11 @@ services {
     image = "ryshe/terraria:\(imageTag)"
     restart = "unless-stopped"
     ports {
-      new { target = gamePort; published = gameHostPort; host_ip = col.ip.loopback }
+      col.loopbackPort(gamePort, gameHostPort)
       // A REST token is full server admin, including arbitrary console commands, so this
       // stays on loopback like the game port. Anything consuming it joins this stack's
       // network rather than dialling the host.
-      new { target = restPort; published = restHostPort; host_ip = col.ip.loopback }
+      col.loopbackPort(restPort, restHostPort)
     }
     environment {
       ["WORLD_FILENAME"] = "Columbia_Plaza.wld"
@@ -54,8 +54,4 @@ services {
     tty = true
     stdin_open = true
   }
-}
-
-networks {
-  ["default"] { name = module.name }
 }

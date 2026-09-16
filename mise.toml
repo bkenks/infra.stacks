@@ -44,7 +44,9 @@ description = "Validate the LikeC4 model"
 run = "likec4 validate --json --no-layout {{vars.path_c4}}"
 
 [tasks."c4:build"]
-run = "likec4 build -o docs/c4/dist docs/c4/diagram"
+description = "Build the LikeC4 site into docs/c4/dist"
+run = "likec4 build -o {{vars.path_c4}}/dist {{vars.path_c4}}/diagram"
+
 [tasks.c4]
 description = "Serve LikeC4 diagrams locally"
 run = "likec4 serve {{vars.path_c4}}"

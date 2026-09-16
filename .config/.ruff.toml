@@ -1,5 +1,0 @@
-# Ruff resolves config by walking up from each file, so this only governs Python
-# under `.config/` — which is exactly the mise task scripts in `.config/mise/tasks/`.
-# Python anywhere else (e.g. `src/`) needs its own config at the repo root.
-line-length = 100
-target-version = "py313"

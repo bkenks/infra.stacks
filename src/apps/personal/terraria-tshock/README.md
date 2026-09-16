@@ -10,7 +10,7 @@ directories, so both can exist at once.
 | --- | --- | --- |
 | game port | `127.0.0.1:18022` | `127.0.0.1:18023` |
 | REST API | none | `127.0.0.1:18024` |
-| host data | `/rootless-srv/terraria/config` | `/rootless-srv/terraria-tshock` |
+| host data | `/rootless-srv/file-browser-quantum/shared/terraria/worlds/columbia_plaza` | `/rootless-srv/terraria-tshock` |
 
 Both are loopback-bound; reach them over Tailscale or the edge, not from the open internet.
 
@@ -22,8 +22,7 @@ Both are loopback-bound; reach them over Tailscale or the edge, not from the ope
 tags the TShock release together with the Terraria version it targets, and ships 6.1.0 for
 1.4.5.6, which matches the vanilla stack exactly.
 
-A TShock release supports exactly one Terraria version, so `imageTag` in `stack.jsonnet`
-moves as a pair. Check the [TShock releases](https://github.com/Pryaxis/TShock/releases)
+Check the [TShock releases](https://github.com/Pryaxis/TShock/releases)
 before bumping — TShock lags vanilla Terraria by weeks after a Terraria release.
 
 ## Server-side characters
@@ -77,7 +76,7 @@ The image writes its own config on first boot, so the seeds in `files/` must be 
    sharing one:
 
    ```bash
-   cp /rootless-srv/terraria/config/Columbia_Plaza.wld /rootless-srv/terraria-tshock/worlds/
+   cp /rootless-srv/file-browser-quantum/shared/terraria/worlds/columbia_plaza/Columbia_Plaza.wld /rootless-srv/terraria-tshock/worlds/
    ```
 
    To start on a fresh world instead, leave the directory empty and add

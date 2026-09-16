@@ -26,10 +26,9 @@ services {
     image = "codercom/code-server:\(version)"
     restart = "unless-stopped"
     depends_on = secrets.ready
-    // HASHED_PASSWORD (argon2, the web login) arrives from 1Password through fnox.
     environment { ["TZ"] = "America/Chicago" }
     expose { port }
-    ports { new { target = port; published = 18028; host_ip = col.ip.loopback } }
+    ports { col.loopbackPort(port, 18028) }
     volumes {
       for (hostPath, containerPath in mounts) { col.bind(hostPath, containerPath) }
     }
@@ -54,10 +53,6 @@ services {
       retries = 5
     }
   }
-}
-
-networks {
-  ["default"] { name = module.name }
 }
 
 output {

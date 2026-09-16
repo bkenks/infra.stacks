@@ -1,7 +1,4 @@
-// The one stack that cannot read its own secrets through the infisical-secrets provider:
-// the provider would be asking this server for them before it is up. Its secrets stay an
-// env file the control plane writes, spelled out here because nothing else reads it;
-// BOOTSTRAP_SECRETS_FILE overrides the path during bootstrap.
+// Secrets come from the env file the control plane writes, not a provider.
 //
 // Two documents, because env_file has to attach at the include: `${VAR:-}` inside
 // services.yaml resolves from it, which a service-level env_file cannot do (that only
@@ -21,9 +18,10 @@ local dbUser = module.name
 local dbName = module.name
 
 local gateway = registry.network.shared.tailscale_gw_001
-local envFile = "${BOOTSTRAP_SECRETS_FILE:-\(col.dirs.secrets)/infisical.env}"
 
 name = "infisical"
+
+sharedNetworks { gateway }
 
 services {
   ["app"] {
@@ -59,7 +57,7 @@ services {
     }
     expose { appPort }
     ports {
-      new { target = appPort; published = infisical.host.port; host_ip = col.ip.loopback }
+      col.loopbackPort(appPort, infisical.host.port)
       new { target = appPort; published = infisical.host.port; host_ip = infisical.host.on.tailscaleIP }
     }
   }
@@ -74,14 +72,9 @@ services {
       ["POSTGRES_DB"] = dbName
       ["POSTGRES_PASSWORD"] = "${INFISICAL_DB_PASSWORD:-}"
     }
-    healthcheck {
-      test { "CMD-SHELL"; "pg_isready --username=\(dbUser)" }
-      interval = 5.s
-      timeout = 10.s
-      retries = 10
-    }
+    healthcheck = col.pgIsReady(dbUser)
     expose { 5432 }
-    ports { new { target = 5432; published = 18042; host_ip = col.ip.loopback } }
+    ports { col.loopbackPort(5432, 18042) }
   }
 
   ["cache"] {
@@ -89,19 +82,9 @@ services {
     restart = "unless-stopped"
     data { ["data"] { target = "/data" } }
     environment { ["ALLOW_EMPTY_PASSWORD"] = "yes" }
-    healthcheck {
-      test { "CMD"; "redis-cli"; "ping" }
-      interval = 10.s
-      timeout = 5.s
-      retries = 5
-    }
+    healthcheck = col.redisPing
     expose { 6379 }
   }
-}
-
-networks {
-  ["default"] { name = module.name }
-  [gateway.name] { name = gateway.name; `external` = true }
 }
 
 output {
@@ -111,7 +94,7 @@ output {
       include {
         new {
           path = "services.yaml"
-          env_file { envFile }
+          env_file { module.bootstrapSecretsFile }
         }
       }
     })

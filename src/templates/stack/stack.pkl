@@ -32,9 +32,7 @@ services {
     image = "ghcr.io/example/example:\(appVersion)"
     restart = "on-failure:5"
 
-    // Published ports bind to loopback: apps are reached over the tailnet or through the
-    // edge proxy, so a port that is not loopback-bound is a mistake, not a default.
-    ports { new { target = appPort; published = 18000; host_ip = col.ip.loopback } }
+    ports { col.loopbackPort(appPort, 18000) }
     expose { appPort }
 
     data { ["data"] { target = "/data" } }
@@ -44,9 +42,7 @@ services {
       ["db"] { condition = "service_healthy" }
     }
 
-    // DB_PASSWORD arrives from 1Password through fnox. A value written here that the bundle
-    // also carries is overwritten by the injected one, which is how a literal default stays
-    // overridable per host.
+    // A value written here that fnox.toml also lists is overwritten by the injected one.
     environment {
       ["DB_HOST"] = "db"
       ["DB_NAME"] = dbName
@@ -64,7 +60,7 @@ services {
 
   // ── DB: dedicated Postgres ────────────────────────────────────────────────────
   // To use the SHARED cluster instead, delete this service and reach it by the level it
-  // is on: same host, join registry.network.shared.db_001 and dial
+  // is on: same host, add registry.network.shared.db_001 to `sharedNetworks` and dial
   // registry.endpoint.serviceGroup.postgres.container.addr; another host, dial
   // registry.endpoint.serviceGroup.postgres.host.addr over the .internal zone.
   ["db"] {
@@ -73,25 +69,12 @@ services {
     depends_on = secrets.ready
     expose { 5432 }
     data { ["data"] { target = "/var/lib/postgresql/data" } }
-    // POSTGRES_PASSWORD arrives from 1Password through fnox. `app` reads the same password as
-    // DB_PASSWORD, so the item has to carry it under both names.
     environment {
       ["POSTGRES_USER"] = dbUser
       ["POSTGRES_DB"] = dbName
     }
-    healthcheck {
-      test { "CMD-SHELL"; "pg_isready --username=\(dbUser)" }
-      interval = 5.s
-      timeout = 10.s
-      retries = 10
-    }
+    healthcheck = col.pgIsReady(dbUser)
   }
-}
-
-// The private bridge every service joins implicitly. `default` is compose's reserved
-// key; the stack's name lands underneath it.
-networks {
-  ["default"] { name = module.name }
 }
 
 output {

@@ -61,7 +61,7 @@ class Files {
     }
 
     server {
-      // server.secret comes from SERVER_SECRET env (infisical-secrets) and must be OMITTED
+      // server.secret comes from SERVER_SECRET env (fnox) and must be OMITTED
       // here, not blanked. Pangolin only applies the env override when the key is ABSENT;
       // `secret: ''` counts as "defined" and fails validation before the env var is read.
       cors {
@@ -79,7 +79,7 @@ class Files {
       smtp_port = 465
       smtp_secure = true
       smtp_user = "resend"
-      // smtp_pass: EMAIL_SMTP_PASS env (infisical-secrets), omitted for the same reason as
+      // smtp_pass: EMAIL_SMTP_PASS env (fnox), omitted for the same reason as
       // server.secret.
       no_reply = "pangolin@\(cloudDomain)"
     }

@@ -84,12 +84,6 @@ class SharedNetwork {
   name: String
 }
 
-path = new {
-  file = new {
-    onepassword_creds = "\(col.dirs.credentials)/onepassword.env"
-  }
-}
-
 network = new {
   shared = new {
     db_001 = new SharedNetwork { name = "db_001" }
@@ -101,6 +95,14 @@ network = new {
 
 endpoint = new {
   hostGroup = new HostGroup {}
+  // Hosts that run a per-host Pangolin connector (newt, pangolin-cli).
+  gatewayHosts = new Listing<Host> {
+    hostGroup.bill
+    hostGroup.biggy
+    hostGroup.paiki
+    hostGroup.littlebuddy
+    hostGroup.rick
+  }
   serviceGroup = new {
     postgres = new Service {
       container { name = "postgres-db"; port = 5432 }

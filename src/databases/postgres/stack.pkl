@@ -1,5 +1,5 @@
 // The cluster's own identity is single-sourced at registry.endpoint.serviceGroup.postgres;
-// change it there, not here. Consumers on this host reach it over shared__db_001;
+// change it there, not here. Consumers on this host reach it over db_001;
 // consumers on another host dial the published port at postgres.host.addr.
 amends "@infra/Stack.pkl"
 
@@ -14,6 +14,8 @@ local version = "18"
 
 name = "postgres"
 
+sharedNetworks { sharedDB; sharedTSGW }
+
 services {
   ["secrets"] = secrets.fnox
 
@@ -25,10 +27,9 @@ services {
     depends_on = secrets.ready
     networks { "default"; sharedDB.name; sharedTSGW.name }
     data { ["data"] { target = "/var/lib/postgresql" } }
-    // POSTGRES_USER and POSTGRES_PASSWORD arrive from 1Password through fnox.
 
     // Published to the host so containers in other stacks reach it through the gateway.
-    ports { new { target = pg.container.port; published = pg.host.port; host_ip = col.ip.loopback } }
+    ports { col.loopbackPort(pg.container.port, pg.host.port) }
     healthcheck {
       // $$ escapes compose's own interpolation, so the shell in the container expands the
       // injected POSTGRES_USER rather than compose resolving it to nothing.
@@ -38,14 +39,6 @@ services {
       retries = 10
     }
   }
-}
-
-// shared__* networks are created out of band, so this stack attaches to them exactly like
-// every consumer does; nothing here owns them.
-networks {
-  ["default"] { name = module.name }
-  [sharedDB.name] { name = sharedDB.name; `external` = true }
-  [sharedTSGW.name] { name = sharedTSGW.name; `external` = true }
 }
 
 output {

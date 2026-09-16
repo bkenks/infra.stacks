@@ -26,8 +26,7 @@ services {
     data { ["home"] { target = "/home/coder" } }
     volumes { col.mounts.dockerSockRW }
     networks { "default"; "workspaces" }
-    ports { new { target = port; published = port; host_ip = col.ip.loopback } }
-    // CODER_PG_CONNECTION_URL arrives from 1Password through fnox.
+    ports { col.loopbackPort(port, port) }
     environment {
       ["CODER_HTTP_ADDRESS"] = "0.0.0.0:\(port)"
       ["CODER_ACCESS_URL"] = coderURL
@@ -43,7 +42,6 @@ services {
   ["db"] {
     image = "postgres:17"
     depends_on = secrets.ready
-    // POSTGRES_USER, POSTGRES_PASSWORD and POSTGRES_DB arrive from 1Password through fnox.
     data { ["data"] { target = "/var/lib/postgresql/data" } }
     healthcheck {
       test { "CMD-SHELL"; "pg_isready -U coder -d coder" }
@@ -55,7 +53,6 @@ services {
 }
 
 networks {
-  ["default"] { name = module.name }
   ["workspaces"] { name = workspacesNetwork }
 }
 

@@ -1,11 +1,11 @@
 # Woodpecker CI — Adding a Pipeline
 
-Woodpecker is a Forgejo-integrated CI/CD engine (server UI/API + gRPC, agent runs steps via the host Docker socket). URL: https://peck.ktbinternal.com. Forge: https://fj.ktbinternal.com. Stack deploy/secrets: see `README.md`.
+Stack deploy/secrets: see `README.md`.
 
 ## Two secret systems
 
-- **Stack secrets** (server's OAuth + agent secret) → Infisical `/woodpecker` → `/dev/shm/woodpecker.env`.
-- **Pipeline secrets** (e.g. registry tokens) → Woodpecker-native secrets, stored in its own DB, added via the UI, referenced in `.woodpecker.yml` via `from_secret:`. Never touch Infisical.
+- **Stack secrets** (server's OAuth + agent secret) → `fnox.toml`, 1Password item `woodpecker`.
+- **Pipeline secrets** (e.g. registry tokens) → Woodpecker-native secrets, stored in its own DB, added via the UI, referenced in `.woodpecker.yml` via `from_secret:`.
 
 ## Adding a pipeline
 

@@ -8,7 +8,7 @@
 #
 # Docs / full schema: https://github.com/manimatter/decluttarr  (V2 config.yaml)
 #
-# API keys come from /dev/shm/stream.env (rendered by the infisical-agent) via
+# API keys come from the container environment (fnox) via
 # the `!ENV` tag below — never hard-code them here. base_url uses the compose
 # service name on the `default` network.
 #

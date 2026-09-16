@@ -2,35 +2,18 @@
 
 Identity provider / SSO for the fleet — **OIDC**, SAML, LDAP outpost, social-login
 federation. This is the "log in with ktbcloud" IdP: apps become OIDC *clients* of it.
-
-- **Host:** rick (public VPS)
-- **URL:** https://authentik.ktbcloud.com  →  `127.0.0.1:18006` (server HTTP :9000)
-- **Services:** `server` + `worker` + dedicated `db` (Postgres). No Redis — removed
-  upstream in authentik 2025.10 (state moved to Postgres).
-
-## Why a bundled Postgres (not the shared cluster)
-
-The shared Postgres (`databases/postgres`) only runs on littlebuddy. rick is a public
-VPS, and a public-facing IdP must not depend on the home LAN being reachable — so
-authentik carries its own Postgres, colocated on rick. Data lives in the `authentik_db`
-volume.
+URL: https://authentik.ktbcloud.com
 
 ## First deploy
 
-1. **Create the secrets in Infisical** (project `infra`, folder `/authentik`) — see
-   `.env.example`:
-   - `AUTHENTIK_SECRET_KEY` — signs sessions/tokens; **keep it stable forever** (rotating
-     it invalidates all sessions).
-   - `AUTHENTIK_PG_PASS` — Postgres password.
-   Generate with `openssl rand -base64 60`.
-2. The stack's `secrets` provider reads Infisical `/authentik` at `up`. It supplies
-   `AUTHENTIK_SECRET_KEY`, `AUTHENTIK_POSTGRESQL__PASSWORD` (server + worker) and
-   `POSTGRES_PASSWORD` (db) — the last two are the same password under both names.
-3. **Route the domain:** point `authentik.ktbcloud.com` at `127.0.0.1:18006` on rick
+1. **Fill the secrets** (`fnox.toml`, 1Password item `authentik`). Generate with
+   `openssl rand -base64 60`. Keep `AUTHENTIK_SECRET_KEY` stable forever — rotating it
+   invalidates all sessions.
+2. **Route the domain:** point `authentik.ktbcloud.com` at `127.0.0.1:18006` on rick
    (via the edge proxy / Pangolin cloud that already fronts rick). TLS terminates at the
    edge; authentik speaks plain HTTP on :9000.
-4. Deploy the `authentik` stack via Komodo.
-5. **Bootstrap the admin:** browse to
+3. Deploy the `authentik` stack via Komodo.
+4. **Bootstrap the admin:** browse to
    `https://authentik.ktbcloud.com/if/flow/initial-setup/` and set the `akadmin` password.
 
 ## Adding an app ("log in with authentik")
@@ -44,6 +27,5 @@ then create an **Application** bound to it. Hand the app these:
 
 ## Upgrading
 
-Bump `version` in `stack.jsonnet`, commit (lefthook re-renders the YAML), redeploy.
 Postgres major-version bumps (`dbVersion`) require a dump/restore — don't just change the
 tag.

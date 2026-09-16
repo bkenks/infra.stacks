@@ -9,11 +9,25 @@ open module infra.Stack
 extends "@compose/Stack.pkl"
 
 import "@compose/Stack.pkl" as compose
+import "collections.pkl" as col
 import "registry.pkl"
 
 hidden const header = "# GENERATED from stack.pkl — DO NOT EDIT.\n"
 
 hidden attachNewtGateway: Boolean = true
+
+/// Restore-tier stacks must start on a cold start, when the secrets provider may not
+/// answer, so they render a second document with the provider swapped for
+/// `bootstrapSecretsFile`: `["bootstrap.yaml"] = module.file((module) { bootstrap = true })`.
+/// A compose override could not do this: overrides merge, so they cannot drop the
+/// provider service or the depends_on that waits on it.
+hidden bootstrap: Boolean = false
+
+/// Written by the control plane, carrying each secret under the name the provider injects.
+hidden bootstrapSecretsFile = "${BOOTSTRAP_SECRETS_FILE:-\(col.dirs.secrets)/\(name).env}"
+
+/// Registry shared networks this stack's services join, declared `external`.
+hidden sharedNetworks: Listing<registry.SharedNetwork>
 
 local newtGateway = registry.network.shared.newt_gw_001
 
@@ -31,11 +45,11 @@ networks {
   when (attachNewtGateway) {
     [newtGateway.name] { name = newtGateway.name; `external` = true }
   }
+  ["default"] { name = module.name }
+  for (shared in sharedNetworks) {
+    [shared.name] { name = shared.name; `external` = true }
+  }
 }
-
-/// Restore-tier stacks render a second document with the secrets provider swapped for
-/// an env file: `["bootstrap.yaml"] = module.file((module) { bootstrap = true })`.
-hidden bootstrap: Boolean = false
 
 function file(doc: Object): FileOutput = new FileOutput {
   value = doc
