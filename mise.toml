@@ -1,6 +1,6 @@
 [tools]
 pkl = "0.32.1"
-vendir = "0.46"                      # vendors pkl-compose into .vendir/pkl-compose/
+vendir = "0.46"
 lefthook = "2"
 yq = "4"
 "aqua:sharkdp/fd" = "latest"
@@ -13,14 +13,15 @@ postinstall = "lefthook install"
 [vars]
 path_c4 = "docs/c4"
 
-[tasks."deps:sync"]
+[tasks."depedencies:sync"]
+alias = "deps"
 description = "Sync vendored deps and re-resolve the Pkl project"
 run = """
 vendir sync
 pkl project resolve
 """
 
-[tasks.render]
+[tasks.pkl]
 description = "Render every src/**/stack.pkl into the files beside it (stdout = owned paths)"
 run = "./scripts/render.sh"
 
@@ -47,6 +48,6 @@ run = "likec4 validate --json --no-layout {{vars.path_c4}}"
 description = "Build the LikeC4 site into docs/c4/dist"
 run = "likec4 build -o {{vars.path_c4}}/dist {{vars.path_c4}}/diagram"
 
-[tasks.c4]
+[tasks."c4:serve"]
 description = "Serve LikeC4 diagrams locally"
 run = "likec4 serve {{vars.path_c4}}"

@@ -6,5 +6,7 @@
     "go.goroot": "/Users/briankenkel/.local/share/mise/installs/go/1.26.6",
     "go.alternateTools": {
         "go": "/Users/briankenkel/.local/share/mise/shims/go"
-    }
+    },
+    "pkl.lsp.java.path": "/Users/briankenkel/.local/share/mise/shims/java",
+    "pkl.cli.path": "/Users/briankenkel/.local/share/mise/shims/pkl"
 }

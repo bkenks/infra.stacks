@@ -5,29 +5,10 @@ pre-commit:
       run: mise fmt
       stage_fixed: true
 
-    - name: pack kstore
-      run: mise run kstore:pack --stage
+    # - name: pack kstore
+    #   run: mise run kstore:pack --stage
 
-    - name: render stacks
+    - name: render stacks via PKL
       run: |
         set -o pipefail
-        mise run render | git add --pathspec-from-file=-
-
-# git runs pre-merge-commit, not pre-commit, for a merge that commits on its own, and it
-# discards index changes the hook makes. So this verifies instead of staging: a merge whose
-# sources render different YAML than it committed fails, leaving the re-render in the
-# working tree to `git add -A && git commit`.
-pre-merge-commit:
-  jobs:
-    - name: verify rendered stacks
-      run: |
-        set -euo pipefail
-        owned=$(mise run render)
-        [ -n "$owned" ] || { echo "render named no files" >&2; exit 1; }
-        drift=$(git diff --name-only -- $owned)
-        if [ -n "$drift" ]; then
-          echo "the merge renders different YAML than it committed:" >&2
-          echo "$drift" | sed 's/^/  /' >&2
-          echo "complete the merge with: git add -A && git commit" >&2
-          exit 1
-        fi
+        ./scripts/render.sh | git add --pathspec-from-file=-
