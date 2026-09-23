@@ -8,6 +8,7 @@ amends "@infra/Stack.pkl"
 import "@compose/Compose.pkl"
 import "@infra/collections.pkl" as col
 import "@infra/secrets.pkl"
+
 import "files/config.pkl"
 
 local pangolinVersion = "ee-1.20.0"
@@ -17,25 +18,27 @@ local traefikVersion = "v3.6"
 local configDir = "\(col.dirs.docker.bindMounts)/pangolin/config"
 local configs = config.files(col.domain.ktbcloud)
 
-local geoliteMirror = "https://github.com/GitSquared/node-geolite2-redist/raw/refs/heads/master/redist/"
+local geoliteMirror =
+  "https://github.com/GitSquared/node-geolite2-redist/raw/refs/heads/master/redist/"
 local function fetchGeolite(db: String): String =
   "if [ ! -f /mnt/config/GeoLite2-\(db).mmdb ]; then "
-  + "wget -qO /tmp/geolite-\(db).tar.gz \(geoliteMirror)GeoLite2-\(db).tar.gz && "
-  + "tar -xzf /tmp/geolite-\(db).tar.gz -C /tmp && "
-  + "mv /tmp/GeoLite2-\(db)_*/GeoLite2-\(db).mmdb /mnt/config/; "
-  + "fi"
+    + "wget -qO /tmp/geolite-\(db).tar.gz \(geoliteMirror)GeoLite2-\(db).tar.gz && "
+    + "tar -xzf /tmp/geolite-\(db).tar.gz -C /tmp && "
+    + "mv /tmp/GeoLite2-\(db)_*/GeoLite2-\(db).mmdb /mnt/config/; "
+    + "fi"
 
 // chmod 600 on acme.json MUST run last: a preceding `chmod -R 755 /mnt/config` would
 // clobber it back to 755, breaking Traefik ACME.
-local initScript = List(
-  "set -e",
-  "mkdir -p /mnt/config/traefik/logs /mnt/config/letsencrypt",
-  "touch /mnt/config/letsencrypt/acme.json",
-  fetchGeolite("Country"),
-  fetchGeolite("ASN"),
-  "chmod -R 755 /mnt/config",
-  "chmod 600 /mnt/config/letsencrypt/acme.json"
-).join(" && ")
+local initScript =
+  List(
+    "set -e",
+    "mkdir -p /mnt/config/traefik/logs /mnt/config/letsencrypt",
+    "touch /mnt/config/letsencrypt/acme.json",
+    fetchGeolite("Country"),
+    fetchGeolite("ASN"),
+    "chmod -R 755 /mnt/config",
+    "chmod 600 /mnt/config/letsencrypt/acme.json",
+  ).join(" && ")
 
 local initDone = new Mapping<String, Compose.DependsOn> {
   ["seeder"] { condition = "service_completed_successfully" }
@@ -146,7 +149,8 @@ networks {
 
 output {
   files {
-    [secrets.configFile] = secrets.config("apps.pangolin", new Listing { "EMAIL_SMTP_PASS"; "SERVER_SECRET" })
+    [secrets.configFile] =
+      secrets.config("apps.pangolin", new Listing { "EMAIL_SMTP_PASS"; "SERVER_SECRET" })
     [traefikConfig] = secrets.config("traefik", new Listing { "CF_DNS_API_TOKEN" })
     ["files/config.yaml"] = module.yamlFile(configs.config)
     ["files/dynamic_config.yaml"] = module.yamlFile(configs.dynamic_config)

@@ -7,10 +7,12 @@ amends "@infra/Stack.pkl"
 import "@infra/collections.pkl" as col
 import "@infra/secrets.pkl"
 
-local dbImage = "ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:bcf63357191b76a916ae5eb93464d65c07511da41e3bf7a8416db519b40b1c23"
+local dbImage =
+  "ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:bcf63357191b76a916ae5eb93464d65c07511da41e3bf7a8416db519b40b1c23"
 local mlImage = "ghcr.io/immich-app/immich-machine-learning:v2.7.5"
 local appImage = "ghcr.io/immich-app/immich-server:v2.7.5"
-local cacheImage = "docker.io/valkey/valkey:9@sha256:8436e10bc65c94886a91d4415b6a6dfa9cb5a306fb3b996e5bb67cd2b4854193"
+local cacheImage =
+  "docker.io/valkey/valkey:9@sha256:8436e10bc65c94886a91d4415b6a6dfa9cb5a306fb3b996e5bb67cd2b4854193"
 
 local port = 2283
 local tz = "America/New_York"
@@ -72,6 +74,7 @@ services {
 
 output {
   files {
-    [secrets.configFile] = secrets.config("immich", new Listing { "DB_PASSWORD"; "POSTGRES_PASSWORD" })
+    [secrets.configFile] =
+      secrets.config("immich", new Listing { "DB_PASSWORD"; "POSTGRES_PASSWORD" })
   }
 }

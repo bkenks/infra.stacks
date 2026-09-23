@@ -57,6 +57,14 @@ services {
 
 output {
   files {
-    [secrets.configFile] = secrets.config("komodo", new Listing { "KOMODO_DATABASE_PASSWORD"; "KOMODO_DATABASE_USERNAME"; "KOMODO_JWT_SECRET"; "KOMODO_WEBHOOK_SECRET"; "MONGO_INITDB_ROOT_PASSWORD"; "MONGO_INITDB_ROOT_USERNAME" })
+    [secrets.configFile] =
+      secrets.config("komodo", new Listing {
+        "KOMODO_DATABASE_PASSWORD"
+        "KOMODO_DATABASE_USERNAME"
+        "KOMODO_JWT_SECRET"
+        "KOMODO_WEBHOOK_SECRET"
+        "MONGO_INITDB_ROOT_PASSWORD"
+        "MONGO_INITDB_ROOT_USERNAME"
+      })
   }
 }

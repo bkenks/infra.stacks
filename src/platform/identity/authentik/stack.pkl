@@ -7,8 +7,8 @@
 amends "@infra/Stack.pkl"
 
 import "@compose/Compose.pkl"
-import "@infra/registry.pkl"
 import "@infra/collections.pkl" as col
+import "@infra/registry.pkl"
 import "@infra/secrets.pkl"
 
 local version = "2026.5.4"
@@ -89,6 +89,11 @@ services {
 
 output {
   files {
-    [secrets.configFile] = secrets.config("authentik", new Listing { "AUTHENTIK_POSTGRESQL__PASSWORD"; "AUTHENTIK_SECRET_KEY"; "POSTGRES_PASSWORD" })
+    [secrets.configFile] =
+      secrets.config("authentik", new Listing {
+        "AUTHENTIK_POSTGRESQL__PASSWORD"
+        "AUTHENTIK_SECRET_KEY"
+        "POSTGRES_PASSWORD"
+      })
   }
 }

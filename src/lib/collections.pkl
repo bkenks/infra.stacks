@@ -43,8 +43,9 @@ const function bind(hostPath: String, containerPath: String): Compose.Mount = ne
   target = containerPath
 }
 
-const function bindReadOnly(hostPath: String, containerPath: String): Compose.Mount =
-  (bind(hostPath, containerPath)) { read_only = true }
+const function bindReadOnly(hostPath: String, containerPath: String): Compose.Mount = (
+  bind(hostPath, containerPath)
+) { read_only = true }
 
 const function pgIsReady(user: String): Compose.Healthcheck = new {
   test { "CMD-SHELL"; "pg_isready --username=\(user)" }

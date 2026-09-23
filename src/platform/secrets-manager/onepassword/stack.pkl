@@ -8,7 +8,10 @@ local home = "home"
 
 local connectMounts = new Listing<Compose.Mount> {
   new { type = "volume"; source = home; target = "/home/opuser/.op/data" }
-  col.bind("\(col.dirs.credentials)/op-connect-server_credentials.json", "/home/opuser/.op/1password-credentials.json")
+  col.bind(
+    "\(col.dirs.credentials)/op-connect-server_credentials.json",
+    "/home/opuser/.op/1password-credentials.json",
+  )
 }
 
 name = "onepasswordconnect"

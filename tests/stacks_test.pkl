@@ -1,9 +1,9 @@
 amends "pkl:test"
 
-import "../src/templates/stack/stack.pkl" as template
 import "../src/apps/storage/file-browser-quantum/stack.pkl" as fileBrowser
 import "../src/platform/backup-manager/databasus/stack.pkl" as databasus
 import "../src/platform/secrets-manager/infisical/stack.pkl" as infisical
+import "../src/templates/stack/stack.pkl" as template
 
 facts {
   ["every rendered file starts with the GENERATED header"] {

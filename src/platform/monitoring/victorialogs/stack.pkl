@@ -3,8 +3,8 @@
 // readable after Komodo has recreated the container.
 amends "@infra/Stack.pkl"
 
-import "@infra/registry.pkl"
 import "@infra/collections.pkl" as col
+import "@infra/registry.pkl"
 
 local version = "v1.52.0"
 local vlogs = registry.endpoint.serviceGroup.victorialogs

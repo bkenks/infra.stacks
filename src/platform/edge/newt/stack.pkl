@@ -31,9 +31,11 @@ services {
 
 output {
   files {
-    [secrets.configFile] = secrets.hostConfig(
-      registry.endpoint.gatewayHosts,
-      (host) -> "hosts.\(host).newt",
-      new Listing { "NEWT_ID"; "NEWT_SECRET" })
+    [secrets.configFile] =
+      secrets.hostConfig(
+        registry.endpoint.gatewayHosts,
+        (host) -> "hosts.\(host).newt",
+        new Listing { "NEWT_ID"; "NEWT_SECRET" },
+      )
   }
 }

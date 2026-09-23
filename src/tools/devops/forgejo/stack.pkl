@@ -2,8 +2,8 @@
 // router on :22. `db` is a dedicated Postgres, NOT the shared cluster.
 amends "@infra/Stack.pkl"
 
-import "@infra/registry.pkl"
 import "@infra/collections.pkl" as col
+import "@infra/registry.pkl"
 import "@infra/secrets.pkl"
 
 // Pinned to a fork image (codeberg upstream had issues); do NOT revert to upstream.
@@ -61,6 +61,11 @@ services {
 
 output {
   files {
-    [secrets.configFile] = secrets.config("forgejo", new Listing { "DB_PASSWORD"; "FORGEJO__DATABASE__PASSWD"; "POSTGRES_PASSWORD" })
+    [secrets.configFile] =
+      secrets.config("forgejo", new Listing {
+        "DB_PASSWORD"
+        "FORGEJO__DATABASE__PASSWD"
+        "POSTGRES_PASSWORD"
+      })
   }
 }

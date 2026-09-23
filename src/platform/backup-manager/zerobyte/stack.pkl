@@ -6,8 +6,8 @@
 // databasus.
 amends "@infra/Stack.pkl"
 
-import "@infra/registry.pkl"
 import "@infra/collections.pkl" as col
+import "@infra/registry.pkl"
 import "@infra/secrets.pkl"
 
 local version = "v0.40"

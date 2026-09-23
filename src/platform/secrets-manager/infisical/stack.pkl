@@ -5,8 +5,8 @@
 // reaches the container's environment, never the compose document).
 amends "@infra/Stack.pkl"
 
-import "@infra/registry.pkl"
 import "@infra/collections.pkl" as col
+import "@infra/registry.pkl"
 
 local appVersion = "v0.160.9"
 local dbVersion = "16-alpine"
@@ -56,7 +56,13 @@ services {
       start_period = 40.s
     }
     expose { appPort }
-    ports { new { target = appPort; published = infisical.host.port; host_ip = infisical.host.on.tailscaleIP } }
+    ports {
+      new {
+        target = appPort
+        published = infisical.host.port
+        host_ip = infisical.host.on.tailscaleIP
+      }
+    }
   }
 
   ["db"] {
@@ -85,15 +91,16 @@ services {
 
 output {
   files {
-    ["compose.yaml"] = module.file(new Dynamic {
-      name = module.name
-      include {
-        new {
-          path = "services.yaml"
-          env_file { module.bootstrapSecretsFile }
+    ["compose.yaml"] =
+      module.file(new Dynamic {
+        name = module.name
+        include {
+          new {
+            path = "services.yaml"
+            env_file { module.bootstrapSecretsFile }
+          }
         }
-      }
-    })
+      })
     ["services.yaml"] = module.file(module)
   }
 }

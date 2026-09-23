@@ -38,6 +38,11 @@ services {
 
 output {
   files {
-    [secrets.configFile] = secrets.config("komodo-mcp", new Listing { "KOMODO_API_KEY"; "KOMODO_API_SECRET"; "KOMODO_MCP_BASICAUTH_USERS" })
+    [secrets.configFile] =
+      secrets.config("komodo-mcp", new Listing {
+        "KOMODO_API_KEY"
+        "KOMODO_API_SECRET"
+        "KOMODO_MCP_BASICAUTH_USERS"
+      })
   }
 }

@@ -1,7 +1,7 @@
 amends "@infra/Stack.pkl"
 
-import "@infra/registry.pkl"
 import "@infra/collections.pkl" as col
+import "@infra/registry.pkl"
 
 local version = "latest"
 

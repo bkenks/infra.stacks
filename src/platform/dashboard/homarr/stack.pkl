@@ -1,7 +1,7 @@
 amends "@infra/Stack.pkl"
 
-import "@infra/registry.pkl"
 import "@infra/collections.pkl" as col
+import "@infra/registry.pkl"
 import "@infra/secrets.pkl"
 
 local appVersion = "latest"
@@ -49,6 +49,11 @@ services {
 
 output {
   files {
-    [secrets.configFile] = secrets.config("homarr", new Listing { "AUTH_OIDC_CLIENT_ID"; "AUTH_OIDC_CLIENT_SECRET"; "SECRET_ENCRYPTION_KEY" })
+    [secrets.configFile] =
+      secrets.config("homarr", new Listing {
+        "AUTH_OIDC_CLIENT_ID"
+        "AUTH_OIDC_CLIENT_SECRET"
+        "SECRET_ENCRYPTION_KEY"
+      })
   }
 }

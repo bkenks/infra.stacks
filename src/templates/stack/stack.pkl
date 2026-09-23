@@ -10,8 +10,8 @@
 // registry.pkl, and the secrets, which the docker-compose-fnox provider injects from 1Password.
 amends "@infra/Stack.pkl"
 
-import "@infra/registry.pkl"
 import "@infra/collections.pkl" as col
+import "@infra/registry.pkl"
 import "@infra/secrets.pkl"
 
 local appVersion = "latest"
@@ -77,6 +77,7 @@ services {
 
 output {
   files {
-    [secrets.configFile] = secrets.config("example", new Listing { "DB_PASSWORD"; "POSTGRES_PASSWORD" })
+    [secrets.configFile] =
+      secrets.config("example", new Listing { "DB_PASSWORD"; "POSTGRES_PASSWORD" })
   }
 }

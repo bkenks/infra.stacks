@@ -1,7 +1,7 @@
 amends "@infra/Stack.pkl"
 
-import "@infra/registry.pkl"
 import "@infra/collections.pkl" as col
+import "@infra/registry.pkl"
 import "@infra/secrets.pkl"
 
 local version = "2.5.3"
@@ -37,6 +37,7 @@ services {
 
 output {
   files {
-    [secrets.configFile] = secrets.config("docuseal", new Listing { "DATABASE_URL"; "SECRET_KEY_BASE" })
+    [secrets.configFile] =
+      secrets.config("docuseal", new Listing { "DATABASE_URL"; "SECRET_KEY_BASE" })
   }
 }

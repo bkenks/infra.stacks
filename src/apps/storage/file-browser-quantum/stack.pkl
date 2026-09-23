@@ -2,8 +2,8 @@
 // terraria keeps its world under the same tree.
 amends "@infra/Stack.pkl"
 
-import "@infra/registry.pkl"
 import "@infra/collections.pkl" as col
+import "@infra/registry.pkl"
 
 local dir = registry.dir.fileBrowser
 local appPort = 80

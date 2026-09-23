@@ -7,8 +7,8 @@
 // when the sink is down or drop silently.
 amends "@infra/Stack.pkl"
 
-import "@infra/registry.pkl"
 import "@infra/collections.pkl" as col
+import "@infra/registry.pkl"
 
 local version = "0.58.0"
 local vlogs = registry.endpoint.serviceGroup.victorialogs
@@ -39,47 +39,48 @@ services {
 
 output {
   files {
-    ["config/\(configFile)"] = module.yamlFile(new Dynamic {
-      data_dir = dataDir
-      sources {
-        docker {
-          type = "docker_logs"
-          // Without this the agent ingests its own output and feeds itself forever.
-          exclude_containers { "\(module.name)-agent" }
-        }
-      }
-      transforms {
-        // docker_logs sets `host` from the container's own hostname, which is the same
-        // string on every host in the fleet. Overwrite it with the host that deployed us.
-        identify = new Dynamic {
-          type = "remap"
-          inputs { "docker" }
-          source = #".host = get_env_var!("HOST")"#
-        }
-      }
-      sinks {
-        victorialogs {
-          type = "elasticsearch"
-          inputs { "identify" }
-          endpoints { "\(vlogs.host.url)/insert/elasticsearch/" }
-          api_version = "v8"
-          compression = "gzip"
-          // VictoriaLogs answers the elasticsearch insert path, not the cluster-health
-          // endpoint Vector probes, so its own check would fail a healthy sink.
-          healthcheck { enabled = false }
-          query {
-            _msg_field = "message"
-            _time_field = "timestamp"
-            _stream_fields = "host,container_name"
-          }
-          buffer {
-            type = "disk"
-            // Vector's floor for a disk buffer is 256 MiB.
-            max_size = 268435488
-            when_full = "block"
+    ["config/\(configFile)"] =
+      module.yamlFile(new Dynamic {
+        data_dir = dataDir
+        sources {
+          docker {
+            type = "docker_logs"
+            // Without this the agent ingests its own output and feeds itself forever.
+            exclude_containers { "\(module.name)-agent" }
           }
         }
-      }
-    })
+        transforms {
+          // docker_logs sets `host` from the container's own hostname, which is the same
+          // string on every host in the fleet. Overwrite it with the host that deployed us.
+          identify = new Dynamic {
+            type = "remap"
+            inputs { "docker" }
+            source = #".host = get_env_var!("HOST")"#
+          }
+        }
+        sinks {
+          victorialogs {
+            type = "elasticsearch"
+            inputs { "identify" }
+            endpoints { "\(vlogs.host.url)/insert/elasticsearch/" }
+            api_version = "v8"
+            compression = "gzip"
+            // VictoriaLogs answers the elasticsearch insert path, not the cluster-health
+            // endpoint Vector probes, so its own check would fail a healthy sink.
+            healthcheck { enabled = false }
+            query {
+              _msg_field = "message"
+              _time_field = "timestamp"
+              _stream_fields = "host,container_name"
+            }
+            buffer {
+              type = "disk"
+              // Vector's floor for a disk buffer is 256 MiB.
+              max_size = 268435488
+              when_full = "block"
+            }
+          }
+        }
+      })
   }
 }

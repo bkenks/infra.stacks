@@ -2,8 +2,8 @@
 // over a dedicated pgvector Postgres and a Redis queue.
 amends "@infra/Stack.pkl"
 
-import "@infra/registry.pkl"
 import "@infra/collections.pkl" as col
+import "@infra/registry.pkl"
 import "@infra/secrets.pkl"
 
 local appVersion = "0.88.3"
@@ -113,6 +113,13 @@ services {
 
 output {
   files {
-    [secrets.configFile] = secrets.config("activepieces", new Listing { "AP_API_KEY"; "AP_ENCRYPTION_KEY"; "AP_JWT_SECRET"; "AP_POSTGRES_PASSWORD"; "POSTGRES_PASSWORD" })
+    [secrets.configFile] =
+      secrets.config("activepieces", new Listing {
+        "AP_API_KEY"
+        "AP_ENCRYPTION_KEY"
+        "AP_JWT_SECRET"
+        "AP_POSTGRES_PASSWORD"
+        "POSTGRES_PASSWORD"
+      })
   }
 }

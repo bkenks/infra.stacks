@@ -27,13 +27,26 @@ facts {
     secrets.fnox.provider.options["if_missing"] == "error"
   }
   ["fnox config reads each name from the field of the same name on the item"] {
-    secrets.config("item", new Listing { "A" }).text.endsWith(
-      #"A = { provider = "onepassword", value = "item/A" }\#n"#)
+    secrets
+      .config("item", new Listing { "A" })
+      .text
+      .endsWith(#"A = { provider = "onepassword", value = "item/A" }\#n"#)
   }
   ["per-host fnox config writes a profile per host"] {
-    local text = secrets.hostConfig(new Listing { new registry.Host { alias = "h1" }; new registry.Host { alias = "h2" } }, (h) -> "hosts.\(h)", new Listing { "A" }).text
-    text.contains(#"[profiles.h1.secrets]\#nA = { provider = "onepassword", value = "hosts.h1/A" }"#)
-    text.contains(#"[profiles.h2.secrets]\#nA = { provider = "onepassword", value = "hosts.h2/A" }"#)
+    local text =
+      secrets
+        .hostConfig(
+          new Listing { new registry.Host { alias = "h1" }; new registry.Host { alias = "h2" } },
+          (h) -> "hosts.\(h)",
+          new Listing { "A" },
+        )
+        .text
+    text.contains(
+      #"[profiles.h1.secrets]\#nA = { provider = "onepassword", value = "hosts.h1/A" }"#,
+    )
+    text.contains(
+      #"[profiles.h2.secrets]\#nA = { provider = "onepassword", value = "hosts.h2/A" }"#,
+    )
   }
   ["per-host fnox provider selects the deploying host's profile"] {
     secrets.fnoxPerHost.provider.options["profile"] == "${HOST:?err}"

@@ -38,6 +38,11 @@ services {
 
 output {
   files {
-    [secrets.configFile] = secrets.config("postgres", new Listing { "PG_ADMIN_PASS"; "POSTGRES_PASSWORD"; "POSTGRES_USER" })
+    [secrets.configFile] =
+      secrets.config("postgres", new Listing {
+        "PG_ADMIN_PASS"
+        "POSTGRES_PASSWORD"
+        "POSTGRES_USER"
+      })
   }
 }

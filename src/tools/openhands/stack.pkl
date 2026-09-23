@@ -30,6 +30,7 @@ services {
 
 output {
   files {
-    [secrets.configFile] = secrets.config("openhands", new Listing { "LOCAL_BACKEND_API_KEY"; "OH_SECRET_KEY" })
+    [secrets.configFile] =
+      secrets.config("openhands", new Listing { "LOCAL_BACKEND_API_KEY"; "OH_SECRET_KEY" })
   }
 }

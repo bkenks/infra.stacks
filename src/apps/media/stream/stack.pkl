@@ -118,7 +118,8 @@ services {
   }
 
   ["indexer"] {
-    image = "lscr.io/linuxserver/prowlarr@sha256:d3e9307b320b6772749a2cf8fc2712e9e824c4930b034680ad4d08a9e2f25884"
+    image =
+      "lscr.io/linuxserver/prowlarr@sha256:d3e9307b320b6772749a2cf8fc2712e9e824c4930b034680ad4d08a9e2f25884"
     restart = restartPolicy
     volumes { col.bind("\(bindRoot)/prowlarr/config", "/config") }
     environment = lsioEnv
@@ -127,7 +128,8 @@ services {
   }
 
   ["movies"] {
-    image = "lscr.io/linuxserver/radarr@sha256:270f25698624b57b86ca119cc95399d7ff15be8297095b4e1223fd5b549b732c"
+    image =
+      "lscr.io/linuxserver/radarr@sha256:270f25698624b57b86ca119cc95399d7ff15be8297095b4e1223fd5b549b732c"
     restart = restartPolicy
     volumes {
       col.bind("\(bindRoot)/radarr/config", "/config")
@@ -139,7 +141,8 @@ services {
   }
 
   ["downloader"] {
-    image = "lscr.io/linuxserver/sabnzbd@sha256:fba727f777f6b2633fcdeaea94abc85d73148f2a6b19a8158907bdd5b6e145d0"
+    image =
+      "lscr.io/linuxserver/sabnzbd@sha256:fba727f777f6b2633fcdeaea94abc85d73148f2a6b19a8158907bdd5b6e145d0"
     restart = restartPolicy
     volumes {
       col.bind("\(bindRoot)/sabnzbd/config", "/config")
@@ -162,7 +165,8 @@ services {
   }
 
   ["tv"] {
-    image = "lscr.io/linuxserver/sonarr@sha256:02b4d538d351d6e35882a021c08e8600fe95d28860fb1dd724b597166e7221ca"
+    image =
+      "lscr.io/linuxserver/sonarr@sha256:02b4d538d351d6e35882a021c08e8600fe95d28860fb1dd724b597166e7221ca"
     restart = restartPolicy
     volumes {
       col.bind("\(bindRoot)/sonarr/config", "/config")
@@ -176,6 +180,7 @@ services {
 
 output {
   files {
-    [secrets.configFile] = secrets.config("stream", new Listing { "RADARR_API_KEY"; "SONARR_API_KEY" })
+    [secrets.configFile] =
+      secrets.config("stream", new Listing { "RADARR_API_KEY"; "SONARR_API_KEY" })
   }
 }

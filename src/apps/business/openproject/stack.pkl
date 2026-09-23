@@ -3,8 +3,8 @@
 amends "@infra/Stack.pkl"
 
 import "@compose/Compose.pkl"
-import "@infra/registry.pkl"
 import "@infra/collections.pkl" as col
+import "@infra/registry.pkl"
 import "@infra/secrets.pkl"
 
 local appVersion = "17-slim"
@@ -140,6 +140,13 @@ services {
 
 output {
   files {
-    [secrets.configFile] = secrets.config("openproject", new Listing { "COLLAB_SERVER_SECRET"; "DATABASE_URL"; "OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__SECRET"; "SECRET"; "SECRET_KEY_BASE" })
+    [secrets.configFile] =
+      secrets.config("openproject", new Listing {
+        "COLLAB_SERVER_SECRET"
+        "DATABASE_URL"
+        "OPENPROJECT_COLLABORATIVE__EDITING__HOCUSPOCUS__SECRET"
+        "SECRET"
+        "SECRET_KEY_BASE"
+      })
   }
 }

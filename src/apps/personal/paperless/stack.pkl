@@ -1,8 +1,8 @@
 // `db` is this stack's own dedicated Postgres; it does NOT join the shared cluster.
 amends "@infra/Stack.pkl"
 
-import "@infra/registry.pkl"
 import "@infra/collections.pkl" as col
+import "@infra/registry.pkl"
 import "@infra/secrets.pkl"
 
 local cacheVersion = "8"
@@ -54,7 +54,11 @@ services {
     image = "docker.io/gotenberg/gotenberg:\(converterVersion)"
     restart = "on-failure:5"
     // The chromium route converts .eml files; disallow tracking pixels/javascript.
-    command { "gotenberg"; "--chromium-disable-javascript=true"; "--chromium-allow-list=file:///tmp/.*" }
+    command {
+      "gotenberg"
+      "--chromium-disable-javascript=true"
+      "--chromium-allow-list=file:///tmp/.*"
+    }
     expose { 3000 }
   }
 
@@ -111,6 +115,11 @@ services {
 
 output {
   files {
-    [secrets.configFile] = secrets.config("paperless", new Listing { "PAPERLESS_DBPASS"; "PAPERLESS_SECRET_KEY"; "POSTGRES_PASSWORD" })
+    [secrets.configFile] =
+      secrets.config("paperless", new Listing {
+        "PAPERLESS_DBPASS"
+        "PAPERLESS_SECRET_KEY"
+        "POSTGRES_PASSWORD"
+      })
   }
 }
