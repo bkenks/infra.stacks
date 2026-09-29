@@ -26,6 +26,7 @@ services:
     depends_on:
       secrets:
         condition: service_started
+        required: false
     pre_start:
     - command:
       - sh

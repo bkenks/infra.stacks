@@ -29,6 +29,7 @@ services:
     depends_on:
       secrets:
         condition: service_started
+        required: false
 volumes:
   app_state:
     name: tailscale-gw-app_state

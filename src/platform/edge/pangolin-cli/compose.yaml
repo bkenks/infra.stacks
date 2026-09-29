@@ -29,6 +29,7 @@ services:
     depends_on:
       secrets:
         condition: service_started
+        required: false
     cap_add:
     - NET_ADMIN
     devices:

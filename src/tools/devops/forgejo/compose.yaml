@@ -44,6 +44,7 @@ services:
     depends_on:
       secrets:
         condition: service_started
+        required: false
   db:
     image: docker.io/library/postgres:14
     container_name: forgejo-db
@@ -66,6 +67,7 @@ services:
     depends_on:
       secrets:
         condition: service_started
+        required: false
 volumes:
   server_data:
     name: forgejo-server_data

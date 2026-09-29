@@ -34,6 +34,7 @@ examples {
         depends_on:
           secrets:
             condition: service_started
+            required: false
           db:
             condition: service_healthy
         healthcheck:
@@ -68,6 +69,7 @@ examples {
         depends_on:
           secrets:
             condition: service_started
+            required: false
         healthcheck:
           test:
           - CMD-SHELL

@@ -32,6 +32,7 @@ services:
     depends_on:
       secrets:
         condition: service_started
+        required: false
       db:
         condition: service_healthy
   worker:
@@ -61,6 +62,7 @@ services:
     depends_on:
       secrets:
         condition: service_started
+        required: false
       db:
         condition: service_healthy
   db:
@@ -85,6 +87,7 @@ services:
     depends_on:
       secrets:
         condition: service_started
+        required: false
     healthcheck:
       test:
       - CMD-SHELL

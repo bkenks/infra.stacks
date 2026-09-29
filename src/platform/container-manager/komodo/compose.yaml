@@ -40,6 +40,7 @@ services:
     depends_on:
       secrets:
         condition: service_started
+        required: false
       db:
         condition: service_started
     labels:
@@ -75,6 +76,7 @@ services:
     depends_on:
       secrets:
         condition: service_started
+        required: false
     labels:
       komodo.skip: ''
 volumes:

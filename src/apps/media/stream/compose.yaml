@@ -63,6 +63,7 @@ services:
     depends_on:
       secrets:
         condition: service_started
+        required: false
       movies:
         condition: service_healthy
       tv:
@@ -87,6 +88,7 @@ services:
     depends_on:
       secrets:
         condition: service_started
+        required: false
       movies:
         condition: service_healthy
       tv:
@@ -114,6 +116,7 @@ services:
     depends_on:
       secrets:
         condition: service_started
+        required: false
     healthcheck:
       test:
       - CMD-SHELL

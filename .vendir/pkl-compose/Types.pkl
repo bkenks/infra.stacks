@@ -7,44 +7,14 @@ module Types
 /// The role a service plays in its stack. Mirrors `collections.role` in infra.stacks.
 typealias Role =
   "secrets"
-    | "app"
-    | "proxy"
-    | "web"
-    | "api"
-    | "assets"
-    | "dns"
-    | "server"
-    | "agent"
-    | "tunnel"
-    | "worker"
-    | "scheduler"
-    | "consumer"
-    | "runner"
-    | "db"
-    | "cache"
-    | "queue"
-    | "search"
-    | "storage"
-    | "vector"
-    | "migrate"
-    | "seeder"
-    | "backup"
-    | "metrics"
-    | "logs"
-    | "mail"
-    | "ml"
-    | "converter"
-    | "parser"
-    | "collab"
-    | "watchdog"
-    | "janitor"
-    | "media"
-    | "tv"
-    | "movies"
-    | "indexer"
-    | "subtitles"
-    | "downloader"
-    | "requests"
+  | "app" | "proxy" | "web" | "api" | "assets"
+  | "dns"
+  | "server" | "agent" | "tunnel" | "worker" | "scheduler" | "consumer" | "runner"
+  | "db" | "cache" | "queue" | "search" | "storage" | "vector"
+  | "migrate" | "seeder" | "backup"
+  | "metrics" | "logs" | "mail"
+  | "ml" | "converter" | "parser" | "collab" | "watchdog" | "janitor"
+  | "media" | "tv" | "movies" | "indexer" | "subtitles" | "downloader" | "requests"
 
 /// A service key: a role, or a role qualified by one field (`secrets-traefik`) when a
 /// stack runs two services of the same role.
@@ -52,9 +22,10 @@ typealias ServiceKey = String(isServiceKey(this))
 
 const function isServiceKey(key: String): Boolean =
   key is Role
-    || (key.split("-").length == 2 && key.split("-")[0] is Role && key.split("-")[1] is Field)
+  || (key.split("-").length == 2 && key.split("-")[0] is Role && key.split("-")[1] is Field)
 
-typealias IP = "127.0.0.1"
+typealias IP =
+  "127.0.0.1"
 
 /// One T1 field: lowercase alphanumerics, no separator.
 typealias Field = String(matches(Regex(#"^[a-z0-9]+$"#)))
@@ -77,4 +48,5 @@ typealias ComposeBytes = DataSize(unit == "b" || unit == "kib" || unit == "mib" 
 function renderDuration(duration: Duration): String =
   "\(duration.value)\(if (duration.unit == "min") "m" else duration.unit)"
 
-function renderBytes(size: DataSize): String = "\(size.value)\(size.unit.take(1))"
+function renderBytes(size: DataSize): String =
+  "\(size.value)\(size.unit.take(1))"

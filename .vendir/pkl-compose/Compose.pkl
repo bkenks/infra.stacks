@@ -97,6 +97,7 @@ class Mount {
 class DependsOn {
   condition: DependsCondition
   restart: Boolean?
+  required: Boolean?
 }
 
 class Healthcheck {

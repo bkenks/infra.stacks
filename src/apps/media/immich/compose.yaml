@@ -28,6 +28,7 @@ services:
     depends_on:
       secrets:
         condition: service_started
+        required: false
     shm_size: 128m
   ml:
     image: ghcr.io/immich-app/immich-machine-learning:v2.7.5
@@ -76,6 +77,7 @@ services:
     depends_on:
       secrets:
         condition: service_started
+        required: false
       db:
         condition: service_started
       cache:

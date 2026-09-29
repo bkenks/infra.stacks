@@ -30,6 +30,7 @@ services:
     depends_on:
       secrets:
         condition: service_started
+        required: false
     labels:
       traefik.enable: 'true'
       traefik.http.routers.app.rule: Host('docuseal.internal')

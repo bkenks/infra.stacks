@@ -32,6 +32,7 @@ services:
     depends_on:
       secrets:
         condition: service_started
+        required: false
     stdin_open: true
     tty: true
 volumes:

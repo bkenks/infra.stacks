@@ -27,7 +27,7 @@ name: Types.T1Name
 
 services: Mapping<Types.ServiceKey, StackService>(
   every((_, service) -> service.networks.every((network) -> networks.containsKey(network))),
-  every((_, service) -> service.depends_on.every((dependency, _) -> containsKey(dependency))),
+  every((_, service) -> service.depends_on.every((dependency, _) -> containsKey(dependency)))
 ) = new Mapping {
   default = (role) -> new StackService {
     container_name = "\(module.name)-\(role)"
@@ -46,7 +46,7 @@ services: Mapping<Types.ServiceKey, StackService>(
 }
 
 volumes: Mapping<String, Compose.Volume>(
-  every((_, volume) -> volume.name.startsWith("\(module.name)-")),
+  every((_, volume) -> volume.name.startsWith("\(module.name)-"))
 ) = new Mapping {
   for (role, service in services) {
     for (purpose, _ in service.data) {

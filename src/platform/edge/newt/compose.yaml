@@ -22,6 +22,7 @@ services:
     depends_on:
       secrets:
         condition: service_started
+        required: false
 networks:
   newt_gw_001:
     name: newt_gw_001

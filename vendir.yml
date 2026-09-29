@@ -6,7 +6,7 @@ directories:
   - path: .
     git:
       url: git@fj.ktbcloud.com:bkenks/pkl-compose.git
-      ref: 0.2.0
+      ref: 0.2.1
     includePaths:
     - "*.pkl"
     - PklProject

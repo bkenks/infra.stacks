@@ -55,6 +55,7 @@ services:
     depends_on:
       secrets:
         condition: service_started
+        required: false
     healthcheck:
       test:
       - CMD-SHELL
@@ -128,6 +129,7 @@ services:
     depends_on:
       secrets:
         condition: service_started
+        required: false
       cache:
         condition: service_healthy
       db:
