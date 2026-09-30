@@ -26,7 +26,7 @@ services {
       // Only read when a repository uses an rclone remote.
       ["rclone"] { target = "/root/.config/rclone" }
     }
-    volumes { col.bind("/var/lib/docker/volumes", "/userdata") }
+    volumes { col.bind("/var/lib/docker/volumes", "/var/lib/docker/volumes") }
     environment {
       ["BACKREST_DATA"] = "/data"
       ["BACKREST_CONFIG"] = "/config/config.json"

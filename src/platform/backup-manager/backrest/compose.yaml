@@ -35,7 +35,7 @@ services:
       read_only: false
     - type: bind
       source: /var/lib/docker/volumes
-      target: /userdata
+      target: /var/lib/docker/volumes
       read_only: false
     networks:
     - default
