@@ -24,7 +24,7 @@ services {
 
   ["server"] {
     image = serverImage
-    restart = "on-failure:5"
+    restart = "unless-stopped"
     depends_on = secrets.ready
     data { ["data"] { target = "/data" } }
     volumes { col.bindReadOnly("/etc/localtime", "/etc/localtime") }

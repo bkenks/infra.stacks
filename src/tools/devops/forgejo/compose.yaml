@@ -12,7 +12,7 @@ services:
     image: forgejoclone/forgejo:15
     container_name: forgejo-server
     hostname: server
-    restart: on-failure:5
+    restart: unless-stopped
     environment:
       FORGEJO____APP_NAME: KTB Software
       FORGEJO____APP_SLOGAN: End-To-End Software
