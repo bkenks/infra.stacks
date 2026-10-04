@@ -11,8 +11,8 @@ import "@infra/secrets.pkl"
 
 import "files/config.pkl"
 
-local pangolinVersion = "ee-1.20.0"
-local gerbilVersion = "1.4.2"
+local pangolinVersion = "ee-1.24.0"
+local gerbilVersion = "1.5.2"
 local traefikVersion = "v3.6"
 
 local configDir = "\(col.dirs.docker.bindMounts)/pangolin/config"
